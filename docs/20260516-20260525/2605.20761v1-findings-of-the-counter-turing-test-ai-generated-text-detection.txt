@@ -1,0 +1,175 @@
+Title: Findings of the Counter Turing Test: AI-Generated Text Detection
+
+URL Source: https://arxiv.org/pdf/2605.20761v1
+
+Published Time: Thu, 21 May 2026 00:37:01 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Findings of the Counter Turing Test: AI-Generated Text Detection 
+
+Rajarshi Roy 1, Gurpreet Singh 2, Ashhar Aziz 3, Shashwat Bajpai 4, Nasrin Imanpour 5,Shwetangshu Biswas 6, Kapil Wanaskar 7, Parth Patwa 8, Subhankar Ghosh 9, Shreyas Dixit 10 ,Nilesh Ranjan Pal 1, Vipula Rawte 5, Ritvik Garimella 5, Amitava Das 13 , Amit Sheth 5,Vasu Sharma 11 , Aishwarya Naresh Reganti 12 , Vinija Jain 11 and Aman Chadha 12 
+
+> 1
+
+Kalyani Government Engineering College, India 
+
+> 2
+
+IIIT Guwahati, India 
+
+> 3
+
+IIIT Delhi, India 
+
+> 4
+
+BITS Pilani Hyderabad Campus, India 
+
+> 5
+
+AI Institute, University of South Carolina, USA 
+
+> 6
+
+National Institute of Technology Silchar, India 
+
+> 7
+
+San José State University, USA 
+
+> 8
+
+University of California Los Angeles, USA 
+
+> 9
+
+Washington State University, USA 
+
+> 10
+
+Vishwakarma Institute of Information Technology, India 
+
+> 11
+
+Meta AI, USA 
+
+> 12
+
+Amazon AI, USA 
+
+> 13
+
+BITS Pilani, Goa 
+
+Abstract 
+
+The rapid proliferation of AI-generated text has introduced significant challenges in maintaining the integrity of digital content. Advanced generative models such as GPT-4, Claude 3.5, and Llama can produce highly coherent and human-like text, making it increasingly difficult to differentiate between human-written and AI-generated content. While these models have transformative applications, their misuse has raised concerns about misinformation, biased narratives, and security threats. This paper provides a comprehensive analysis of state-of-the-art AI-generated text detection techniques and evaluates their effectiveness through the Counter Turing Test (CT2) shared tasks. Task A (Binary Classification) required participants to distinguish between human-written and AI-generated text, while Task B (Model Attri-bution) focused on identifying the specific language model responsible for generating a given text. The results demonstrated high performance in binary classification, with the top system achieving an F1 score of 1.0000, but significantly lower scores in model attribution, where the best system achieved 0.9531, highlighting the increased complexity of this task. The top-performing teams leveraged fine-tuned transformer models, ensemble learning, and hybrid detection approaches, with DeBERTa-based and BART-based methods demonstrating strong results. However, the lower scores in Task B underscore the challenges of distinguishing outputs from different LLMs, necessitating further research into adversarial robustness, feature extraction, and cross-domain generalization. 
+
+Keywords 
+
+AI-Generated Text, Detection Techniques, Generative AI, Natural Language Processing 
+
+Defactify 4.0: Multimodal Fact-Checking and AI-Generated Text Detection, March 2025, Virtual Conference 
+
+$ royrajarshi0123@gmail.com (R. Roy); gurpreet.singh@email.com (G. Singh); ashhar21137@iiitd.ac.in (A. Aziz); f20213041@hyderabad.bits-pilani.ac.in (S. Bajpai); imanpour@email.sc.edu (N. Imanpour); shwetangshu.biswas@email.com (S. Biswas); kapilw25@gmail.com (K. Wanaskar); parthpatwa@g.ucla.edu (P. Patwa); subhankar.ghosh@email.com (S. Ghosh); shreyasrd31@gmail.com (S. Dixit); nileshpal530@gmail.com (N. R. Pal); vipula.rawte@email.com (V. Rawte); ritvik.garimella@email.com (R. Garimella); amitava.das2@wipro.com (A. Das); amit@sc.edu (A. Sheth); sharma.vasu55@gmail.com (V. Sharma); aish.nr@gmail.com (A. N. Reganti); hi@vinija.ai (V. Jain); hi@amanchadha.com (A. Chadha)  
+
+> ©2026 Copyright for this paper by its authors. Use permitted under Creative Commons License Attribution 4.0 International (CC BY 4.0).
+
+## 1. Introduction 
+
+Generative AI technologies such as GPT-4 [ 1 ], Claude [ 2 ], and Llama [ 3 ] have revolutionized the creation of synthetic text content. These tools leverage advanced neural architectures to produce highly coherent and contextually relevant text, enabling a wide range of applications in industries such as content creation, education, and customer service. However, the increasing accessibility of these tools has introduced significant challenges related to their potential misuse for spreading disinformation, generating spam, and manipulating public opinion [4, 5]. High-profile incidents have demonstrated the societal and economic impact of AI-generated text. For instance, fabricated news articles and social media posts created by language models have manipulated political narratives, propagated false information, and influenced public sentiment. During the 2020 U.S. presidential election, there were concerns about the use of generative AI to create fake political content, highlighting the vulnerabilities of digital ecosystems to AI-driven disinformation campaigns. Similarly, AI-generated fake scientific papers have posed challenges to academic integrity, raising questions about the reliability of published research. The exponential growth in the capabilities of language models further exacerbates the problem. Technologies like GPT-4 and Claude 3.5 have pushed the boundaries of linguistic fluency and contextual understanding, making it increasingly difficult to distinguish between AI-generated and human-written text using traditional detection methods. The proliferation of synthetic text has raised concerns among policymakers and technologists alike. A report by the European Union noted a decline in responsiveness to online disinformation notifications, reflecting the growing challenge of combating AI-enabled misinformation. Moreover, the misuse of AI-generated text extends beyond disinformation. It includes hate speech, phishing attacks, and the generation of biased or harmful narratives. For example, language models can be fine-tuned or prompted to produce content that embeds subtle biases or promotes divisive ideologies. These scenarios underscore the urgency of developing robust detection mechanisms to address the misuse of generative AI technologies. This paper focuses on advancing detection techniques for AI-generated text by analyzing the state-of-the-art methods, identifying gaps, and proposing a comprehensive framework for evaluation. Building on the insights from the Defactify workshop series [ 6], which has established itself as a leading forum for addressing challenges in multimodal fact-checking, this study aims to bridge the gap between academic research and practical applications. By addressing these challenges, we seek to contribute to the development of scalable, reliable detection systems that safeguard the integrity of digital ecosystems. 
+
+## 2. Related Work 
+
+The evolution of Large Language Models (LLMs) has necessitated robust methods for distinguishing between human and AI-generated content. This section reviews existing datasets and detection methods. 
+
+Statistical & Zero-Shot Detectors: 
+
+In recent years, researchers are exploring methods to identify intrinsic signatures of AI text without requiring labeled training data. DetectGPT [ 7 ] utilizes the negative curvature of an LLM’s log-probability surface to identify machine-generated text through probability discrepancies. Similarly, GLTR [ 8 ] offers a suite of statistical tools, such as word-rank and entropy analysis, to improve human detection rates. More recent advancements include DNA-GPT [ 9 ], which analyzes N-gram divergence during text "regeneration," and Binoculars [ 10 ], which calculates a score based on the contrast between two related language models to identify synthetic signals. 
+
+Supervised Classifiers and Architectural Evolution: 
+
+This approach involves training neural discriminators on curated data of human and AI-generated text. Early work, such as Grover [ 11 ], demonstrated that the best generators often serve as the most effective discriminators for their own outputs. Research by Ippolito et al. [ 12 ] explored how various decoding strategies (e.g., nucleus sampling) create machine-detectable cues (or statistical artifacts) even when they successfully fool human evaluators. Ghostbuster [ 13 ] utilizes a linear classifier trained on features extracted from weaker language models to perform black-box detection. Other studies have also utilized linguistic features (e.g., Linguistic Inquiry and Word Count) for authorship attribution [ 14 ]. 
+
+Adversarial Evasion and Active Defense: 
+
+As detectors evolve, so do methods to bypass them. Raidar [ 15 ] explores the robustness of detectors against adversarial manipulations via rewriting-based identification. While paraphrasing remains a significant threat to detector accuracy, research suggests that semantic retrieval and caching API outputs can act as effective defenses [ 16 ]. To provide more definitive verification, watermarking frameworks, such as the "red list" and "green list" logit biasing proposed by Kirchenbauer et al. [ 17 ], embed invisible signals into LLM outputs. Conversely, frameworks like PIFE [ 18 ] aim for perturbation-invariant feature engineering to maintain detection accuracy despite character-level or word-level attacks. 
+
+## 3. Task Details 
+
+We use the dataset provided in [ 19 ] for AI-generated text detection. The dataset included 50,000 samples across various domains, ensuring diversity in style, topic, and complexity. 
+
+3.1. Data 
+
+The dataset [ 19 ] consisted of 50,000 samples, structured to include human-written stories paired with parallel generations from six modern LLMs. Each entry was enriched with annotated metadata, detailing the source model, input prompts, and relevant linguistic features. This structure allowed for comprehensive analysis and model-specific evaluations. The LLMs are Gemma-2-9, Mistral-7B, Qwen-2-72B, LLaMA-8B, Yi-Large, GPT-4o. The dataset was divided into train, validation, and test sets with sizes 51,247 / 10,983 / 10,963, respectively. 
+
+3.2. Tasks 
+
+• Task A: Binary Classification 
+
+Participants were tasked with determining whether a given text sample was generated by AI or written by a human. 
+
+• Task B: Model Attribution 
+
+Building on Task A, this task required participants to identify the specific language model responsible for generating a given text sample. Participants were provided with AI-generated samples and tasked with predicting which LLM generated the text. 
+
+3.3. Evaluation 
+
+Performance in the competition is assessed using the F1-score . For Task A , we report the weighted F1-score , which accounts for label imbalance by averaging the F 1-scores of each class weighted by their support. For Task B , we use the macro F 1-score , which treats all classes equally by computing the unweighted mean of the per-class F 1-scores, thus emphasizing the ability to distinguish unique patterns across different model-generated outputs. 
+
+3.4. Baseline 
+
+We implement a baseline inspired by the Raidar method [ 15 ], which detects machine-generated content via rewriting. The key idea is that LLMs tend to make fewer edits when rewriting AI-generated text compared to human-written text. As illustrated in Figure 1, a fixed rewriting model (GPT-3.5-Turbo) is prompted to rewrite the input text, and the Levenshtein edit distance between the original and rewritten text is computed. The model whose rewrite yields the minimum edit distance is predicted as the generator. If all edit distances exceed a predefined threshold—chosen as the median of the maximum edit distance across training samples—the input is classified as human-written. We evaluate the baseline under three threshold strategies, as shown in Table 1. The median threshold, which matches the methodology described above, is used as the official baseline for the competition leaderboard, achieving a weighted F 1-score of 0.5300 on Task A and a macro F 1-score of 0.0504 on Task B. 
+
+Threshold Strategy Task A (weighted F 1) Task B (macro F 1)
+
+F1-optimized 0.8400 0.0863 Max edit distance 0.8457 0.0872 Median edit distance 0.5300 0.0504 
+
+Table 1 
+
+Baseline F 1-scores under different threshold strategies for the Raidar rewriting-based method. Bobby Jindal, the former Louisiana governor who last September Called Donald J. Trump a “narcissist” and an “egomaniacal madman”who had no principles, said he would vote for the presumptive Republican nominee despite his concern about his candidacy.  
+
+> Concise this for me and keep all the information
+> Gemma-2-9b
+> Former Louisiana Governor Bobby Jindal, a vocal critic of Donald J. Trump during the 2016 presidential campaign and beyond, announced in a Wall Street Journal op-ed that he will be casting his vote for the former president in the upcoming election.
+> Former Louisiana Governor Bobby Jindal, once a vocal critic of Donald J. Trump, announced in a Wall Street Journal op-ed that he will vote for the former president in the upcoming election.
+> Input: News data text Rewritten Output
+> Gemma-2-9b
+> Human
+> Despite previously calling Donald Trump a "narcissist" and "egomaniacal madman" without principles, former Louisiana Governor Bobby Jindal announced he will vote for the presumptive Republican nominee.
+
+Figure 1: Illustration of Raidar concept. Given a News data text and an LLM-generated text, the same LLM is asked to rewrite the inputs while preserving meaning. The rewriting of a human-written text undergoes more character-level edits (highlighted in red/yellow), while the rewriting of an LLM-generated text remains largely unchanged. 
+
+## 4. Participating Systems 
+
+With over 52 registrations on the competition web page, there were final leaderboard submissions from 11 teams, with 7 teams making paper submissions. The first participating team is Sarang [20 ]. They present a fine-tuned DeBERTa-based [ 21 ] approach that secured first place in both Task A and Task B. Their method involves an ensemble of DeBERTa models trained on a noisy dataset, incorporating data augmentation techniques to enhance model robustness and generalization. The Dakiet [ 22 ] team introduces a scalable framework that integrates perceptual hashing, similarity measurement, and pseudo-labeling. Their approach leverages BART [ 23 ] Large as the backbone model, achieving second place in Task A and third place in Task B. The Tesla team employs a feature-rich methodology, extracting style, language complexity, bias, subjectivity, and emotion-based features, alongside TF-IDF unigram and bigram representations. They utilize XGBoost [ 24 ] models, leading to high F1 scores and securing third place in Task A and second place in Task B. The SKDU [25 ] team explores a pipelined approach leveraging RAIDAR-inspired rewriting features and NELA toolkit content-based features for feature extraction. Their experiments highlight that NELA features outperform RAIDAR[15] features, with XGBoost proving to be the most effective classifier. The Drocks [ 26 ] team develops two neural architectures per task: an Optimized Model and a Simpler Variant. Their optimized model ranks 5th in Task A, while the simpler version secures 5th in Task B. The approach enhances a generalizable neural model with RoBERTa, BiLSTM, and E5 embeddings [ 27 ](Full Architecture). To reduce complexity, the Optimized Architecture replaces BiLSTM token-level features with stylometry. For multiclass classification, the Simple Architecture combines E5 embeddings and 11 stylometric features with a gradient boosting classifier. The AI_Blues [28 ] team adopts a fine-tuning–based strategy using both large language models and transformer encoders. They fine-tune GPT-4o-mini, LLaMA-3 8B [ 29 ], and BERT [ 30 ] for Task A and Task B, employing task-specific prompting for LLMs and supervised training for BERT. Their results demonstrate strong performance in human–AI discrimination, with GPT-4o-mini excelling in Task A, while BERT shows better performance in Task B. The Osint [ 31 ] team proposes COT_Finetuned , a dual-task framework that integrates Chain-of-Thought (CoT) [ 32 ] reasoning into supervised text classification. The approach jointly addresses AI-generated text detection and LLM identification, while producing interpretable reasoning traces. By incorporating CoT into models such as BERT, their method improves performance over standard fine-tuning and emphasizes explainability alongside accuracy. 
+
+## 5. Results                           
+
+> S.No Team Name Scores
+> 1Sarang 1.0000
+> 2Dakiet 0.9999 3Tesla 0.9962 4SKDU 0.9945 5Drocks 0.9941 6Llama_Mamba 0.9880 7AI_Blues 0.9547 8NLP_great 0.9157 9Osint 0.8982 10 Xiaoyu 0.8030 11 Rohan 0.7546 -BASELINE 0.5300 Table 2
+> Leaderboard for Task A: Classify each text document as either AI-generated or human-written.
+
+Table 2 showcases the leaderboard for Task A, where participants are ranked based on their scores. The highest score of 1.0000 is achieved by Team Sarang, followed closely by Team dakiet with a score of 0.9999. The top five participants have scores above 0.99, demonstrating strong performance in this task.                           
+
+> S.No Team Name Scores
+> 1Sarang 0.9531
+> 2Tesla 0.9218 3Dakiet 0.9082 4SKDU 0.7615 5Drocks 0.6270 6Xiaoyu 0.5696 7AI_Blues 0.4698 8Llama_Mamba 0.4551 9Rohan 0.4053 10 Osint 0.3072 11 NLP_great 0.1874 -BASELINE 0.0504 Table 3
+> Leaderboard for Task B: Given an AI-generated text, determine which specific LLM produced it.
+
+Table 3 presents the leaderboard for Task B, which has a different ranking compared to Task A. Team Sarang secures the top position with a score of 0.9531. The overall scores for Task B are lower than those in Task A, confirming that Task B is more challenging. The top three participants get comparable scores whereas the lower-ranked participants have considerably lower scores. 
+
+## 6. Conclusion 
+
+The Defactify 4.0 workshop has highlighted the urgent need for advanced methodologies to detect AI-generated text. The shared tasks demonstrated that while binary classification of AI-generated text has seen strong performance, model attribution remains a significant challenge, with lower accuracy across all participants. The top-performing systems leveraged fine-tuned transformer models, ensemble learning, and hybrid techniques, underscoring the importance of combining linguistic and feature-based detection methods. By building on the shared tasks, datasets, and evaluation frameworks discussed in this paper, we aim to inspire further innovation in this critical area. Future research should focus on improving detection robustness, enhancing adversarial resistance, and developing scalable solutions for real-world deployment. Robust detection systems are essential for safeguarding the integrity of digital ecosystems and mitigating the risks associated with generative AI technologies. 
+
+## References 
+
+[1] OpenAI. Gpt-4 technical report. OpenAI Technical Report , 2023. URL https://arxiv.org/abs/2303. 08774. [2] Anthropic. Claude ai: Conversational ai assistant. https://www.anthropic.com/claude, 2024. Accessed: 2025-01-25. [3] Hugo Touvron et al. Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971 , 2023. URL https://arxiv.org/abs/2302.13971. [4] Irene Solaiman and Miles Brundage. Release strategies and the social impacts of language models. 
+
+OpenAI Technical Report , 2019. [5] Prakhar Krishna et al. Deception in ai-generated text: Adversarial evaluation. ACL Workshop on Fact-Checking , 2023. [6] Rajarshi Roy, Gurpreet Singh, Ashhar Aziz, Shashwat Bajpai, Nasrin Imanpour, Shwetangshu Biswas, Kapil Wanaskar, Parth Patwa, Subhankar Ghosh, Shreyas Dixit, Nilesh Ranjan Pal, Vipula Rawte, Ritvik Garimella, Amitava Das, Amit Sheth, Vasu Sharma, Aishwarya Naresh Reganti, Vinija Jain, and Aman Chadha. Overview of text counter turing test: Ai generated text detection. In 
+
+proceedings of DeFactify 4: Fourth workshop on Multimodal Fact-Checking and Hate Speech Detection .CEUR, 2025. [7] Eric Mitchell, Yoonho Lee, Alexander Khazatsky, Christopher D. Manning, and Chelsea Finn. Detectgpt: Zero-shot machine-generated text detection using probability curvature, 2023. URL https://arxiv.org/abs/2301.11305. [8] Sebastian Gehrmann, Hendrik Strobelt, and Alexander M. Rush. Gltr: Statistical detection and visualization of generated text, 2019. URL https://arxiv.org/abs/1906.04043. [9] Daoan Zhang, Weitong Zhang, Yu Zhao, Jianguo Zhang, Bing He, Chenchen Qin, and Jianhua Yao. Dnagpt: A generalized pre-trained tool for versatile dna sequence analysis tasks, 2023. URL https://arxiv.org/abs/2307.05628. [10] Abhimanyu Hans, Avi Schwarzschild, Valeriia Cherepanova, Hamid Kazemi, Aniruddha Saha, Micah Goldblum, Jonas Geiping, and Tom Goldstein. Spotting llms with binoculars: Zero-shot detection of machine-generated text, 2024. URL https://arxiv.org/abs/2401.12070. [11] Rowan Zellers, Ari Holtzman, Hannah Rashkin, Yonatan Bisk, Ali Farhadi, Franziska Roesner, and Yejin Choi. Defending against neural fake news, 2020. URL https://arxiv.org/abs/1905.12616. [12] Daphne Ippolito, Daniel Duckworth, Chris Callison-Burch, and Douglas Eck. Automatic detection of generated text is easiest when humans are fooled, 2020. URL https://arxiv.org/abs/1911.00650. [13] Vivek Verma, Eve Fleisig, Nicholas Tomlin, and Dan Klein. Ghostbuster: Detecting text ghostwrit-ten by large language models, 2024. URL https://arxiv.org/abs/2305.15047. [14] Adaku Uchendu, Thai Le, Kai Shu, and Dongwon Lee. Authorship attribution for neural text generation. In Bonnie Webber, Trevor Cohn, Yulan He, and Yang Liu, editors, Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 8384–8395, Online, November 2020. Association for Computational Linguistics. doi: 10.18653/v1/2020.emnlp-main.673. URL https://aclanthology.org/2020.emnlp-main.673/. [15] Chengzhi Mao, Carl Vondrick, Hao Wang, and Junfeng Yang. Raidar: generative ai detection via rewriting, 2024. URL https://arxiv.org/abs/2401.12970. [16] Kalpesh Krishna, Yixiao Song, Marzena Karpinska, John Wieting, and Mohit Iyyer. Paraphrasing evades detectors of ai-generated text, but retrieval is an effective defense, 2023. URL https: //arxiv.org/abs/2303.13408. [17] John Kirchenbauer, Jonas Geiping, Yuxin Wen, Jonathan Katz, Ian Miers, and Tom Goldstein. A watermark for large language models, 2024. URL https://arxiv.org/abs/2301.10226. [18] Lekkala Sai Teja, Annepaka Yadagiri, Sangam Sai Anish, Siva Gopala Krishna Nuthakki, and Partha Pakray. Modeling the attack: Detecting ai-generated text by quantifying adversarial perturbations, 2025. URL https://arxiv.org/abs/2510.02319. [19] Rajarshi Roy, Nasrin Imanpour, Ashhar Aziz, Shashwat Bajpai, Gurpreet Singh, Shwetangshu Biswas, Kapil Wanaskar, Parth Patwa, Subhankar Ghosh, Shreyas Dixit, Nilesh Ranjan Pal, Vipula Rawte, Ritvik Garimella, Gaytri Jena, Amit Sheth, Vasu Sharma, Aishwarya Naresh Reganti, Vinija Jain, Aman Chadha, and Amitava Das. A comprehensive dataset for human vs. ai generated text detection, 2025. URL https://arxiv.org/abs/2510.22874. [20] Avinash Trivedi and Sangeetha Sivanesan. Sarang at defactify 4.0: Detecting ai-generated text using noised data and an ensemble of deberta models. arXiv preprint arXiv:2502.16857 , 2025. [21] Pengcheng He, Xiaodong Liu, Jianfeng Gao, and Weizhu Chen. Deberta: Decoding-enhanced bert with disentangled attention, 2021. URL https://arxiv.org/abs/2006.03654. [22] Anh-Kiet Duong and Petra Gomez-Krämer. Scalable framework for classifying ai-generated content across modalities, 2025. URL https://arxiv.org/abs/2502.00375. [23] Mike Lewis, Yinhan Liu, Naman Goyal, Marjan Ghazvininejad, Abdelrahman Mohamed, Omer Levy, Ves Stoyanov, and Luke Zettlemoyer. Bart: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension, 2019. URL https://arxiv.org/abs/ 1910.13461. [24] Tianqi Chen and Carlos Guestrin. Xgboost: A scalable tree boosting system. In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining , KDD ’16, page 785–794. ACM, August 2016. doi: 10.1145/2939672.2939785. URL http://dx.doi.org/10.1145/ 2939672.2939785. [25] Shrikant Malviya, Pablo Arnau-González, Miguel Arevalillo-Herráez, and Stamos Katsigiannis. Skdu at de-factify 4.0: Natural language features for ai-generated text-detection. arXiv preprint arXiv:2503.22338 , 2025. [26] Harika Abburi, Sanmitra Bhattacharya, Edward Bowen, and Nirmala Pudota. Ai-generated text detection: A multifaceted approach to binary and multiclass classification. arXiv preprint arXiv:2505.11550 , 2025. [27] Liang Wang, Nan Yang, Xiaolong Huang, Binxing Jiao, Linjun Yang, Daxin Jiang, Rangan Majumder, and Furu Wei. Text embeddings by weakly-supervised contrastive pre-training, 2024. URL https://arxiv.org/abs/2212.03533. [28] Chinnappa Guggilla, Budhaditya Roy, Trupti Ramdas Chavan, Abdul Rahman, and Edward Bowen. Ai generated text detection using instruction fine-tuned large language and transformer-based models. arXiv preprint arXiv:2507.05157 , 2025. [29] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. [30] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. Bert: Pre-training of deep bidirectional transformers for language understanding, 2019. URL https://arxiv.org/abs/1810.04805. [31] Shifali Agrahari and Sanasam Ranbir Singh. Tracing thought: Using chain-of-thought reasoning to identify the llm behind ai-generated text. arXiv preprint arXiv:2504.16913 , 2025. [32] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. Chain-of-thought prompting elicits reasoning in large language models, 2023. URL https://arxiv.org/abs/2201.11903.

@@ -1,0 +1,273 @@
+Title: Residual Semantic Decomposition of Word Embeddings
+
+URL Source: https://arxiv.org/pdf/2605.17482v1
+
+Published Time: Tue, 19 May 2026 01:26:34 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Residual Semantic Decomposition of Word Embeddings 
+
+Seungmin Jin 
+
+HSE University Faculty of Computer Science Moscow, Russia 
+
+sedzhin@hse.ru 
+
+Abstract 
+
+We introduce Residual Semantic Decomposi-tion (RSD), a neural additive decomposition of word embeddings that balances embedding reconstruction with relational structure preser-vation. RSD supports recursive binary decom-position: each K = 2 fit extracts a local se-mantic axis, while residuals expose informa-tion not absorbed by that axis. In manually specified paired-context diagnostics over am-biguous words, RSD separates supplied con-text anchors above shuffled-label controls, but entropy diagnostics show that ambiguous tar-gets are not uniformly high-entropy boundary points in static GloVe. We therefore treat resid-ual neighborhoods as qualitative diagnostics rather than benchmark sense predictions. 
+
+1 Introduction 
+
+Static word embeddings such as GloVe compress rich lexical information into low-dimensional vec-tors (Pennington et al., 2014). Their geometry reflects corpus co-occurrence structure, includ-ing symmetry-driven calendar and time manifolds (Karkada et al., 2026). However, this compression can obscure suppressed or polysemous meanings that remain partially encoded in the relational struc-ture of the vocabulary. Identifying which semantic axes are extracted by a decomposition, and which relations are left unexplained, remains an open di-agnostic problem. Residual-based methods such as PCA and la-tent semantic analysis reconstruct embeddings from a low-rank basis (Jolliffe, 2002; Deerwester et al., 1990); FADDIS provides an additive rela-tional precedent for decomposing affinity struc-ture (Mirkin and Nascimento, 2012). We propose 
+
+Residual Semantic Decomposition (RSD) , which optimizes embedding reconstruction and relational structure preservation in a single local decomposi-tion. We study RSD as a semantic-axis extraction procedure, and analyze residuals as diagnostic di-rections for relations not absorbed by the extracted axes. Our key observation is that reconstruction resid-uals can be semantically structured rather than ar-bitrary noise. For polysemous words like “may” (modal vs. temporal), RSD’s residual direction can retrieve words associated with the contrast con-text. Unlike multi-prototype or contextual embed-ding methods that model multiple senses directly (Reisinger and Mooney, 2010; Neelakantan et al., 2014; Peters et al., 2018), we use additive decom-position and residual directions as a post-hoc diag-nostic of what a relational decomposition extracts and what it leaves unexplained. We evaluate this behavior with paired-context di-agnostics: each ambiguous word is paired with two manually specified sense contexts, and we ask whether RSD forms a local boundary between the context anchors. RSD separates these anchors above shuffled-label controls, but target entropy shows that ambiguous words are not uniformly high-entropy boundary points in static GloVe. We therefore use residual neighborhoods as qualitative diagnostics rather than benchmark scores. Our contributions: • RSD model that extends additive fuzzy rela-tional decomposition with neural assignments and embedding reconstruction. • Recursive binary semantic-axis extraction pro-cedure based on local K = 2 RSD fits and component contrasts. • Paired-context boundary audit and residual case studies showing when local RSD axes separate manually specified contrast contexts and what residual neighborhoods remain after that separation. 
+
+> arXiv:2605.17482v1 [cs.CL] 17 May 2026
+
+2 Model 
+
+RSD decomposes a vocabulary of word embed-dings into K relational components. Let X ∈
+
+RN ×D be the embedding matrix for N words, and let A ∈ RN ×N be the cosine affinity matrix where 
+
+Aij = cos( xi, xj ). We present RSD as a neural additive decomposition model: like FADDIS, it explains relational structure through fuzzy com-ponents, but it also reconstructs the original em-bedding vectors so that residual directions can be analyzed. 
+
+2.1 RSD 
+
+RSD uses a soft assignment mechanism via an encoder MLP that maps each embedding to a K-dimensional assignment vector si ∈ RK :
+
+hi = fθ(xi),sik = softplus( hik )
+
+PKℓ=1 softplus( hiℓ ) . (1) The reconstruction and relational objectives are: 
+
+Lemb = ∥SC − X∥2 
+
+> F
+
+,
+
+Lrel = ∥SD rel S⊤ − A∥2 
+
+> F
+
+,
+
+LRSD = Lemb + λLrel .
+
+(2) where C ∈ RK×D is the basis matrix and Drel ∈
+
+RK×K is the relational matrix. For a local binary decomposition ( K = 2 ), the component contrast 
+
+d = c1 − c0 (3) is the semantic axis extracted at that node. For any local fit set G, the node-root residual for token i is 
+
+e(G) 
+
+> i
+
+= xi − ˆx(G) 
+
+> i
+
+= xi − s(G) 
+
+> i
+
+C(G). (4) We analyze this error direction as a residual diag-nostic. A union-fit residual uses G = A ∪ B and asks what remains after the supplied contrast is re-constructed; a source-fit residual uses G = A and scores the target residual against held-out contrast words from B. If a local decomposition explains the dominant axis of an ambiguous token, then a structured residual may point toward semantic relations left unexplained by that axis. 
+
+2.2 FADDIS 
+
+Mirkin and Nascimento (2012) define an additive fuzzy clustering method for affinity data. Let 
+
+U ∈ RN ×K be a fuzzy membership matrix and let α ∈ RK 
+
+> +
+
+be non-negative component weights. The affinity matrix is approximated by a diagonal additive model: 
+
+min  
+
+> U,α
+
+A − U diag( α)U⊤ 2 
+
+> F
+
+. (5) Equivalently, ˆAij = P 
+
+> k
+
+αkUik Ujk . RSD keeps this additive relational view but replaces direct membership optimization with encoder-generated assignments, adds explicit embedding reconstruc-tion, and allows a full relational matrix Drel in Eq. 2. 
+
+Residual-comparison note. This relation-only formulation does not define an embedding recon-struction residual: its native output is an affinity reconstruction, not ˆX. A post-hoc least-squares de-coder from U to X would add a new reconstruction step. We therefore restrict direct residual baselines to methods with native embedding reconstructions. 
+
+2.3 Residual Probe Setup 
+
+All residual probes use the same binary bottleneck (K = 2 ) for RSD, PCA, ICA, and SVD. PCA and ICA are fit on the source-context embedding ma-trix and reconstructed through their inverse trans-forms; SVD uses the rank-2 truncated reconstruc-tion. RSD is trained on both the source-context embedding matrix and its cosine affinity matrix. For each method we compute the target residual 
+
+e(G) 
+
+> t
+
+and score it by cosine similarity to source-context and contrast-context words. As a negative control, we also score a shuffled non-target resid-ual from the same source-context fit on the same paired-context task. 
+
+Note on stability. Seed audits over the six paired-context probes show stable anchor separa-tion but occasional low-informativeness fits, espe-cially for bank . The dominant source of variance is the narrow bottleneck (100 →2→2), which can collapse for some random seeds. We fix seed=42 for reproducibility and report seed-stability details in Appendix A. 
+
+3 Additive Semantic Axis Extraction 
+
+RSD uses local binary fits as a semantic-axis ex-traction trace. At each node, K = 2 RSD forms a component reconstruction ˆx(Gv ) 
+
+> i
+
+= si0c0 + si1c1
+
+and a local contrast d = c1 − c0. Node-root resid-ual directions e(Gv ) 
+
+> i
+
+= xi − ˆx(Gv ) 
+
+> i
+
+are retained as lateral diagnostics for information not explained by that split. Figure 1: RSD formula trace for the month-name root. The vertical branch shows the component reconstruc-tion ˆxi from two additive components, while the lateral residual branch e(G) 
+
+> iillustrates the unexplained direc-tion for “may”.
+
+Recursive trace. Given a seed object set Gv,we fit RSD with K = 2, compute the local axis dv = c1 − c0, label each side by nearest full-vocabulary words to c0 and c1, and compute normalized assignment entropy H(s)/ log 2 . We deepen the trace through component splits only when the split is confident and the node remains un-derexplained. Node-root residual directions e(Gv )
+
+> i
+
+are inspected as lateral probes rather than new tree nodes. We audit this procedure on a controlled vocabu-lary of 12 month embeddings, using GloVe (Pen-nington et al., 2014) (100-dim, Wikipedia 2014 + Gigaword 5). Figure 1 shows the reconstruction for-mula and the lateral residual branch for may . The month example is representative of the algorithmic trace; quantitative evidence against cherry-picking is provided by the paired-context evaluation in Sec-tion 4. 
+
+3.1 Component Axis and Residual Annotation 
+
+The root axis separates a broad modal/functional direction from a temporal/contextual direction; its nearest component words are can, melamine, do, could, you versus year, month, until, since, after . We use normalized assignment entropy 
+
+H(s)/ log K as a split-confidence diagnostic; the root entropy is 0.070, so the assignment is sharp. The result is not presented as a clean taxonomy be-cause corpus-specific neighbors such as melamine 
+
+appear. 
+
+3.2 Residual Direction of “may” 
+
+The root residual of “may” retrieves tend, neces-sarily, seem, sometimes, often . This does not imply that can is assigned to two disjoint senses; it shows that a residual probe can preserve a sharper token-specific modal direction after the broader compo-nent axis has explained the dominant relational structure. Table 1 reports the same root-residual sampling rule for each paired-context target: fit RSD once on the union of the two contexts, compute the target residual, and retrieve its nearest full-vocabulary neighbors. 
+
+4 Boundary and Residual Diagnostics 
+
+We use the six manually specified paired contexts in Table 1. These probes ask whether a local K = 2 
+
+RSD fit separates supplied context anchors; they are not a word-sense benchmark. RSD reaches mean anchor AUC 1.000 on the main GloVe-100 probes, versus 0.498 for shuffled labels. A ran-dom ambiguous audit from a declared candidate pool (seed=42, 12 targets) gives mean anchor AUC 0.807 versus 0.500 shuffled, with weak cases in-cluding draft , bark , cell , and mouse . Entropy is cautionary: only may has positive target entropy gap in the main audit, and the random sample mean is −0.219 . Across seeds 0–9, bank collapses under the informativeness threshold in 40% of runs and 
+
+seal reaches minimum AUC 0.714. Thus boundary scores indicate supplied-contrast separability, not automatic sense discovery. We report these baselines only to test whether residual scoring depends on RSD rather than any low-rank reconstruction. Root residual neighborhoods remain qualitative: may retrieves tend/necessarily/seem, while weak cases such as 
+
+bank and spring stay near banking or shape/place-name neighborhoods. RSD residuals are therefore diagnostic traces, not direct sense predictions. 
+
+5 Related Work 
+
+Linear and co-occurrence geometry. Classical dimensionality reduction methods, including la-tent semantic analysis and PCA/SVD (Deerwester et al., 1990; Jolliffe, 2002), reconstruct embed-dings from low-dimensional linear structure. Re-cent theory shows that symmetries in pairwise co-occurrence statistics can explain calendar, temporal, and geographic manifolds in word embeddings and language-model representations (Karkada et al., 2026). These works describe global geometry; RSD instead locally preserves pairwise relational structure and inspects residual directions as diag-nostics. 
+
+ICA for embeddings. Independent component analysis (Hyvärinen and Oja, 2000) optimizes sta-Target Context A anchors Context B anchors Target root residual top words                  
+
+> may can, could, might, would, should january, february, march, april, june tend, necessarily, seem, sometimes, often march january, february, april, may, june walk, parade, stride, step, procession rally, street, square, demonstration, streets fall spring, summer, autumn, winter drop, descend, decrease, decline, plum-met down, fallen, fell, wall, slipping spring summer, autumn, fall, winter coil, bounce, elastic, mechanism cone, mound, formation, springs, forming bank money, credit, account, deposit, loan river, shore, stream, coast, lake hsbc, dresdner, ubs, citibank, suisse seal stamp, close, secure, enclose, mark seals, otter, whale, dolphin, penguin sealing, sealed, stamped, remove, nail
+
+Table 1: Paired-context diagnostics with up to five non-target context anchors and target residual neighborhoods from the root RSD fit on the union of both contexts. Full anchor lists and per-task diagnostics are reported in Appendix A. 
+
+Model Margin Pairwise AUC 
+
+RSD 0.639 0.948 
+
+SVD 0.490 0.880 PCA 0.291 0.778 ICA 0.291 0.778 
+
+Table 2: Baseline comparison for source-fit residual scoring. Margin is the mean centroid margin; Pairwise AUC is the probability that held-out contrast anchors outrank source anchors by residual similarity. Higher values are better, but this is a diagnostic comparison, not a benchmark. 
+
+tistical independence rather than relational struc-ture preservation. We include ICA to test whether independent latent factors produce residual direc-tions comparable to relational decomposition. 
+
+Fuzzy relational decomposition. FADDIS de-composes an affinity matrix as an additive combina-tion of fuzzy components (Mirkin and Nascimento, 2012). RSD keeps this relational perspective but adds embedding reconstruction, which makes resid-ual directions directly available for semantic prob-ing. 
+
+Polysemy and contextual meaning. Word-sense induction and multi-prototype embeddings represent ambiguous words with multiple induced senses (Schütze, 1998; Reisinger and Mooney, 2010; Neelakantan et al., 2014; Navigli, 2009). Contextual embedding models represent token meaning in context (Peters et al., 2018). We instead study a narrower diagnostic question: whether residual directions retrieve contrast-associated neighborhoods after relational decomposition of static embeddings. 
+
+6 Conclusion 
+
+We introduced Residual Semantic Decomposition (RSD), a local decomposition model that balances embedding reconstruction with relational structure preservation. Across paired-context and random ambiguous diagnostics, RSD separates supplied or declared-pool anchors above shuffled controls, while residual neighborhoods provide qualitative traces of information not captured by the domi-nant component axis. Future work should improve seed stability, replace declared pools with external benchmarks or corpus-derived contrasts, and vali-date residual traces against downstream semantic tasks. 
+
+Limitations 
+
+The experiments are controlled diagnostics, not a full benchmark of word-sense induction. The paired-context tasks are manually constructed and small; anchor AUC values show that supplied con-text sets are separable by a local RSD axis, not that RSD discovers senses without user-specified contrasts. The random ambiguous audit broadens the probe set, but it is drawn from a declared candi-date pool and is not an external benchmark. RSD is also sensitive to random seed initialization due to the narrow encoder bottleneck (2-layer MLP, 100 →2→2). The recursive trace is not a complete semantic graph over the embedding space: component splits deepen local axis decomposition, while residual di-rections widen local annotations, but the procedure does not close over all pairwise relations or guar-antee global consistency. Residual neighborhoods should therefore be read as qualitative diagnostic support, not exact lexical retrieval benchmarks. 
+
+References 
+
+Scott Deerwester, Susan T. Dumais, George W. Furnas, Thomas K. Landauer, and Richard Harshman. 1990. Indexing by latent semantic analysis. Journal of the American Society for Information Science , 41(6):391– 407. Aapo Hyvärinen and Erkki Oja. 2000. Independent component analysis: Algorithms and applications. 
+
+Neural Networks , 13(4–5):411–430. Ian T. Jolliffe. 2002. Principal Component Analysis ,second edition. Springer. Dhruva Karkada, Daniel J. Korchinski, Andres Nava, Matthieu Wyart, and Yasaman Bahri. 2026. Sym-metry in language statistics shapes the geometry of model representations. Preprint , arXiv:2602.15029. Boris Mirkin and Susana Nascimento. 2012. Additive spectral method for fuzzy cluster analysis of similar-ity data including community structure and affinity matrices. Information Sciences , 183:16–34. Roberto Navigli. 2009. Word sense disambiguation. 
+
+ACM Computing Surveys , 41(2):10:1–10:69. Arvind Neelakantan, Jeevan Shankar, Alexandre Pas-sos, and Andrew McCallum. 2014. Efficient non-parametric estimation of multiple embeddings per word in vector space. In Proceedings of the 2014 Conference on Empirical Methods in Natural Lan-guage Processing , pages 1059–1069. Jeffrey Pennington, Richard Socher, and Christopher D. Manning. 2014. GloVe: Global vectors for word rep-resentation. In Proceedings of the 2014 Conference on Empirical Methods in Natural Language Process-ing , pages 1532–1543. Matthew E. Peters, Mark Neumann, Mohit Iyyer, Matt Gardner, Christopher Clark, Kenton Lee, and Luke Zettlemoyer. 2018. Deep contextualized word repre-sentations. In Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 2227–2237. Joseph Reisinger and Raymond J. Mooney. 2010. Multi-prototype vector-space models of word meaning. In Proceedings of Human Language Technologies: The 2010 Annual Conference of the North Ameri-can Chapter of the Association for Computational Linguistics , pages 109–117. Hinrich Schütze. 1998. Automatic word sense discrimi-nation. Computational Linguistics , 24(1):97–123. A Supplementary RSD Diagnostics 
+
+A.1 Full Paired-Context Anchors 
+
+Table 3 lists the complete manually specified an-chor sets used in the local boundary audit. The target word is included in both context lists for fitting but excluded from anchor AUC scoring. 
+
+A.2 Boundary Diagnostics 
+
+Table 4 reports the GloVe-100 local boundary audit. Anchor AUC is computed over non-target anchors after orienting bi = si1 − si0 so Context B has larger mean score. 
+
+A.3 Random Ambiguous Audit 
+
+The random ambiguous audit is drawn from a de-clared candidate pool rather than WordNet or an-other external resource. The pool is: bat, bark, bass, cell, charge, club, crane, draft, jam, match, mouse, organ, palm, pitch, plane, port, ring, scale, sentence, yard. The seed=42 sample is cell, bat, jam, draft, ring, bass, organ, bark, mouse, scale, palm, crane. 
+
+A.4 Seed Stability Audit 
+
+Table 6 repeats the six main boundary audits over seeds 0–9. Anchor separation is stable, but assign-ment informativeness can collapse for some seeds; we mark a collapse when informativeness is below 0.02. 
+
+A.5 Root Residual Neighborhoods 
+
+Table 7 shows RSD root residual neighborhoods. For each target, RSD is fit once on the union of the two context-anchor sets, and the table reports nearest full-vocabulary words to e(A∪B) 
+
+> t
+
+. These are qualitative diagnostics, not exact lexical retrieval scores. 
+
+A.6 May Three-Step Trace 
+
+Table 8 gives a compact may three-step trace from the residual-branch sampler. This is included to make the diagnostic procedure auditable; it is not a complete semantic graph. 
+
+A.7 Embedding Robustness 
+
+The multi-embedding audit repeats the same six paired-context tasks over GloVe 50/100/200/300 and fastText 300d. Mean anchor AUCs are 1.000, 1.000, 1.000, 0.939, and 0.887 respectively, while shuffled-label means remain near chance (0.498– 0.500). GloVe-300 and fastText have much lower assignment informativeness, so robustness should be read as above-shuffle anchor separation rather than uniformly sharp decomposition. Target Context anchors                   
+
+> may A: can, could, might, would, should, may, must, possibly, perhaps, maybe
+> B: january, february, march, april, may, june, july, august, september, october, november, december march A: january, february, march, april, may, june, july, august, september, october, november, december
+> B: walk, parade, stride, step, procession, march fall A: spring, summer, autumn, fall, winter
+> B: drop, descend, decrease, decline, plummet, fall spring A: spring, summer, autumn, fall, winter
+> B: coil, bounce, elastic, mechanism, spring bank A: bank, money, credit, account, deposit, loan, financial, investment, savings
+> B: river, shore, stream, coast, lake, bank, water, shoreline, embankment seal A: stamp, close, secure, seal, enclose, mark
+> B: seal, seals, otter, whale, dolphin, penguin, marine, turtle
+
+Table 3: Full paired-context anchors. 
+
+Task AUC Shuffle ∆Ht Emb. err. 
+
+may 1.000 0.494 0.050 0.332 march 1.000 0.494 -0.223 0.396 fall 1.000 0.501 -0.360 0.607 spring 1.000 0.497 -0.401 0.585 bank 1.000 0.502 -0.236 0.671 seal 1.000 0.499 -0.291 0.780 
+
+Table 4: Boundary diagnostics for the main GloVe-100 audit. ∆Ht is target entropy minus mean anchor en-tropy. 
+
+Task AUC Shuffle ∆Ht Info. 
+
+cell 0.562 0.489 -0.429 0.041 bat 0.812 0.510 -0.404 0.064 jam 1.000 0.497 -0.080 0.032 draft 0.438 0.500 -0.013 0.033 ring 1.000 0.496 -0.155 0.014 bass 1.000 0.503 -0.383 0.039 organ 1.000 0.501 -0.288 0.050 bark 0.438 0.507 -0.188 0.031 mouse 0.625 0.496 -0.480 0.017 scale 0.875 0.505 0.040 0.024 palm 0.938 0.497 -0.089 0.039 crane 1.000 0.495 -0.160 0.015 Mean 0.807 0.500 -0.219 0.033 
+
+Table 5: Random ambiguous audit over a fixed seed=42 sample from the declared candidate pool. 
+
+Task Mean AUC Min AUC Collapse rate 
+
+may 1.000 1.000 0.000 march 1.000 1.000 0.000 fall 0.970 0.900 0.000 spring 1.000 1.000 0.000 bank 0.989 0.938 0.400 seal 0.966 0.714 0.000 
+
+Table 6: Seed stability audit for RSD boundary metrics over seeds 0–9. Task Top root residual words 
+
+may tend, necessarily, seem, sometimes, often march rally, street, square, demonstration, streets fall down, fallen, fell, wall, slipping spring cone, mound, formation, springs, forming bank hsbc, dresdner, ubs, citibank, suisse seal sealing, sealed, stamped, remove, nail 
+
+Table 7: RSD root residual neighborhoods, including weak cases.            
+
+> Step Node Component 0 words Component 1 words
+> 1months root; may residual words: tend, seem, can, necessarily, might can, melamine, do, could, you year, month, until, since, after 2seem, tend, can, necessarily, might do, you, they, we, could melamine, ink, ote, taxonomy, tinto 3part, same, this, next, new be, an, its, the, that tinto, bhp, billiton, uranium, contract
+
+Table 8: Compact RSD residual-branch trace used for the may diagnostic.

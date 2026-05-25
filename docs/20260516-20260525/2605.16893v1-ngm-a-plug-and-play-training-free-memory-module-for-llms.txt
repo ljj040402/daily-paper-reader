@@ -1,0 +1,451 @@
+Title: NGM: A Plug-and-Play Training-Free Memory Module for LLMs
+
+URL Source: https://arxiv.org/pdf/2605.16893v1
+
+Published Time: Tue, 19 May 2026 00:41:57 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# NGM: A Plug-and-Play Training-Free Memory Module for LLMs 
+
+Yuwen Qu *
+
+Nanjing University 
+
+yuwenqu@smail.nju.edu.cn 
+
+Wenhui Dong *
+
+Nanjing University 
+
+wenhui.dong@smail.nju.edu.cn 
+
+Chenyang Si 
+
+Nanjing University 
+
+chenyang.si@nju.edu.cn 
+
+Caifeng Shan †
+
+Nanjing University 
+
+cfshan@nju.edu.cn 
+
+## Abstract 
+
+Recent studies introduce conditional memory modules that decouple knowledge storage from neural computation, enabling more direct knowledge access. Com-pared to MoE, which relies on dynamic computation paths, explicit lookup pro-vides a more efficient knowledge retrieval mechanism. However, these approaches still depend on learned memory embeddings, requiring additional training and limiting flexibility. To address this, we propose N-gram Memory (NGM) , a training-free, plug-and-play module composed of a Causal N-Gram Encoder and a Cosine-Gated Memory Injector . The Causal N-Gram Encoder directly aver-ages the pretrained token embeddings of the backbone model to construct N-gram representations, thereby eliminating the need to train separate N-gram embeddings from scratch. This design requires neither an additional memory table nor a re-trieval pipeline. The Cosine-Gated Memory Injector then uses a non-parametric cosine gate with ReLU to modulate the retrieved embeddings into the contextual representations. We evaluate NGM on the Qwen3 series from 0.6B to 14B across eight benchmarks. NGM improves average performance by 0.5 to 1.2 points, with particularly clear gains on code generation and knowledge-intensive tasks (e.g., +3.0 on LiveCodeBench and +3.03 on GPQA for Qwen3-14B). Moreover, NGM also improves performance in multimodal benchmarks (e.g., MMStar +1.53 on Qwen3-VL-2B). Code is available at https://github.com/PioneerQyw/NGM .
+
+## 1 Introduction 
+
+Transformer-based large language models (LLMs) [39] provide strong contextual modeling and se-mantic reasoning, yet language modeling combines two qualitatively different demands: dynamic compositional computation and the reuse of local, static, and stereotyped patterns [15, 10]. Named entities, repeated identifiers, units, terminology, and formulaic phrases often behave less like prob-lems requiring deep reasoning and more like patterns that could be recovered through inexpensive lookup [4, 29, 33]. However, standard Transformers lack a native knowledge lookup primitive for such local lexical and symbolic dependencies, forcing LLMs to reconstruct them through attention and feed-forward computation at inference time [40, 8]. Lookup-style memory provides a natural way to separate static pattern reuse from dynamic Trans-former computation [24, 40]. Recent work has explored this direction by introducing explicit learned memory components: Engram [8] formulates conditional memory with learned N -gram lookup ta-bles and context-dependent gating, while embedding-scaling methods expand capacity through addi-tional token-level or N -gram embedding parameters [42, 38, 28, 12]. These approaches demonstrate 
+
+> *Equal contribution.
+> †Corresponding authors. Preprint.
+> arXiv:2605.16893v1 [cs.AI] 16 May 2026
+
+that local lookup is a useful axis for improving language models, but they obtain this benefit through additional trainable parameters, dedicated training, and in some cases specialized storage or retrieval infrastructure. This motivates our central research question: 
+
+Can already-trained LLMs recover useful local-memory benefits without retraining or adding learned memory tables? 
+
+A typical lookup-style memory pipeline first constructs trained N -gram embeddings, retrieves a sparse subset of relevant memory entries, and then fuses the retrieved memory with hidden states through context-aware gating. The first obstacle in this pipeline is the need to train a separate N -gram embedding space. We instead ask whether the backbone’s already-trained token embeddings can be reused directly: by averaging pretrained token embeddings within a local causal window, we obtain N -gram features without introducing any new memory table. This simple construction is useful only if the aggregated N-gram features remain compatible with the model’s hidden states. As shown in Figure 1, N-gram embeddings align more strongly with Qwen3-8B hidden states than both position-shuffled N-gram controls and random-token controls across depth. At the two default injection layers, the actual mean cosine similarities are 0.312 and 0.137, compared with 0.172 and 0.084 for shuffled controls and 0.014 and 0.008 for random controls. This suggests that non-parametrically aggregated N-gram embeddings can be directly fused with hidden states through a training-free cosine gate. 0 5 10 15 20 25 30 35   
+
+> Layer Index
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> Mean Cosine Similarity
+> L1 L14
+> Actual vs Control Alignment
+> Actual N-gram
+> Position-shuffled
+> Random-token
+> L1 L14
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> 0.30
+> 0.35
+> Mean Cosine Similarity
+> Default Injection Layers
+
+Figure 1: Alignment between hidden states and aggerating N -gram embedding in the Qwen3-8B model. Motivated by this view, we propose NGM (N-gram Memory) , a training-free, plug-and-play mod-ule that injects local N -gram signals into frozen decoder-only LLMs. The key idea is to treat the pre-trained embedding space not only as an input interface, but also as a lightweight source of reusable local memory: if nearby tokens form stable lexical, symbolic, or phrase-level patterns, their aggre-gated embeddings may provide a useful cue that the decoder can reuse instead of reconstructing entirely through deeper Transformer computation. As shown in Figure 2, NGM realizes this idea through two non-parametric components: a Causal N-gram Encoder and a Cosine-Gated Mem-ory Injector . Given an input sequence, the Causal N-gram Encoder constructs causal multi-scale 
+
+N -gram representations by aggregating the backbone’s pretrained token embeddings within local trailing windows, thereby capturing local patterns at different granularities without learning separate memory entries. The Cosine-Gated Memory Injector then compares these input-derived N -gram rep-resentations with decoder hidden states using a ReLU-filtered cosine gate and writes the resulting memory update through a scaled residual connection, so that only positively aligned local-memory signals are injected. This design is meaningful from both practical and analytical perspectives. In practice, it can be attached to already-trained LLMs without additional parameters, external knowl-edge sources, or retrieval infrastructure. From an analytical perspective, it provides a controlled way to test whether pretrained embedding spaces already contain exploitable local-memory structure that can improve generation. We evaluate NGM on Qwen3 models ranging from 0.6B to 14B across eight benchmarks covering mathematics, code, knowledge, and alignment. Across all tested scales, NGM consistently improves the average score by +0.5 to +1.2 points, with the most pronounced gains observed on code gener-ation and several knowledge-intensive benchmarks, such as +3.0 on LiveCodeBench and +3.03 on GPQA for Qwen3-14B. In addition, we extend our method to multimodal tasks. Results on Qwen3-2VL-2B show that applying NGM only to the language decoder improves all reported benchmarks, demonstrating a certain degree of generality of our approach. 
+
+## 2 Related work 
+
+Conditional memory and embedding scaling. Classical N -gram models capture short-range statistics through fixed-order Markov assumptions [25, 7], and the insight that local lexical pat-terns carry strong predictive structure remains relevant in the neural era [32, 2]. Mixture-of-Experts (MoE) models scale capacity through conditional computation [36, 16]; conditional memory ex-plores a complementary sparsity axis based on lookup. Recently, a wave of work has revived this intuition as embedding scaling , treating N -gram or token-level embedding tables as a dedicated pa-rameter axis for expanding model capacity. SCONE [42] trains an auxiliary transformer to produce contextualized N -gram embeddings but relies on an auxiliary encoding model that introduces addi-tional training FLOPs; L 3 [38] generalizes tokenizer embedding tables to decoder layers via static routing, yet requires learned per-layer aggregation matrices and CPU-offloaded storage; LongCat-Flash-Lite [28] scales hash-based N -gram embeddings beyond 30B parameters, demanding large-scale distributed training and hash-table infrastructure; and MeKi [12] injects token-level memory experts re-parameterized into static lookup tables, which still requires a dedicated training phase to learn the memory bank. Most closely related is Engram [8], which formalizes conditional memory 
+
+via hashed N -gram lookup with context-aware gating and a sparsity allocation framework, scaling to 27B parameters with algorithm-system co-design for deep-layer injection. A related line aug-ments language models with non-parametric datastores or retrieval over hidden states and external corpora [24, 40, 19, 3]; by contrast, NGM reuses the backbone embedding matrix directly and does not build a datastore or retrieval index. All of these approaches share a common requirement: train-ing dedicated embedding parameters and, in most cases, specialized infrastructure for storage and retrieval. NGM revisits the same intuition under a stricter constraint—it constructs causal multi-scale N -gram representations directly from the backbone’s existing token embeddings at inference time, requiring no additional training, no external memory tables, and no specialized infrastructure. 
+
+Residual stream alignment. Work on Transformer interpretability has characterized the resid-ual stream as a shared linear workspace for successive computation [14]. The logit lens [34] and follow-up probes [11] show that intermediate hidden states remain partially projectable into vo-cabulary space via the unembedding matrix (the language-modeling head). For models with tied embeddings this directly implies alignment with the input embedding layer; for models with un-tied embeddings (including the Qwen3 family used here), the implication is indirect. Our residual alignment argument therefore adopts a weaker, empirically grounded premise: hidden states retain enough geometric compatibility with the input embedding space for cosine similarity to serve as a useful training-free gating signal. We validate this premise in §4.5, where cosine similarity between hidden states and input-derived N-gram embeddings significantly exceeds both shuffled and random controls. 
+
+## 3 Methodology Vocab Embedding    
+
+> Transformer Block
+> 2-Gram Embedding 3-Gram Embedding
+> Concat Stacking
+> Avg Pool Avg Pool
+> Cosine Similarity
+> Hidden State
+> Ngram Memory
+> Transformer Block
+> Input IDs
+> ReLu out scale
+
+Figure 2: Overview of NGM. The Causal N-gram Encoder constructs multi-scale N -gram represen-tations from the backbone’s token embeddings; the Cosine-Gated Memory Injector scores them against decoder hidden states and injects the ag-gregated residual into selected layers. As illustrated in Figure 2, NGM is a training-free memory module that derives local mem-ory signals directly from the backbone model’s token embedding matrix and injects them into frozen decoder representations through a non-parametric cosine gate. The module contains two components. The Causal N-gram Encoder 
+
+constructs multi-scale local memory vectors from the input sequence using only the pre-trained token embeddings, while the Cosine-Gated Memory Injector measures their simi-larity to decoder hidden states and integrates the resulting memory update into the backbone through a residual connection. Thus, the en-coder specifies what local information is avail-3able as memory, and the injector determines when this information should influence the decoder. Algorithm 1 summarizes the overall procedure. In the inference setting considered in this work, all backbone parameters remain frozen, and the only additional computation is induced by the current input sequence and a small set of predefined N-gram sizes. 
+
+3.1 Causal N-gram Encoder 
+
+The first component of NGM is a Causal N-gram Encoder, which converts the input prefix into multi-scale local memory vectors using only the backbone model’s token embedding matrix. Let the input token IDs be X = {x1, . . . , x T } and the backbone token embedding matrix be E ∈ RV ×d. Token embeddings are et = E[xt] ∈ Rd. For each n ∈ N (e.g., {2, 3}), we first left-pad the embedding sequence with (n − 1) zero vectors to form ˜et:
+
+˜et =
+
+{0 if 2 − n ≤ t ≤ 0,
+
+et if 1 ≤ t ≤ T. (1) We then define a causal N-gram representation at position t by average pooling over a trailing window of n tokens on the padded sequence: 
+
+gt,n = 1
+
+n
+
+> n−1
+
+∑
+
+> k=0
+
+˜et−k. (2) This uses a bag-of-embeddings approximation: the arithmetic mean can capture local patterns at different granularities without learning separate memory entries. The resulting representation is in-tentionally order-insensitive within the window and is not intended to recover full phrase semantics; rather, it provides a simple local summary that can be computed without additional parameters. The left-padding keeps the output length unchanged and ensures causality (position t depends only on tokens ≤ t. For multiple window sizes, we stack the per-size vectors into a matrix: 
+
+Gt = [gt,n 
+
+] 
+
+> n∈N
+
+∈ R|N |× d, (3) which is then consumed by the injector (§3.2). In implementation, the left-padding and causal average pooling are realized with F.pad followed by 1D average pooling with kernel size n and stride 1, which is fully parallelizable. 
+
+Algorithm 1 NGM: N-gram Memory ( Causal N-gram Encoder + Cosine-Gated Memory Injector )                                                                                          
+
+> Require: Token IDs X={x1, . . . , x T}; hidden states Hl={hlt}Lt=1 ; backbone token embedding matrix E∈RV×d;N-gram sizes N; output scale λ; boolean use_relu.
+> Ensure: Updated hidden states Hl′
+> ={hl′
+> t}Lt=1 .
+> % — Causal N-gram Encoder (Eqs. 1–4) —
+> 1: G←CAUSAL NGRAM ENCODER (X,E,N)T−L+1: T▷G∈RL×|N |× d, aligned to last Lpositions
+> % — Cosine-Gated Memory Injector —
+> 2: ˆHl←L2Norm (Hl)▷Row-wise ℓ2normalization; ˆHl∈RL×d
+> 3: ˆG←L2Norm (G)▷Normalize along d;ˆG∈RL×|N |× d
+> 4: St,n ←∑
+> jˆHlt,j ˆGt,n,j ▷Position-wise cosine similarity; S∈RL×|N |
+> 5: if use_relu then
+> 6: S←max( 0,S)▷Suppress negatively aligned entries 7: end if
+> 8: Mt,j ←∑
+> nSt,n Gt,n,j ▷Gated weighted sum over N-gram scales; M∈RL×d
+> 9: Hl′
+> ←Hl+λM▷Scaled residual injection 10: return Hl′
+
+3.2 Cosine-Gated Memory Injector 
+
+The second component is a Cosine-Gated Memory Injector, which measures compatibility between hidden states and the encoded local memory, then injects the resulting update through a residual path. Given the decoder hidden state hlt ∈ Rd at layer l and position t, we compute a cosine similarity score with each gt,n :
+
+st,n = cos( hlt, gt,n ) = ⟨hlt, gt,n ⟩∥hlt∥∥ gt,n ∥ . (4) 4Optionally, we apply ReLU to suppress negatively aligned updates: 
+
+˜st,n = max(0 , s t,n ). (5) The aggregated N -gram embeddings gt,n serve as context-local memory priors derived from the pretrained embedding space. However, being constructed without additional training, these memory vectors should only be injected when they are compatible with the current decoder state. Moti-vated by our empirical finding that aggregated N -gram embeddings are geometrically aligned with Qwen3-8B hidden states, we use the layer-l hidden state hlt as a context-dependent query and mea-sure its cosine similarity with each memory vector gt,n . This training-free gate relies on the observed compatibility between the two representation spaces, enabling useful local memory signals to be se-lected and written back through a residual connection without learned projections, external retrieval, or additional parameters. 
+
+Residual update and KV-cache compatibility. Let ˜st = [˜ st,n ]n∈N ∈ R|N | collect the gated scores. We aggregate across N-gram scales and inject the resulting memory signal through a residual connection: 
+
+hl′ 
+
+> t
+
+= hlt + λ ˜s⊤ 
+
+> t
+
+Gt, (6) where λ is a scalar output scale that controls the magnitude of the injected update and Gt is defined in Eq. (3). During autoregressive generation with KV cache, only the last L hidden states are computed at each decoding step. We construct N-gram embeddings from the full input ID prefix and slice the last L positions to align with the currently available hidden states, preserving causal consistency under cached decoding. 
+
+Complexity Analysis. We further analyze the computational overhead of NGM. During the prefill 
+
+phase, the full input sequence is processed in a single forward pass. For sequence length T , hidden dimension d, and N-gram size set N , NGM adds causal pooling and position-wise cosine scoring, both of which scale linearly with T and d. Thus, the prefill complexity is O(T |N | d). During autore-gressive decoding , the N-gram representation at position t depends only on the most recent max( N )
+
+token embeddings. By caching these embeddings and updating gt,n incrementally, a streaming im-plementation reduces the per-step complexity to O(|N | d), which is independent of the prefix length 
+
+T . Therefore, NGM incurs only linear overhead in prefill and constant overhead per decoding step. 
+
+Layer integration. We insert the injector after the MLP block in selected decoder layers, specified by their layer IDs. This placement keeps the self-attention and feed-forward parameters unchanged, while allowing the injected signal to act on contextualized hidden representations. The insertion layer IDs are treated as hyperparameters rather than learnable components. Following the layer-selection strategy of Engram [8], we inject memory into a small set of early and middle layers, where residual-alignment signals are empirically strongest. We report the default layer placements for different models in Appendix Table 7. In the inference setting considered in this work, all backbone parameters remain unchanged. NGM introduces no new trainable weights and can be enabled or disabled at inference time for compatible checkpoints. 
+
+## 4 Experiments 
+
+4.1 Experimental setup Setup. We evaluate NGM on the Qwen3 family [41], one of the most widely used open-source model families, covering five model scales: 0.6B, 1.7B, 4B, 8B, and 14B. We choose Qwen3 because it provides a consistent and publicly available series across a broad range of parameter sizes, making it well suited for controlled scaling analysis. Other open-source model families, such as Llama [18], DeepSeek [27], and Mistral [23], are less suitable for this particular setting because their publicly available checkpoints differ more substantially in release policy, model coverage, scale granularity, or evaluation comparability. For each checkpoint, we compare the original model with the same model augmented by NGM, without updating the backbone weights. Unless stated otherwise, we use N = {2, 3} and enable ReLU gating. For each backbone, we keep a fixed output scale and a fixed set of insertion layers across tasks; these model-specific settings are listed in Appendix Table 7. All evaluations use EvalScope [37]; unless a benchmark requires task-specific settings, the baseline and NGM share identical decoding parameters, with temperature = 0 .7, top-p = 0 .8, and top-k = 20 .5Benchmarks. We report results on eight benchmarks spanning math, code, knowledge, and align-ment: GSM8K [9], MATH500 [21], HumanEval [6], LiveCodeBench v5 [22], MMLU-Redux [20, 17], GPQA-Diamond [35], IFEval [strict-prompt; 43], and TruthfulQA [MC2; 26]. Unless noted otherwise, we follow standard benchmark protocols; for MMLU-Redux, we use a context length of 4096. 
+
+4.2 Main results 
+
+Table 1: Main results across five Qwen3 scales (0.6B–14B). LCB = LiveCodeBench v5, MMLU-R = MMLU-Redux, GPQA = GPQA-Diamond, IFEval = IFEval (strict-prompt), and TQA = TruthfulQA (MC2). Each model is evaluated with and without NGM under identical decoding settings. Best result within each model size is bold .                                                                                                                   
+
+> Math Code Knowledge Alignment Overall Model GSM8K MATH500 HumanEval LCB MMLU-R GPQA IFEval TQA Avg ∆Avg
+> Qwen3-0.6B 46.55 51.4 35.37 5.39 46.12 26.77 58.78 14.81 35.65 –+NGM 48.14 49.8 37.2 7.78 46.33 29.29 57.86 18.48 36.86 +1.21
+> Qwen3-1.7B 75.51 71.4 60.37 9.58 66.37 32.83 68.95 52.39 54.68 –+NGM 76.04 74.0 62.2 11.38 66.40 31.31 67.47 52.51 55.16 +0.48
+> Qwen3-4B 87.26 84.0 80.49 17.96 79.61 43.43 80.22 35.25 63.53 –+NGM 87.34 83.8 81.1 19.16 79.25 46.46 80.41 35.37 64.11 +0.58
+> Qwen3-8B 88.40 83.0 85.37 22.16 80.65 51.01 84.10 76.13 71.35 –+NGM 89.08 84.4 86.59 24.55 81.26 51.52 83.55 76.38 72.17 +0.81
+> Qwen3-14B 91.66 85.4 88.41 26.95 84.88 48.99 86.14 77.72 73.77 –+NGM 91.74 87.0 88.41 29.94 85.30 52.02 83.92 77.60 74.49 +0.72
+
+Table 1 summarizes the main results. Across the five tested model scales, NGM improves the average score in every case (+1.2, +0.5, +0.6, +0.8, and +0.7 from 0.6B to 14B) while adding no new trainable parameters. The clearest pattern appears on code benchmarks: LiveCodeBench improves at every tested scale, and HumanEval improves or matches the baseline at all scales. Beyond code, the gains are positive but less uniform. GSM8K improves at all tested scales, and GPQA improves at four of five scales, whereas MATH500 and MMLU-Redux are more mixed. Alignment-oriented tasks show a similar split. TruthfulQA improves at most scales, while IFEval often degrades. One plausible explanation is that NGM is training-free and relies on a fixed, non-learned residual injection. As a result, the added local-pattern signal can sometimes interfere with instruction-sensitive control behavior instead of reinforcing it. Even so, the broader gains are ob-tained without introducing additional trainable parameters or external knowledge, supporting the effectiveness of the core NGM mechanism itself. Overall, these results are consistent with the view that NGM is most useful when short-range pattern stability matters, rather than as a uniform im-provement for all tasks. As discussed in §3.2, the additional overhead remains linear in prefix length and hidden size and does not change the asymptotic attention pattern. 
+
+4.3 Extension to multimodal models 
+
+Table 2: Preliminary multimodal results on Qwen3-VL-2B-Instruct. MMBench = MM-Bench_DEV_EN_V11 [30], MMStar [5], OCRBench [31] (scored out of 1000), TQA = TruthfulQA (MC2) [26], and MMLU-R = MMLU-Redux [17]. NGM is applied only to the language decoder; the visual encoder is unchanged. 
+
+Model MMBench MMStar OCRBench TQA MMLU-R 
+
+Qwen3-VL-2B 76.32 54.67 826 52.26 67.79 +NGM 76.63 56.20 829 52.63 67.82 
+
+To test whether NGM transfers beyond text-only LLMs, we apply NGM to Qwen3-VL-2B-Instruct [1], leaving the visual encoder and vision-language fusion modules unchanged. The N-gram operates exclusively on text token embeddings; vision tokens are excluded from the sliding-window pooling so that the local memory signal remains purely linguistic. Using VLMEvalKit [13] under identical decoding settings, NGM improves or matches the baseline on all five multimodal and text 6benchmarks, with the largest gain on MMStar (+1.53; Table 2). This single-scale result suggests that the same training-free local-memory mechanism can transfer to multimodal models without architectural changes, but we leave comprehensive multimodal evaluation to future work. 
+
+4.4 Ablation studies 
+
+We study the sensitivity of NGM on Qwen3-8B by varying one component at a time from the default configuration. Unless noted otherwise, the default uses N = {2, 3}, λ = 0 .1, ReLU gating, stack fusion, and layers {1, 14 } (0-based layer IDs). Table 3: Effect of N -gram sizes on Qwen3-8B. HE = HumanEval, LCB = LiveCodeBench v5, MMLU-R = MMLU-Redux, GPQA = GPQA-Diamond, IFEval = IFEval (strict-prompt), TQA = TruthfulQA (MC2). Default: N = {2, 3}. Other settings: λ = 0 .1, ReLU, stack fusion, layers 
+
+{1, 14 } (0-based layer IDs).                                                                   
+
+> NGSM8K MATH HE LCB MMLU-R GPQA IFEval TQA Avg
+> Base 88.40 83.0 85.37 22.16 80.65 51.01 84.10 76.13 71.35
+> {2}88.40 82.2 84.76 22.75 80.79 47.47 84.10 76.25 70.84
+> {3}88.32 83.8 85.98 19.76 81.37 52.02 83.18 76.38 71.35
+> {4}89.16 85.0 85.98 20.36 80.98 47.98 82.07 76.62 71.02
+> {2,3,4}89.46 83.2 87.20 22.16 81.49 47.47 83.55 76.38 71.36
+> {2,3}89.08 84.4 86.59 24.55 81.26 51.52 83.55 76.38 72.17
+
+N -gram sizes. Table 3 compares different combinations of N -gram window sizes. Single-scale variants help on some tasks, but multi-scale settings perform better on average. The default choice 
+
+{2, 3} gives the strongest average result, while adding n = 4 improves a few individual tasks without improving overall robustness. Table 4: Effect of ReLU gating on Qwen3-8B. Default: w/ ReLU. Other settings: N = {2, 3},
+
+λ = 0 .1, stack fusion, layers {1, 14 } (0-based layer IDs).                                     
+
+> Gating GSM8K MATH HE LCB MMLU-R GPQA IFEval TQA Avg
+> Base 88.40 83.0 85.37 22.16 80.65 51.01 84.10 76.13 71.35 w/o ReLU 88.93 83.8 85.37 19.16 81.33 46.46 81.89 76.13 70.38 w/ ReLU 89.08 84.4 86.59 24.55 81.26 51.52 83.55 76.38 72.17
+
+ReLU gating. Table 4 compares ReLU-filtered gating (default) with raw cosine gating. ReLU is important for stable gains: removing it lowers the average score from 72.17 to 70.38, with the largest drop on LiveCodeBench. This is consistent with the view that suppressing anti-aligned updates helps avoid harmful residual injections. Table 5: Effect of fusion mode on Qwen3-8B. Default: stack. Other settings: N = {2, 3}, λ = 0 .1,ReLU gating, layers {1, 14 } (0-based layer IDs).                                     
+
+> Fusion GSM8K MATH HE LCB MMLU-R GPQA IFEval TQA Avg
+> Base 88.40 83.0 85.37 22.16 80.65 51.01 84.10 76.13 71.35 concat 88.02 84.2 86.59 23.95 81.12 45.96 82.62 76.13 71.07 stack 89.08 84.4 86.59 24.55 81.26 51.52 83.55 76.38 72.17
+
+Fusion mode: stack vs. concat. In the default stack mode, each scale n has its own cosine gate and the residual update is ∑ 
+
+> n
+
+˜st,n gt,n . In concat mode, per-scale embeddings are concatenated into [gt,n ]n∈N ∈ R|N | d; the hidden state is tiled |N | times to match this dimensionality, a single scalar gate is computed via cosine similarity in the joint space, and the gate scales the mean em-bedding 1
+
+> |N |
+
+∑ 
+
+> n
+
+gt,n . Table 5 shows that stack outperforms concat on average (72.17 vs. 71.07): independent per-scale gating is more flexible than collapsing all scales into one gating decision. 7Table 6: Effect of Compressed Tokenizer on Qwen3-8B. Default: w/o CompTok. Other settings: 
+
+N = {2, 3}, λ = 0 .1, ReLU gating, stack fusion, layers {1, 14 } (0-based layer IDs). 
+
+CompTok GSM8K MATH HE LCB MMLU-R GPQA IFEval TQA Avg 
+
+Base 88.40 83.0 85.37 22.16 80.65 51.01 84.10 76.13 71.35 w/ CompTok 88.63 83.4 87.20 23.35 81.23 48.99 82.62 76.38 71.48 w/o CompTok 89.08 84.4 86.59 24.55 81.26 51.52 83.55 76.38 72.17 
+
+Compressed Tokenizer. Table 6 tests whether applying the Engram-style Compressed Tok-enizer [8]—which maps subword tokens with the same normalized surface form to a shared ID before embedding lookup—benefits NGM’s N -gram construction. It yields task-specific gains, most notably on HumanEval, but does not improve the average score relative to the default. We therefore keep the standard tokenizer as the default configuration. Taken together, these ablations indicate that multi-scale construction and ReLU-filtered gating are the most important contributors in the default setup, while stack fusion is a more reliable default than concat and the Compressed Tokenizer remains task-dependent. 
+
+4.5 Mechanistic analysis 
+
+We examine two mechanistic questions: whether the cosine gate reflects meaningful aligned struc-ture rather than a generic embedding prior, and whether the resulting interactions are local in posi-tion. 
+
+Interactions are predominantly local. We next examine the full cross-position matrix cos( hi, gj )
+
+on the same model (Figure 3). Across representative code, math, and knowledge samples, the diag-onal mean consistently exceeds the off-diagonal mean, with diagonal/off-diagonal ratios of 1.27 ×–2.42 × at the injected layers. The pattern is strongest for the knowledge sample and remains clear for code, indicating that the most useful memory signal is concentrated near the aligned position rather than uniformly distributed across the sequence. Layer 1      
+
+> hi
+> Code Math Knowledge
+> gj
+> Layer 14
+> hi
+> gjgj
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> Cosine Similarity
+> Locality of NGM Alignment: Average cos( hi,gj)
+
+Figure 3: Cross-position locality of NGM interactions in the default Qwen3-8B-NGM model. Heatmaps show the average cross-position cosine matrix cos( hi, gj ) at the two default injection layers for representative code, math, and knowledge samples. The diagonal structure dominates, indicating that useful memory interactions are predominantly local. 
+
+Implication for the default gate. Together, these results support the default design. Since align-ment remains well above shuffled and random controls, raw cosine similarity is informative without a learned projection. Since the interaction pattern is diagonal-dominant, the token-wise gate captures most of the useful signal while preserving linear-time cost. This interpretation is consistent with the strongest gains in Table 1, especially on tasks where short-range pattern stability matters. Combined 8with our intentionally restrictive evaluation setting—fixed backbone weights, no additional trainable parameters, and no external knowledge—this also yields a relatively controlled comparison in which the observed gains can be attributed more directly to the core NGM mechanism. These mechanistic findings provide empirical support for the residual-alignment intuition that motivates NGM, though they do not constitute a formal proof. 
+
+4.6 Wall-clock overhead 
+
+We measure prefill and decode latency for Qwen3-8B with and without NGM on a single RTX 5090 (batch size 1, bfloat16 , prompt lengths 128–2048, 20 runs; Figure 4). Overhead is re-ported as the relative latency increase over the original Qwen3-8B baseline, i.e., (latency N GM −
+
+latency base )/latency base .250 500 750 1000 1250 1500 1750 2000         
+
+> Prompt length
+> 0
+> 50
+> 100
+> 150
+> 200
+> Prefill latency (ms)
+> Prefill latency
+> 250 500 750 1000 1250 1500 1750 2000
+> Prompt length
+> 0
+> 5
+> 10
+> 15
+> 20
+> Decode latency (ms/token)
+> Decode latency
+> Qwen3-8B vs Qwen3-8B-NGM Wall-Clock Overhead
+> Qwen3-8B Qwen3-8B-NGM
+
+Figure 4: Prefill and per-token decode latency for Qwen3-8B vs. Qwen3-8B-NGM on a single RTX 5090 (mean ± std over 20 runs). The gap widens at 2048 tokens because the current implementation recomputes N-gram features over the full prefix. For 256–1024-token prompts, prefill overhead is 3.4–7.3% and decode overhead 1.9–2.3%; at 2048 tokens the figures rise to 16.0% and 9.9%, respectively. These numbers reflect the released code path, which recomputes N-gram features over the full prefix; a streaming cache would reduce the cost to O(|N | d) per step. 
+
+## 5 Conclusion 
+
+We presented NGM, a training-free N-gram memory module that constructs causal multi-scale 
+
+N -gram representations from the backbone’s own token embeddings and injects them via a non-parametric cosine gate, adding no trainable parameters. Across Qwen3 models from 0.6B to 14B, NGM improves average performance by +0.5 to +1.2 points, with the strongest gains on code gen-eration. The mixed task-wise results point to the limits of a fixed injection rule; future work should explore lightly parameterized or task-adaptive variants. 
+
+## 6 Limitations 
+
+NGM has three main limitations. First, the causal N-gram encoder uses a bag-of-embeddings ap-proximation (§3), making it order-insensitive; it may therefore mishandle order-sensitive or non-compositional phrases and inject misleading signals in such cases. Second, the cosine gate and the model-specific fixed scale λ are heuristics rather than context-adaptive learned components, and as reflected in the mixed task-wise results, this training-free injection rule does not suit all tasks or generation styles equally well. Third, NGM reinforces short-range regularities but does not re-trieve external knowledge or directly address long-range reasoning; it should therefore be viewed as complementary to long-context mechanisms and retrieval-based systems [3]. 9References 
+
+[1] Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, Wei Ding, Chang Gao, Chunjiang Ge, et al. Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 , 2025. [2] Piotr Bojanowski, Edouard Grave, Armand Joulin, and Tomas Mikolov. Enriching word vec-tors with subword information. Transactions of the association for computational linguistics ,5:135–146, 2017. [3] Sebastian Borgeaud, Arthur Mensch, Jordan Hoffmann, Trevor Cai, Eliza Rutherford, Katie Millican, George Bm Van Den Driessche, Jean-Baptiste Lespiau, Bogdan Damoc, Aidan Clark, et al. Improving language models by retrieving from trillions of tokens. In International conference on machine learning , pages 2206–2240. PMLR, 2022. [4] Thorsten Brants, Ashok Popat, Peng Xu, Franz Josef Och, and Jeffrey Dean. Large language models in machine translation. In Proceedings of the 2007 Joint Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning (EMNLP-CoNLL) , pages 858–867, 2007. [5] Lin Chen, Jinsong Li, Xiaoyi Dong, Pan Zhang, Yuhang Zang, Zehui Chen, Haodong Duan, Jiaqi Wang, Yu Qiao, Dahua Lin, et al. Are we on the right way for evaluating large vision-language models? Advances in Neural Information Processing Systems , 37:27056–27087, 2024. [6] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde De Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374 , 2021. [7] Stanley F Chen and Joshua Goodman. An empirical study of smoothing techniques for lan-guage modeling. Computer Speech & Language , 13(4):359–394, 1999. [8] Xin Cheng, Wangding Zeng, Damai Dai, Qinyu Chen, Bingxuan Wang, Zhenda Xie, Kezhao Huang, Xingkai Yu, Zhewen Hao, Yukun Li, et al. Conditional memory via scalable lookup: A new axis of sparsity for large language models. arXiv preprint arXiv:2601.07372 , 2026. [9] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. Training verifiers to solve math word problems. arXiv preprint arXiv:2110.14168 , 2021. [10] Matthieu Constant, Gül¸ sen Eryi˘ git, Johanna Monti, Lonneke Van Der Plas, Carlos Ramisch, Michael Rosner, and Amalia Todirascu. Survey: multiword expression processing: a survey. 
+
+Computational Linguistics , 43(4):837–892, 2017. [11] Alexander Yom Din, Taelin Karidi, Leshem Choshen, and Mor Geva. Jump to conclusions: Short-cutting transformers with linear transformations. In Proceedings of the 2024 Joint In-ternational Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024) , pages 9615–9625, 2024. [12] Ning Ding, Fangcheng Liu, Kyungrae Kim, Linji Hao, Kyeng-Hun Lee, Hyeonmok Ko, and Yehui Tang. Meki: Memory-based expert knowledge injection for efficient llm scaling. arXiv preprint arXiv:2602.03359 , 2026. URL https://arxiv.org/abs/2602.03359 .[13] Haodong Duan, Junming Yang, Yuxuan Qiao, Xinyu Fang, Lin Chen, Yuan Liu, Xiaoyi Dong, Yuhang Zang, Pan Zhang, Jiaqi Wang, et al. Vlmevalkit: An open-source toolkit for evaluating large multi-modality models. In Proceedings of the 32nd ACM International Conference on Multimedia , pages 11198–11201, 2024. [14] Nelson Elhage, Neel Nanda, Catherine Olsson, Tom Henighan, Nicholas Joseph, Ben Mann, Amanda Askell, Yuntao Bai, Anna Chen, Tom Conerly, et al. A mathematical framework for transformer circuits. Transformer Circuits Thread , 1(1):12, 2021. [15] Britt Erman. The idiom principle and the open choice principle. Text-Interdisciplinary Journal for the Study of Discourse , 2000. 10 [16] William Fedus, Barret Zoph, and Noam Shazeer. Switch transformers: Scaling to trillion parameter models with simple and efficient sparsity. Journal of Machine Learning Research ,23(120):1–39, 2022. [17] Aryo Pradipta Gema, Joshua Ong Jun Leang, Giwon Hong, Alessio Devoto, Alberto Carlo Maria Mancino, Rohit Saxena, Xuanli He, Yu Zhao, Xiaotang Du, Mohammad Reza Ghasemi Madani, et al. Are we done with mmlu? In Proceedings of the 2025 Confer-ence of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , pages 5069–5096, 2025. [18] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. [19] Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Mingwei Chang. Retrieval aug-mented language model pre-training. In International conference on machine learning , pages 3929–3938. PMLR, 2020. [20] Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. Measuring massive multitask language understanding. arXiv preprint arXiv:2009.03300 , 2020. [21] Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song, and Jacob Steinhardt. Measuring mathematical problem solving with the math dataset. 
+
+arXiv preprint arXiv:2103.03874 , 2021. [22] Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fanjia Yan, Tianjun Zhang, Sida Wang, Ar-mando Solar-Lezama, Koushik Sen, and Ion Stoica. Livecodebench: Holistic and contami-nation free evaluation of large language models for code. arXiv preprint arXiv:2403.07974 ,2024. [23] Albert Qiaochu Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, Deven-dra Singh Chaplot, Diego de Las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lam-ple, Lucile Saulnier, Lélio Renard Lavaud, Marie-Anne Lachaux, Pierre Stock, Teven Le Scao, Thibaut Lavril, Thomas Wang, Timothée Lacroix, and William El Sayed. Mistral 7b. ArXiv , abs/2310.06825, 2023. URL https://api.semanticscholar.org/CorpusID: 263830494 .[24] Urvashi Khandelwal, Omer Levy, Dan Jurafsky, Luke Zettlemoyer, and Mike Lewis. Gen-eralization through memorization: Nearest neighbor language models. arXiv preprint arXiv:1911.00172 , 2019. [25] Reinhard Kneser and Hermann Ney. Improved backing-off for m-gram language modeling. In 
+
+1995 international conference on acoustics, speech, and signal processing , volume 1, pages 181–184. IEEE, 1995. [26] Stephanie Lin, Jacob Hilton, and Owain Evans. Truthfulqa: Measuring how models mimic human falsehoods. In Proceedings of the 60th annual meeting of the association for computa-tional linguistics (volume 1: long papers) , pages 3214–3252, 2022. [27] Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Chenggang Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, et al. Deepseek-v3 technical report. arXiv preprint arXiv:2412.19437 , 2024. [28] Hong Liu, Jiaqi Zhang, Chao Wang, Xing Hu, Linkun Lyu, Jiaqi Sun, Xurui Yang, Bo Wang, Fengcun Li, Yulei Qian, Lingtong Si, Yerui Sun, Rumei Li, Peng Pei, Yuchen Xie, and Xunliang Cai. Scaling embeddings outperforms scaling experts in language mod-els. ArXiv , abs/2601.21204, 2026. URL https://api.semanticscholar.org/CorpusID: 285140484 .[29] Jiacheng Liu, Sewon Min, Luke Zettlemoyer, Yejin Choi, and Hannaneh Hajishirzi. Infini-gram: Scaling unbounded n-gram language models to a trillion tokens. arXiv preprint arXiv:2401.17377 , 2024. 11 [30] Yuan Liu, Haodong Duan, Yuanhan Zhang, Bo Li, Songyang Zhang, Wangbo Zhao, Yike Yuan, Jiaqi Wang, Conghui He, Ziwei Liu, et al. Mmbench: Is your multi-modal model an all-around player? In European conference on computer vision , pages 216–233. Springer, 2024. [31] Yuliang Liu, Zhang Li, Mingxin Huang, Biao Yang, Wenwen Yu, Chunyuan Li, Xu-Cheng Yin, Cheng-Lin Liu, Lianwen Jin, and Xiang Bai. Ocrbench: on the hidden mystery of ocr in large multimodal models. Science China Information Sciences , 67(12):220102, 2024. [32] Graham Neubig and Chris Dyer. Generalizing and hybridizing count-based and neural lan-guage models. In Proceedings of the 2016 Conference on Empirical Methods in Natural Lan-guage Processing , pages 1163–1172, 2016. [33] Timothy Nguyen. Understanding transformers via n-gram statistics. Advances in neural infor-mation processing systems , 37:98049–98082, 2024. [34] nostalgebraist. interpreting GPT: the logit lens. https://www.lesswrong.com/posts/ AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens , 2020. [35] David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe Pang, Julien Dirani, Julian Michael, and Samuel R Bowman. Gpqa: A graduate-level google-proof q&a benchmark. In First conference on language modeling , 2024. [36] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. Outrageously large neural networks: The sparsely-gated mixture-of-experts layer. arXiv preprint arXiv:1701.06538 , 2017. [37] ModelScope Team. EvalScope: Evaluation framework for large models, 2024. URL https: //github.com/modelscope/evalscope .[38] Albert Tseng and Christopher De Sa. L3: Large lookup layers. arXiv preprint arXiv:2601.21461 , 2026. [39] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems , 30, 2017. [40] Yuhuai Wu, Markus N Rabe, DeLesley Hutchins, and Christian Szegedy. Memorizing trans-formers. arXiv preprint arXiv:2203.08913 , 2022. [41] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. [42] Da Yu, Edith Cohen, Badih Ghazi, Yangsibo Huang, Pritish Kamath, Ravi Kumar, Daogao Liu, and Chiyuan Zhang. Scaling embedding layers in language models. ArXiv , abs/2502.01637, 2025. URL https://api.semanticscholar.org/CorpusID:276106917 .[43] Jeffrey Zhou, Tianjian Lu, Swaroop Mishra, Siddhartha Brahma, Sujoy Basu, Yi Luan, Denny Zhou, and Le Hou. Instruction-following evaluation for large language models. arXiv preprint arXiv:2311.07911 , 2023. 12 A NGM implementation 
+
+Listing 1 gives a simplified PyTorch implementation of NGM.                  
+
+> def ngm_forward(hidden_states, input_ids, embed_matrix, ngram_sizes, output_scale, use_relu): """ hidden_states: [B, L, D] (layer-l hidden states) input_ids: [B, T] (full input token ids) embed_matrix: Embedding (token embeddings from backbone model) """ B, L, D = hidden_states.shape T = input_ids.shape[1]
+> # Step 1: causal n-gram construction
+> token_emb = embed_matrix(input_ids) # [B, T, D]
+> ngram_list = []
+> for nin ngram_sizes: padded = F.pad(token_emb, (0, 0, n-1, 0)) pooled = F.avg_pool1d( padded.transpose(1, 2), kernel_size=n, stride=1 ).transpose(1, 2) # [B, T, D]
+> ngram_list.append(pooled) ngram_emb = torch.stack(ngram_list, dim=2) # [B, T, N, D] # Step 2: KV-cache alignment
+> ngram_emb = ngram_emb[:, -L:, :, :] # [B, L, N, D] # Step 3: cosine gating
+> h_norm = F.normalize(hidden_states, dim=-1) # [B, L, D]
+> g_norm = F.normalize(ngram_emb, dim=-1) # [B, L, N, D]
+> sim = torch.einsum(’bld,blnd->bln’, h_norm, g_norm)
+> if use_relu: sim = F.relu(sim)
+> # Step 4: residual injection
+> out = torch.einsum(’bln,blnd->bld’, sim, ngram_emb)
+> return hidden_states + output_scale * out
+
+Listing 1: NGM core implementation (simplified). 
+
+A.1 Model-specific NGM settings 
+
+Unless noted otherwise, all reported models use N = {2, 3} and ReLU gating. Table 7 lists the model-specific insertion layers, backbone depth, and output scales used for the converted Qwen3-NGM checkpoints. We report inserted decoder layers in 1-based numbering for readability. Table 7: Model-specific NGM settings for the converted Qwen3 checkpoints used in the experi-ments. 
+
+Model Backbone layers Inserted decoder layers Output scale 
+
+Qwen3-14B-NGM 40 2, 20 0.1 Qwen3-8B-NGM 36 2, 15 0.1 Qwen3-4B-NGM 36 2, 15 0.2 Qwen3-1.7B-NGM 28 2, 15 0.15 Qwen3-0.6B-NGM 28 2, 15 0.1 
+
+Our layer choices are heuristic but not arbitrary. They were informed by Engram’s layer-sensitivity analysis [8], which argues that memory injection should balance two considerations: placing mem-ory early enough to offload local pattern reconstruction before the backbone expends much depth, and placing memory late enough that the hidden state used for gating is already meaningfully con-textualized. Guided by this trade-off, we place one NGM module near the bottom of the network (the 2nd decoder layer in all models) and a second module at a deeper layer. For Qwen3 models up to 8B parameters, we use the 15th decoder layer; for the deeper 14B model, we move the second 13 insertion to the 20th decoder layer. These settings were chosen with reference to Engram, the depth of each Qwen3 backbone, and the default configurations used in our experiments, and should be interpreted as practical defaults rather than universally optimal placements. 
+
+## B Case studies: NGM vs. base model on GSM8K 
+
+We present three representative examples from the GSM8K benchmark where Qwen3-8B-NGM produces the correct answer while the base Qwen3-8B model fails. Each case highlights a different failure mode that NGM helps mitigate. 
+
+> Case 1: Arithmetic error correction
+
+Question. In a candy machine, there are 22 more than four times the number of pink gum-balls as there are blue gumballs. If there are 12 blue gumballs, how many pink ones are there? Gold answer: 70 
+
+Base model (Qwen3-8B) 7
+
+The number of pink gumballs is 22 more than four times the number of blue gumballs. Given that there are 12 blue gumballs, we calculate: 
+
+4 × 12 = 28 (arithmetic error) 
+
+28 + 22 = 50 
+
+ANSWER: 50 
+
+Qwen3-8B-NGM 3
+
+The number of pink gumballs is 22 more than four times the number of blue gum-balls. There are 12 blue gumballs. 
+
+4 × 12 = 48 (correct) 
+
+48 + 22 = 70 
+
+ANSWER: 70 
+
+Analysis. The base model produces an incorrect intermediate product ( 4 × 12 = 28 ), causing the final answer to be wrong. NGM maintains correct arithmetic in the short-range computa-tion chain. 
+
+> Case 2: Semantic misinterpretation
+
+Question. Finn watches 11 tadpoles swimming in the pond. Suddenly he sees 6 of them come out of hiding from under a lily pad, then he sees 2 of them hide under a rock. How many tadpoles can Finn see in the pond now? Gold answer: 15 
+
+Base model (Qwen3-8B) 7
+
+Finn initially sees 11 tadpoles. Then, 6 come out of hiding from under a lily pad. After that, 2 hide under a rock. Ignores the 6 newcomers: 
+
+11 − 2 = 9 
+
+ANSWER: 9 
+
+Qwen3-8B-NGM 3
+
+Finn initially watches 11 tadpoles. Then, 6 come out of hiding → visible count increases by 6. Next, 2 hide under a rock → visible count decreases by 2. 
+
+11 + 6 − 2 = 15 
+
+ANSWER: 15 
+
+Analysis. The base model misinterprets “come out of hiding” and ignores the additional 6 tadpoles, computing only 11 −2. NGM correctly accumulates all quantity changes mentioned in the prompt. 14 Case 3: Reading comprehension error 
+
+Question. Three friends spent $20.25 on 3 tickets to the fair. They also spent $4.50 less on food than on the tickets. They also went on 2 different rides which cost $33 for each ride. If they agreed to split all the costs evenly, how much did each of them pay? Gold answer: 34 
+
+Base model (Qwen3-8B) 7
+
+Misreads $20.25 as per-ticket price: Tickets: 3 × $20 .25 = $60 .75 
+
+Food: $60 .75 − $4 .50 = $56 .25 
+
+Rides: 2 × $33 = $66 
+
+Total: $60 .75 + $56 .25 + $66 = $183 
+
+Each: $183 ÷ 3 = $61 
+
+ANSWER: 61 
+
+Qwen3-8B-NGM 3
+
+Tickets: $20.25 (total for 3) Food: $20 .25 − $4 .50 = $15 .75 
+
+Rides: 2 × $33 = $66 
+
+Total: $20 .25 + $15 .75 + $66 = $102 
+
+Each: $102 ÷ 3 = $34 
+
+ANSWER: 34 
+
+Analysis. The base model misreads “spent $20.25 on 3 tickets” as $20.25 per ticket , inflat-ing all downstream totals. NGM correctly interprets $20.25 as the total ticket expenditure, preserving local textual coherence across the reasoning chain. 
+
+15

@@ -1,0 +1,4776 @@
+Title: A Fourier perspective on the learning dynamics of neural networks: from sample complexities to mechanistic insights
+
+URL Source: https://arxiv.org/pdf/2605.16913v1
+
+Published Time: Tue, 19 May 2026 00:50:42 GMT
+
+Number of Pages: 44
+
+Markdown Content:
+# A Fourier perspective on the learning dynamics of neural networks: from sample complexities to mechanistic insights 
+
+Fabiola Ricci, Claudia Merger and Sebastian Goldt ∗
+
+International School of Advanced Studies (SISSA), Trieste, Italy 
+
+19th May 2026 
+
+Abstract 
+
+Neural networks trained with gradient-based methods exhibit a strong simplicity bias: they learn simpler statistical features of their data before moving to more complex features. Previous analyses of this phenomenon have largely focused on settings with (quasi-)isotropic inputs. In this work, we study the simplicity bias from a Fourier perspective, which allows us to include two key features of natural images in the analysis: approximate translation-invariance and power-law spectra. We first show experimentally that simple neural networks trained on image classification tasks first rely on amplitude information – related to pair-wise correlations between pixels – before exploiting phase information, which encodes edges and higher-order correlations. In view of this, we introduce a synthetic data model for translation-invariant inputs that allows precise control over amplitudes and phases while remaining tractable. We rigorously establish that for isotropic and high-dimensional inputs, classification based on phase information alone is a genuinely hard task: online stochastic gradient descent (SGD) cannot distinguish the structured inputs from noise within n ≪ N 3 steps, but needs at least n ≫ N 3 log 2 N steps. In contrast, we show both experimentally and theoretically that power-law spectra can dramatically accelerate the speed of learning phase information, even if the spectra do not help with classification. Simulations with two-layer networks trained on textures and with deep convolutional networks on ImageNet and CIFAR100 confirm this non-trivial interaction between amplitudes and phases, providing mechanistic insights into how deep neural networks can learn natural image distributions efficiently. 
+
+# 1 Introduction 
+
+A universal theme in the learning dynamics of neural networks trained with gradient-based methods are simplicity biases : for example, neural networks reliably learn simpler statistical features of their data before moving to more complex features, both in image classification [1–3] and in next-token prediction [4–7]. A rigorous characterisation of these biases is essential to understand how neural networks can learn “natural” data distributions like text and images efficiently, and which features they learn from their data. From a theoretical point of view, simplicity biases were first analysed in simple models of neural networks learning a target function over Gaussian inputs [8–14], in auto-encoders [15], and in the kernel regime [16, 17]. More recently, a distributional simplicity bias , whereby neural networks first rely on pair-wise input statistics before exploiting higher-order input correlations was analysed in non-Gaussian models of inputs [2, 18–20]. However, the input models in these works do not account for several important properties of natural images, such as their (approximate) translation-invariance or the power-law decay of their power spectra [21, 22]. 
+
+> ∗{fricci, cmerger, sgoldt}@sissa.it
+
+1          
+
+> arXiv:2605.16913v1 [stat.ML] 16 May 2026 e) cotton phases
+> kx= 1 , k y= 0
+> f) uniform phases
+> a) Xkk ′=ρkk ′eiφ kk ′
+> b) Xkk ′=ρkk ′eiφ kk ′
+> c) Xkk ′=ρkk ′eiφ kk ′
+> d) Xkk ′=ρkk ′eiφ kk ′10 210 410 6
+> 0
+> 1test loss
+> g) classifying textures
+> original
+> swapped
+> phases
+> 10 210 6steps
+> −1
+> 1average label  class 1
+> class -1
+> ampl. class 1
+> phase class -1
+> ampl. class -1
+> phase class 1
+
+1Figure 1: Learning phase vs amplitude information. a-b) Pictures of a bird and a snake from ImageNet. c-d) Fourier image reconstruction with phases φkk ′ from the “bird” and amplitudes ρkk ′ from the “snake” and vice versa. e) Phases of images from the “cotton” class of the ALOT texture dataset for patches of size 16 × 16 along the first Fourier mode in the x-direction. f) Uniform phase distribution. g) 
+
+Performance of a classifier trained to distinguish between two texture classes: “cotton” vs. “lace” on patches of size 16 × 16 of the ALOT dataset. Top: test loss over training steps, on the original data ( )and on data where phase information has been swapped between classes ( ). Bottom: average label assigned to samples from each class ( , ) and samples with mixed amplitude/phase information ( ,). All curves are averages over 8 random initializations of the classifier. Here, we introduce a different perspective on modelling inputs for the theoretical analysis of neural networks by taking a Fourier point of view. Natural images are approximately translation-invariant, so frequency-space representations are both a simple and a natural choice for this data. The Fourier representation is particularly useful for investigating distributional simplicity biases because it provides a clean separation of pair-wise and higher-order statistics: for translation-invariant inputs like image patches, the amplitudes of the Fourier coefficients determine pair-wise correlations, while higher-order correlations are encoded only by the phases [22]; see Section 2 for precise definitions. The different roles of amplitudes and phases can also be seen directly: in Fig. 1 a-b), we show images of a bird and a snake, taken from ImageNet. Next to them, we show two images that we obtained by combining the amplitudes of one image with the amplitudes of the other in Fourier space, and then transforming back into pixel space. In both cases, the resulting images look like noisy versions of the image whose phases we reused. This is a classic illustration of the importance of phase information for human perception, which has long been established in cognitive science [23, 24]. In this work, we analyse the learning dynamics of simple neural networks trained on image clas-sification tasks from a Fourier perspective. We ask: how hard is it to learn from amplitudes and from phases, respectively? Are they learnt sequentially? And what is the impact of other salient features of images, like the power-law decay of their spectrum [22], on their learning dynamics? Our first main contribution is to demonstrate that neural networks sequentially learn to exploit first amplitude, then phase information. To this end, we train a fully connected two-layer classifier to distinguish between image patches containing textures “cotton” and “lace” from the ALOT dataset [25]. The textures in this dataset are approximately translation-invariant, while the phases are anisotropic (Fig. 1 e-f)). We evaluate the performance of these classifiers on a held-out test set and on the same test set with the image phases swapped between classes, analogous to the bird and snake example in Fig. 1 a-d). We compare the test performance on the original and the phase-swapped datasets in Fig. 1 g); details on the training procedure are provided in Section A in the appendix. We find that initially – in the first phase of learning after a search phase – the network achieves comparable performance on both test sets, indicating that it is using only the amplitude information to distinguish the two classes. 2As training progresses, the performance on the phase-swapped test set deteriorates in comparison to the original data, meaning that the network has learnt to exploit phase information. This demonstrates sequential learning of first amplitude, then phase information in neural networks. In what follows, we build a theoretical model that elucidates that amplitude and phase information correspond to lower and higher-order statistics of a dataset, respectively, and quantifies the sample complexity at which this information becomes available to a neural network. Our further main contributions are as follows: 
+
+• We introduce a synthetic model for non-Gaussian, translation-invariant inputs which allows us to precisely control pair-wise and higher-order statistics via amplitude and phase manipulations (Section 2). 
+
+• We prove that when the inputs have isotropic covariance, weakly recovering information carried exclusively by the phases requires a sample complexity on the order of n ≫ N 3 for online SGD, making this a hard task in high dimensions (Section 3). 
+
+• For non-isotropic inputs, we show experimentally that a power-law spectrum speeds up the recovery of phase information in shallow and deep convolutional neural networks trained on a variety of datasets (Section 4). 
+
+• We show theoretically that neural networks can achieve quasi-linear sample complexity for weak recovery of phase information when inputs have a power-law spectrum (Section 5). From a technical point of view, much of our results rely on an analysis of the stochastic dynamics of SGD by identifying suitable invariants of the loss, most notably the information exponent introduced and developed by Ben Arous et al. [26, 27] in the context of isotropic inputs with a single non-trivial direction. A key innovation in the present work is an analysis of the population loss when the non-Gaussian inputs have a general non-isotropic covariance matrix, which is essential to establish our results on the speed-up of learning due to the distribution of amplitudes in real images. 
+
+Further related works 
+
+Frequency bias of deep neural networks Previous work established simplicity biases in Fourier space [17]. The crucial difference to our work is that they consider a simplicity bias in terms of the frequencies of the different Fourier modes of the data. Here, we are instead interested in sequential learning of amplitudes vs. phases, irrespective of the frequency of the given mode. For works studying (linear) CNNs from a Fourier perspective, see Pinson et al. [28] and Gunasekar et al. [29]. 
+
+Perceptual role of amplitude vs. phase information Cognitive scientists have long been interested in the different perceptual roles played by phases and amplitudes in visual perception. While early work suggested that humans use only pair-wise information to discriminate structured visual stimuli from pure noise [30], more recent work showed that for humans, phase information is perceptually dominant and determines the structure of an image [23, 24]. More recently, Tkačik et al. [31] and Caramellino et al. [32] have investigated the perceptual role of pair-wise and higher-order correlations more systematically. In contrast to humans, Geirhos et al. [33] empirically validates that ImageNet-trained CNNs are strongly biased towards recognising textures rather than shapes. 
+
+The impact of power-law covariance on SGD There has been a series of works on the impact of power-law spectra on the learning dynamics with SGD using methods related to ours. Paquette et al. [34] studied scaling laws in a power-law random feature model trained with SGD. Braun et al. [35] studied the dynamics of phase retrieval on Gaussian inputs with power-law covariance. Ben Arous et al. [36], Ren et al. [37] and Defilippis et al. [38] studied scaling laws of the loss when training on isotropic Gaussian inputs with labels provided by a two-layer teacher network whose second-layer weights follow a power-law. The key novelty of our work is to include the power-law in the spectrum of non-Gaussian inputs, which cannot be reduced to a standard Gaussian additive model, see Lemma C.8, and to look at SGD in the feature learning regime. 32 The Fourier data model 
+
+Our goal is to establish rigorously how phases are learnt by a simple neural network, and to clarify the role of the amplitudes in shaping the learning dynamics. To that end, we consider the standard setting of a binary discrimination task with high-dimensional inputs D = ( xμ, y μ)nμ ⊆ RN × R on which we train a single neuron or student σ with weights w ∈ RN using the correlation loss 
+
+L(w; xμ, y μ) = 1 − yμσ(w · xμ), (1) see for example Bardone & Goldt [19], Ben Arous et al. [26], Damian et al. [39] and Dandi et al. [40] for recent examples of similar setups. 
+
+2.1 The standard path to structured data 
+
+A natural approach to characterise the difficulty of learning certain data structures, like pair-wise correlations between elements of xμ, is to let the student distinguish noise from structured inputs in the form of hypothesis test. We can follow this approach and assume that inputs with the label yμ = −1
+
+are pure noise and sampled from a multivariate Gaussian distribution P0 with mean zero and identity covariance. Meanwhile, inputs with label yμ = +1 are drawn from a distribution P that has a single preferred, or planted, direction. At the level of the inputs, this planted direction is typically constructed by taking a Gaussian noise vector and adding a “spike” u, e.g. 
+
+xμ = βg μu + zμ, (2) where zμ is a draw from a multivariate Gaussian distribution, while the spike u ∈ RN is a fixed direction chosen from some prior, β > 0 is a signal-to-noise ratio and gμ is a scalar standard normal random variable. By training the student to discriminate these two input classes, we essentially perform noise contrastive estimation [41] and the student will ideally recover the planted direction u.
+
+2.2 The Fourier data model 
+
+Here, we propose a new data model that will allow us to capture some of the salient structural properties of images and enables us to surgically manipulate amplitudes and phases. Our baseline distribution is again the multivariate Gaussian, except that we impose a non-trivial, translation-invariant covariance matrix. Specifically, we set P0 = N (0 , Σ) , where the real covariance matrix Σ ∈ RN ×N is required to be stationary with periodic boundaries conditions i.e. Σij = c(i−j) mod N ,for some real coefficients (c0, · · · , c N −1). Equivalently, Σ is a circulant matrix (see Lemma B.4). In what follows, we denote the inputs sampled from P0 as translation-invariant .Inputs under the planted distribution P are then obtained by a suitable modification, in Fourier space, of inputs drawn from the base distribution P0. We could see P as a non-Gaussian counterpart of 
+
+P0, since by construction they share the same low-order statistics – mean and covariance matrix – but the signal which distinguishes the two classes of inputs is encoded in the higher-order cumulants of 
+
+P. As a consequence, the inputs sampled from P are also translation-invariant. We stress that the two classes of inputs are indistinguishable based on their cumulants up to second-order. We build P by first sampling (zμ)nμ=0 ⊆ RN from the baseline distribution P0 and considering their Discrete Fourier Transform (DFT) denoted by Zμ = DFT (zμ). The complex Fourier coefficients can always be decomposed into amplitudes ρμk and phases φμk , i.e. 
+
+Zμk = ρμk eiφ μk
+
+for the frequencies k = 0 , . . . , N −1. In particular, the phases are independent and uniformly distributed in [−π, π ), since P0 is Gaussian and translation-invariant (cf. Lemma B.11). We could now change the distribution of either the amplitudes or the phases. Amplitude manipulations change both the covariance matrix and higher-order correlations of the inputs, phase manipulations do not. Indeed, as long as the 4data remain translation-invariant, the phases control only the higher-order correlations (HOCs) of the inputs leaving the covariance matrix unchanged (cf. Lemma B.7), so we will focus on that. Specifically, we are going to alter the distribution of the phases as follows: for any ε > 0, we choose a frequency 
+
+k0̸ = {0, N/ 2} and define the new inputs in Fourier space, Xμ ∈ CN , as 
+
+Xμ=
+
+
+
+ρμ
+
+> 0
+
+...
+
+ρμN −1
+
+exp 
+
+
+
+i φ μ
+
+> 0
+
+...
+
+i ψ μk0
+
+...
+
+i φ μN −1
+
+
+
+ψμk0 =φμk0
+
++ε f (φμk0 )
+
+| {z } 
+
+> HOCs
+
++U μ, (3) where f = f (φμk0 ) is an arbitrary but fixed function of the phase φμk0 and U μ is sampled from a discrete random variable, independent from φμk , which takes values uniformly among the angles 
+
+{0, π/ 2, π, 3π/ 2} associated to the fourth roots of unity. To ensure that the new inputs are still real in pixel space, we ask that XμN −k0 = Xμk0 . We define the planted distribution P as the distribution, in pixel space, of the Inverse Discrete Fourier Transform (IDFT) of Xμ, i.e. xμ = IDFT (Xμ).We now discuss the motivations behind the choices of f (φμk0 ) and U μ. First of all, the presence of the phase-dependent modification f (φμk0 ) leads to a non-Gaussian distribution of inputs by introducing non trivial higher-order correlations in pixel space. No such effect occurs when f is independent of the phases, meaning that a simple “spike” would not serve our purpose (cf. Lemma C.1). For concreteness, we will perform our theoretical analysis with f (φμk0 ) = sin ( φμk0 ). On the other hand, the presence of U μ
+
+enforces the covariance matrix of Xμ to stay diagonal, so that the inputs are still translation-invariant after the alteration of the phases. In absence of the corrector U μ, an alteration of the phases in general breaks translation-invariance of the inputs, as proved in the next lemma. 
+
+Lemma 1. If Xμ is drawn according to the Fourier data model (3) with phase transformation given by 
+
+ψμk0 = φμk0 + εf (φμk0 ), then xμ = IDFT( Xμ) is not translation-invariant. Proof. For a generic function of the phases f , the entry (k0, N − k0) of the covariance matrix of Xμ is given by 
+
+E[Xμk0 XμN −k0 ] = E[Zμ 2 
+
+> k0
+
+] E[e2iεf (φμk0 )]̸ = 0 ,
+
+which contradicts xμ being translation-invariant (see Lemma B.7 for a reminder that the covariance matrix of translation-invariant inputs is diagonal in Fourier space). Therefore, one can actually prove (cf. Lemma C.2) that the modified inputs xμ are still translation-invariant and have the same covariance matrix of the original inputs drawn from P0. However, the new data points xμ are non-Gaussian and have a “signal” in their fourth-order statistics (cf. Lemma C.7). We can note that, by construction of U μ, we get a non-vanishing factor E[ei 4U μ
+
+] = 1 , which is the reason why the new inputs xμ are allowed to exhibit non-trivial fourth-order cumulants. We finally note that manipulating the phases means that, in pixel space, there is a two-dimensional subspace of RN along which the projections of the inputs drawn from P have non-Gaussian statistics (cf. Lemma C.7) and hence differ from the projections of inputs drawn from P0. This subspace is spanned by the pair of DFT basis vectors (uk)k and sine DFT basis vectors (vk)k corresponding to the modified mode k0, where, for the frequencies k = 1 , . . . , ⌊ N −12 ⌋, we have defined 
+
+ukn =
+
+r 2
+
+N cos 
+
+ 2πkn N
+
+
+
+, vkn =
+
+r 2
+
+N sin 
+
+ 2πkn N
+
+
+
+, (4) for any n = 0 , . . . , N − 1 (cf. Fig. B.1 in the appendix for a visualisation). The “DFT basis” (uk, v k)k
+
+diagonalises the covariance matrix of any translation-invariant input, see Lemma B.6. In what follows, we will drop the explicit dependence on the frequency k0, write u and v - instead of uk0 and vk0 - and call them “DFT phase vectors”. 5Remark 2. In pixel space, the inputs (xμ)nμ ⊆ RN sampled from the Fourier data model (3) cannot be seen as distributed according to a single-index model in the usual sense (e.g. Eq. (2) ). Instead, for 
+
+k = 0 , . . . , N − 1, we have that 
+
+xμk = zμk + 2ρμk0
+
+N
+
+"
+
+cos 
+
+ 2πkk 0
+
+N + φμk0 + εf (φμk0 ) + U μ
+
+#
+
+, (5) 
+
+as proved in Lemma C.8. Note that the latent variables φμk0 and U μ always enter through a non-linear function (the cosine). This is due to the modulation of the phases of the inputs in Fourier space, which are linked non-linearly to the inputs in pixel space. 
+
+# 3 Sample complexities for classifying isotropic inputs 
+
+In this section we rigorously quantify the sample complexities of online SGD on the correlation loss (1) , in the case of isotropic inputs xμ. Recall that, by construction of the Fourier data model (3) , to successfully distinguish the two classes of inputs, SGD has to learn the subspace of RN spanned by the DFT phase vectors u and v, along which the projections of the inputs drawn from P0 and P differ in distribution. Additionally, in this section we assume that the inputs of both the classes are isotropic, so with identity covariance matrix. We prove here that this choice of considering whitened inputs, together with the fact that the DFT phase vectors are encoded in higher-order cumulants of the data (cf. Lemma C.7), leads to a genuinely hard computational task in high dimensions. Online SGD is implemented by sampling a new data point at each step from D = ( xμ, y μ)nμ=1 . For a suitable learning rate δN > 0, each iteration of the spherical online SGD, for w0 ∼ Unif (SN −1), is defined as ( ewt = wt−1 + δN ∇sph L(w; xt, y t) w=wt−1 t ≥ 1,wt = ewt/∥ ewt∥, (6) where the spherical gradient is given by ∇sph L(w, ·) = ( 1 − ww ⊤)∇wL(w, ·). To tackle this classification problem, we ask: how fast does SGD recover a signal encoded in the phase of high-dimensional translation-invariant inputs? To answer, a key object to look at is the population correlation loss defined simply as 
+
+L(w) = E[L(w; xμ, y μ)] , (7) where the expectation is taken over the data distribution. Related to that, a fundamental invariant is the 
+
+information exponent , which is the order k∗ of the first term having a non-zero coefficient in a suitable expansion of the population loss (cf. Definition B.16). This quantity was introduced by Ben Arous et al. [26] in the context of supervised learning, where they showed that it governs the sample complexity of online SGD in single-index models. They prove that for k∗ ≥ 3, no recovery of the signal is possible within n ≪ N k∗−1 samples, and a partial alignment occurs when n ≫ N k∗−1 log 2 N . Conversely, the signal is recovered at linear sample complexity - up to logarithmic factors - when k∗ = 2 . Other useful invariants are the leap index of Abbe et al. [12] and Dandi et al. [13], and the generative exponent of Damian et al. [42], which govern the sample complexity for more complex teacher-student models. Using the approach of Ben Arous et al. [26], we prove in Theorem 3 that SGD requires a cubic sample complexity to align with the subspace spanned by the DFT phase vectors, where projections of the inputs drawn from the two classes differ in distribution. This hardness in learning is due to the fact that the inputs are translation-invariant and then the phase modification is encoded only in fourth-order cumulants (cf. Lemma C.7), leading to a high information exponent k∗ = 4 . Note that the same scalings are needed to solve the tensor PCA problem [43] for a fourth-order tensor and the Independent Component Analysis (ICA) problem [20, 44]. We assume that the activation function σ : R → R is continuously differentiable and even. The constraint on the parity is a technical assumption, which does not change qualitatively the theoretical analysis, but simplifies parts of it. We prove Theorem 3 in Appendix D. 60 1 2 3 4 5             
+
+> steps/ Nlog 2N
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> overlap
+> linear
+> quadratic
+> cubic
+> 012345
+> steps/ N2log 2N
+> 012345
+> steps/ N3log 2N
+
+Figure 2: Performance of SGD in classifying isotropic inputs on the Fourier data model. (Left) 
+
+We run online SGD applied to the correlation loss (1) with isotropic inputs drawn from the Fourier data model (3) . SGD does not weakly recover the signal at linear ( ) or quadratic ( ) sample complexity, whereas it converges to the subspace spanned by the DFT phase vectors in the cubic ( ) regime. On the 
+
+y-axes, we see the norm of the projection of the perceptron weight in the said “non-Gaussian” subspace. 
+
+(Right) Empirical loss landscape as a function of the overlaps between the weight vector and the DFT phase vectors, i.e. w · u and w · v. Additionally, we display one run of SGD ( •) converging to a global minimum of the loss only after a long search phase around the origin, as predicted by Theorem 3. 
+
+Theorem 3. Sample (xμ)nμ=1 ⊆ RN from the Fourier data model (3) with Σ = 1. Apply online SGD 
+
+(6) to the correlation loss (1) and define the overlaps αu,n = wn · u and αv,n = wn · v, where (u, v ) are the DFT phase vectors. Then, if 1/(N 2 log 2 N )≪ δN ≪ 1/(N log N ) and n ≫ N 3 log 2 N , there is weak recovery for (u, v ) i.e., for some η > 0,
+
+lim  
+
+> N→∞
+
+P ( |αu,n | ≥ η) = 1 and lim  
+
+> N→∞
+
+P ( |αv,n | ≥ η) = 1 .
+
+Conversely, when δN ≪ 1/(N log N ) and n ≪ N 3, there is no recovery for (u, v ) i.e., in probability, 
+
+|αu,n |, |αv,n | − −−−−→  
+
+> N→+∞
+
+0.
+
+Sketch of the proof. The correlation population loss (7) is essentially the sum of EP0 [σ(w · z)] and 
+
+EP[σ(w · x)] . Since ∥w∥ = 1 , the former term is constant and equals the zeroth-order Hermite coefficient 
+
+cσ 
+
+> 0
+
+of the activation function (cf. Definition B.15). The latter term can be expanded by using the likelihood ratio ℓ(s) = d P/dP0(s) of the planted distribution P with respect to the baseline distribution P0 (see Definition B.17), which depends only on the projections of the inputs along the DFT phase vectors. Hence, we get that 
+
+EP[σ(w · x)] = EP0 [σ(w · x)ℓ(v · x, u · u)] . (8) We can now expand the activation function σ and the likelihood ratio ℓ in Hermite polynomials. Since P
+
+and P0 share the same first and second-order statistics, the Hermite coefficients cℓij of the likelihood ratio are such that cℓij = 0 , if i + j ≤ 2, with the only exception of the null term cℓ 
+
+> 00
+
+= 1 which, multiplied by 
+
+cσ 
+
+> 0
+
+, cancels with EP0 [σ(w · z)] . Since any odd Hermite coefficient of the activation function vanishes, we get 
+
+L(w) = 1 − c1 (α4 
+
+> v
+
++ α4
+
+> u
+
+) + c2 α2
+
+> v
+
+α2 
+
+> u
+
++ h .o.t., (9) for suitable coefficients c1, c 2 ∈ R. Hence, the information exponent [26] is k∗ = 4 .
+
+# 4 The power-law decay of Fourier amplitudes accelerates learning phase information 
+
+We have established that learning phase information is a computationally hard task in high dimensions, requiring at least cubic sample complexity and long run-times of SGD. However, in neural networks trained on real data, no such huge complexity gap appears to exist: in our experiments with simple neural 710 0 10 1        
+
+> |k|
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 10 0
+> |Xkx, ky|2
+> a) Spectral
+> density
+> 8x8
+> 16x16
+> 32x32
+> 10 210 4
+> steps
+> 0.1
+> 1.0
+> test loss
+> b) 8x8
+> original
+> ampl. = 1
+> ampl. matched
+> 10 210 4
+> steps
+> 0.1
+> 1.0
+> test loss
+> c) 16x16
+> 10 210 4
+> steps
+> 0.1
+> 1.0
+> test loss
+> d) 32x32
+> 10 110 3
+> steps
+> 2.2
+> 2.3
+> test loss
+> e) ImageNet 64x64
+
+Figure 3: Shared principal subspace speeds up learning. a) Average squared Fourier amplitudes of image patches of “cotton” class from ALOT texture dataset, averaged over wave vectors of equal length 
+
+|k| =
+
+q
+
+k2 
+
+> x
+
++ k2 
+
+> y
+
+, for patches of increasing size. b-d) Test losses of classifiers trained on distinguishing “cotton” vs. “lace” on original data ( ), data where all Fourier amplitudes of both classes have been set to one ( ) and data where the amplitudes of the second class are replaced by the amplitudes of the first class ( ). Test loss curves are averages over 8 random initializations of the classifiers. e) The same experiment as b-d), but using a Resnet18 on a super-classed version of ImageNet with ten classes. Cf. Fig. A.2 in the appendix to visualise the same behaviour on classes from CIFAR-100. networks shown in Fig. 1 g) we found no large gap between the point where the network’s performance initially improves and where it starts to exploit phase information. So how come neural networks access phase information quickly on real images, when it is hard to learn from phase information alone? A key difference between the setting of Theorem 3 and real images is the distribution of Fourier amplitudes of the data. For Theorem 3, we assumed that the covariance matrix is the identity, which corresponds to flat amplitudes in Fourier space. However, images typically have a covariance whose power-spectrum is not flat, but instead exhibits a power-law decay, with Fourier amplitudes decaying roughly as 1/f , where f is the frequency of the mode. We illustrate this effect for the “cotton” class of the texture dataset we have already treated in the introduction in Fig. 3 a), where we see that the diagonal of the covariance matrix in Fourier space follows an approximate power-law behavior, increasing in magnitude with the size of the image patches. For translation-invariant inputs, those diagonal entries are the second moments of the Fourier amplitudes or, equivalently, the eigenvectors of the covariance matrix of the inputs in pixel space (cf. Remark C.3). To investigate the effect of the power-law amplitudes on the learning dynamics, we trained two-layer fully connected neural networks on the same texture data (cf. Fig. 3 b-d)), but modify the amplitudes 
+
+of the images in Fourier space. First, we show the test loss of classifiers trained on the original image data without any modification (blue curves ( ) in Fig. 3 b-d)). We then train classifiers on the same images after setting the amplitudes of all images to one (pink curves ( ) in Fig. 3 b-d)). This results in a considerable slow-down in the onset of learning, as the networks can now only rely on phase information on the image data, illustrating the idea of Theorem 3 on a realistic dataset. Finally, we construct a third dataset, where we keep one class of the images unchanged, but replace the amplitudes of the second class with the amplitudes of the first class. On the level of the amplitude statistics, the two classes are hence exactly identical: the only difference between them are their phases. However, in contrast to before, their Fourier spectra are no longer flat, but follow the curves in Fig. 3 a). We show the corresponding test loss curves in green ( ) in Fig. 3 b-d). Even though the network can only distinguish the two classes based on the phase information, we observe a significant speed-up with respect to the case of flat Fourier spectra. Hence, the mere amplification of specific directions belonging to the principal subspace in Fourier space leads to a considerable speed-up in how fast the neural network can detect and exploit phase information. This effect is not just limited to fully-connected networks: in Fig. 3 e), we show the result of the same experiment in a Resnet18 trained on a super-classed version of ImageNet with ten classes (cf. Fig. A.2 8too see the same experiment on classes from CIFAR-100). Even though convolutions are designed to be responsive to edges and other image features that are encoded in the phases, we see again a slow-down of the onset of learning when amplitudes are flattened, while setting the amplitudes of all the training images to the average amplitudes speeds up learning. Note that we normalised images in all the experiments to ensure they have the same norm; full details on the training of these classifiers are given in Section A in the appendix. In conclusion, the speed-up emerges consistently across various datasets (textures, ImageNet and CIFAR-100), architectures (Resnet18 and two-layer classifiers), optimisers (mini-Batch SGD and Adam) and losses (mean-squared and cross-entropy). In the following section, we extend our theoretical model to explain how a principal subspace whose magnitude scales with the dimension can lead to a speed-up in learning the phase, even if it is shared among classes and does therefore not provide additional information for discriminating the classes. 
+
+# 5 Theoretical analysis for non-isotropic inputs 
+
+In this section, we extend our theory to account for the effect of power-law spectra that we found experimentally. We do this by considering inputs sampled from the Fourier data model (3) with a translation-invariant, non-isotropic covariance. We first expand the population loss, and analyse how the spectrum interacts with the phase to yield an effective signal-to-noise ratio (Section 5.1). We then discuss how the power-law distribution of amplitudes can speed up learning of phase information (Section 5.2). 
+
+5.1 Expansion of the population correlation loss for non-isotropic inputs 
+
+Consider inputs drawn from the Fourier data model (3) , with a circulant covariance matrix. The key difficulty in analysing the population correlation loss (7) in this setting is due to the interaction between the non-Gaussianity and the anisotropy of the inputs. Indeed, as in the isotropic case, due to non-Gaussianity of P0, the population loss can be written as the expectation over the baseline distribution P0
+
+of the product between the activation σ and the likelihood ratio ℓ. Due to anisotropy, after expanding both of them in Hermite polynomials, one first needs to rescale Eq. (E.2) and resum Eq. (E.3) our formulas before applying the orthogonality properties (Lemma B.14); otherwise, one cannot write the expectation (so the loss) in terms of the relevant overlaps. Note also in Eq. (E.5) that we do not compute the Hermite coefficients for the likelihood ratio ℓ, but for a rescaled version of it. While previous work has considered inputs with a rank-one perturbation of the identity matrix for the covariance [19, 45], a full-rank anisotropic covariance matrix has not yet been treated in this framework, to the best of our knowledge. From a technical point of view, note that we do not consider the likelihood ratio of P with respect to the standard normal distribution [19], since we allow for an extensive number O(N ) of eigenvectors of the covariance of the inputs, which cannot hence be treated in the said likelihood ratio. 
+
+Proposition 4. Consider w ∈ RN , αu = w · u and αv = w · v, where (u, v ) are the DFT phase vectors. Let λk0 be the k0-th eigenvalue of a circulant matrix Σ and sample the inputs xμ from the Fourier data model (3) with covariance Σ. Then, the population correlation loss (7) is such that 
+
+L(w) = 1 −λ2
+
+> k0
+
+
+
+c04 α4 
+
+> u
+
++ c22 α2
+
+> u
+
+α2 
+
+> v
+
++ c04 α4
+
+> v
+
+ 
+
+cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+
+
++ h .o.t., (10) 
+
+with σΣ = √w⊤Σw. The coefficients c04 , c 22 and c04 depend on the likelihood ratio between P and P0,while cσ 
+
+> 4
+
+and cσ 
+
+> 6
+
+are the 4-th and 6-th order Hermite coefficient of the activation function σ.
+
+We prove Proposition 4 in Section E in the appendix. By construction, λk0 is an eigenvalue of the DFT phase eigenvectors u and v of the covariance matrix. Note that λk0 , which is task-relevant since it corresponds to the frequency of the modified phase, plays the role of an effective signal-to-noise ratio induced by the structure of the inputs. The other eigenvalues (λm)N −1 
+
+> m
+
+corresponding to the DFT 9eigenvectors (um, v m)N −1 
+
+> m
+
+appear in the quadratic form induced by the covariance through the overlaps 
+
+αum = w · um and αvm = w · vm, i.e. 
+
+σ2Σ − 1 = ( λk0 − 1)( α2 
+
+> u
+
++ α2
+
+> v
+
+) +  
+
+> N−1
+
+X
+
+> m=1
+
+(λm−1)( α2 
+
+> um
+
++ α2 
+
+> vm
+
+). (11) 
+
+5.1.1 Scalings of the loss for a low-rank eigenstructure 
+
+Even if we prove Proposition 4 for any scaling of the eigenvalues λm, we are particularly interested in the case where some top eigenvalues are much larger than the bulk eigenvalues, as occurs for power-law-decaying spectra. i.e. when λm ∝ m−α, for some α > 0. Indeed, it is known that, in covariances with power-law spectra with exponent α > 0, different measures of dimensionality like the effective dimension or the Inverse Participation Ratio (IPR) of the eigenvalues concentrate on an O(1) quantity for power-law decays with exponent α > 1 [46–48]. Note that this is the typical regime of natural images [21, 22, 49]. Motivated by this observation, we consider an effective low-rank eigenstructure that simplifies the analysis and maintains the correct scaling of the effective dimension. Precisely, we model a finite set O(1) of leading eigenvalues as extensive, i.e. O(N ), while the tail of the spectrum stays O(1) . We contrast this realistic setting with the one in which also the leading eigenvalues remain 
+
+O(1) , as in the case of flattened amplitudes, by gaining a key insight into the impact of the power-law decay of amplitudes on the learning dynamics. Due to the uniform initialisation of SGD on the sphere in high dimensions, the following scalings for the overlaps at initialisation are appropriate: αu, α v ≈ 1/√N , as well as αum , α vm ≈ 1/√N . Hence, from Eq. (E.1), the population loss scales as 
+
+L(w) ≈ λ2
+
+> k0
+
+N 2 + λ2
+
+> k0
+
+N 2 (σ2Σ − 1) . (12) 
+
+Near-isotropic inputs: If λk0 , λ m = O(1) , we get that L(w) ≈ 1/N 2, which is the scaling of α4 
+
+> u
+
+and 
+
+α4 
+
+> v
+
+at initialisation. It corresponds to information exponent k∗ = 4 – the same found in Theorem 3 for the isotropic inputs. We therefore expect online SGD to require a cubic sample complexity to distinguish structured inputs from noise (cf. Remark F.6). 
+
+Power-law decaying inputs: If λk0 ≈ √N , 1 ≲ λm ≲ N , we get that L(w) ≈ 1/N . Here, λk0 is one of the top eigenvalues, but possibly not the leading one. We observe that the effect of the extensive eigenvalue λk0 is reducing the information exponent from k∗ = 4 to k∗ = 2 . In the setting of Ben Arous et al. [26], this means recovering the signal at quasi-linear sample complexity. Note that the presence of a low-dimensional eigenstructure does not reduce the dynamics to a finite exploration, as it is often the result of commonly used in practice preprocessing procedure (like PCA). Instead, the effect of the power-law decay in the spectrum is to induce an extensive signal-to-noise ratio λ2 
+
+> k0
+
+≈ N in the loss which “couples” the signal and the quadratic form σ2Σ.
+
+5.2 Dynamics for non-isotropic inputs with a low-rank eigenstructure 
+
+We can now analyse the implications of the power-law decay of the amplitudes for the dynamics of learning, building on previous works by Ben Arous et al. [27] and Ben Arous et al. [50]. Motivated by the discussion in Section 5.1.1 on the effective dimension of the eigenvalues for power-law decaying spectra, we consider here a low-rank eigenstructure, as in Section 5.1.1. Let M + 1 ∈ N be the (finite) number of non-trivial, i.e. non-unit, top eigenvalues (( λm)Mm=1 , λ k0 ),whose associated eigenvectors (( um, v m)Mm=1 , u, v ) span the principal subspace of the inputs. For simplicity, we set the remaining eigenvalues to one. We track the evolution during training of the summary statistics 
+
+α = ( αu, α v, (αum , α vm )Mm=1 , ω ⊥), (13) 10 Figure 4: Performance of SGD in classifying non-isotropic inputs on the Fourier data model. 
+
+(Left ) Cartoon of the principal subspace of power-law-decaying inputs sampled from the Fourier data model (3) , spanned by the DFT phase vectors (u, v ) and a finite number of other principal components 
+
+(um, v m). ( Middle ) At first, online SGD quickly recovers the whole principal subspace, including the DFT phase vectors. Then, the other principal components PCs ( ), which are not useful for classification, are forgot and SGD converges within n ≲ N 3 steps to the subspace spanned by the DFT phase vectors ( ). Compare with Fig. 2, where no recovery happens within cubic sample complexity. Here, N = 300 .(Right ) Empirical loss function during training ( ). where αu = w · u, α v = w · v, α um = w · um and αvm = w · vm. The latter statistic is ω⊥ = w · w⊥,where w⊥ is the projection of the weight vector onto the space orthogonal to the subspace spanned by the principal components. Within this framework, we analyse the dynamics of non-normalised online SGD F.1 initialised at a measure μ0 (cf. Section F), and we add to the population correlation loss a quartic penalisation term for the norm of the weight vector, i.e. L′(w) = L(w) + β∥w∥4, β ≥ 0. We choose non-normalised online SGD in order to match the conventions of Theorem F.3, originally from Ben Arous et al. [27]. Even if we expect that the normalisation does not change the predicted dynamics, proving a normalised counterpart of Theorem F.3 is beyond the scope of this work. On the same line, we add the penalisation term to mimic the effect of the previously considered normalisation without dominating the dynamics; the existence of the penalty does not have an impact on the predictions for the time scales over which the phases are learnt (cf. the computations in Lemmas F.5 and F.7). At the level of the population dynamics, our results Conjectures 5 and 6 are based on the computation of the population drift Aα, which is the operator such that Aα(α) = lim N →+∞ AN α, with 
+
+AN = X
+
+> i
+
+∂iL′ ∂i. (14) The population drifts for Conjectures 5 and 6 are rigorously computed in Lemmas F.5 and F.7, respectively. Note that, in the latter case, one computes the drift for a suitable rescaling of the original summary statistics (13), which allows to avoid a diverging drift Aα = + ∞.Beyond the population dynamics, we do a step further towards sample complexities: we look at the effective dynamics for infinitely many linear steps of online SGD (cf. Theorem F.3 in Section F.1 in the appendix). Among the three ingredients needed by this theorem, namely the population drift, the 
+
+population corrector and the effective volatility , we do not carry on the computations for the effective volatility. Indeed, to the best of our knowledge, it has been only computed in simpler data models, like Gaussian additive models e.g. single-index models or Gaussian mixtures [27, 50], while we have built a genuinely non-Gaussian data model. This is why our results are stated as conjectures and not theorems. We describe the dynamics of learning phase information in the two regimes of “small” (Conjecture 5), i.e. O(1) , and “large” (Conjecture 6), i.e. O(N ), top eigenvalues. We first conjecture that if the leading eigenvalues are O(1) , online SGD fails to recover phase information at linear sample complexity. 
+
+Conjecture 5 (Near-isotropic inputs) . Consider λk0 , λ m = O(1) . Then, for δN = O(1 /N ) and 
+
+μ0 = N (0 , 1/N ), online SGD applied to the penalised loss L′ fails to weakly recover both the DFT 
+
+phase vectors and the other principal components at linear sample complexity. 
+
+11 Derivation. By Theorem F.3, the effective dynamics of the summary statistics, at linear sample com-plexity, is given by the population drift Aα(α) (computed in Lemma F.5), the effective volatility (which is expected to be zero like in the cases of the Gaussian mixture models and the tensor PCA model [27, 50]) and a vanishing population corrector (the summary statistics are linear in the weights and then LN α = 0 , cf. Eq. (F.2)). Also, the dynamics has to be initialised deterministically at 
+
+ν = lim N →+∞ α# μ0 = δ0 ⊗ · · · ⊗ δ0 ⊗ δ1. Then, α(t) = αN (t) converges for N → +∞ to the solution of ˙α(t) = −Aα(αt), initialised at α0 = 0 , meaning that SGD does not escape the initial conditions (at linear sample complexity). Note that the initialisation of the high-dimensional effective dynamics ν is non-vanishing anymore if we zoom into a microscopic neighbourhood of the summary statistics of the form 
+
+m = ( √N α u, √N α v, (√N α um , √N α vm )Mm=1 , ω ⊥). (15) Indeed, for example, lim N →+∞ mv#μ0 = N (0 , 1) . However, when λk0 , λ m = O(1) , the population drift Am for the rescaled statistics turns out to be identically zero (cf. Remark F.8). Conversely, if the top eigenvalue λk0 ≈ √N is extensive, corresponding to a signal-to-noise λ2 
+
+> k0
+
+≈ N in the loss (cf. Eq. (12)), the population drift for the rescaled statistics is non-vanishing anymore. We therefore turn to the case of extensive eigenvalue λk0 .Note that, if the mode that carries the phase modification is the one with the largest eigenvalue, it could be identified with simple spectral methods like PCA. Instead, we consider a more interesting and realistic case: the mode k0 is part of the leading subspace without having the largest eigenvalue. We conjecture that if the leading eigenvalues are O(N ), online SGD recovers phase information at quasi-linear sample complexity. 
+
+Conjecture 6 (Power-law decaying inputs) . Consider λk0 ≈ √N and √N ≲ λm ≲ N . Then, for 
+
+δN = Θ(1 /N ) and μ0 = N (0 , 1/N ), online SGD applied to the penalised loss L′ weakly recovers all the principal components, including the DFT phase vectors, at quasi-linear sample complexity. Derivation. For extensive O(N ) leading eigenvalues, the population drift of the rescaled dynamics is not identically zero (cf. Lemma F.7). Indeed, for suitable constants c1, . . . , c 4 ∈ R, the ODEs for the evolution of the rescaled statistics mu and mvm reads as 
+
+˙mu = c1m3 
+
+> u
+
++ c2m2
+
+> v
+
+mu +
+
+> M
+
+X
+
+> m=1
+
+c3(m2 
+
+> um
+
++ m2 
+
+> vm
+
+) + 4 β∥w∥4mu,
+
+˙mum = c4
+
+X
+
+> i=0 ,2,4
+
+mivm4−iu
+
+i!(4 − i)! cℓi, 4−i mum + 4 β∥w∥4mum ,
+
+(16) and similar for mv and mvm . Moreover, due to the rescaling of the summary statistics, the limiting measure at initialisation ν is no longer deterministically zero. The fact that the summary statistics exhibit non-vanishing dynamics under √N rescaling suggests that, in the original scale, online SGD escapes the search phase in quasi-linear time. We leave it to future work to make our conjectures fully rigorous by also computing the diffusive terms and studying the resulting Ornstein-Uhlenbeck process Eq. (16), as discussed in Section F.1. The key insight of Conjecture 6 is that the dynamics of SGD will recover the leading subspace, which reflects the concentration of variance in the principal subspace of real images and it is shared among the two classes of inputs, in quasi-linear sample complexity. Once online SGD has recovered this subspace, it is easier for SGD to converge to the mode that carries the phase modification. We illustrate this effect with a small experiment on data sampled from the Fourier data model where we train a perceptron on a discrimination task where the covariance of both inputs has 6 modes with large eigenvalues (with the same scalings as in Conjecture 6), of which one carries the phase modification. In the middle of Fig. 4, we show how the overlap of the perceptron weight with the principal subspace, 12 excluding the mode k0, increases (blue line ( )) before the perceptron converges to the mode with the non-trivial phase (green line ( )), and consequently forgets the principal components which are not task-relevant. Note that online SGD weakly recovers the whole principal subspace (( ) and ( )) at quasi-linear sample complexity and then converges to the signal within n ≲ N 3 samples which, in the case of isotropic inputs, are not even sufficient for weak recovery (cf. Fig. 2). Also, note that the loss only starts decaying after 10 6 steps, rather than already at 10 5 steps when the whole subspace is already weakly recovered. Importantly, in prior work by Ben Arous et al. [51], a similar rich behavior emerges only under fine tuned signal-to-noise separation conditions, whereas here it is induced by the scalings of the amplitudes in the Fourier domain, leading to an interesting dynamics of online SGD even in the case of a single perceptron weight. Moreover, in contrast to prior work by Mousavi-Hosseini et al. [45], where online SGD fails in presence of anisotropic covariances, we show with the present work that a non-trivial eigenstructure can speed up recovery of the relevant directions, instead of being a limitation. With this analysis, we show that classification between non-isotropic inputs drawn from the Fourier data model (3) with non-trivial phases is performed efficiently by SGD in presence of power-law decaying inputs, which incidentally happens to be the case of real images. Indeed, this structure leads to an extensive signal-to-noise ratio λ2 
+
+> k0
+
+≈ N for the loss. We conclude then that the signal-to-noise ratio of a – by itself, hard to learn – phase recovery problem combined with a power-law on the amplitudes conspire to yield scaling behaviors similar to the ones of a tensor PCA problem [43, 52] with an effective signal-to-noise ratio that makes it learnable at (quasi-)linear sample complexity. 
+
+# 6 Conclusions and future perspectives 
+
+Starting from the observation that, for translation-invariant inputs, Fourier amplitudes determine second-order statistics while phases encode higher-order correlations, we introduced a synthetic Fourier data model that makes this separation explicit and controllable. Our main interest was in the sample complexity of learning from the phases, since phases are perceptually more important (see Fig. 1) and it is the non-Gaussian statistics that shape neural representations [2, 3, 22, 53]. Analysing the dynamics of SGD on a classification task in which the relevant signal is carried only by the phases, we established sample complexities for extracting information from the phases in several scenarios. While learning from phases is a hard task when the covariance is (nearly) isotropic, we found both experimentally and theoretically that power-law spectra like the ones found in natural images can dramatically speed up learning from the phases. This speed-up is reminiscent of staircase effects in learning higher-order polynomials of the target functions [11–14] or higher-order statistics of the data distribution [2, 19, 54]. Here, a crucial difference is that we see this speed-up even if the spectra themselves are not discriminative between the classes. We confirmed our theoretical results by simulations in more realistic settings with two-layer and deep convolutional networks trained on textures, ImageNet and CIFAR100. The present work could be extended by deriving information theoretic thresholds for learning phase information, and by establishing algorithmic thresholds for the Fourier data model for more general classes of learning algorithms, like low-degree polynomials [55]. Going further, it would be intriguing to perform a similar analysis in a different basis for images like wavelets [56]. Unlike Fourier modes, wavelets are localized both in space and frequency, and therefore provide a more refined description of edges, corners, and multiscale image features. Likewise, an extension to other texture models with controllable statistics [57–59] is a promising direction for future research. Extending our approach to these models may lead to a broader understanding of which data structures are easy or hard for gradient-based neural networks to learn from, and why natural images seem to live in a particularly favourable regime. 13 Acknowledgements 
+
+We thank Giulio Biroli, Bruno Loureiro, Jonathan Victor, Gasper Tkačik, and Davide Zoccolan for inspiring discussions, and Matteo Santoro for the conversations on Fourier analysis. SG acknowledges funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme, Grant agreement ID 101166056, and funding from the European Union– NextGenerationEU, in the framework of the PRIN Project SELF-MADE (code 2022E3WYTY – CUP G53D23000780001). SG and FR acknowledge funding from Next Generation EU, in the context of the National Recovery and Resilience Plan, Investment PE1 – Project FAIR “Future Artificial Intelligence Research” (CUP G53C22000440006). 
+
+# References 
+
+1. Kalimeris, D. et al. SGD on Neural Networks Learns Functions of Increasing Complexity in Advances in Neural Information Processing Systems 32 (2019), 3491–3501. 2. Ingrosso, A. & Goldt, S. Data-driven emergence of convolutional structure in neural networks. 
+
+Proceedings of the National Academy of Sciences 119 (2022). 3. Refinetti, M., Ingrosso, A. & Goldt, S. Neural networks trained with SGD learn distributions of increasing complexity in International Conference on Machine Learning (2023), 28843–28863. 4. Rende, R., Gerace, F., Laio, A. & Goldt, S. A distributional simplicity bias in the learning dynamics of transformers in Advances in Neural Information Processing Systems 37 (2024), 96207–96228. 5. Belrose, N., Pope, Q., Quirke, L., Mallen, A. & Fern, X. Neural Networks Learn Statistics of Increasing Complexity in (arXiv, 2024). 6. Favero, A., Sclocchi, A., Cagnetta, F., Frossard, P. & Wyart, M. How compositional generalization and creativity improve as diffusion models are trained in (arXiv, 2025). 7. Garnier-Brun, J., Mézard, M., Moscato, E. & Saglietti, L. How Transformers Learn Structured Data: Insights From Hierarchical Filtering in International Conference on Machine Learning (2025). 8. Saad, D. & Solla, S. Exact Solution for On-Line Learning in Multilayer Neural Networks. Phys. Rev. Lett. 74, 4337–4340 (1995). 9. Saxe, A. M., McClelland, J. L. & Ganguli, S. Exact solutions to the nonlinear dynamics of learning in deep linear neural networks in ICLR (2014). 10. Saxe, A. M., McClelland, J. L. & Ganguli, S. A mathematical theory of semantic development in deep neural networks. Proceedings of the National Academy of Sciences 116, 11537–11546 (2019). 11. Abbe, E., Boix-Adsera, E., Brennan, M. S., Bresler, G. & Nagaraj, D. The staircase property: How hierarchical structure can guide deep learning. Advances in Neural Information Processing Systems 
+
+34, 26989–27002 (2021). 12. Abbe, E., Adsera, E. B. & Misiakiewicz, T. SGD learning on neural networks: leap complexity and saddle-to-saddle dynamics in The Thirty Sixth Annual Conference on Learning Theory (2023), 2552– 2623. 13. Dandi, Y., Krzakala, F., Loureiro, B., Pesce, L. & Stephan, L. How Two-Layer Neural Networks Learn, One (Giant) Step at a Time. Journal of Machine Learning Research 25, 1–65 (2024). 14. Berthier, R., Montanari, A. & Zhou, K. Learning time-scales in two-layers neural networks. Founda-tions of Computational Mathematics 25, 1627–1710 (2025). 15. Kögler, K., Shevchenko, A., Hassani, H. & Mondelli, M. Compression of Structured Data with Autoencoders: Provable Benefit of Nonlinearities and Depth in International Conference on Machine Learning (2024). 14 16. Farnia, F., Zhang, J. & Tse, D. A Spectral Approach to Generalization and Optimization in Neural Networks in ICLR (2018). 17. Rahaman, N. et al. On the Spectral Bias of Neural Networks in International Conference of Machine Learning 97 (2019), 5301–5310. 18. Merger, C. et al. Learning Interacting Theories from Data. Physical Review X 13. Publisher: American Physical Society, 041033 (Nov. 2023). 19. Bardone, L. & Goldt, S. Sliding Down the Stairs: How Correlated Latent Variables Accelerate Learning with Neural Networks in International Conference on Machine Learning 235 (PMLR, 2024), 3024–3045. 20. Ricci, F., Bardone, L. & Goldt, S. Reduce and Conquer: Independent Component Analysis at linear sample complexity in High-dimensional Learning Dynamics (2025). 21. van der Schaaf, A. & van Hateren, J. Modelling the Power Spectra of Natural Images: Statistics and Information. Vision Research 36, 2759–2770 (1996). 22. Hyvärinen, A., Hurri, J. & Hoyer, P. O. Natural image statistics: A probabilistic approach to early computational vision. (Springer Science & Business Media, 2009). 23. Oppenheim, A. & Lim, J. The importance of phase in signals. Proceedings of the IEEE 69 (1981). 24. Piotrowski, L. & Campbell, C. A demonstration of the visual importance and flexibility of spatial-frequency amplitude and phase. Journal of Physics A: Mathematical and Theoretical 53, 174003 (1982). 25. Burghouts, G. J. & Geusebroek, J. -M. Material-specific adaptation of color invariant features. en. 
+
+Pattern Recognition Letters 30, 306–313 (Feb. 2009). 26. Ben Arous, G., Gheissari, R. & Jagannath, A. Online Stochastic Gradient Descent on Non-Convex Losses from High-Dimensional Inference. J. Mach. Learn. Res. 22 (2021). 27. Ben Arous, G., Gheissari, R. & Jagannath, A. High-dimensional limit theorems for SGD: Effective dynamics and critical scaling in Advances in Neural Information Processing Systems 35 (Curran Associates, Inc., 2022), 25349–25362. 28. Pinson, H., Lenaerts, J. & Ginis, V. Linear CNNs discover the statistical structure of the dataset using only the most dominant frequencies in International Conference on Machine Learning (2023), 27876–27906. 29. Gunasekar, S., Lee, J. D., Soudry, D. & Srebro, N. Implicit bias of gradient descent on linear convolu-tional networks. Advances in neural information processing systems 31 (2018). 30. Julesz, B. Visual Pattern Discrimination. IRE Transactions on Information Theory 8, 84–92 (1962). 31. Tkačik, G., Prentice, J. S., Victor, J. D. & Balasubramanian, V. Local statistics in natural scenes predict the saliency of synthetic textures. Proceedings of the National Academy of Sciences 107, 
+
+18149–18154 (2010). 32. Caramellino, R. et al. Rat sensitivity to multipoint statistics is predicted by efficient coding of natural scenes. Elife 10, e72081 (2021). 33. Geirhos, R. et al. ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness in International conference on learning representations (2018). 34. Paquette, E., Paquette, C., Xiao, L. & Pennington, J. 4+ 3 phases of compute-optimal neural scaling laws. Advances in Neural Information Processing Systems 37, 16459–16537 (2024). 35. Braun, G., Loureiro, B., Minh, H. Q. & Imaizumi, M. Fast Escape, Slow Convergence: Learning Dynamics of Phase Retrieval under Power-Law Data in (arXiv, 2025). 36. Ben Arous, G., Erdogdu, M. A., Vural, N. M. & Wu, D. Learning quadratic neural networks in high dimensions: SGD dynamics and scaling laws in The Thirty-ninth Annual Conference on Neural Information Processing Systems (2025). 15 37. Ren, Y., Nichani, E., Wu, D. & Lee, J. Emergence and scaling laws in sgd learning of shallow neural networks. Advances in Neural Information Processing Systems 38, 38227–38309 (2026). 38. Defilippis, L. et al. Scaling laws and spectra of shallow neural networks in the feature learning regime. arXiv preprint arXiv:2509.24882 (2025). 39. Damian, A., Nichani, E., Ge, R. & Lee, J. D. Smoothing the Landscape Boosts the Signal for SGD: Optimal Sample Complexity for Learning Single Index Models in Conference on Neural Information Processing Systems (2023). 40. Dandi, Y. et al. The Benefits of Reusing Batches for Gradient Descent in Two-Layer Networks: Breaking the Curse of Information and Leap Exponents. arXiv (2024). 41. Gutmann, M. & Hyvärinen, A. Noise-contrastive estimation: A new estimation principle for unnormal-ized statistical models in Proceedings of the thirteenth international conference on artificial intelligence and statistics (2010), 297–304. 42. Damian, A., Pillaud-Vivien, L., Lee, J. D. & Bruna, J. The Computational Complexity of Learning Gaussian Single-Index Models. arXiv:2403.05529 (2024). 43. Richard, E. & Montanari, A. A statistical model for tensor PCA. Advances in neural information processing systems 27 (2014). 44. Ricci, F., Bardone, L. & Goldt, S. Feature learning from non-Gaussian inputs: the case of Independent Component Analysis in high dimensions in International Conference of Machine Learning 267 (2025), 51614–51639. 45. Mousavi-Hosseini, A., Wu, D., Suzuki, T. & Erdogdu, M. A. Gradient-based feature learning under structured data. Advances in Neural Information Processing Systems 36, 71449–71485 (2023). 46. Wortsman, A. & Loureiro, B. Kernel ridge regression under power-law data: spectrum and general-ization. arXiv:2510.04780 (2025). 47. Bartlett, P. L., Long, P. M., Lugosi, G. & Tsigler, A. Benign overfitting in linear regression. Proceedings of the National Academy of Sciences 117, 30063–30070 (2020). 48. Cheng, C. & Montanari, A. Dimension free ridge regression. The Annals of Statistics 52, 2879–2912 (2024). 49. Field, D. J. Relations between the statistics of natural images and the response properties of cortical cells. J. Opt. Soc. Am. A 4, 2379–2394 (Dec. 1987). 50. Ben Arous, G., Gheissari, R., Huang, J. & Jagannath, A. Spectral alignment of stochastic gradient descent for high-dimensional classification tasks. The Annals of Applied Probability 35, 2767–2822 (2025). 51. Ben Arous, G., Gerbelot, C. & Piccolo, V. Stochastic gradient descent in high dimensions for multi-spiked tensor PCA. arXiv preprint arXiv:2410.18162 (2024). 52. Ben Arous, G., Gheissari, R. & Jagannath, A. Algorithmic thresholds for tensor PCA. The Annals of Probability (2018). 53. Olshausen, B. A. & Field, D. J. Emergence of simple-cell receptive field properties by learning a sparse code for natural images. Nature 381, 607–609 (1996). 54. Mendes, V. C. et al. A solvable high-dimensional model where nonlinear autoencoders learn structure invisible to PCA while test loss misaligns with generalization. arXiv:2602.10680 (2026). 55. Hopkins, S. Statistical inference and the sum of squares method PhD thesis (Cornell University, 2018). 56. Mallat, S. A Wavelet Tour of Signal Processing 2nd ed. (Academic Press, San Diego, 1999). 57. Victor JD, C. M. Local image statistics: maximum-entropy constructions and perceptual salience. 
+
+Journal of the Optical Society of America A 29, 1313–1345 (2012). 16 58. Portilla, J. & Simoncelli, E. P. A Parametric Texture Model Based on Joint Statistics of Complex Wavelet Coefficients. International Journal of Computer Vision 40, 49–70 (2000). 59. De Paolis, L., Anselmi, F., Ansuini, A. & Piasini, E. Perceptual misalignment of texture representa-tions in convolutional neural networks. arXiv preprint arXiv:2604.01341 (2026). 60. Engstrom, L., Ilyas, A., Santurkar, S. & Tsipras, D. Robustness (Python Library) 2019. 61. Simoncelli, E. & Olshausen, B. Natural Image Statistics and Neural Representation. Annual review of neuroscience 24 (2001). 62. Zhu, Z. & Wakin, M. On the Asymptotic Equivalence of Circulant and Toeplitz Matrices. IEEE Transactions on Information Theory 63 (2016). 63. Szegö, G. On certain Hermitian forms associated with the Fourier series of a positive function. 
+
+Communications in Seminars of Mathematics, University of Lund (1952). 64. Böttcher, A. & Silbermann, B. Analysis of Toeplitz operators (Springer-Verlag, Berlin, 1990). 65. Davis, P. J. Circulant Matrices (Chelsea, 1994). 66. Szegö, G. Orthogonal Polynomials (American Mathematical Society, 1975). 67. Kunisky, D., Wein, A. S. & Bandeira, A. S. Notes on computational hardness of hypothesis testing: Predictions using the low-degree likelihood ratio in International Congress of ISAAC (International Society for Analysis, its Applications and Computation) (2019), 1–50. 68. Isserlis, L. On a Formula for the Product-Moment Coefficient of Any Order of a Normal Frequency Distribution in Any Number of Variables. Biometrika 12 (1918). 17 A Experimental details 
+
+In this appendix, we collect detailed information on how we ran the experiments of this paper. 
+
+A.1 Figure 1 
+
+We use greyscale images from the “ALOT” dataset [25], which we downsample to image patches of sizes 
+
+8 × 8, 16 × 16 and 32 × 32 . We then flatten these images into vectors of lengths N = 8 2, 16 2, 32 2 and train a two-layer neural network parametrized by 
+
+hi = X
+
+> j
+
+(w1)ij xj + ( b1)i,fθ(x) = X
+
+> i
+
+(w2)iσ (hi) + b2,
+
+where w1 ∈ Rk×N , w 2 ∈ Rk, b 1 ∈ Rk and b2 ∈ R are all trainable parameters, and we choose k = 30 .We train to classify textures of type “cotton” (label = 1 ) from textures of type “lace” (label = −1). For all experiments, we used the mean squared error as objective function, and trained with learning rate 
+
+η = 10 −3. We show examples of both textures in Fig. A.1 a-b) and the test accuracies of the classifiers evaluated on a held-out test set of 20% of the data in Fig. A.1 c). The empirical test loss is shown in Fig. 1 g). We also compute the DFT of the test images, swap the phases sample-wise between classes, and evaluate the models’ performance on these phase-swapped test set. This is also shown in Fig. 1 g). 
+
+A.2 Figure 2 
+
+Left: We show here that online SGD (6) cannot access easily the information encoded in the phase of isotropic translation-invariant inputs drawn accordingly to the Fourier data model (3) . We run SGD on inputs of dimension N = 100 , up to N 4 steps, and we perform 60 averages. The parameters of the Fourier data model are ε = 1 .2 and the modified entry is k0 = 6 . The activation function is the 4-th Hermite polynomial σ(s) = s4 − 6s2 + 3 and the learning rate for SGD is δN = 10 −3/N . Right: The empirical loss landscape has been computed in the same setting. The level sets on the loss landscape are shown in Section F.2.2. a) cotton b) lace    
+
+> 10 210 6
+> steps
+> 50
+> 100
+> test accuracy
+> c) original
+> 8x8
+> 16x16
+> 32x32
+> 10 210 6
+> steps
+> 50
+> 100
+> test accuracy
+> d) amplitudes = 1
+> 8x8
+> 16x16
+> 32x32
+> 10 210 6
+> steps
+> 50
+> 100
+> test accuracy
+> e) amplitudes matched
+> 8x8
+> 16x16
+> 32x32
+
+Figure A.1: a-b) Examples of images from ALOT dataset for the classes “cotton” and “lace”. c) Test accuracy of trained neural networks on original data. d) Test accuracies of neural networks on the same data, but where the amplitudes of all images have been set to one. e) Test accuracy on the same dataset, but where the amplitudes of class −1 are the same as the amplitudes of the class 1. All curves are averages over 8 random initializations. 18 10 1 10 3 
+
+> steps
+> 4.50
+> 4.62
+> test loss
+> a) SGD
+> original
+> ampl. = 1
+> ampl. matched
+> 10 110 3
+> steps
+> 4.50
+> 4.62
+> test loss
+> b) Adam
+
+Figure A.2: Test loss curves of a Resnet18 trained on CIFAR100 with a) SGD and b) Adam on original data ( ), data where all Fourier amplitudes have been set to one ( ) and data where the amplitudes of all classes are replaced by the amplitudes of the first class ( ). All the curves are averaged over three independent runs. We use the cross-entropy loss. Parameters: for SGD, we use learning rate 5 · 10 −3,momentum = 0.9, weight decay of 5 · 10 −3, batch size of 128. For Adam, we used learning rate 10 −3, β
+
+= (0.9, 0.99), and no weight decay. Cf. Fig. 3 to visualise the same trend on textures and ImageNet. 
+
+A.3 Figure 3 
+
+A.3.1 Panels a-d) 
+
+We use the same texture dataset as in Fig. 1 (see Section A.1) cropped into patches of sizes 8 × 8, 16 × 16 
+
+and 32 × 32 . We compute the (orthogonal) DFT of all images. In Fig. 3 a), we show their average squared Fourier amplitudes. Then, we train classifiers to distinguish between the “cotton” and “lace” texture types, using the same architecture as in Section A.1, in three different cases. First, we use the original texture data. Second, we set all Fourier amplitudes equal to one, and transform back. Finally, we transplant the amplitudes of the “cotton” class onto the “lace” class sample by sample, then transform back. In this last case, we have built two classes of inputs which share the same second order statistics, but have different Fourier phases. The test accuracies of the networks trained on the said image data are displayed in Fig. A.1 c-e). The corresponding test losses are shown in Fig. 3 b-d), with ( ) for the original data, ( ) for the whitened data and ( ) for the data with matched amplitudes. 
+
+A.3.2 Panel e) ImageNet experiment with Resnet18 
+
+We trained a standard Resnet18 architecture on a super-classed version of ImageNet with ten classes 1
+
+provided by the robustness library of Engstrom et al. [60]. We performed the same amplitude manipulations as in the texture experiments. We trained the network using vanilla SGD with a learning rate of 10 −3, weight decay of 5 · 10 −4, momentum of 0.9, and mini-batch size of 128. In all three data sets, we set the mean image of each class to zero, and we normalised inputs in all three data sets (vanilla images, images with flat amplitudes, images with shared amplitudes) to have the same mean and standard deviation. 
+
+A.4 Figure 4 
+
+(Left) Cartoon of the principal subspace of inputs sampled from the Fourier data model, in case of non-isotropic power-law-decaying inputs. (Middle) The ambient dimension is N = 300 . The parameters for the Fourier data model (3) are ε = 1 .2 and k0 = 6 . The other M = 5 frequencies for which the corres-ponding eigenvalue λm is extensive are k1 = 15 , k 2 = 24 , k 3 = 20 , k 4 = 9 and k5 = 18 . The extensive eigenvalues are (λk0 , λ k1 , λ k2 , λ k3 , λ k4 ) = ( N 1/2, N 1.2/2, N 1.1/2, N 1.3/2, N 1.4/2, N 0.9/2). Normalised 
+
+> 1Dog (n02084071), Bird (n01503061), Insect (n02159955), Monkey (n02484322), Car (n02958343), Cat (n02120997), Truck (n04490091), Fruit (n13134947), Fungus (n12992868), Boat (n02858304)
+
+19 online SGD is performed with δN = 0 .03 /N , for 60 averages. The circulant matrix for P0 and P has eigenvalues (λk0 , λ k1 , λ k2 , λ k3 , λ k4 ), and all the rest set to one. As always, the principal subspace is shared among the classes P0 and P. (Right) For the same parameters, we show the empirical loss function. 
+
+# B Preliminaries 
+
+B.1 Notation 
+
+W use the standard notations o, O, Θ, Ω, ω for asymptotics. We recall them here for sequences, but they generalize in a straight forward way in the case of functions. Let (ak)k∈N, (bk)k∈N be two real-valued sequences. Then, 
+
+ak ∈ o(bk) ⇐⇒ lim 
+
+> k→∞
+
+ak
+
+bk
+
+= 0 ,ak ∈ O(bk) ⇐⇒ ∃ C > 0 ∈ R ∀k > k 0 |ak| ≤ C|bk|,ak ∈ Θ( bk) ⇐⇒ ∃ C1, C 2 > 0 ∀k > k 0 C1|bk| ≤ | ak| ≤ C2|bk|,ak ∈ Ω( bk) ⇐⇒ ∃ C > 0 ∈ R ∀k > k 0 |ak| ≥ C|bk|,ak ∈ ω(bk) ⇐⇒ lim 
+
+> k→∞
+
+|ak||bk| = ∞.
+
+Occasionally, we use the shorthands ak ≪ bk for ak = o(bk), ak ≲ bk for ak = O(bk) and ak ≍ bk for 
+
+ak = Θ( bk).
+
+Pushforward Given a measurable map T : X → Y and a probability measure μ on X, we denote by 
+
+T#μ the pushforward of μ by T defined by T#μ(A) = μ(T −1(A), for any measurable set A ⊂ Y .
+
+B.2 Fourier analysis 
+
+Definition B.1 (DFT) . The Discrete Fourier Transform ( DFT ) is the linear map F : RN → CN such that for k = 0 , . . . , N − 1 we have 
+
+F(x)k = 
+
+> N−1
+
+X
+
+> n=0
+
+xne−2πin kN ,
+
+for any x ∈ CN . We denote with F ∈ CN ×N the DFT matrix defined as Fkn = e−i2πkn/N . The Inverse Discrete Fourier Transform ( IDFT ) is instead F∗ : CN → CN such that for any X ∈ CN we have 
+
+F∗(X)n = 1
+
+N 
+
+> N−1
+
+X
+
+> k=0
+
+Xke2πik nN .
+
+In what follows, we will use the notations X = DFT(x) = F(x) and x = DFT(X) = F∗(X) . Another possible choice would be the normalised DFT matrix defined as bF = 1√N F .
+
+Note that, for real inputs x ∈ RN , their DFT exhibits conjugate symmetry, that is Xk = XN −k.As a consequence, the non-redundant frequencies are only k = 0 , . . . , ⌊N/ 2⌋. The frequencies k = 0 
+
+and k = N/ 2, if N is even, are called DC and Nyquist frequencies, respectively. They correspond to the real DFT Fourier coefficients X0 and XN/ 2. Being purely real, these entries are not candidates to exhibit a perturbation of the phase in the sense of the Fourier data model (3) , for which we consider 
+
+k0 /∈ { 0, N/ 2}.The next definition identifies a set of particular vectors in RN . Since these vectors are orthonormal, they form an orthonormal basis of RN , which we refer to as the (real) DFT basis. 20 Definition B.2 (DFT basis) . The cosine DFT basis vectors (uk)k and the sine DFT basis vectors (vk)k in 
+
+RN , for the frequencies k = 1 , . . . , ⌊ N −12 ⌋, are defined by 
+
+ukn =
+
+r 2
+
+N cos 
+
+ 2πkn N
+
+
+
+and vkn =
+
+r 2
+
+N sin 
+
+ 2πkn N
+
+
+
+,
+
+for any n = 0 , . . . , N − 1. In addition, we define the constant basis vectors ψ0, ψ N/ 2 such as ψ0 
+
+> n
+
+= 1 /√N
+
+and ψN/ 2 
+
+> n
+
+= ( −1) n/N, for n = 0 , . . . , N − 1. The DFT basis consists of the constant basis vectors 
+
+ψ0, ψ N/ 2, the cosine DFT basis vectors uk and the sine DFT basis vectors vk.
+
+B.3 Translation-invariant inputs 
+
+In many fields like visual processing and statistical modeling, it is very common [61], [22] to assume that natural images and textures exhibit wide-sense stationarity, meaning that their second-order statistics are translation-invariant or, to put it differently, that their covariance matrix is Toeplitz , in the sense that each entry of the matrix depends only on the relative distance of the corresponding indices. 
+
+Definition B.3 (Toeplitz matrix) . A matrix Σ ∈ CN ×N is “Toeplitz” if there exists a function c : Z → C
+
+such that 
+
+Σij = c(i − j).
+
+A zero-mean random vector is said to be “wide-sense stationary” if its covariance matrix is Toeplitz. 
+
+For matrices, circularity is a more restrictive property with respect to the just mentioned notion of invariance. Indeed, circulant matrices form a proper subset of Toeplitz ones, since they impose additional constraints on the boundary conditions. The entries of a Toeplitz matrix are constant along its diagonals, while each row of a circulant matrix is a circular shift of the previous one, in the following sense. 
+
+Definition B.4 (Circulant matrix) . A matrix Σ ∈ CN ×N is said to be “circulant” if each entry is such that 
+
+Σij = c(( i − j) mod N) , for a function c : Z → C. This means that there exist N coefficients c0, . . . , c N −1
+
+such as 
+
+Σ = 
+
+
+
+c0 cN −1 cN −2 · · · c1
+
+c1 c0 cN −1 · · · c2
+
+c2 c1 c0 · · · c3
+
+... ... ... . . . ...
+
+cN −1 cN −2 cN −3 · · · c0
+
+
+
+.
+
+In the Fourier data model (3) , we ask that the covariance matrix of the original inputs z ∈ RN
+
+is circulant, rather than only Toeplitz. We require this in order to have the covariance matrix of the inputs diagonalized by the DFT basis defined in Definition B.2. For this reason, in this work, we say that the inputs are translation-invariant if they satisfy Definition B.5. We emphasize that the notion of translation-invariance adopted here is not the standard one, which often refers to random vectors whose distribution is invariant under translation. However, in the classical sense, translation invariance implies wide-sense stationarity, in the sense of Definition B.3. Moreover, in high-dimensional settings, there are some well-established results (e.g. [62]) proving that Toeplitz matrices can be approximated by circulant matrices in a spectral sense, meaning that the eigenvalue distribution of a proper circulant approximation captures the bulk of energy in the Toeplitz covariance matrix. These results are built on classical limit theorems from [63] and [64]. In view of these considerations, the proposed definition of translation-invariant inputs is appropriate in the context of modeling high-dimensional natural images or textures. 
+
+Definition B.5 (Translation-invariant inputs) . A zero-mean random vector x ∈ RN is said to be “translation-invariant” if its covariance matrix is circulant. 
+
+21 Note that, because of the symmetry of any covariance matrix, a translation-invariant random vector has covariance Σ such that c(i−j) mod N = Σ ij = Σ ji = c(j−i) mod N , for some coefficients 
+
+(c0, . . . , c N −1). Hence, given τ = ( i − j) mod N , it holds (j − i) mod N = N − τ , from which it follows that cτ = cN −τ for τ = 1 , . . . , N − 1. Then, the only free entry c0 is on the main diagonal, while the other entries (c1, . . . , c N −1) are forced to be symmetric about the center, leading to the following structure: 
+
+Σ = 
+
+
+
+c0 c1 c2 · · · c2 c1
+
+c1 c0 c1 · · · c3 c2
+
+c2 c1 c0 · · · c4 c3
+
+... ... ... . . . ... ...
+
+c2 c3 c4 · · · c0 c1
+
+c1 c2 c3 · · · c1 c0
+
+
+
+.
+
+In the next lemma, we prove that it is possible to diagonalise any circulant covariance matrix through the DFT basis. This is the main reason why circulant matrices are fundamental in studying the structure of inputs distributed according to the Fourier data model (3). 
+
+Lemma B.6 (Diagonalisation of circulant matrices) . Any symmetric circulant matrix is diagonalized by the DFT basis. Proof. For any circulant matrix Σ, it holds that Σij = c(i−j) mod N . It is well known that for any 
+
+k = 1 , . . . , ⌊ N −12 ⌋, the vectors 
+
+wk = 1
+
+√N
+
+
+
+1
+
+ωk
+
+ω2k
+
+...
+
+ω(N −1) k
+
+
+
+,
+
+where ω = ei2π/N is the fundamental N -th root of unity, are (complex) eigenvectors of Σ. This is proven for example in the standard reference [65]. Moreover, Σ is symmetric and then its eigenvalues 
+
+(λ0, . . . , λ ⌊ N −12 ⌋) are real. Since 
+
+wkn = 1
+
+√N cos 
+
+ 2πkn N
+
+
+
++ i 1
+
+√N sin 
+
+ 2πkn N
+
+
+
+,
+
+the DFT basis vectors defined Definition B.2 are (real) eigenvectors of Σ corresponding to the real eigenvalue λk.The next lemma is at the basis of the already mentioned disentanglement between low-order and higher-order correlations of translation-invariant inputs or, in Fourier terms, between Fourier amplitudes and Fourier phases. 
+
+Lemma B.7. Consider a translation-invariant random vector z ∈ RN and its DFT , i.e. Z = DFT(z) ,with Zk = ρkeiφ k for k = 0 , . . . , N − 1. Then, its covariance matrix Cov[Z] is diagonal and such that 
+
+Cov[Z] kk = E[ρ2k].
+
+Proof. Since z has circulant covariance, for any n, m = 0 , . . . , N −1, denote its entries by the coefficients 
+
+c(n−m) mod N = E[znzm]. Therefore, 
+
+E[ZkZl] =  
+
+> N−1
+
+X
+
+> n,m =0
+
+e−2πi (kn +lm )/N E[znzm]
+
+| {z }  
+
+> c(n−m)mod N
+
+= 
+
+> N−1
+
+X 
+
+> τ=0
+
+cτN −1X
+
+> m=0
+
+e−2πi (k(m+τ )−ml ),
+
+22 where τ = ( n − m) mod N . If we define Sk = PN −1  
+
+> τ=0
+
+cτ e−2πiτ k/N , it holds that 
+
+E[ZkZl] = SkN −1X
+
+> m=0
+
+e−2πim (k−l)/N =
+
+(
+
+SkN if k ≡N l, 
+
+0 otherwise .
+
+Now, note that for any k = 0 , . . . , N − 1, we can write that 
+
+E[ρ2
+
+> k
+
+] = E[ZkZk] =  
+
+> N−1
+
+X
+
+> n,m =0
+
+e−2πik (n−m)E[znzm] =  
+
+> N−1
+
+X 
+
+> τ=0
+
+cτ e−2πikτ 
+
+| {z }
+
+> Sk
+
+N, 
+
+and then Cov [Z]kl = E[ZkZl] = E[ρ2
+
+> k
+
+]δk≡N l, which implies the thesis. 
+
+B.4 Amplitudes and phases of the DFT coefficients 
+
+In this small section, we investigate closely the distributions of the amplitudes and phases of a Gaussian-distributed translation-invariant random vector (cf. Definition B.5). 
+
+Definition B.8 (Rayleigh distribution) . A scalar random variable Y is said to be Rayleigh-distributed with parameter σ > 0, and we will write Y ∼ Rayleigh( σ), if its probability density function is given by 
+
+pY (y) = 
+
+
+
+yσ2 exp 
+
+
+
+− y2
+
+2σ2
+
+
+
+y ≥ 0,
+
+0 y < 0.
+
+We can note that the square root of the sum of two squared independent Gaussian random variables is distributed according to a Rayleigh distribution. 
+
+Remark B.9. Given Z1, Z 2 ∼ N (0 , σ 2) independent random variables, Y = pZ21 + Z22 follows a Rayleigh distribution with parameter σ.
+
+Remark B.10 (Statistics of Rayleigh distribution) . Consider Y ∼ Rayleigh( σ). Then, 
+
+E[Y ] = σ
+
+r π
+
+2 , Var( Y ) = 4 − π
+
+2 σ2, E[Y k] = σk2k/ 2Γ
+
+
+
+1 + k
+
+2
+
+
+
+,
+
+where Γ( ·) is the Gamma function and k ≥ 2.
+
+In the next lemma we prove that the DFT coefficients of translation-invariant Gaussian noise are independent and that their amplitudes and phases are Rayleigh- and uniform-distributed, respectively. 
+
+Lemma B.11. Consider a zero-mean translation-invariant Gaussian random vector z ∈ RN . Then, its 
+
+DFT coefficients Zk are independent and 
+
+ρk ∼ Rayleigh 
+
+r Nλk
+
+2
+
+
+
+, φk ∼ Unif([ −π, π )) ,
+
+where λk is the k-th eigenvalue of the covariance matrix Σ of the inputs. Proof. Any Gaussian-distributed random vector z ∈ RN has a Gaussian DFT Z = DFT(x) . Hence, each entry, and the corresponding real and imaginary parts are Gaussian-distributed. Since Σ is circulant, the entries Zk are uncorrelated, and then independent. We look now at the statistics of Re (Zk) and Im (Zk).The real part of the Fourier coefficient is Re (Zk) = PN −1 
+
+> n=0
+
+xn cos   2πkn N
+
+ . We want to compute Var (Re (Zk)) = E
+
+" N −1X
+
+> n=0
+
+zn cos 
+
+ 2πkn N
+
+! N −1X
+
+> m=0
+
+zm cos 
+
+ 2πkm N
+
+!# 
+
+= 
+
+> N−1
+
+X 
+
+> n=0
+> N−1
+
+X
+
+> m=0
+
+E[znzm] cos 
+
+ 2πkn N
+
+
+
+cos 
+
+ 2πkm N
+
+
+
+.
+
+23 Since E[znzm] = c(n−m) mod N ,Var (Re (Zk)) = 12 
+
+> N−1
+
+X
+
+> m,n =0
+
+c(n−m) mod N
+
+
+
+cos 
+
+ 2πk (n − m)
+
+N
+
+
+
++ cos 
+
+ 2πk (n + m)
+
+N
+
+ 
+
+, (B.1) where we have applied the trigonometric identity cos( A) cos( B) = 1 /2 [cos( A − B) + cos( A + B)] .We can split Eq. (B.1) into two sums: Var (Re (Zk)) = S1 + S2. Define τ = ( n − m) mod N . For any fixed n, as m cycles through 0, . . . , N − 1, the index r also cycles through 0, . . . , N − 1. Then, 
+
+S1 = 12 
+
+> N−1
+
+X 
+
+> n=0
+> N−1
+
+X
+
+> m=0
+
+c(n−m) mod N cos 
+
+ 2πk (n − m)
+
+N
+
+!
+
+.
+
+The inner sum is the definition of the k-th eigenvalue λk for the circulant covariance matrix Σ, since  
+
+> N−1
+
+X
+
+> r=0
+
+cr cos 
+
+ 2πkr N
+
+
+
+= Re (λk) = λk.
+
+Thus, S1 = 12
+
+PN −1 
+
+> n=0
+
+λk = ( N λ k)/2. For S2, we get that 
+
+S2 = 12 
+
+> N−1
+
+X
+
+> r=0
+
+crN −1X
+
+> m=0
+
+cos 
+
+ 2πk (2 m + r)
+
+N
+
+
+
+and, by expanding the cosine, it hods that 
+
+S2 = 12 
+
+> N−1
+
+X
+
+> r=0
+
+cr
+
+"
+
+cos 
+
+ 2πkr N
+
+ N −1X
+
+> m=0
+
+cos 
+
+ 4πkm N
+
+
+
+− sin 
+
+ 2πkr N
+
+ N −1X
+
+> m=0
+
+sin 
+
+ 4πkm N
+
+#
+
+.
+
+For 0 < k < N/ 2, the value 2k is not a multiple of N . Therefore, the sum of the sinusoids over N
+
+points is zero, i.e. N −1X
+
+> m=0
+
+ej 2π(2 k)mN = 0 .
+
+In conclusion, S2 = 0 . Then, Re (Zk) ∼ N (0 , N λ k/2) . Since the same is true for the imaginary part, the first part of the thesis follows from the definition of a Rayleigh-distributed random variable. For a fixed frequency k, we denote now A = Re (Xk), B = Im (Xk) and σ2 = ( λkN )/2. Then, the joint distribution for (A, B ) is 
+
+fA,B (a, b ) = 12πσ 2 e− a2+b22σ2 .
+
+In the polar coordinates A = R cos( ϕ) and A = R sin( ϕ), we have fR,ϕ (r, φ ) = fA,b (r cos φ, r sin φ)|J|,for J Jacobian of the transformation. Hence, 
+
+fR,ϕ (r, φ ) = r
+
+2πσ 2 e−r2/2σ2
+
+= rσ2 e− r22σ2 12π
+
+and marginalising we obtain the thesis: 
+
+fϕ(φ) = 
+
+Z +∞
+
+> 0
+
+fR,ϕ (r, φ )dr = 12π
+
+Z +∞
+
+> 0
+
+rσ2 e− r22σ2 dr = 12π .
+
+24 B.5 Hermite polynomials 
+
+In this section, we recall some basic definitions about Hermite polynomials [66], which happens to be useful tools to study learning dynamics for classical estimation problems. In what follows, P0 denotes a univariate or multivariate normal Gaussian distribution. However, in some cases, P0 may admit a non-trivial covariance matrix. This will be specified explicitly when needed. 
+
+Definition B.12 (Gaussian product) . Given f, g : RN → R and P0 multivariate normal Gaussian distribution, we define the L2-scalar product as 
+
+⟨f, g ⟩P0 = EP0 [f (x)g(x)] .
+
+The space L2(RN , P0) contains all the measurable functions f : RN → R such that || f || 2 = ⟨f, f ⟩P0 < ∞.
+
+Definition B.13 (Hermite polynomials) . The (non-normalised) probabilists’ Hermite polynomials (hk)k
+
+are defined by h0(x) = 1 , h 1(x) = x and, for k ≥ 1, recursively by 
+
+hk+1 (x) = xh k(x) − kh k−1(x).
+
+The first Hermite polynomials are 
+
+h0(x) = 1 ,h1(x) = x, h2(x) = x2 − 1,h3(x) = x3 − 3x, h4(x) = x4 − 6x2 + 3 .
+
+Lemma B.14 (Orthogonality property) . Let P0 be the multivariate normal Gaussian distribution. Consider 
+
+w1, w 2 ∈ SN −1 and set α = w1 · w2. Then, for any i, j ∈ N,
+
+EP0 [hi(w1 · x)hj (w2 · x)] = i! αi δij .
+
+Definition B.15 (Hermite expansion) . Consider a function f : R → R that is square integrable with respect to the univariate Gaussian normal distribution P0. Then, there exists a unique sequence of real numbers (ck)k∈N called Hermite coefficients such that 
+
+f (x) = 
+
+> ∞
+
+X
+
+> k=0
+
+ck
+
+k! hk(x) and ck(x) = EP0 [f (x)hk(x)] ,
+
+where hk is the k-th probabilists’ Hermite polynomial. 
+
+B.6 Information exponent and likelihood ratios 
+
+Definition B.16 (Information exponent) . Given any function f for which the Hermite expansion exists, its information exponent k∗ = k∗(f ) is the smallest index k ≥ 1 such that ck̸ = 0 .
+
+In order to compute the information exponent of the population correlation loss (7) for non-Gaussian distributions, we can exploit the likelihood ratio . It allows us to rewrite the average over the non-Gaussian inputs as an average over the multivariate Gaussian distribution P0 = N (0 , Σ) .
+
+Definition B.17 (Likelihood ratio) . Let P and P0 be two probability distributions on RN . If P is absolutely continuous with respect to P0, then there exists a measurable function 
+
+dP
+
+dP0
+
+: RN → [0 , ∞)
+
+25 −4 −2 0 2 4
+
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+
+Density of xμ ⋅ u    
+
+> −4 −2 024
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+
+Density of xμ ⋅ v    
+
+> −4 −2 024
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+
+Density of xμ ⋅ w*Figure B.1: Distributions of the inputs drawn from the Fourier data model along the DFT phase vectors. Consider the DFT phase vectors u and v (cf. Definition B.2) and a fixed vector w∗
+
+uniformly drawn from the sphere in dimension N = 30 . The DFT phase vectors span the only subspace of RN along which the projected inputs are non-Gaussian-distributed. Indeed, ( left ) and ( middle ) are non-Gaussian, whereas ( right ) is Gaussian. 
+
+such that for every measurable A ⊆ RN , we get that 
+
+P (A) = 
+
+Z
+
+> A
+
+dP
+
+dP0
+
+dP0.
+
+The function ℓ = d P\dP0 is called “likelihood ratio” (or “Radon–Nikodym derivative”) of P with respect to 
+
+P0. If both P and P0 admit densities p and q with respect to the Lebesgue measure, then, for any y ∈ RN ,we have that ℓ(y) = p(y)/q (y).
+
+Assume that P is a non-Gaussian distribution, P0 is a Gaussian distribution and that the likelihood ratio between P and P0 depends only on the projection of the inputs along a fixed number of directions 
+
+ℓ = ℓ(w∗ 
+
+> 1
+
+· x, . . . , w ∗ 
+
+> k
+
+· x). Intuitively, the likelihood ratio (or more precisely, its norm) measures how different the distribution of the projection s = w · x is from a standard Gaussian distribution, when the weight vector w belongs to the subspace spanned by {w∗
+
+> 1
+
+, . . . , w ∗
+
+> k
+
+}. Given that, we can write 
+
+EP[σ(w · x)] = EP0 [σ(w · x)ℓ(w∗ 
+
+> 1
+
+· x, . . . , w ∗ 
+
+> k
+
+· x)] . (B.2) The likelihood ratio will thus be the key object in our study to determine the number of samples that a given algorithm like SGD requires to find a projection that is distinctly non-Gaussian and yields a large likelihood ratio, akin to how one would proceed in an analysis with the second moment method in hypothesis testing [67]. 
+
+# C Statistical properties of the Fourier data model 
+
+Here, we recall what the definition of the Fourier data model (3) is. Assume that (zμ)nμ=0 ⊆ RN are n
+
+samples drawn from P0 = N (0 , Σ) , with Σ ∈ RN ×N circulant matrix. Consider Zμ = DFT (zμ), with 
+
+Zμk = ρμk eiφ μk for k = 0 , . . . , N − 1. Because of Lemma B.11, we have that ρμk ∼ Rayleigh (√λkN / 2) ,where λk is the k-th eigenvalue of Σ and that the phases are independent and φμk ∼ Unif ([ −π, π )) . Note that, since the inputs are real, we have ZμN −k = Zμk . For any ε > 0, choose k0̸ = 0 , N/ 2 and define Xμ
+
+by 
+
+Xμ =
+
+
+
+ρμ
+
+> 0
+
+...
+
+ρμN −1
+
+ exp 
+
+
+
+i φ μ
+
+> 0
+
+...
+
+i ψ μk0
+
+...
+
+i φ μN −1
+
+
+
+, ψμk0 = φμk0 + ε f (φμk0 )
+
+| {z } 
+
+> HOCs
+
++U μ,
+
+where U μ is sampled from a discrete random variable, independent from φμk , which takes values with equal probability in the angles corresponding to the 4th roots of unity, i.e. {0, π/ 2, π, 3π/ 2} with 26 probability 1/4. In order to have real inputs in pixel space, we ask that XμN −k0 = Xμk0 . We call P the distribution of xμ = IDFT (Xμ) in pixel space. The next lemma clarifies why adding a simple spike independent from the random phase would have not broken the uniformity of the phase, leading to gaussian inputs. Then, the dependence of f
+
+from the phase is crucial to guarantees that P has some non-trivial higher-order statistics and turns out to be, in fact, non-Gaussian. 
+
+Lemma C.1. Denote by μ = Unif( TN) the distribution of a random vector on the torus T = R/(2 πZ).Then, if φ ∼ μ, w∗ ∈ RN and ν is a scalar random variable on R following any distribution, we get that 
+
+φ′ = φ + νw ∗ ∼ μ.Proof. Consider K-measurable sets Ak ⊆ T and A = QKk=1 ∈ TN . We have that 
+
+P (φ′ ∈ A | ν) = 
+
+> K
+
+Y
+
+> k=1
+
+P (φk + νv k ∈ Ak | ν) = 
+
+> K
+
+Y
+
+> k=1
+
+μ(Ak − νv k)
+
+| {z } 
+
+> μ(Ak)
+
+,
+
+where we have noted that, being μ a Haar measure on the compact group (TN , +) , it is translational invariant on the torus. Then, by integrating out ν, we conclude that 
+
+P (φ′ ∈ A) = 
+
+> K
+
+Y
+
+> k=1
+
+μ(Ak) = μ(A).
+
+We compute now the statistics of the inputs sampled from the Fourier data model (3) . For simplicity, we will often drop the dependence on the index for each sample μ. By linearity of the DFT, it is clear that the new inputs have mean zero both in pixel and Fourier space. In Lemma C.2, we prove that the new inputs x and the original inputs z have the same covariance matrix both in pixel space and in Fourier space. 
+
+Lemma C.2 (Second-order cumulants) . Let X ∈ CN be a random vector distributed according to the Fourier data model (3) and consider x = IDFT(X) . Then, Cov[X] = Cov[Z] and Cov[x] = Σ .Proof. Given that x, z ∈ RN have mean zero, it holds that 
+
+E[xx ⊤] = F −1E[XX ∗]F ∗− 1 and E[zz ⊤] = Σ = F −1E[ZZ ∗]F ∗− 1.
+
+Because of that, it is sufficient to prove that E[XX ∗] = E[ZZ ∗]. Note that U has been chosen such that 
+
+E[eimU ] = 
+
+(
+
+1 if m ≡4 0,
+
+0 otherwise .
+
+We can compute E[XkXl], for k, l = 0 , . . . , N − 1. The entries for which k, l / ∈ { k0, N − k0} are non-modified entries of the original inputs Z, and then they equal E[ZkZl]. Else, we have that 
+
+E[XkXl] = 
+
+
+
+E[Xk0 Xk0 ] = E[ρ2 
+
+> k0
+
+] if k = l = k0,
+
+E[XN −k0 XN −k0 ] = E[Xk0 Xk0 ] = E[ρ2 
+
+> k0
+
+] if k = l = N − k0,
+
+E[Xk0 XN −k0 ] = E[X2 
+
+> k0
+
+] = E[Z2 
+
+> k0
+
+e2iε sin φk0 ] E[ei2U ] = 0 if k = k0, l = N − k0,
+
+E[Xk0 Xl] = E[Xk0 ]E[Xl] = 0 if k = k0, l / ∈ { k0, N − k0}.
+
+In the case of the entry (k0, l ), with l / ∈ { k0, N − k0}, we have used the independence coming from Gaussian translation-invariant inputs. Moreover, thanks to Lemma B.7, Cov [Z]kl = E[ρ2
+
+> k
+
+]δkl and then we can conclude that E[XX ∗] = E[ZZ ∗]. Note that the choice of U guarantees that Cov [X] stays diagonal by dealing with the case k = k0, l = N − k0, which instead would have broken translation invariance. 27 3 2 1 0 1 2 3             
+
+> Phase
+> 0.000
+> 0.025
+> 0.050
+> 0.075
+> 0.100
+> 0.125
+> 0.150
+> Density 3210123
+> Phase
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> Density 010 20 30 40 50 60 70
+> 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> 1
+> 0
+> 1
+> 2
+> 3
+> Covariance matrix
+
+Figure C.1: Illustration of the statistics of inputs distributed according to the Fourier data model. 
+
+(Left ) Uniform distribution of the phase of a non-modified frequency. ( Middle ) Spiked distribution of the phase of the modified frequency k0 = 6 , ε = 2 .5. ( Right ) Example of a circulant covariance of both baseline P0 and planted P distributions, in pixel space. 
+
+Remark C.3. Consider x ∈ RN distributed according to P or P0. Recall that we denote by F ∈ CN ×N
+
+the non-normalised DFT matrix and by bF = 1√N F ∈ CN ×N the normalised DFT matrix. Call λk the 
+
+k-th eigenvalue of the covariance matrix Σ in pixel space. Then, if XF = F x and X bF = bF x , because of Lemma B.7, we get that 
+
+[Cov( XF )] kl = λkN δ kl and [Cov( X bF )] kl = λkδkl .
+
+Note that, in the case of the non-normalised DFT , the amplitudes ρFk are Rayleigh-distributed with parameter σFk =
+
+q λk N 
+
+> 2
+
+. In the normalised case, we have σ bFk =
+
+q λk 
+
+> 2
+
+. Then, thanks to Remark B.10 on the statistics of the Rayleigh distribution, 
+
+E[( ρFk )2] = λkN and E[( ρ ˆFk )2] = λk.
+
+Moreover, E[ρFk ] = 
+
+q λk πN  
+
+> 4
+
+and E[ρ bFk ] = 
+
+q λk π 
+
+> 4
+
+.
+
+The next definition is useful to write explicitly the non-trivial higher-order statistics of the inputs drawn from the Fourier data model in the case of f (φk0 ) = sin ( φk0 ).
+
+Definition C.4 (Bessel functions) . The Bessel function of first kind of order m-th is Jm(z) such that 
+
+12π
+
+Z 2π
+
+> 0
+
+ei(mφ +z sin φ)dφ = J−m(z) = Jm(z)( −1) m.
+
+In the next lemma, we show that the third-order cumulants of the inputs drawn from the Fourier data model (3) are vanishing, and then they equal those of any Gaussian distribution P0.
+
+Lemma C.5 (Third-order cumulants) . Consider a random vector X ∈ CN distributed according to the Fourier data model (3) and x = IDFT(X) . Then, for any t1, t 2, t 3 ∈ { 0, . . . , N − 1}, we have 
+
+E[xt1 xt2 xt3 ] = 0 .Proof. Since 
+
+E[xt1 xt2 xt3 ] = 1
+
+N 3 
+
+> N−1
+
+X
+
+> k,l,m =0
+
+E[XkXlXm]e 2πi N (t1k+t2l+t3m),
+
+it is sufficient to show that E[XkXlXm] = 0 , for any k, l, m ∈ { 0, . . . , N −1}. Note that E[XkXlXm] = 
+
+E[ZkZlZm] = 0 if k, l, m / ∈ { k0, N − k0}, since Z is Gaussian. The cases in which one or two entries are Xk0 or XN −k0 vanish since each entry has mean zero and because of the independence of the entries. To conclude, E[X3 
+
+> k0
+
+] = −J3(3 ε)E[ρ3 
+
+> k0
+
+]E[ei3U ] = 0 by construction of U . Same for E[X3  
+
+> N−k0
+
+].28 The next result, which allows to compute higher-order moments of a Gaussian distribution, will be used to compute the fourth-order statistics of inputs drawn from the Fourier data model (3) . It basically tells that any higher-order moment of a zero-mean Gaussian random vector can be written in terms of its covariance matrix. 
+
+Lemma C.6 (Isserlis’ theorem [68]) . If x ∈ RN is a zero-mean Gaussian random vector, we have 
+
+E[x1x2 · · · xk] = X 
+
+> all pairings of {1,...,k }
+
+Y 
+
+> (a,b )∈pairing
+
+E[xaxb].
+
+Isserlis’ theorem implies that, given x ∼ N (0 , Σ) , Σ ∈ RN ×N and t1, t 2, t 3, t 4 ∈ { 0, . . . , N − 1},we can write 
+
+E[xt1 xt2 xt3 xt4 ] = Σ t1t2 Σt3t4 + Σ t1t3 Σt2t4 + Σ t1t4 Σt2t3 .
+
+We now compute the fourth-order moments of inputs sampled from the Fourier data model (3) . We prove that the fourth-order moments of these inputs projected along a weight vector of unit norm coincide with the ones of a zero-mean Gaussian random vector with covariance Σ. However, these projections differ in distribution from the Gaussian ones if the weight belongs to the subspace spanned by the DFT phase vectors u and v. This is the effect of the phase modification of the mode k0, which results in an additional signal at the level of higher-order interactions for the new data points. Note that choosing U such that E[ei4U ] = 1 induces the non-vanishing higher-order correlations to be of order four. 
+
+Lemma C.7 (Fourth-order cumulants) . Consider a random vector X ∈ CN distributed according to the Fourier data model (3) and x = IDFT(X) . Then, for any t1, t 2, t 3, t 4 ∈ { 0, . . . , N − 1}, we have that 
+
+E[xt1 xt2 xt3 xt4 ]=Σ t1t2 Σt3t4 +Σ t1t3 Σt2t4 +Σ t1t4 Σt2t3 + 2
+
+N 4 J4(4 ε)E[ρ4 
+
+> k0
+
+] cos 2πk 0
+
+N (t1 + t2 + t3 + t4)
+
+!
+
+.
+
+Moreover, for any w ∈ RN , it holds that 
+
+E[( w · x)4] = 3( w⊤Σw)2 + 2J4(4 ε)
+
+N 2 E[ρ4 
+
+> k0
+
+] Re( w4 
+
+> k0
+
+),
+
+where Re( wk0 ) is the real part of 
+
+wk0 = 1
+
+√N 
+
+> N−1
+
+X
+
+> t=0
+
+wt exp(2 πik 0t/N ).
+
+Assume now that ∥w∥ = 1 . Consider the case where θ ∈ (0 , 2π] is such that w = cos θ u + sin θ v . Then, 
+
+Re( w4 
+
+> k0
+
+) = cos (4 θ)/4. Conversely, if w · u = w · v = 0 , we get that Re( w4 
+
+> k0
+
+) = 0 .Proof. For any t1, t 2, t 3, t 4 ∈ { 0, . . . , N − 1}, we are going to compute 
+
+E[xt1 xt2 xt3 xt4 ] = 1
+
+N 4 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+E[XkXlXmXn] e 2πi N (kt 1+lt 2+mt 3+nt 4).
+
+We first show that this fourth moment can be written as sum of two contributions: one term containing the fourth moments of Gaussian variables and a second term which involves the modified frequencies, i.e. 
+
+E[xt1 xt2 xt3 xt4 ] = 1
+
+N 4 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+E[ZkZlZmZn] e 2πi N (kt 1+lt 2+mt 3+nt 4) (C.1) 
+
++ 1
+
+N 4 
+
+> N−1
+
+X 
+
+> k=l=m=n=k0,k=l=m=n=N−k0
+
+E[XkXlXmXn] e 2πi N (kt 1+lt 2+mt 3+nt 4). (C.2) 29 By construction, we know that when k, l, m, m / ∈ { k0, N −k0} we have E[XkXlXmXn] = E[ZkZlZmZn].Also, because of the independence of the entries, we have that E[Xk0 XkXlXm] = E[X2 
+
+> k0
+
+XkXl] = 
+
+E[X3 
+
+> k0
+
+Xk] = 0, for k, l, m /∈ {k0, N − k0}, k ̸ = l̸ = m, nor their conjugates. What’s more, 
+
+E[X2 
+
+> k0
+
+X2 
+
+> k
+
+] = E[ρ2 
+
+> k0
+
+X2 
+
+> k
+
+e2iε sin φk0 ]E[ei2U ] = 0 , for k /∈ { k0, N − k0}. Also, E[Xk0 X3 
+
+> k
+
+] = 0 since 
+
+Xk0 has zero mean. The non-vanishing contributions are 
+
+E[XkXlXmXn]= 
+
+
+
+E[Xk0 XN−k0 XmXN −m] = E[ρ2 
+
+> k0
+
+]E[ρ2
+
+> m
+
+] if k = k0, l = N − k0, m ̸ = {k, N − k}, n =N −m, 
+
+E[X2 
+
+> k0
+
+X2  
+
+> N−k0
+
+] = E[X2 
+
+> k0
+
+X2 
+
+> k0
+
+] = E[ρ4 
+
+> k0
+
+] if k = l = k0, m = n = N − k0,
+
+E[X4  
+
+> N−k0
+
+] = E[X4 
+
+> k0
+
+] = J4(4 ε)E[ρ4 
+
+> k0
+
+] if k = l = m = n = N − k0,
+
+E[X4 
+
+> k0
+
+] = E[X4  
+
+> N−k0
+
+] = J4(4 ε)E[ρ4 
+
+> k0
+
+] if k = l = m = n = k0.
+
+Note that the last two cases don’t vanish because, by construction of U , we have that E[ei4U ] = 1 .We know that a = Re (Zk) ∼ N (0 , E[ρ2
+
+> k
+
+]/2) and b = Im (Zk) ∼ N (0 , E[ρ2
+
+> k
+
+]/2) for k̸ = 0 , N/ 2. Since 
+
+ρ2 
+
+> k0
+
+= a2 + b2, it follows that 
+
+E[ρ4 
+
+> k0
+
+] = E[a4] + E[b2] + 2 E[a2]E[b2] = 3 E[ρ2 
+
+> k0
+
+]2
+
+2 + E[ρ2 
+
+> k0
+
+]2
+
+2 = 2 E[ρ2 
+
+> k0
+
+]2.
+
+Now, recall that thanks to the Isserlis’ Theorem C.6 for Gaussian random variables we have 
+
+E[ZkZlZmZn] = E[ρ2
+
+> k
+
+]E[ρ2
+
+> m
+
+]( δk,N −lδm,N −n + δk,N −mδl,N −n + δk,N −nδl,N −m),
+
+which is non vanishing if and only if the indices can be partitioned in two pairs of conjugates. Then, 
+
+E[XkXlXmXn] = E[ZkZlZmZn] for any (k, l, m, m )̸ = ( k0, k 0, k 0, k 0) and (k, l, m, m )̸ = ( N −
+
+k0, N − k0, N − k0, N − k0), and Eq. (C.1) follows. The first addendum of Eq. (C.1), by definition of DFT, is simply equal to E[zt1 zt2 zt3 zt4 ]. Now, thanks again to the Isserlis’ theorem for z, we have that 
+
+E[zt1 zt2 zt3 zt4 ] = Σ t1t2 Σt3t4 + Σ t1t3 Σt2t4 + Σ t1t4 Σt2t3 . It remains to compute the second addendum in Eq. (C.1), which turns out to be 
+
+J4(4 ε)E[ρ4 
+
+> k0
+
+]
+
+N 4
+
+"
+
+e 2πik 0 
+
+> N(t1+t2+t3+t4)
+
++e 2πi (N −k0) 
+
+> N(t1+t2+t3+t4)
+
+#
+
+=2J4(4 ε)E[ρ4 
+
+> k0
+
+]
+
+N 4 cos 2πk 0(t1+ t2+ t3+ t4)
+
+N
+
+!
+
+.
+
+For the second part of the thesis, consider w ∈ RN and hence 
+
+E[( w · x)4] =  
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+wkwlwmwnE[xkxlxmxn]= 3( w⊤Σw)2 + 2J4(4 ε)E[ρ4 
+
+> k0
+
+]
+
+N 4 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+wkwlwmwn cos 2πk 0(t1 + t2 + t3 + t4)
+
+N
+
+!
+
+.
+
+Then, using the fact that cos α = ( eiα + e−iα )/2, we can write 
+
+2 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+wkwlwmwn cos 2πk 0(t1+t2+t3+t4)
+
+N
+
+!
+
+= 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+wkwlwmwn e 2πik 0 
+
+> N(k+l+m+n)
+
++e− 2πik 0 
+
+> N(k+l+m+n)
+
+!
+
+.
+
+Since N −1X
+
+> k,l,m,n =0
+
+wkwlwmwne 2πik 0  
+
+> N(k+l+m+n)
+
+= 
+
+> N−1
+
+X
+
+> k=0
+
+wke 2πik 0kN
+
+| {z }  
+
+> wk0(√N)
+
+!4
+
+.
+
+By defining wk0 = 1 /√N PN −1 
+
+> k=0
+
+wke 2πik 0kN , we can conclude that 
+
+E[( w · x)4] = 3( w⊤Σw)2 + J4(4 ε)E[ρ4 
+
+> k0
+
+]
+
+N 2 (w4 
+
+> k0
+
++ w4 
+
+> k0
+
+) = 3( w⊤Σw)2 + 2J4(4 ε)E[ρ4 
+
+> k0
+
+]
+
+N 2 E[ρ4 
+
+> k0
+
+]Re (w4 
+
+> k0
+
+).
+
+30 What’s more, consider w such that ∥w∥ = 1 and θ ∈ (0 , 2π] with w = cos θ u + sin θ v , for u, v the DFT phase vectors corresponding to the frequency k0. Then, w4 
+
+> k0
+
+= ( w√2 (u + iv )) 4 = 14 (cos θ + i sin θ)4 and Re (w4 
+
+> k0
+
+) = 14 cos 4 θ. On the other hand, consider w · u = w · v = 0 . Since 
+
+wk0 = 1
+
+√N 
+
+> N−1
+
+X
+
+> t=0
+
+wt exp 
+
+
+
+− 2πik 0tN
+
+
+
+= 1
+
+√N 
+
+> N−1
+
+X
+
+> t=0
+
+wt
+
+
+
+cos 
+
+ 2πk 0tN
+
+
+
+− i sin 
+
+ 2πk 0tN
+
+ 
+
+= 1
+
+√N
+
+"N −1X
+
+> t=0
+
+wt
+
+r N
+
+2 ut
+
+!
+
+− i 
+
+> N−1
+
+X
+
+> t=0
+
+wt
+
+r N
+
+2 vt
+
+!# 
+
+= 1
+
+√2 
+
+> N−1
+
+X
+
+> t=0
+
+wtut − i 
+
+> N−1
+
+X
+
+> t=0
+
+wtvt
+
+!
+
+= 1
+
+√2 (( w · u) − i(w · v)) = 0 ,
+
+we have the thesis. In the next lemma, we compute the expression of the inputs sampled from the Fourier data model in pixel space. 
+
+Lemma C.8. In pixel space, the inputs (xμ)nμ ⊆ RN sampled from the Fourier data model are such that, for k = 0 , . . . , N − 1,
+
+xμk = zμk + 2ρμk0
+
+N
+
+"
+
+cos 
+
+ 2πkk 0
+
+N + φμk0 + εf (φμk0 ) + U μ
+
+#
+
+.
+
+Proof. We know that Xs = Zs if s̸ = k0, N − k0, and additionally Xk0 = ρk0 ei(φk0 +ε sin φk0 +U ) and 
+
+XN −k0 = ¯Xk0 . We get that 
+
+xk = 1
+
+N 
+
+> N−1
+
+X
+
+> s=0
+
+Xse2πisk/N = 1
+
+N
+
+X 
+
+> s̸=k0,N −k0
+
+Zse2πisk/N + 1
+
+N
+
+
+
+Xk0 e2πink 0/N + XN −k0 e2πi (N −k0)/N 
+
+
+
+.
+
+Since 1
+
+N
+
+X 
+
+> s̸=k0,N −k0
+
+Zse2πisk/N = zk − 1
+
+N
+
+
+
+Zk0 e2πisk 0/N + ZN −k0 e2πis (N −k0)/N 
+
+
+
+,
+
+the thesis follows. 
+
+# D Hardness of learning the phase 
+
+In this section we prove that online SGD requires a long time - equivalently, a large number of samples -to distinguish inputs drawn from Gaussian white noise, P0 = N (0 , 1), and isotropic inputs drawn from the Fourier data model (3) . In this setting, both distributions have identity covariance matrix, which implies that SGD cannot exploit information coming from low-order statistics of the data to perform classification. We start by computing the coefficients cℓij defined in Eq. (D.1). We will show that they coincide with the coefficients of the Hermite expansion of the likelihood ratio between the distributions P and P0.These coefficients determine the low-order terms in the expansion of the population classification loss (7). 
+
+Lemma D.1 (Coefficients of the likelihood ratio) . Consider the following coefficients, with expectation of the inputs x taken with respect to P:
+
+cℓij = EP
+
+
+
+hi
+
+ v · xσC
+
+
+
+hj
+
+ u · xσB
+
+ 
+
+, (D.1) 31 where hi, h j are the i-th and j-th probabilist Hermite polynomials, for i + j ≤ 4. We set σC = √v⊤Σv
+
+and σB = √u⊤Σu. Then, we have that cℓij = 0 when i + j < 4. Moreover, cℓ 
+
+> 13
+
+= cℓ 
+
+> 31
+
+= 0 ,
+
+cℓ 
+
+> 22
+
+= − 12 cℓ 
+
+> 40
+
+and cℓ 
+
+> 40
+
+= cℓ 
+
+> 04
+
+= J4(4 ε)
+
+λ2 
+
+> k0
+
+N 2 E[ρ4 
+
+> k0
+
+].
+
+Proof. Recall that the DFT vectors u and v are eigenvectors of Σ for the same eigenvalue λk0 . Then, we obtain that σC = σB = pλk0 .
+
+• Cases i + j = 4 . For i = 4 , j = 0 , we have that 
+
+cℓ 
+
+> 40
+
+= E
+
+
+
+h4
+
+ v · xσC
+
+4
+
+= E
+
+ (v · x)4
+
+σ4
+
+> C
+
+
+
+− 6 E
+
+ (v · x)2
+
+σ2
+
+> C
+
+
+
++ 3 .
+
+Since E[( v · x)2] = σ2 
+
+> C
+
+and thanks to Lemma C.7, we can choose θ = π/ 2 and get 
+
+cℓ 
+
+> 40
+
+= J4(4 ε)
+
+λ2 
+
+> k0
+
+N 2 E[ρ4 
+
+> k0
+
+].
+
+For i = 0 , j = 4 , we choose θ = 0 and by the same reasoning as before we get cℓ 
+
+> 04
+
+= cℓ
+
+> 40
+
+. Similarly, 
+
+cℓ 
+
+> 22
+
+= E
+
+
+
+h2
+
+ v · xσC
+
+
+
+h2
+
+ u · xσB
+
+ 
+
+= 1
+
+λ2
+
+> k0
+
+E[( v · x)2(u · x)2] − 1
+
+λk0
+
+h
+
+E[( v · x)2] + E[( u · x)2]
+
+i
+
++ 1 = 1
+
+λ2
+
+> k0
+
+E[( v · x)2(u · x)2] − 1.
+
+By exploiting the orthonormality of u and v and Lemma C.7, we have 
+
+E[( v · x)2(u · x)2] =  
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+ukulvmvnE[xkxlxmxn] = λ2 
+
+> k0
+
++ T4,
+
+where 
+
+T4 = 2
+
+N 4 J4(4 ε)E[ρ4 
+
+> k0
+
+] 
+
+> N−1
+
+X
+
+> k,l,m,n =0
+
+ukulvmvn cos 2πk 0
+
+N (k + l + n + m).
+
+Define now the angle θ = 2 πk 0/N , and note that 
+
+cos θr = eiθr + e−iθr 
+
+2 , sin θr = eiθr − e−iθr 
+
+2i .
+
+Then, exploiting the definition of u and v, we can write T4 as 
+
+T4 = − 2J4(4 ε)E[ρ4 
+
+> k0
+
+]32 N 4
+
+X
+
+> s1,s 2=±1
+> r1,r 2=±1
+> t=±1
+
+r1r2 
+
+> N−1
+
+X
+
+> k=0
+
+eiθ (s1+t)k
+
+! N −1X
+
+> l=0
+
+eiθ (s2+t)l
+
+! N −1X
+
+> n=0
+
+eiθ (r1+t)n
+
+! N −1X
+
+> m=0
+
+eiθ (r2+t)m
+
+!
+
+4
+
+N 2 .
+
+Since, for any q ∈ Z, we have that  
+
+> N−1
+
+X
+
+> q′=0
+
+eiθqq ′
+
+=
+
+(
+
+N if k0q ≡N 0,
+
+0 otherwise ,
+
+the factors in T4 are non vanishing if and only if s1 + t = s2 + t = r1 + t = r2 + t = 0 ,corresponding to the configurations 
+
+(s1, s 2, r 1, r 2, t ) = (1 , 1, 1, 1, −1) and (s1, s 2, r 1, r 2, t ) = ( −1, −1, −1, −1, 1) .
+
+32 Each of the two non vanishing factors produces a contributions of N 2. Hence, we conclude that 
+
+T4 = −J4(4 ε)E[ρ4 
+
+> k0
+
+]/(2 N 2) and then cℓ 
+
+> 22
+
+= T4/λ 2 
+
+> k0
+
+= −J4(4 ε)E[ρ4 
+
+> k0
+
+]/(2 N 2λ2 
+
+> k0
+
+). With a similar computation, we can prove that cℓ 
+
+> 31
+
+= cℓ 
+
+> 13
+
+= 0 . Indeed, we have 
+
+cℓ 
+
+> 31
+
+= 1
+
+λ2
+
+> k0
+
+E[( v · x)3(u · x)] = 3( u⊤Σu)( u⊤Σv) + T ′
+
+> 4
+
+,
+
+where 
+
+T ′ 
+
+> 4
+
+= 2
+
+N 4 J4(4 ε)E[ρ4 
+
+> k0
+
+] 
+
+> N−1
+
+X
+
+> k,l,m,m =0
+
+ukulumvn cos 2πk 0
+
+N (k + l + n + m)= J4(4 ε)E[ρ4 
+
+> k0
+
+]2N 6
+
+X
+
+> s1,s 2,s 3=±1
+> r=±1,t =±1
+
+r 
+
+> N−1
+
+X
+
+> k=0
+
+eiθ (s1+t)k
+
+! N −1X
+
+> l=0
+
+eiθ (s2+t)l
+
+! N −1X
+
+> m=0
+
+eiθ (s3+t)m
+
+! N −1X
+
+> n=0
+
+eiθ (r+t)n
+
+!
+
+.
+
+Since the only two non vanishing configurations are (s1, s 2, s 3, r, t ) = (1 , 1, 1, 1, −1) and 
+
+(s1, s 2, s 3, r, t ) = ( −1, −1, −1, −1, 1) , and each one contributes with N 2, it turns out that T ′ 
+
+> 4
+
+= 0 .By recalling that u and v are orthogonal, we conclude that cℓ 
+
+> 31
+
+= 0 .
+
+• Cases i + j = 3 , i + j = 1 or i, j = 0 . Because of Lemma C.5, it is clear that cℓ 
+
+> 30
+
+= cℓ 
+
+> 03
+
+= cℓ 
+
+> 21
+
+=
+
+cℓ 
+
+> 12
+
+= 0 . Since the inputs have zero mean, cℓ 
+
+> 10
+
+= cℓ 
+
+> 01
+
+= 0 . Clearly, the null term is cℓ 
+
+> 00
+
+= 1 .
+
+• Cases i + j = 2 . Since Σv = λk0 v and Σu = λk0 u, we have that 
+
+cℓ 
+
+> 20
+
+= 1
+
+σ2
+
+> C
+
+E[( v · x)2] − 1 = 1
+
+λk0
+
+v⊤Σv − 1 = 0 ,cℓ 
+
+> 02
+
+= 1
+
+σ2
+
+> B
+
+E[( u · x)2] − 1 = 1
+
+λk0
+
+u⊤Σv − 1 = 0 ,cℓ 
+
+> 11
+
+= E
+
+ v · xσC
+
+ u · xσB
+
+ 
+
+= 1
+
+λk0
+
+v⊤Σu = 0 .
+
+We now prove the main theorem of this section (Theorem 3 in the main text), which provides the sample complexities to recover the phase information in case of isotropic inputs. 
+
+Theorem 3. Sample (xμ)nμ=1 ⊆ RN from the Fourier data model (3) with Σ = 1. Apply online SGD 
+
+(6) to the correlation loss (1) and define the overlaps αu,n = wn · u and αv,n = wn · v, where (u, v ) are the DFT phase vectors. Then, if 1/(N 2 log 2 N )≪ δN ≪ 1/(N log N ) and n ≫ N 3 log 2 N , there is weak recovery for (u, v ) i.e., for some η > 0,
+
+lim  
+
+> N→∞
+
+P ( |αu,n | ≥ η) = 1 and lim  
+
+> N→∞
+
+P ( |αv,n | ≥ η) = 1 .
+
+Conversely, when δN ≪ 1/(N log N ) and n ≪ N 3, there is no recovery for (u, v ) i.e., in probability, 
+
+|αu,n |, |αv,n | − −−−−→  
+
+> N→+∞
+
+0.
+
+Proof. By taking the expectation in the correlation loss (1) with respect to the data distribution, the population correlation loss reads as 
+
+L(w) = 1 − 12 EP[σ(w · x)] + 12 EP0 [σ(w · z)] . (D.2) Since w has unitary norm, w · z ∼ N (0 , 1) and then EP0 [σ(w · x)] = cσ 
+
+> 0
+
+, where cσ 
+
+> 0
+
+is the zeroth - order Hermite coefficient for the activation function σ. Moreover, note that the likelihood ratio ℓ = dP\dP0
+
+33 depends only on the projections u · x and v · x, by construction of the Fourier data model. Indeed, the inputs sampled from the baseline distribution P0 are Gaussian distributed and translation-invariant, which implies that their (orthogonal) DFT coefficients Xk are independent. Then, to obtain the new inputs of the Fourier data model, we perform the modification of the phase of the mode k0. Hence, if the densities in Fourier space are p and p0, we get the following factorization: 
+
+ℓ(x) = dP
+
+dP0
+
+(x) = dp
+
+dp0
+
+(X) = dp(Xk0 , X N −k0 )
+
+dp0(Xk0 , X N −k0 )
+
+Y  
+
+> k̸=k0,N −k0
+
+dp(Xk, X N −k)
+
+dp0(Xk, X N −k) = dp(Xk0 , X N −k0 )
+
+dp0(Xk0 , X N −k0 ) .
+
+Also, we have that Xk0 = PN −1 
+
+> n=0
+
+xn/√N e −2πk 0n/N = 1√2 (x · u − i x · v), where u and v are the DFT phase vectors. Since XN −k0 = Xk0 , the likelihood ratio ℓ depends only on the projections of the inputs along the DFT phase vectors. In what follows, with a slight abuse of notation, we will write 
+
+ℓ = ℓ(x) = ℓ(x · v, x · u). Therefore, we have that 
+
+EP[σ(w · x)] = EP0 [σ(w · x)ℓ(v · x, u · x)] . (D.3) We can now expand ℓ and σ in Hermite polynomials and get that 
+
+ℓ(v · x, u · x) = 
+
+> +∞
+
+X
+
+> i,j =0
+
+cℓij 
+
+i!j! hi(v · x)hj (u · x) and σ(w · x) = 
+
+> +∞
+
+X
+
+> k=0
+
+cσk
+
+k! hk(w · x),
+
+with coefficients 
+
+cℓij = EN (0 ,12)[ℓ(Z1, Z 2)hi(Z1)hj (Z2)] and cσk = E[σ(Z)hk(Z)] .
+
+We now want to write cℓij in a different form, such that it is possible to explicitly compute them. To do so, define the projection map T : RN → R2 such as T (x) = ( Z1, Z 2) = [( x · v)/σ C , (x · u)/σ B ]. Under 
+
+P0, we get that T (x) ∼ N (0 , 12), since u and v are orthonormal. Then, T#P0 = N (0 , 12) and 
+
+cℓij = EN (0 ,12)[ℓ(Z1, Z 2)hi(Z1)hj (Z2)] = ET#P0 [ℓ(Z1, Z 2)hi(Z1)hj (Z2)] = EP0
+
+h
+
+ℓ(T (x)) hi
+
+ x · uσC
+
+
+
+hj
+
+ x · uσB
+
+i 
+
+= EP
+
+h
+
+hi
+
+ x · vσC
+
+
+
+hj
+
+ x · uσB
+
+i 
+
+.
+
+Note that the coefficients cℓi,j for i + j ≤ 4 have been computed in Lemma D.1. From Eq. (D.3), it holds that 
+
+EP[σ(w · x)] = 
+
+> +∞
+
+X
+
+> i,j,k =0
+
+cℓij cσk
+
+i!j!k! EP0 [hi(v · x)hj (u · x)hk(w · x)] . (D.4) We can now decompose w such that w = αvv + αuu + w⊥, where αv = v · w and αu = u · w. Recall that for independent normal Gaussian variables Z1, Z 2 and coefficients a, b > 0 it holds that 
+
+hk(aZ 1 + bZ 2) = 
+
+> k
+
+X
+
+> s=0
+
+ks
+
+
+
+asbk−shs(Z1)hk−s(Z2), (D.5) for any order k ∈ N. Since the projections of the inputs along u, v and w⊥ are independent, we can apply formula Eq. (D.5) twice and we get that 
+
+hk(w · x) = X
+
+> a+b+c=k
+
+k!
+
+a!b!c! αav αbuha(x · v)hb(x · u)hc(x · w⊥).
+
+By plugging hk(w · x) into Eq. (D.4), we finally obtain that 
+
+EP[σ(w · x)] = 
+
+> +∞
+
+X
+
+> i,j,k =0
+
+X
+
+> a+b+c=k
+
+cℓij cσk k!
+
+i!j!k!a!b!c! EP0 [hi(v · x)ha(v · x)] 
+
+| {z }
+
+> i!δia
+
+EP0 [hj (u · x)hb(u · x)] 
+
+| {z }
+
+> j!δjb
+
+EP0 [hc(w⊥ · x)] 
+
+| {z }
+
+> δc0
+
+=
+
+> +∞
+
+X
+
+> i+j=k
+
+cℓij cσk
+
+i!j! αivαju =
+
+> +∞
+
+X
+
+> i,j =0
+
+cℓij cσi+j
+
+i!j! αivαju,
+
+34 Figure D.1: Level sets of the empirical correlation loss. Consider the empirical correlation loss (1) with inputs sampled from the Fourier data model (3) and Σ = 1. Here, the activation function σ is the 
+
+4-th Hermite polynomial σ(s) = h4(s) = s4 − 6s2 + 3 . We plot the level sets of this loss, while its 3D version is shown in Figure 2 (right). As before, one run of SGD ( •) is displayed: SGD wanders for a long time in the search phase before recovering the non-Gaussian signal. On the x- and y-axes we have the overlaps w · u and w · v of the weight vector w with the DFT phase vectors u and v. Note that the minima of the loss landscape are obtained at w = cos θ u + sin θ v for the angles θ = 0 , π/ 2, π, 3/2π,which are the values assumed by the discrete latent variable U in the Fourier data model. Note that we are demonstrating experimentally that, beyond the weak recovery proved in Theorem 3, one of the DFT vectors is recovered strongly. where we have used the orthogonality property of the Hermite polynomials (Lemma B.14). Then, thanks to Lemma D.1 (note that here λk0 = 1 ) we are able to compute the coefficients of the likelihood ratio cℓij .We get that 
+
+L(w) = 1 − 12
+
+
+
+cσ
+
+> 10
+
+z }| {
+
+(cℓ
+
+> 10
+
+αv + cℓ
+
+> 01
+
+αu) + cσ
+
+> 20
+
+z }| {
+
+(cℓ
+
+> 20
+
+α2
+
+> v
+
+/2 + cℓ
+
+> 11
+
+αvαu + cℓ
+
+> 02
+
+α2
+
+> u
+
+/2) + cσ
+
+> 30
+
+z }| {
+
+(cℓ
+
+> 30
+
+α3
+
+> v
+
+/3! + cℓ
+
+> 21
+
+α2
+
+> v
+
+αu/2 + cℓ
+
+> 12
+
+αvα2
+
+> u
+
+/2 + cℓ
+
+> 03
+
+α3
+
+> u
+
+/3!) + cσ 
+
+> 4
+
+(c40 α4
+
+> v
+
+/4! + cℓ
+
+> 31
+
+α3
+
+> v
+
+αu/3! + cℓ
+
+> 22
+
+α2
+
+> v
+
+α2
+
+> u
+
+/4 + cℓ
+
+> 13
+
+αvα3
+
+> u
+
+/3! + c04 α4
+
+> u
+
+/4!) 
+
+| {z }     
+
+> J4(4 ε)( α4
+> v+α4
+> u)/4! −J4(4 ε)2α2
+> vα2
+> u/4
+
++others 
+
+
+
+= 1 − cσ 
+
+> 4
+
+J4(4 ε)48 (α4 
+
+> v
+
++ α4
+
+> u
+
+) + cσ
+
+> 4
+
+J4(4 ε)16 α2
+
+> v
+
+α2 
+
+> u
+
++ others. Since the first non-vanishing terms in the expansion of the population correlation loss are of order 4 in the sum of the degrees of the overlaps αu and αv, we can apply the main results from [26], with information exponent k = 4 , to get the thesis. Note that the population correlation loss is not simply monotonic in the overlaps, because it depends on both the DFT basis vectors u and v, making the loss landscape more complex. To deal with that, it is possible to perform an analysis similar to the one in [19]. 
+
+# E Expansion of the population loss for non-isotropic inputs 
+
+We now focus on the setting in which the inputs are non-isotropic: both classes of inputs have a non-trivial circulant covariance Σ. In the next proposition, we expand the population correlation loss 35 (7) in a form such that it is possible to explicitly identify the low-order terms in the overlaps. 
+
+Proposition 4. Consider w ∈ RN , αu = w · u and αv = w · v, where (u, v ) are the DFT phase vectors. Let λk0 be the k0-th eigenvalue of a circulant matrix Σ and sample the inputs xμ from the Fourier data model (3) with circulant covariance Σ. Then, the population correlation loss (7) is such that 
+
+L(w) = 1 −λ2
+
+> k0
+
+
+
+c04 α4 
+
+> u
+
++ c22 α2
+
+> u
+
+α2 
+
+> v
+
++ c04 α4
+
+> v
+
+ 
+
+cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+
+
++ h .o.t., (E.1) 
+
+with σΣ = √w⊤Σw. The coefficients c04 , c 22 and c04 depend on the likelihood ratio between P and P0,while cσ 
+
+> 4
+
+and cσ 
+
+> 6
+
+are the 4-th and 6-th order Hermite coefficient of the activation function σ.Proof. The population correlation loss to be expanded is 
+
+L(w) = 1 − 12 EP[σ(w · x)] + 12 EP0 [σ(w · z)] ,
+
+where we can write EP[σ(w · x)] = EP0 [σ(w · x)ℓ(u · x, v · x)] . We start by expanding in Hermite polynomials the activation function σ. If the inputs x are distributed according to the baseline distribution 
+
+P0, by defining a = w·x and σΣ = √w⊤Σw, we have that A = a/σ Σ ∼ N (0 , 1) . By Hermite expansion in the variable w · x = σΣA, it holds that 
+
+σ(σΣA) = 
+
+> ∞
+
+X
+
+> n=0
+
+cσn
+
+n! hn(σΣA),
+
+where cσn and hn are the n-th order Hermite coefficient and Hermite polynomial, respectively. We can now apply a rescaling formula for Hermite polynomials to hn(σΣA), which yields 
+
+hn(σΣA) = 
+
+> ⌊N/ 2⌋
+
+X
+
+> m=0
+
+n!(n − 2m)! m! σn−2m
+
+> Σ
+
+ σ2Σ − 12
+
+m
+
+hn−2m(A). (E.2) Define now 
+
+ρu = w⊤ΣuσΣσB
+
+, ρ v = w⊤ΣvσΣσC
+
+, ρ uv = v⊤ΣvσB σC
+
+,
+
+where σB = √u⊤Σu and σC = √v⊤Σv. Note that, since the DFT phase vectors u and v are orthogonal eigenvectors of Σ, we get that ρuv = 0 . Then, we can write 
+
+A = ρvB + ρuC + p1 − ρ2 
+
+> u
+
+− ρ2 
+
+> v
+
+Z, 
+
+where we have defined the rescaled variables B and C as B = ( x · v)/σ B and C = ( x · u)/σ C , which are independent. If Z ∼ N (0 , 1) is independent of B and C, we get that B, C, Z are independent standard Gaussian random variables, and therefore i.i.d. Since ρ2 
+
+> u
+
++ ρ2 
+
+> v
+
++ τ 2 = 1 , if we define τ as 
+
+τ = p1 − ρ2 
+
+> u
+
+− ρ2
+
+> v
+
+, we can use the formulas for the sum of Hermite polynomials and conclude that 
+
+hn−2m = X
+
+> n−2m=i+j+k
+
+(n − 2m)! 
+
+i!j!k! ρivρjuτ khi(C)hj (B)hk(Z). (E.3) Putting together Eq. (E.2) and Eq. (E.3), we end up with 
+
+σ(σΣA) = 
+
+> ∞
+
+X
+
+> n=0
+> ⌊N/ 2⌋
+
+X
+
+> m=0
+> ∞
+
+X
+
+> n−2m=i+j+k
+
+cσn
+
+m!i!j!k! σn−2m
+
+> Σ
+
+ σ2Σ − 12
+
+m
+
+ρivρjuτ khi(C)hj (B)hk(Z). (E.4) Now that we have expanded the activation function σ, we want to similarly expand the likelihood ratio 
+
+ℓ in Hermite polynomials. Define ˜ℓ as the rescaled likelihood ratio such that ℓ(c, b ) = ˜ℓ(c/σ C , b/σ B ),with c = v · x and b = u · x. We cannot directly expand ℓ in Hermite polynomials because we cannot 36 compute its Hermite coefficients (which are E[ℓ(C, B )hi(C)hj (B)] ), but we are actually able to compute the Hermite coefficients of its rescaled version ˜ℓ. Indeed, we have that 
+
+ℓ(c, b ) = ˜ℓ(C, B ) = 
+
+> +∞
+
+X
+
+> i,j =0
+
+c˜ℓij 
+
+i!j! hi(C)hj (B), (E.5) with coefficients given by 
+
+c˜ℓij = EB,C [˜ℓ(B, C )hi(C)hj (B)] = EB,C [ℓ(σB B, σ C C)hi(C)hj (B)] = EP
+
+
+
+hi
+
+ v · xσC
+
+
+
+hj
+
+ u · xσB
+
+ 
+
+,
+
+where we have used the definition of Hermite coefficients for ˜ℓ in the the first equality and the definition of ˜ℓ in the second one. In what follows, we will always denote them by c˜ℓij . Note that we have already computed c˜ℓij in Lemma C.7, where we have called them simply cℓij . From now on, we will refer to them as cℓij . Hence, 
+
+EP[σ(w · x)] = EP0 [σ(w · x)ℓ(v · x, u · x)] =
+
+> +∞
+
+X
+
+> s,t,n =0
+> ⌊n/ 2⌋
+
+X
+
+> m=0
+
+X
+
+> i+j+k=n−2m
+
+cℓst cσn σn−2m
+
+> Σ
+
+s!t!m!i!j!k!
+
+σ2Σ − 12
+
+!m
+
+ρivρjuτ k EB [hi(B)hs(B)] 
+
+| {z }
+
+> i!δis
+
+EC [hj (C)ht(C)] 
+
+| {z }
+
+> j!δjt
+
+EZ [hk(Z)] =
+
+> +∞
+
+X
+
+> n=0
+> ⌊n/ 2⌋
+
+X
+
+> m=0
+
+X
+
+> i+j=n−2m
+
+cℓij cσn
+
+m!i!j! σn−2m
+
+> Σ
+
+σ2Σ − 12
+
+!m
+
+ρivρju,
+
+where the last equality follows from the fact that the only non vanishing terms are the ones with 
+
+k = 0 , i = s and j = t. If αv = v · w and αu = u · w, we get that 
+
+ρiv = (w⊤Σv)i
+
+σi
+
+> Σ
+
+q
+
+λik0
+
+= λik0 αiv
+
+σi
+
+> Σ
+
+q
+
+λik0
+
+= λi/ 2 
+
+> k0
+
+αjv
+
+σi
+
+> Σ
+
+and, analogously, ρju = ( λj/ 2 
+
+> k0
+
+αju)/σ j
+
+> Σ
+
+. Then, defining n = i + j + 2 m, we get that 
+
+EP[σ(w · x)] = 
+
+> +∞
+
+X
+
+> i,j,m =0
+
+cℓij cσi+j+2 m
+
+m!i!j!
+
+σ2Σ − 12
+
+!m
+
+λ(i+j)/2 
+
+> k0
+
+αivαju (E.6) 
+
+=
+
+> +∞
+
+X
+
+> i,j =0 ,m ≥0
+
+cσ
+
+> 2m
+
+m!
+
+σ2Σ − 12
+
+!m
+
+| {z } 
+
+> EP0[σ(w·x)]
+
++ X  
+
+> m≥0,i> 0or j> 0
+
+cℓij cσi+j+2 m
+
+m!i!j!
+
+σ2Σ − 12
+
+!m
+
+λ(i+j)/2 
+
+> k0
+
+αivαju. (E.7) Note that the first term in Eq. (E.7) is exactly EP0 [σ(w · x)] . Indeed, we can take the expectation with respect to B, C and Z in Eq. (E.4) and, as a result, only the addendum corresponding to k = 0 survives. Therefore, we conclude that 
+
+L(w) = 1 − 12
+
+X  
+
+> m≥0,i> 0or j> 0
+
+cℓij cσi+j+2 m
+
+m!i!j!
+
+σ2Σ − 12
+
+!m
+
+λ(i+j)/2 
+
+> k0
+
+αivαju.
+
+Since σ is even, only the terms with i + j + 2 m ∈ 2N do not vanish. We compute them up to sixth order in the total degree of the overlaps. 37 • Order 2: i + j + 2 m = 2 . We get that 
+
+L2 = λk0
+
+
+
+cσ
+
+> 22
+
+X
+
+> i=0
+
+αivα2−iu
+
+i!(2 − i)! cℓi, 2−i
+
+| {z }
+
+> i+j=2 , m =0
+
+
+
+= 0 ,
+
+since cℓij = 0 when i + j = 2 because of Lemma D.1. 
+
+• Order 4: i + j + 2 m = 4 . We get that 
+
+L4=
+
+
+
+λ2 
+
+> k0
+
+cσ
+
+> 44
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i
+
+| {z }
+
+> i+j=4 , m =0
+
++λk0 cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+> 2
+
+X
+
+> i=0
+
+αivα2−iu
+
+i!(2 − i)! cℓi, 2−i
+
+| {z }
+
+> i+j=2 , m =1
+
+
+
+=λ2 
+
+> k0
+
+cσ
+
+> 44
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i.
+
+• Order 6: i + j + 2 m = 6 . We get that 
+
+L6 =
+
+
+
+λ3 
+
+> k0
+
+cσ
+
+> 64
+
+X
+
+> i=0
+
+αivα6−iu
+
+i!(6 − i)! cℓi, 6−i
+
+| {z }
+
+> i+j=6 , m =0
+
++ λ2 
+
+> k0
+
+cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+> 4
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i
+
+| {z }
+
+> i+j=4 , m =1
+
+
+
+.
+
+Then, the population correlation loss reads as 
+
+L(w)=1 −λ2
+
+> k0
+
+
+
+cσ
+
+> 44
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i+cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+> 4
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i
+
+
+
++λ3 
+
+> k0
+
+cσ
+
+> 64
+
+X
+
+> i=0
+
+αivα6−iu
+
+i!(6 − i)! cℓi, 6−i+h.o.t. 
+
+= 1 − λ2
+
+> k0
+
+ cℓ
+
+> 04
+
+4! α4 
+
+> u
+
++ cℓ
+
+> 22
+
+4 α2
+
+> u
+
+α2 
+
+> v
+
++ cℓ
+
+> 04
+
+4! α4
+
+> v
+
+ 
+
+cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+(σ2Σ − 1) 2
+
+
+
++ h.o.t. where the last equality follows from the computations of the coefficients cℓij in Lemma D.1. By defining 
+
+c04 = cℓ
+
+> 04
+
+/4! , c 22 = cℓ
+
+> 22
+
+/4 and c40 = cℓ
+
+> 40
+
+/4! , we get the thesis. We conclude by discussing briefly the order of the quadratic form associated to the covariance matrix Σ. We can write σ2Σ − 1 as 
+
+σ2Σ − 1 = ( λk0 − 1)( α2 
+
+> u
+
++ α2
+
+> v
+
+) +  
+
+> N−2
+
+X
+
+> m=1
+
+(λm − 1)( α2 
+
+> um
+
++ α2 
+
+> vm
+
+),
+
+where we have denoted by (um, v m)N −1 
+
+> m=1
+
+the DFT basis eigenvectors of Σ, excluding the phase eigen-vectors u, v . Since the degree of σ2Σ − 1 is two in the overlaps, it induces a total contribution of order six. We include it anyway in the explicit expression of the loss because this contribution becomes dominant in case of eigenvalues scaling extensively with the dimension of the inputs - a case we will treat below. In conclusion, in “h.o.t.” (higher-order terms), we can find terms of order six or more. 
+
+# F Learning the phase at quasi-linear sample complexity with SGD 
+
+The goal of this section is to study the dynamics of online SGD on our classification task in a realistic non-isotropic setting. Specifically, we consider inputs drawn from the Fourier data model (3) with a non-trivial circulant covariance matrix Σ. We focus on the setting where a finite number of eigenvalues 
+
+λ1, . . . , λ M of Σ identify a principal subspace, and all the remaining eigenvalues are precisely equal to one. Additionally, we include λk0 , the eigenvalues corresponding to the DFT phase vectors, in the list of the non-trivial eigenvalues. As a result, the principal subspace of the inputs is spanned by the eigenvectors associated with (λk0 , λ 1, · · · , λ M ). In particular, we are going to analyse the case in which 38 these non-trivial eigenvalues are extensive O(N ) with the dimension of the inputs; this is a realistic scenario, given the power-law decay observed in the spectrum of real images (cf. Fig. 3). Inspired by the setting proposed by Ben Arous et al. [27], we consider the correlation loss Eq. (1) plus a quartic penalization term β∥w∥4, for β > 0, and online SGD without normalisation. More precisely, for any t ≥ 1, the iteration reads as 
+
+wt = wt−1 + δN ∇L(w, x t, y t) w=wt−1 , (F.1) for δN = O(1 /N ). Here, L(w) and L(w, Y ) denote the population loss and the point-wise loss respectively, where Y = ( xt, y t) indicates the data point sampled at time t.We study the dynamics of a collection of summary statistics α during training. In particular, our summary statistics track the evolution of the weight vector projected onto the principal components of inputs drawn from the Fourier data model, including the DFT phase vectors. 
+
+F.1 Literature review 
+
+We quickly recap the tools needed to address our classification problem on inputs drawn from the Fourier data model (3) . These tools are borrowed from the results proven by Ben Arous et al. [27] and Ben Arous et al. [50], where the authors analyse tensor PCA and classification on a Gaussian mixture model. Assume we have H(w, Y ) = L(w, Y ) − L(w), where, as usual, the population correlation loss is 
+
+L(w) = EY [L(w, Y )] . Define also V (w) = EY [∇H(w) ⊗ ∇ H(w)] , which is essentially the covariance matrix for ∇H evaluated at the weight vector w. Consider a set of S summary statistics α = ( αi)Si=1 ,depending on the ambient dimension N , i.e. α = α(N ), and denote with J = ∇αi the Jacobian of the summary statistics. The following is a regularity assumption: 
+
+Definition F.1. We say that (α, L ) is “ δN -localizable” with localizing sequence (EK )K if there is an exhaustion by compacts (EK )K of RS and constants CK independent of N such that 1. max i sup w∈α−1(EK ) ∇2αi op ≤ CK δ−1/2 
+
+> N
+
+and max i sup w∈α−1(EK ) ∇3αi op ≤ CK .
+
+2. sup w∈α−1(EK ) ∥∇ L(w)∥ ≤ CK and sup w∈α−1(EK ) E∥∇ H∥8 ≤ CK δ−4 
+
+> N
+
+.
+
+3. max i sup  
+
+> w∈α−1(EK)
+
+E⟨∇ H, ∇αi⟩4≤ CK δ−2 
+
+> N
+
+, max i sup  
+
+> w∈α−1(EK)
+
+E
+
+h
+
+∇2αi,∇H ⊗ ∇ H −V 2i
+
+=o δ−3
+
+> N
+
+ .
+
+Consider now the first and second-order differential operators 
+
+AN = X
+
+> i
+
+∂iL′∂i and LN = 12
+
+X
+
+> i,j
+
+Vij ∂i∂j , (F.2) or, equivalently, AN = ⟨L′, ∇⟩ and LN = 12 ⟨V, ∇2⟩.
+
+Definition F.2. The summary statistics α are “asymptotically closable” for learning rate δN if (α, L )
+
+is δN -localizable with localizing sequence (EK )K and furthermore there exist locally Lipschitz functions 
+
+h : RS → RS and Σ : RS × RS×S such that 
+
+sup  
+
+> w∈α−1(EK)
+
+ −A N + δN LN
+
+α − h α → 0, sup  
+
+> w∈α−1(EK)
+
+δN JnV J T 
+
+> n
+
+− Σ α → 0. (F.3) 
+
+We call Σ diffusion matrix and h effective drift for α. If AN and δN LN admit themselves limits, i.e 
+
+sup AN α − Aα(α) → 0 and sup δN LN α − G(α) → 0, for some Aα, G : RS → RS , where the supremum is taken over w ∈ α−1(EK )δN , we call Aα population drift and G population corrector .
+
+We present now the theorem providing the evolution of the summary statistics at linear time, originally Theorem 2.2. in [27]. The solution to the given SDE is called effective dynamics .39 Theorem F.3 (Effective dynamics) . Let (wt)t ⊆ RN be the estimators given by online SGD (F.1) ini-tialized from w0 ∼ μ0(RN ), with learning rate δN , applied to the loss L′(·, ·). For the family of sum-mary statistics α =  αi
+
+Si=1 , let αN (t) be the linear interpolation of  α(w⌊tδ −1 
+
+> N⌋
+
+)
+
+> t
+
+. Suppose that α
+
+are asymptotically closable with learning rate δN , effective drift h and diffusion matrix Σ, and that the pushforward of the initial data satisfies α#μ0 → ν weakly for some measure ν = ν(Rk). Then 
+
+αN (t) → (αt)t weakly as N → ∞ , where (αt)t solves the stochastic differential equation 
+
+dαt = h(αt) d t + Σ( αt)1/2 dBt, (F.4) 
+
+initialized from ν, and (Bt)t is a standard Brownian motion in RS .
+
+F.2 Results for the Fourier data model 
+
+We want to apply Theorem F.3 to our classification task, in presence of a non-trivial covariance matrix for both classes of inputs P and P0. We assume that both classes share a principal subspace spanned by some leading principal components (um, v m)Mm=1 together with the DFT phase vectors (u, v ). We want to describe the dynamics of the overlap of the perceptron weight vector and these principal components. First of all, we formalise the definition of the summary statistics we deal with. 
+
+Definition F.4 (Summary statistics) . For a fixed integer M ∈ N, assume that (λm)Mm=1 are eigenvalues of the covariance matrix Σ of inputs sampled from the Fourier data model (3) , with λm > 1. In addition, assume also that the eigenvalue λk0 corresponding to the DFT phase vectors is such that λk0 > 1. For simplicity, set all the other eigenvalues to one. We define the summary statistics α as 
+
+α = ( αu, α v, (αum , α vm )Mm=1 , ω ⊥),
+
+where αu and αv are the overlaps of the weight vector w with the DFT phase vectors u and v. The other statistics αu1 , α v1 , . . . , α uM , α vM are the overlaps of the weight vector with the DFT basis vectors associated to the set of the eigenvalues identifying the principal subspace (λm)Mm=1 . Moreover, ω⊥ = w · w⊥,where w⊥ is the projection of the weight vector w onto the subspace orthogonal to that spanned by the whole set of principal components (u, v, (um, v m)Mm=1 ).
+
+Due to the definition of our (linear) statistics, we simply get that the corrector term is LN α = 0 . The population drift is given by Aα = lim N →∞ AN α, if this limit exists. To identify the effective dynamics for the summary statistics, one should also compute the diffusive matrix. 
+
+F.2.1 Near-isotropic inputs 
+
+In the next lemma, we compute the population drift for the summary statistics, which specifies the population dynamics, when the non-trivial eigenvalues λk0 , λ 1, . . . , λ M are O(1) .
+
+Lemma F.5 (Population drift) . Consider the population classification loss (7) and the summary statistics introduced in Definition F.4. Assume that all the non-trivial eigenvalues ( λk0 , (λm)Mm=1 ) of the covariance matrix of the inputs are O(1) . Then, the population drift 
+
+Aα = ( Au, A v, (Aum , A vm )Mm=1 , A ω⊥ )
+
+is as follows: by defining R = ∥w∥2, the drifts for the DFT phase vectors are 
+
+Au(α) = lim   
+
+> N→+∞
+
+AN αu
+
+= 12 λ2
+
+> k0
+
+" X
+
+> i=0 ,2
+
+αivα3−iu cℓi, 4−i
+
+i!(3 − i)! 
+
+
+
+cσ
+
+> 4
+
++ cσ
+
+> 6
+
+σ2Σ − 12
+
+
+
++ cσ
+
+> 6
+
+X
+
+> i=0 ,2,4
+
+αivα4−iu cℓi, 4−i
+
+i!(4 − i)! (λk0 − 1) αu
+
+#
+
++ 4 βR 2αu,
+
+40 Av(α) = lim   
+
+> N→+∞
+
+AN αv
+
+= 12 λ2
+
+> k0
+
+" X
+
+> i=1 ,3
+
+αivα3−iu cℓi+1 ,3−i
+
+i!(3 − i)! 
+
+
+
+cσ
+
+> 4
+
++ cσ
+
+> 6
+
+σ2Σ − 12
+
+
+
++ cσ
+
+> 6
+
+X
+
+> i=0 ,2,4
+
+αivα4−iu cℓi, 4−i
+
+i!(4 − i)! (λk0 − 1) αv
+
+#
+
++ 4 βR 2αv.
+
+For the other principal components (um, v m)Mm=1 , we get that the drifts are 
+
+Aum (α) = lim   
+
+> N→+∞
+
+AN αum = 12 cσ 
+
+> 6
+
+λ2
+
+> k0
+
+X
+
+> i=0 ,2,4
+
+αivα4−iu
+
+i!(4 − i)! cℓi, 4−i(λm − 1) αum + 4 βR 2αum
+
+and same for (vm)m. For the orthogonal part ω⊥, we have that 
+
+Aω⊥ (α) = lim   
+
+> N→+∞
+
+AN ω⊥ = 4 βR 2ω⊥.
+
+Proof. Since ∥w∥4 = ( α2 
+
+> u
+
++ α2 
+
+> v
+
++ · · · + αuM + αvM + ω2
+
+> ⊥
+
+)2, we get that the gradient of the population correlation loss can be written as 
+
+∇L(w) = ( AN αu)u + ( Avαv)v +
+
+> M
+
+X
+
+> m=1
+
+(( AN αum )um + ( AN αvm )vm) + 4( R2r⊥)w⊥.
+
+Hence, 
+
+AN αu = − 12 λ2
+
+> k0
+
+" 3X
+
+> i=0
+
+αivα3−iu cℓi, 4−i
+
+i!(3 − i)! 
+
+
+
+cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+σ2Σ − 12
+
+
+
++ cσ
+
+> 64
+
+X
+
+> i=0
+
+αivα4−iu cℓi, 4−i
+
+i!(4 − i)! (λk0 − 1) αu
+
+#
+
++ 4 βR 2αu,
+
+AN αv = − 12 λ2
+
+> k0
+
+" 3X
+
+> i=0
+
+αivα3−iu cℓi+1 ,3−i
+
+i!(3 − i)! 
+
+
+
+cσ 
+
+> 4
+
++cσ
+
+> 6
+
+σ2Σ − 12
+
+
+
++cσ
+
+> 64
+
+X
+
+> i=0
+
+αivα4−iu cℓi, 4−i
+
+i!(4 − i)! (λk0 −1) αv
+
+#
+
++4 βR 2αv,
+
+AN αum = − 12 cσ 
+
+> 6
+
+λ2
+
+> k0
+> 4
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! (λm − 1) αum + 4 βR 2αum ,
+
+AN αvm = − 12 cσ 
+
+> 6
+
+λ2
+
+> k0
+> 4
+
+X
+
+> i=0
+
+αivα4−iu
+
+i!(4 − i)! (λm − 1) αvm + 4 βR 2αvm .
+
+The population drift for ω⊥ is simply 
+
+AN ω⊥ = −4R2βω ⊥.
+
+We have assumed that λk0 and the other eigenvalues do not scale with the ambient dimension, and so none of the right-hand-sides depend on N . Then, the drifts stay the same when taking the limit for 
+
+N → +∞. The thesis follows from the observation that cℓ 
+
+> 13
+
+= cℓ 
+
+> 31
+
+= 0 , because of Lemma D.1. In view of the described population dynamics, we claim in Conjecture 5 that SGD cannot successfully perform classification at linear sample complexity when the leading eigenvalues of the covariance matrix of the inputs are non-extensive. More precisely, we expect (and provide an heuristic derivation in Remark F.6) that it is possible for SGD to exit the search phase only at cubic sample complexity, as in the setting treated in Theorem 3 for isotropic data points. 
+
+Remark F.6 (Cubic sample complexity for near-isotropic inputs) . Consider the setting of Conjecture 5, i.e. when a finite number O(1) of non-unit eigenvalues of the covariance matrix is O(1) . It is possible to heuristically derive, following Damian et al. [39] and Ricci et al. [44], that online SGD requires a cubic sample complexity to escape the search phase. Indeed, the evolution of any summary statistic, e.g. αv, is given by 
+
+˙αv = E[g · v]2
+
+αvE[∥g∥2] ,
+
+where g = ∇L(w; x, y ). Since g is a random vector in RN where each coordinate is O(1) , we have that 
+
+E[∥g∥2] ≈ N . Following the calculations in Lemma F.5, we get E[g · v] ≈ α3
+
+> v
+
+. Then, ˙αv = α5
+
+> v
+
+/N which, initialised at α(0) = 1 /√N , implies that αv = O(1) in approximately N 3 steps. 
+
+41 F.2.2 Power-law decaying inputs 
+
+In this section we compute the population drifts when the top eigenvalues (( λm)m, λ k0 ) are extensive 
+
+O(N ) with respect to the ambient dimension N .The presence of a shared leading principal subspace for the covariance matrix of both classes has the effect of inducing an extensive signal-to-noise ratio, which allows a faster recovery - from cubic (as in the isotropic case) to quasi-linear. An extensive signal-to-noise ratio has been considered in Ben Arous et al. [52] and it was indeed crucial to effectively solve the tensor PCA problem. Note that, since this subspace is shared among the two classes of inputs, it is not immediately clear that it impacts the speed of solving the task, as it is not task-relevant. Nevertheless, we establish that it accelerates the learning of the information contained in higher-order cumulants of the inputs, namely in the phase. Furthermore, since the eigenvalues are extensive, the previous approach breaks down, as we would have Aα = ∞. What we can do is zooming close to the equator and study the effective dynamics for the rescaled summary statistics, as suggested by [27]. Consider then a rescaling of the summary statistics in a microscopic neighborhood of zero, which captures the initial phase of their evolution from a random start of the weight vector. The new rescaled statistics are defined as 
+
+m = ( √N α u, √N α v, (√N α um , √N α vm )Mm=1 , ω ⊥). (F.5) Note that the rescaled statistics are initialised at the non-vanishing measure 
+
+ν = lim   
+
+> N→+∞
+
+m#μ0 = N (0 , 1) ⊗ · · · ⊗ N (0 , 1) ⊗ δ1.
+
+In the next lemma, we compute the population drift Am(m) for the rescaled statistics. Note that from the following calculations it is clear that this population drift would vanish in case of near-isotropic inputs. Conversely, Am(m) is not identically zero when λk0 is extensive. More precisely, the minimal scaling required for the induced signal-to-noise is λ2 
+
+> k0
+
+≈ N , which is the same required to solve tensor PCA for a fourth-order tensor with SGD at linear sample complexity, as proven in Ben Arous et al. [52]. 
+
+Lemma F.7 (Rescaled population drift) . Consider the correlation classification loss (7) and the rescaled summary statistics (15) . Assume that λk0 ≈ √N and √N ≲ λm ≲ N . Then, the population drift for the rescaled statistics is 
+
+Am = ( Amu , A mv , (AmuM , A mvM )Mm=1 , A ω⊥ )
+
+such that 
+
+Amu = lim   
+
+> N→+∞
+
+AN mu = X
+
+> i=0 ,2
+
+mivm3−iu cℓi, 4−i
+
+2i!(3 − i)! cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+4
+
+> M
+
+X
+
+> m=1
+
+(m2 
+
+> um
+
++ m2 
+
+> vm
+
+) + 4 βR 2mu,Amv = lim   
+
+> N→+∞
+
+AN mv = X
+
+> i=1 ,3
+
+αivα3−iu cℓi+1 ,3−i
+
+2i!(3 − i)! cσ
+
+> 4
+
++ cσ
+
+> 6
+
+4
+
+> M
+
+X
+
+> m=1
+
+(m2 
+
+> um
+
++ m2 
+
+> vm
+
+) + 4 βR 2mv
+
+for the statistics mu and mv associated to the DFT phase vectors. Conversely, for any m = 1 , . . . , M , we get 
+
+Amum = lim   
+
+> N→+∞
+
+AN mum = cσ
+
+> 6
+
+2
+
+X
+
+> i=0 ,2,4
+
+mivm4−iu
+
+i!(4 − i)! cℓi, 4−i mum + 4 βR 2mum
+
+and same for mvm . The drift for ω⊥ stays the same as the previous case and implies that ˙ω⊥ = −4βR 2ω⊥.
+
+42 0 200 400 600 800 1000 
+
+steps/ Nlog N   
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> overlap
+> N= 600
+> N= 700
+> N= 800
+> N2
+
+Figure F.1: Fast recovery of the phase information. Consider the correlation loss (1) and non-isotropic inputs sampled from the Fourier data model (3) , with circulant covariance matrix in which only the eigenvalue corresponding to the modified mode k0 in the phase is extensive ( λk0 ≈ √N ), the other ones are set equal to one. Recall that the covariance matrix is shared among the inputs of both classes. We run SGD to distinguish the two classes of inputs, in dimensions N = 600 , 700 , 800 . SGD weakly recovers the subspace spanned by the DFT phase vectors at quasi-linear sample complexity - on the y- axis we have the norm of the projection of the weight vector in the subspace spanned by the DFT phase vectors. The reason why such fast recovery happens is explained in Conjecture 6. Note that the signal is recovered within n ≪ N 2 steps, as happens in the case of information exponent k∗ = 2 for single index models. We use the log cosh activation function. 
+
+Proof. By definition of σΣ, we have that 
+
+σ2Σ − 1 = ( λk0 − 1)( α2 
+
+> u
+
++ α2
+
+> v
+
+) + 
+
+> M
+
+X
+
+> m=1
+
+(λm − 1)( α2 
+
+> um
+
++ α2 
+
+> vm
+
+)= (√N − 1) 
+
+N (m2 
+
+> u
+
++ m2
+
+> v
+
+) + (N − 1) 
+
+N
+
+> M
+
+X
+
+> m=1
+
+(m2 
+
+> um
+
++ m2 
+
+> vm
+
+).
+
+Then, assuming that λ2 
+
+> m
+
+≈ N , we get 
+
+AN mu =
+
+> Θ(1)
+
+z }| {
+
+√N
+
+2 N
+
+" X
+
+> i=0 ,2
+
+mivm3−iu cℓi, 4−i
+
+√N 3i!(3 − i)! 
+
+
+
+cσ
+
+> 4
+
++cσ 
+
+> 6
+
+(√N −1) 2N (m2
+
+> u
+
++m2
+
+> v
+
+)+ 
+
+> Θ(1)
+
+z }| {
+
+cσ 
+
+> 6
+
+(N − 1) 2N
+
+> M
+
+X
+
+> m=1
+
+(m2
+
+> um
+
++m2 
+
+> vm
+
+)
+
+
+
++ cσ
+
+> 6
+
+X
+
+> i=0 ,2,4
+
+mivm4−iu cℓi, 4−i
+
+√N 4i!(4 − i)! (√N − 1) 
+
+√N mu
+
+#
+
++ 4 βR 2mu.
+
+Taking the limit for N → +∞, the population drift for mu reads as 
+
+Amu = X
+
+> i=0 ,2
+
+mivm3−iu cℓi, 4−i
+
+i!(3 − i)! cσ 
+
+> 4
+
++ cσ
+
+> 6
+
+2
+
+> M
+
+X
+
+> m=1
+
+(m2 
+
+> um
+
++ m2 
+
+> vm
+
+) + 4 βR 2mu.
+
+43 1.00 0.75 0.50 0.25 0.00 0.25 0.50 0.75 1.00         
+
+> overlap (cos)
+> 1.00
+> 0.75
+> 0.50
+> 0.25
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> overlap (sin)
+> 0.995557
+> 0.997465
+> 0.999373
+> 1.001281
+> 1.003189
+> 1.005098
+> empirical loss 1.00 0.75 0.50 0.25 0.00 0.25 0.50 0.75 1.00
+> overlap (cos)
+> 1.00
+> 0.75
+> 0.50
+> 0.25
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> overlap (sin)
+> 0.9526
+> 0.9747
+> 0.9968
+> 1.0189
+> 1.0410
+> 1.0631
+> empirical loss
+
+Figure F.2: Level sets of the empirical loss for isotropic (left) and power-law decaying (right) inputs sampled from the Fourier data model. The acceleration due to the increase of the drift magnitude in the anisotropic setting corresponds to a less flat landscape (note the pink steeps are closer to the origin), which resolves in a faster escape from the search phase. On the right, we have λk0 = √N .In both figures, we use N 3 samples to empirically approximate the landscape, for N = 200 . We use the 
+
+log cosh activation function. By doing the same for the other principal components, we get that 
+
+AN mv =
+
+√N
+
+2 N
+
+" X
+
+i=0 ,2
+
+mivm3−iv cℓi+1 ,3−i
+
+√N 3i!(3 − i)! 
+
+
+
+cσ
+
+4+ cσ
+
+6 (√N−1) 2N (m2
+
+u+m2
+
+v)+ cσ
+
+6 (N − 1) 2N
+
+MX
+
+m=1 
+
+(m2
+
+vm + m2
+
+vm )
+
+
+
++ cσ
+
+6
+
+X
+
+i=0 ,2,4
+
+mivm4−iu cℓi, 4−i
+
+√N 4i!(4 − i)! (√N − 1) 
+
+√N mv
+
+#
+
++ 4 βR 2mv,
+
+AN mum =
+
+√N
+
+2 cσ
+
+6 N X
+
+i=0 ,2,4
+
+mivm4−iu
+
+√N 4i!(4 − i)! cℓi, 4−i
+
+(N − 1) 
+
+√N mum
+
+| {z }
+
+Θ(1) 
+
++4 βR 2mum ,
+
+and same for mvm , for any m = 1 , . . . , M . By taking the limit for N → +∞, we obtain the thesis. Note that the calculations do not change for the larger range of scalings √N ≲ λm ≪ N .
+
+Remark F.8. Note that, if the leading eigenvalues in Lemma F.7 are near-isotropic, the population drift 
+
+Am for the rescaled statistics turns out to be identically zero, due to the limit taken for N → +∞. The same happens if λ2
+
+k0 = o(N ).
+
+44

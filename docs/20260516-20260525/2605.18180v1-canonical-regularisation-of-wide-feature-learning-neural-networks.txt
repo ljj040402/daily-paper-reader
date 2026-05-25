@@ -1,0 +1,2017 @@
+Title: Canonical Regularisation of Wide Feature-Learning Neural Networks
+
+URL Source: https://arxiv.org/pdf/2605.18180v1
+
+Published Time: Tue, 19 May 2026 02:18:05 GMT
+
+Number of Pages: 33
+
+Markdown Content:
+# Canonical Regularisation of Wide Feature-Learning Neural Networks 
+
+George Whittle †, Pranav Vaidhyanathan, Juliusz Ziomek, Natalia Ares, Maike A. Osborne 
+
+Department of Engineering Science University of Oxford  
+
+> †
+
+Corresponding Author: george.whittle@reuben.ox.ac.uk 
+
+## Abstract 
+
+Wide neural networks in the feature-learning regime drive modern deep learning, and yet they remain far less studied than their kernel-regime counterparts. We consider a critical yet under-explored difference between these two regimes: the regulariser and prior implied by gradient flow training. This canonical regularisa-tion property is well-studied in kernel regime networks — of all the infinite global minima, gradient flow selects exactly the vanishing ridge solution — and underpins the celebrated NN-GP correspondence, precisely allowing the modelling of noise during training. However, we prove ridge regularisation biases gradient flow in feature-learning regime networks, even in the infinitesimal limit of vanishing regu-larisation. Over training, ridge distorts the inductive bias of the network, with a particular damage done to pretrained networks where the implicit prior is informa-tive. We resolve this by axiomatising the canonical regulariser as a regime-agnostic function-space energy and lift, which uniquely identifies ridge in the kernel regime, and crucially generalises to the feature-learning regime. By studying the Rieman-nian geometry of feature-learning networks, we derive geodesic ridge from our framework, generalising ridge to the feature-learning regime. Correspondingly, we prove the canonical function-space prior is a Riemannian Gibbs Process , generalis-ing the more familiar Gaussian Process. As a practical contribution, we propose arc ridge as a minimax-robust, scalable surrogate to geodesic ridge, revealing a deep relationship between early stopping and canonical regularisation across learning regimes. Finally, we demonstrate the consequences of our theory empirically on both image processing and NLP transfer-learning problems. 
+
+## 1 Introduction 
+
+Wide neural networks now drive nearly every advance in modern deep learning, yet our theoretical understanding of these networks operating in the regime in which they actually learn features —rather than evolving as effectively fixed kernel machines—remains strikingly limited. The kernel regime, formalised by the Neural Tangent Kernel (NTK) of Jacot et al. [17] and elaborated by Lee et al. [25] and Du et al. [10] , supports a complete account of training dynamics, generalisation, and Bayesian inference; the feature-learning regime supports no comparable toolkit. This asymmetry would be of mainly theoretical interest were it not that many practices inherited from the kernel-regime continue to be applied in the feature-learning regime by default, despite the foundations on which they rest no longer holding. This paper confronts one such case— which regulariser, and which function-space prior, gradient-flow training implicitly favours —and identifies the geometric reason. The kernel-regime picture is well understood. An overparametrised model has an entire continuum of zero-loss interpolators, yet gradient flow selects a single, well-defined point from this continuum: the unique vanishing-regularisation limit of anchored ridge , ∥θ − θ0∥2, the squared parameter-space distance from initialisation [ 34 , 17 , 13 , 33 ]. This identification runs deeper than coincidence:        
+
+> Preprint.
+> arXiv:2605.18180v1 [stat.ML] 18 May 2026 Parameter-space ( )
+> 0
+> d( , 0)
+> (0)Parameter-space ( )
+> 0
+> d(,0)(0)
+
+Figure 1: Left : feature-learning regime geometry. The flow manifold Mflow (θ0) (blue surface) is a curved n-dimensional submanifold near θ⋆; Θ⋆ (solid black curve) is the interpolating set, that is, global minima. The gradient flow trajectory (solid blue curve) lies on Mflow (θ0) and converges to 
+
+θ⋆. The geodesic distance dflow (θ0, θ⋆) on Mflow (θ0) (dashed blue curve) underpins the canonical regulariser. The regularisation gradients at θ⋆, ∇θ d2 (θ, θ0) (dashed) and ∇θ L2(γtrain ) (solid), are shown in orange; both lie in Tθ⋆ Mflow (θ0) along the realised gradient flow direction, and so do not bias gradient flow as standard and anchored ridge do. Right : kernel regime geometry. The flow manifold is an affine subspace—geodesics are straight lines, and the canonical regulariser reduces to anchored ridge. vanishing-regularisation alone is not sharp enough to pin out anchored ridge from its uncountably-many quadratic competitors (Proposition C.5); a pair of natural axioms on the function-space energy (Theorem C.4) is needed to single it out. Anchored ridge equals the squared Reproducing Kernel Hilbert Space (RKHS) norm of the change in network output under the NTK over training, so the same penalty governs both parameter and function space, and the corresponding implicit prior over functions is Gaussian—the celebrated Neural Network–Gaussian Process correspondence. From this single equivalence flow virtually all the analytical conveniences of kernel-regime networks: principled treatment of label noise, optimal shrinkage, calibrated uncertainty, predictable transfer behaviour. Anchored ridge is, in this sense, the canonical regulariser of the kernel regime. Standard ridge ∥θ∥2 [ 16 , 41 ] recovers the same selection only when θ0 = 0; for any non-zero initialisation it already biases the gradient-flow limit within the kernel regime (Remark C.4, Figure 2, right). Outside the kernel regime, the same picture decomposes. Yang and Hu [49] establish a sharp dynamical dichotomy: in the regime in which networks actually learn features and transfer between tasks, the Jacobian evolves throughout training, the kernel depends on optimisation history, parameter trajectories leave any single affine plane, and the function-space identity underlying anchored ridge’s central role breaks. In this regime, formalised by the Tensor Programs framework [ 46 , 47 , 48 , 49 ] and complemented by mean-field analyses [ 6, 29 ], no analogous canonical regulariser has been identified. Practitioners apply weight decay [ 16 ] or anchored ridge by default, even though the kernel-regime arguments justifying these choices no longer apply. The consequences are not abstract: weight decay is implicated in the grokking phenomenon [ 36 , 44 ] and in a documented degradation of pretrained representations during fine-tuning [23, 24]. We argue that the gap is geometric. Behind every overparametrised network lie three natural parameter-space objects (Section 3.1): the flow orbit , the region of parameter space gradient flow can ever explore from a given initialisation; the gauge-fixed flow manifold , the canonical n-dimensional surface within this orbit that contains the realised trajectory and stands in one-to-one correspondence with output values near the interpolator—in effect, a parameter-space chart of function space; and the 
+
+output fibres , directions transverse to the flow manifold along which predictions on training points do not change, but along which predictions at unseen inputs can change drastically. In the kernel regime these collapse: orbit, flow manifold, and the affine plane θ0 + Im( J⊤) coincide, the trajectory is confined to it, and the fibres meet it orthogonally everywhere. Anchored ridge, the squared chord from θ0 to θ, lives entirely within this plane (Figure 1, right); its gradient never deflects parameters along the fibres, so the gradient-flow limit is preserved as the regularisation strength shrinks. In the feature-learning regime the flow orbit can grow beyond n dimensions, gauge-fixing extracts a curved 
+
+n-dimensional manifold (Figure 1, left), and the trajectory bends through this surface. Anchored ridge, still measured along Euclidean chords, no longer respects this curvature: at the gradient-flow limit its gradient acquires a component along the output fibres, pulling parameters along directions invisible to 2the training loss but consequential at test points. The resulting bias is silent at the loss level, persists in the limit as regularisation shrinks to zero, and is what we prove formally (Theorem 3.1). The same geometry suggests the cure. The intrinsic counterpart of squared Euclidean distance on a curved manifold is squared geodesic distance, and the corresponding intrinsic counterpart of anchored ridge is geodesic ridge (Proposition 4.1): squared geodesic distance from initialisation along the flow manifold, plus an analogous on-fibre term. Its gradient at the gradient-flow limit lies tangent to the flow manifold along the realised flow direction (Figure 1, left, dashed orange), and through the standard MAP correspondence it yields a function-space prior that generalises the NTK Gaussian Process to curved geometry: the Riemannian Gibbs Process . In the kernel regime the manifold flattens, geodesics straighten into chords, and both objects reduce to anchored ridge and the NTK GP. The progression standard ridge → anchored ridge → geodesic ridge thus captures a sequence of geometric corrections: one Euclidean for initialisation, then one Riemannian for manifold curvature. Geodesic distances are computationally inaccessible at scale. Our final contribution identifies a tractable upper bound that retains the alignment property: arc ridge , the squared total path length of the training trajectory itself. Arc ridge requires no manifold solvers and no second-order information; it is a single scalar accumulated over training updates. It nevertheless inherits the no-bias property of geodesic ridge along the realised gradient-flow direction, sandwiches geodesic ridge from above against an anchored-ridge lower bound, sits at the minimax-optimal point within this sandwich, and reduces formally to early stopping under exact gradient flow. The combination places it within reach of any standard training pipeline. 
+
+Contributions. 
+
+• A geometric framework for wide feature-learning networks. We characterise the parameter-space geometry of any overparametrised network satisfying a single uniform-conditioning assumption (Assumption 2.1) via the orbit / gauge-fixed flow manifold / output fibre triple of Section 2. The kernel regime is recovered as the affine special case in which all three coincide with θ0 + Im( J⊤).• Both standard and anchored ridge provably bias gradient flow. Standard ridge fails in both regimes (Remark C.4, Figure 2, right): in the kernel regime by ignoring initialisation, in the feature-learning regime additionally through curvature. Anchored ridge—the canonical kernel-regime regulariser—fails in the feature-learning regime because manifold curvature deflects its gradient along output fibres invisible to the training loss, biasing the gradient-flow limit by an amount that does not vanish as regularisation shrinks (Theorem 3.1, Figure 2, left). This challenges the kernel-regime foundations on which much common regularisation practice rests. • A first-principles characterisation that uniquely identifies anchored ridge in the kernel regime and uniquely generalises it. We axiomatise the canonical function-space energy as the minimum control-theoretic energy required to transport network outputs from initialisa-tion to a target (Definition 4.1), and prove uniqueness in the kernel regime under invariance and orthogonal-additivity axioms (Theorem C.4), recovering anchored ridge and the NTK Gaussian Process exactly. The same construction lifts to parameter space (Definition 4.3) and extends to the feature-learning regime, identifying geodesic ridge (Proposition 4.1) as the canonical regulariser and the Riemannian Gibbs Process as the canonical function-space prior, with the unbiased gradient-flow selection property preserved (Theorem 4.2). • Arc ridge: a scalable, minimax-robust surrogate. Squared training-path length upper-bounds geodesic ridge along Mflow (θ0) (Theorem 4.3), retains the no-bias property along the realised gradient-flow direction, sits at the minimax-optimal point of the sandwich between anchored ridge below and arc ridge above (Proposition F.2), and is formally equivalent to early stopping under exact gradient flow. Empirically (Section 5), arc ridge recovers the predicted advantages on transfer-learning settings where the implicit prior carries information. 
+
+## 2 Problem Setting 
+
+We study overparametrised supervised models f (x; θ) : X × Θ → Y with scalar output Y ⊆ R,trained on some dataset D = ( X, Y ) ∈ (X × Y )n with n ≪ m = dim Θ finite and distinct inputs Xi̸ = Xj for i̸ = j. The input space X is arbitrary. We assume f is expressible in the 3Tensor Programs Framework [46 , 47 , 48 , 49 ], and possesses only smooth non-linearities. We write g (θ) : Θ → Y n for the stacked output vector with g (θ)i = f (Xi; θ). The model-output Jacobian is J (θ) ∈ Rn×m with J (θ)ij = ∂g (θ)i 
+
+> ∂θj
+
+, and the instantaneous NTK Gram matrix is 
+
+K (θ) = J (θ) J (θ)⊤ ∈ Rn×n.We study supervised training under gradient flow dynamics with the canonical SSE loss 
+
+L (g (θ) , Y ) = ∥g (θ) − Y ∥2, i.e. −J (θ)⊤ ∇g(θ)L (g (θ) , Y ) = −2J (θ)⊤ (g (θ) − Y ), corre-sponding to function-space dynamics ˙g(θ) = −2K (θ) ( g (θ) − Y ). We denote the value of θ
+
+after running gradient flow from θ0 for a time t as ϕgf (θ0, t ). We assume L is minimised by an 
+
+interpolating solution, achieved by any θ⋆ ∈ Θ⋆ = {θ : g (θ) = Y }. Note further that extensions of our results to strictly convex, smooth losses are deferred to the appendix. Given the above setup, our results rest on only a single assumption: 
+
+Assumption 2.1 (Uniform Jacobian conditioning) . There exist an open neighbourhood U ⊃ Θ⋆ and constants 0 < c ≤ C < ∞ such that for all θ ∈ U ,
+
+c ≤ σmin (J (θ)) and σmax (J (θ)) ≤ C. 
+
+Furthermore, assume that for any given initialisation θ0, ϕgf (θ0, t ) ∈ U ∀ t ∈ [0 , ∞).This is a standard assumption in wide-network analysis: all infinite-width kernel-regime literature assumes it, and it is justified in the feature-learning regime as under μP scaling for Tensor Programs networks with smooth activations [ 47 , 48 ], σmin (J (θ0)) concentrates around its positive infinite-width limit at initialisation, and continuity propagates the bound to a neighbourhood. Furthermore, we verify this empirically along flow trajectories in Appendix H. 1
+
+## 3 Ridge Biases Gradient Flow in the Feature Learning Regime 
+
+The first core theoretical contribution of this work is an exposition of the feature-learning regime as a pathology of both anchored and standard ridge. To understand this, we must first understand the 
+
+geometry underlying wide networks, and how it differs between the two regimes. 
+
+3.1 Parameter-space Geometry 
+
+We begin by illuminating the parameter-space geometry of any overparametrised network satisfying Assumption 2.1, restricting ourselves to the region U for complete rigour. This geometry is best understood as a collection of lower-dimensional subsets, which collectively span all of U . The first of these is the horizontal orbit generated by the directions available to gradient flow: 
+
+Definition 3.1 (Flow orbit) . Let 
+
+Hθ := Im J(θ)⊤ ⊂ Tθ Θ
+
+denote the horizontal distribution induced by the model-output Jacobian. The flow orbit through θ0,denoted Oflow (θ0) ⊆ Θ, is the reachable set of the horizontal control system 
+
+˙θ(t) = J(θ(t)) ⊤u(t), u ∈ L2([0 , T ], Rn),
+
+namely 
+
+Oflow (θ0) := 
+
+n
+
+θ(T ) : T > 0, u ∈ L2([0 , T ], Rn), ˙θ(t) = J(θ(t)) ⊤u(t), θ(0) = θ0
+
+o
+
+.
+
+The flow orbit is the fundamental control-theoretic object. In general it is a sub-Riemannian reachable set as its tangent directions are generated by the Lie closure of H, and therefore its dimension can exceed n. Thus the orbit itself should not be identified with function space. In order to move from function-space quantities back to parameter space, we fix a gauge, selecting a single representative from the flow orbit for each output value. This gives us our second fundamental geometric object:                                               
+
+> 1An immediate useful consequence of Assumption 2.1 is that gradient flow converges to an interpolating solu-tion: θ⋆:= lim
+> t→∞ ϕgf (θ0, t )∈Θ⋆.Indeed, the loss is a valid Lyapunov function with time-derivative ˙L=
+> −2 ( g(θ)−Y)⊤K(θ) ( g(θ)−Y). Since J(θ)has full rank along the trajectory, K(θ) := J(θ)J(θ)⊤⪰c2I≻0,so ˙L < 0whenever g(θ)̸=Y. Convergence to some θ⋆∈Θ⋆thus follows, in fact exponentially with rate at least 2c2.
+
+42 1 0 1 2 3                 
+
+> 1
+> 2
+> 1
+> 0
+> 1
+> 2
+> 3
+> 2
+> Interpolating Fibre
+> Flow Manifold flow (0)
+> Ridgeless
+> Standard Ridge || || 2
+> Anchored Ridge || || 2
+> Geodesic Ridge d2(,0)
+> 0
+> 0
+> || || 2
+> || || 2210123
+> 1
+> 3
+> 2
+> 1
+> 0
+> 1
+> 2
+> 2
+> 0
+> 0
+> || || 2
+
+Figure 2: Gradient flow trajectories for the minimal overparametrised non-linear model f (x; θ) = 
+
+θ1θ2x (left) and linear model f (x; θ) = ( θ1 + θ2) x (right) on the singleton dataset D = {(1 , 1) } for a variety of infinitesimal-strength regularisers, over a background shading indicating data loss. As our theory predicts, only the canonical regulariser prevents a biased equilibrium in the non-linear case, with both standard and anchored ridge causing flow along the interpolating fibre after convergence of the data loss. Additionally as expected, in the linear case anchored ridge coincides exactly with the canonical regulariser due to their equivalence, while standard ridge continues to bias the solution. 
+
+Definition 3.2 (Gauge-fixed flow manifold and representative map) . Let 
+
+θ⋆ := lim  
+
+> t→∞
+
+ϕgf (θ0, t )
+
+be the gradient-flow interpolator from θ0. The gauge-fixed flow manifold through θ0 is the basin sheet 
+
+Mflow (θ0) := cc γgf 
+
+n
+
+θ ∈ O flow (θ0) : lim  
+
+> t→∞
+
+ϕgf (θ, t ) = lim  
+
+> t→∞
+
+ϕgf (θ0, t )
+
+o
+
+⊆ O flow (θ0)
+
+where cc γgf denotes the connected component containing the realized gradient-flow trajectory 
+
+γgf := {ϕgf (θ0, t ) : t ∈ [0 , ∞)}.
+
+Under Assumption 2.1, Θ⋆ ∩ U is normally hyperbolic, and thus there exists an open neighbourhood 
+
+V of Θ⋆ ∩ U in which Mflow (θ0) is an embedded submanifold by the stable manifold theorem. For this neighbourhood, we define 
+
+C0(θ0) := g Mflow (θ0) ∩ V  ⊆ Y n.
+
+The canonical representative map is 
+
+g|−1 
+
+> θ0
+
+(c) := 
+
+
+
+g Mflow (θ0)∩V
+
+−1
+
+(c), c ∈ C0(θ0).
+
+Intuitively, Oflow (θ0) contains all parameters reachable by horizontal motion, while Mflow (θ0)
+
+chooses the basin-compatible representative sheet. The map g|−1 
+
+> θ0
+
+(c) selects the representative of output c lying on this sheet. Near θ⋆, this representative is unique for every c ∈ C0(θ0). A global notation g|−1 
+
+> θ0
+
+(c) on all of Yn is justified whenever this basin sheet is globally single-valued over output space; otherwise all statements are understood on the local output domain C0(θ0).Our final geometric object spans the remainder of parameter-space: 
+
+Definition 3.3 (Output fibre) . The output fibre through θ, denoted Θ ( c) ⊂ Θ where c = g (θ), is the preimage of c under g:
+
+Θ ( c) := g−1 (c) =  θ : g (θ) = c .
+
+5Intuitively, Θ ( c) represents the collection of vertical directions in parameter space which do not affect training predictions g (θ), but can have a marked effect on the network’s predictions away from the training inputs X. These directions will be of particular interest to us, as any parameter motion here is invisible to the training loss, but can dramatically affect the generalisation error. Geometrically, these output fibres are embedded submanifolds on U of codimension n (that is, they are smooth surfaces of dimension m − n) as c is defined as a regular value of g, satisfy Θ ( Y ) = Θ ⋆ ∩ U , and have tangent space ker J (θ) so are everywhere orthogonal to horizontal gradient flow trajectories. 
+
+3.2 The failure of ridge in the feature-learning regime 
+
+Equipped with our geometric understanding of parameter-space, exposing the failure of both standard and anchored ridge in the feature learning regime is straightforward. The feature-learning regime is characterised by curved geometry — features evolve over training and J changes meaningfully with θ — thus Mflow (θ0) curves meaningfully between θ0 and θ⋆. As illustrated in Figure 1, this stands in stark contrast to the geometry of the kernel regime where J is constant on U and 
+
+Mflow (θ0) ≡ O flow (θ0) = θ0 + J⊤u : u ∈ Rn is an affine subspace. Now consider the interaction of these geometries with the anchored ridge regulariser, ∥θ − θ0∥2.The contribution to gradient flow training of this regulariser is −2 ( θ − θ0), e.g. the chord from θ0
+
+to θ. In the kernel regime, this always lies within the tangent space of Mflow (θ0), and thus anchored ridge can never induce parameter movement off-manifold — it is compatible with gradient flow (Proposition C.10). This geometric alignment is precisely what causes the vanishing regularisation property underpinning the NN-GP correspondence, and as shown by Ordoñez et al. [33] , allows us to explicitly model observation noise in the training set through an MAP interpretation of training. In the feature-learning regime, however, curvature of Mflow (θ) causes this gradient to generically have a component lying in off-manifold fibre directions. The implications of this are significant: the regularisation gradient causes parameter displacements invisible to the loss function and thus uncontrollable by the training set, but which can drastically change behaviour away from the training set by destroying the network’s covariance structure and inductive bias imbued by initialisation. We can formally describe this pathology by its bias to gradient flow in the infinitesimal limit: 
+
+Theorem 3.1. Consider a wide feature-learning regime network satisfying Assumption 2.1. Let 
+
+θ⋆λ∥∆θ∥2 := arg min  
+
+> θ∈Θ
+
+L (g (θ) , Y ) + λ ∥θ − θ0∥2. Then 
+
+θ⋆ 
+
+> ∥∆θ∥2
+
+:= lim  
+
+> λ↓0
+
+θ⋆λ∥∆θ∥2̸ = θ⋆,
+
+where θ⋆ := lim  
+
+> t→∞
+
+ϕgf (θ0, t ) is the time-limit of unregularised gradient flow. 
+
+An identical argument proves failure of standard ridge in both kernel and feature-learning regimes. Figure 2 illustrates this pathology exactly. Intuitively, the limiting dynamics has two timescales. On the fast timescale, small-λ regularised trajectories stay close to the unregularised one, seemingly converging to θ⋆. However, any λ > 0 gives rise to a slow timescale on which the uncontrolled regularisation gradient induces drift fibre directions, biasing the time-limit. For larger λ — necessary in problems with little data or noisy targets — this pathology becomes immediate, yielding significant divergence from the unregularised trajectory. While not always a bad thing in practice—this effect is precisely what causes weight decay-induced 
+
+grokking [ 36 , 44 ] and underpins the adaptive kernel representer theorem of Lauditi et al. [24] —in cases where the feature geometry is well-suited to the task a priori (i.e. pretrained networks), it can harm generalisation by replacing useful inductive bias with drifted features purely fitting noise [ 23 ]. We expose this pathology empirically in Section 5, which confirms a massive degradation of test performance under both standard and anchored ridge at high regularisation strengths. 
+
+## 4 Canonical Regularisation in the Feature-learning Regime 
+
+Despite its pathology in the feature-learning regime, it is clear that anchored ridge’s harmony with gradient flow in the kernel regime is quite special. Indeed, this result implicitly underpins the NN-GP correspondence and Neural Tangent Kernel (NTK) theory as a whole [ 17 ]. It is thus reasonable to describe anchored ridge as the canonical regulariser of kernel-regime networks, corresponding to 6the function-space canonical prior NTK Gaussian Process. We thus set out to derive an equivalent regulariser for the feature-learning regime. Such a task requires us to return to regime-agnostic first-principles and axioms, ensuring unique identification of anchored ridge in the kernel regime as a validation of our framework. We propose a horizontal function-space energy formulation (with respect to the local Fisher metric K(θ)) as a suitably fundamental object underpinning such networks in the context of gradient flow training: 
+
+Definition 4.1 (Canonical function-space energy, prior, and regulariser) . For some overparametrised network initialised at θ0, the canonical function-space energy at c ∈ Y n is the minimum control-theoretic energy required to transport g (θ) from g (θ0) to c under gradient flow dynamics: 
+
+E(c) := min 
+
+> u(t)
+
+Z 10
+
+u(t)⊤K(t) u(t) dt 
+
+subject to ˙θ = J (θ(t)) ⊤ u, K (t) = J (θ(t)) J (θ(t)) ⊤ , θ(0) = θ0, θ(1) = g|−1 
+
+> θ0
+
+(c) .
+
+For kernel-regime networks, the minimum energy control is the constant u⋆(t) = K−1 (c − g (θ0)) ,recovering the standard squared RKHS norm E(c) = (c − g (θ0)) ⊤ K−1 (c − g (θ0)) ≡∥c − g (θ0)∥2RKHS (Proposition C.10(c)). The canonical function-space prior arises from E(c) straightforwardly as a Gibbs distribution: 
+
+Definition 4.2 (Canonical function-space prior) . The canonical function-space prior induced by E is a Riemannian Gibbs Process , with prediction density on the training set 
+
+p(c | X) ∝ exp( −βE (c)) .
+
+The temperature β is the sole degree of freedom under E (due to scale invariance of gradient flow), and thus takes the role of a global prior scale. Applying this Riemannian Gibbs Process prior to kernel-regime networks yields the familiar NTK GP, i.e. GP  f (·; θ0) , (2 β)−1kNTK (·, ·′), with p(c | X) ∝ exp 
+
+
+
+−β ∥c − g (θ0)∥2RKHS )
+
+
+
+(Corol-lary C.3). Kolmogorov consistency over arbitrary finite test inputs at the fixed training set follows from a parametric pushforward (Proposition C.15); consistency across training subsets remains an open problem (Remark C.5). Completing our generalisation requires one final task: a unique lift of the low-dimensional function-space energy to high-dimensional parameter-space. Reasonable axioms underpin this lift. Namely, we require the lift to be a) additive to the function-space energy E(c) associated with the training predictions g (θ) = c at θ (thereby forcing the lift to geometrically correspond only to Θ ( c), b) quadratic in the ambient Euclidean metric of parameter-space, and c) uniformly 0 at the gauge-fixed representative g|−1 
+
+> θ0
+
+(c). This uniquely gives us the canonical lift (Theorem C.6): 
+
+Definition 4.3 (Canonical lift) . The canonical lift of E(g (θ)) to parameter-space is 
+
+R(θ) := E(g (θ)) + inf 
+
+> ψ
+> 1
+
+Z
+
+> 0
+
+˙ψ(t) 2
+
+dt, 
+
+where the infimum is over piecewise-C1 paths ψ : [0 , 1] → Θ ( g (θ)) ⊂ Θ with ψ(0) = g|−1 
+
+> θ0
+
+(g (θ)) ,
+
+ψ(1) = θ, and g (ψ(t)) = g (θ) ∀ t ∈ [0 , 1] .Verifying this lift in the kernel regime uniquely points to anchored ridge: We have that E(g (θ)) = 
+
+∥c − g (θ0)∥2RKHS ≡ ∥ ∆θflow ∥2 where ∆θflow is the projection of θ−θ0 onto Mflow (θ0). Similarly, the lifted term is exactly ∥∆θfibre ∥2, where ∆θfibre is the projection of θ − θ0 onto Θ ( g (θ)) . As in the kernel regime these two sets are orthogonal and affine, the Pythagorean identity yields 
+
+R(θ) = ∥∆θflow ∥2 + ∥∆θfibre ∥2 = ∥θ − θ0∥2, uniquely recovering anchored ridge (Corollary C.2; Proposition C.10(d)). Framework in hand, we now present the canonical regulariser of the feature-learning regime: 
+
+Proposition 4.1 (Geodesic ridge) . The canonical regulariser of feature-learning regime networks is 
+
+geodesic ridge , defined as 
+
+d2 (θ, θ0) := d2flow 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ0
+
+ + d2fibre 
+
+ θ, g |−1 
+
+> θ0
+
+(g (θ))  ,
+
+7where d2flow 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ0
+
+ ≡ E(g (θ)) is the minimum horizontal distance in parameter-space from θ0 to the the gauge-fixed representative g|−1 
+
+> θ0
+
+(g (θ)) , and d2fibre 
+
+ θ, g |−1 
+
+> θ0
+
+(g (θ))  is the geodesic distance from the gauge-fixed representative to θ along the output fibre Θ ( g (θ)) .
+
+While generally irreducible beyond this form, geodesic ridge is theoretically complete: 
+
+Theorem 4.2 (Canonical regulariser characterisation of geodesic ridge) . Under Assumption 2.1: (a) Unique minimiser on each fibre. For every c ∈ C0(θ0), g|−1 
+
+> θ0
+
+(c) is the unique minimiser of d2 (·, θ0) over Θ ( c) ∩ V .(b) Trajectory-level minimality. Once the gradient flow trajectory θ(t) enters V , θ(t) = 
+
+θ′(g (θ(t))) and d2 (θ(t), θ0) = E(g (θ(t))) . In particular every intermediate trajectory point is the minimum-cost representative of its output vector. (c) Unbiased limit property. lim  
+
+> λ↓0
+
+L (g (θ) , Y ) + λd 2 (θ, θ0) = θ⋆.
+
+These properties are exemplified in Figure 2. We have thus generalised anchored ridge to the feature-learning regime, theoretically alleviating all issues associated with anchored ridge and thus allowing for principled modelling of observation noise and uncertainty in the feature-learning regime. 
+
+4.1 Arc Ridge: A Minimax-Robust Upper Bound to Geodesic Ridge 
+
+Geodesic ridge, while theoretically complete, is intractable at scale. However, two observations combine to yield a practical surrogate. First, under exact gradient flow trajectories remain on 
+
+Mflow (θ0) by construction, so the fibre term in Definition 4.1 vanishes. Second, geodesic ridge is upper-bounded by the squared length of any on-manifold path, including the realised training path :
+
+Definition 4.4 (Squared path length regulariser (arc ridge)) . For a training trajectory γ : [0 , T ] → Rm,the squared path length regulariser , or arc ridge , is 
+
+L2(γ) := 
+
+Z T
+
+> 0
+
+∥ ˙γ(t)∥ dt 
+
+!2
+
+.L2(γ) depends only on the image of γ as a subset of Θ, not on its time-parametrisation. 
+
+Theorem 4.3 (Squared path length upper-bounds the canonical regulariser) . Let γtrain : [0 , T ] →Mflow (θ0) be any piecewise-C1 path with γtrain (0) = θ0 and γtrain (T ) = θ. Then 
+
+d2flow (θ0, θ) ≤ L2(γtrain ); 
+
+under exact gradient flow (where the fibre term vanishes), d2 (θ, θ0) ≤ L2(γtrain ). The endpoint gradi-ent ∇θ L2 lies along ˙γtrain (T −) ∈ Im( J (θ)⊤)∩Tθ Mflow (θ0) (in particular ∇θ L2 ∈ ker N (g (θ)) ), so regularisation by L2 introduces no component along the output fibres or indeed orthogonal to the realised gradient flow direction. Proof deferred to the appendix. 
+
+The bound follows from the definition of geodesic distance as an infimum of arc lengths chained with the energy–length identity (Proposition C.9); proof deferred to the appendix. Anchored ridge trivially lower-bounds geodesic ridge on Mflow (θ0) as the solution to a relaxation of the same defining problem (Proposition C.13); the resulting sandwich and the shared vanishing-regularisation limit of all three regularisers at θ⋆ are recorded in Corollary C.4. In the absence of tractability of the canonical regulariser, it is principled to instead solve a minimax-robust relaxation of MAP training, choosing the regulariser that minimises worst-case regret within the sandwich ∥θ − θ0∥2 ≤ d2 (θ, θ0) ≤ L2(γtrain ). This directly motivates arc ridge regularisation. Furthermore, arc ridge requires storing only the accumulated arc length—a single float—since the regularisation gradient direction is fully determined by the current data gradient. It is therefore applicable at scale, and is used for most of our empirical results. Arc ridge has a further theoretical property: it connects to early stopping, since regularisation by accumulated path length behaves like a time-based stopping criterion and, given an estimate of observation noise, obviates the need for a validation set (Proposition F.4). The relationship between ridge regularisation and early stopping is well-studied, and in agreement with our theory, early stopping generalises trivially to feature-learning regime networks [11, 50], unlike anchored ridge. 87 6 5 4 3                                
+
+> log( )
+> 0.12
+> 0.14
+> 0.16
+> 0.18
+> 0.20
+> 0.22
+> 0.24
+> 0.26
+> Test Loss
+> Sensitivity to Regularisation Strength
+> Ridgeless
+> Standard Ridge || || 2
+> Anchored Ridge || || 2
+> Arc Ridge L2( )
+> || || 2|| || 2L2( )
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> Best Test Loss
+> || || 2|| || 2L2( )
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> Worst Test Loss 76543
+> log( )
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Test Loss
+> Sensitivity to Regularisation Strength
+> No Regularization
+> Standard Ridge || || 2
+> Anchored Ridge || || 2
+> Arc Ridge L2( )
+> || || 2|| || 2L2( )
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> Best Test Loss
+> || || 2|| || 2L2( )
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Worst Test Loss
+
+Figure 3: Test set MSE on UTKFace (left) and Yelp Review (right) for standard, anchored, and arc ridge across regularisation strengths (with early stopping), against an unregularised baseline (dashed). At high λ, standard and anchored ridge degrade sharply as their off-manifold gradient components destroy the pretrained prior; arc ridge degrades only mildly, consistent with benign undertraining. At low λ, early stopping masks the bias and all regularisers converge — corroborating the formal equivalence between arc ridge and early stopping under gradient flow (Proposition F.4). 
+
+## 5 Empirical Consequences 
+
+We first demonstrate the consequences of Theorems 3.1 and 4.2 in Figure 2, which displays gradient flow trajectories on the minimal example for each regime. Figure 3 then demonstrates the practical implications of our theory on realistic transfer-learning problems requiring feature-learning: Age regression on the UTKFace datatset [ 53 ] transferring from ResNet18 [ 14 ], and review score regression from the Yelp Review dataset [ 52 ] transferring from DistilBERT [ 39 ]. We present results for each regulariser across a range of different regularisation strengths, and combine with early stopping for maximum realism. To demonstrate the necessity of regularisation, we also include the ”Ridgeless“ (unregularised) performance (with no early stopping) as a baseline. Our theory predicts that at high regularisation strengths, the pathological gradient component of standard and anchored ridge will cause significant degradation of the prior imbued by pretraining, manifesting as very poor test performance. Conversely, arc ridge should only lose test performance in over-regularised regimes commensurately with undertraining — a much more controlled phenomenon — and thus exhibit a milder degradation. In contrast, at lower regularisation strengths the pathological components of anchored and standard ridge are dominated by early stopping — equivalent to optimally-tuned arc ridge — and thus all regularisers should converge in performance. This is exactly what we observe. 
+
+## 6 Conclusion and Limitations 
+
+We proved that the implicit prior of a wide network is governed not by any norm on parameters, but by the geometry of the trajectories gradient flow can trace. We showed that while in the kernel regime anchored ridge is geometrically aligned with training, in the feature-learning regime training geometry curves, causing the regularisation gradient of anchored (and standard) ridge to pathologically degrade the implicit prior at initialisation — a critical failure mode in transfer learning, for example. We proposed a correction to this by identifying two axioms uniquely identifying anchored in the kernel regime, and applied these to the curved geometry of feature-learning to obtain a principled framework not only yielding geodesic ridge as a generalisation of anchored ridge to the feature-learning regime, but also revealing the implicit prior here as a Riemannian Gibbs process. For practical unbiased regularisation at scale, we proposed arc ridge a minimax-robust surrogate to true geodesic ridge, which is cheap to compute at scale and reveals deep links to early stopping. Finally, we validated the predictions empirically: regularisers that respect the geometry of training preserve the implicit prior; those that ignore it do not. Several directions remain open. Empirically, tighter scalable approximations to geodesic ridge, broader validation across architectures and tasks, and rigorous verification of Assumption 2.1 in concrete settings are immediate next steps. Theoretically, full Kolmogorov consistency of the Riemannian Gibbs Process across training subsets, analysis of the flow manifold in the μP infinite-width limit, and extensions to non-interpolating regimes [ 40 , 27 ] and preconditioned optimisers such as Adam [22] or Muon [19] all remain open. 9References 
+
+[1] János Aczél. Lectures on Functional Equations and Their Applications , volume 19 of Mathe-matics in Science and Engineering . Academic Press, 1966. [2] Shun-Ichi Amari. Natural gradient works efficiently in learning. Neural computation , 10(2): 251–276, 1998. [3] Peter L Bartlett, Andrea Montanari, and Alexander Rakhlin. Benign overfitting in linear regression. Proceedings of the National Academy of Sciences , 117(48):30063–30070, 2020. [4] Jeremy Bernstein and Laker Newhouse. Old optimizer, new norm: An anthology. In OPT 2024: Optimization for Machine Learning , 2024. [5] Tianle Cai, Ruiqi Gao, Jikai Hou, Siyu Chen, Dong Wang, Di He, Zhihua Zhang, and Liwei Wang. Gram-gauss-newton method: Learning overparameterized neural networks for regression problems. arXiv preprint arXiv:1905.11675 , 2019. [6] Lénaïc Chizat and Francis Bach. On the global convergence of gradient descent for over-parameterized models using optimal transport. In Advances in Neural Information Processing Systems , volume 31, 2018. [7] Lénaïc Chizat and Francis Bach. Implicit bias of gradient descent for wide two-layer neural networks trained with the logistic loss. In Conference on Learning Theory , pages 1305–1338. PMLR, 2020. [8] Alex Damian, Jason D Lee, and Mahdi Soltanolkotabi. Neural networks can learn represen-tations with gradient descent. In Conference on Learning Theory , pages 5413–5452. PMLR, 2022. [9] Manfredo Perdigão do Carmo. Riemannian Geometry . Mathematics: Theory & Applications. Birkhäuser, 1992. [10] Simon S Du, Xiyu Zhai, Barnabas Poczos, and Aarti Singh. Gradient descent provably optimizes overparameterized neural networks. In International Conference on Learning Representations ,2019. [11] Heinz Werner Engl, Martin Hanke, and Andreas Neubauer. Regularization of inverse problems ,volume 375. Springer Science & Business Media, 1996. [12] Suriya Gunasekar, Blake E Woodworth, Srinadh Bhojanapalli, Behnam Neyshabur, and Nathan Srebro. Implicit regularization in matrix factorization. In Advances in Neural Information Processing Systems , volume 30, 2017. [13] Bobby He, Balaji Lakshminarayanan, and Yee Whye Teh. Bayesian deep ensembles via the neural tangent kernel. Advances in neural information processing systems , 33:1010–1022, 2020. [14] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition ,pages 770–778, 2016. [15] Morris W Hirsch, Charles C Pugh, and Michael Shub. Invariant manifolds , volume 583 of 
+
+Lecture Notes in Mathematics . Springer-Verlag, 1977. [16] Arthur E Hoerl and Robert W Kennard. Ridge regression: Biased estimation for nonorthogonal problems. Technometrics , 12(1):55–67, 1970. [17] Arthur Jacot, Franck Gabriel, and Clément Hongler. Neural tangent kernel: Convergence and generalization in neural networks. Advances in neural information processing systems , 31, 2018. [18] Ziwei Ji and Matus Telgarsky. The implicit bias of gradient descent on nonseparable data. In 
+
+Conference on Learning Theory , pages 1772–1798. PMLR, 2019. 10 [19] Keller Jordan, Yuchen Jin, Vlado Boza, You Jiacheng, Franz Cesista, Laker Newhouse, and Jeremy Bernstein. Muon: An optimizer for hidden layers in neural networks, 2024. URL https://kellerjordan. github. io/posts/muon , 6(3):4, 2024. [20] Ryo Karakida and Kazuki Osawa. Understanding approximate fisher information for fast convergence of natural gradient descent in wide neural networks. Advances in neural information processing systems , 33:10891–10901, 2020. [21] Hassan K. Khalil. Nonlinear Systems . Prentice Hall, 3 edition, 2002. [22] Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980 , 2014. [23] Ananya Kumar, Aditi Raghunathan, Robbie Jones, Tengyu Ma, and Percy Liang. Fine-tuning can distort pretrained features and underperform out-of-distribution. In International Conference on Learning Representations , 2022. [24] Clarissa Lauditi, Blake Bordelon, and Cengiz Pehlevan. Adaptive kernel predictors from feature-learning infinite limits of neural networks. In Forty-second International Conference on Machine Learning , 2025. [25] Jaehoon Lee, Lechao Xiao, Samuel Schoenholz, Yasaman Bahri, Roman Novak, Jascha Sohl-Dickstein, and Jeffrey Pennington. Wide neural networks of any depth evolve as linear models under gradient descent. In Advances in Neural Information Processing Systems , volume 32, 2019. [26] John M Lee. Smooth manifolds. In Introduction to smooth manifolds , pages 1–29. Springer, 2003. [27] Kaifeng Lyu and Jian Li. Gradient descent maximizes the margin of homogeneous neural networks. In International Conference on Learning Representations , 2020. [28] James Martens. New insights and perspectives on the natural gradient method. Journal of Machine Learning Research , 21(146):1–76, 2020. [29] Song Mei, Andrea Montanari, and Phan-Minh Nguyen. A mean field view of the landscape of two-layer neural networks. Proceedings of the National Academy of Sciences , 115(33): E7665–E7671, 2018. [30] Paul Milgrom and Ilya Segal. Envelope theorems for arbitrary choice sets. Econometrica , 70 (2):583–601, 2002. [31] Radford M. Neal. Bayesian Learning for Neural Networks , volume 118 of Lecture Notes in Statistics . Springer, 1996. [32] Yann Ollivier. Riemannian metrics for neural networks i: feedforward networks. Information and Inference: A Journal of the IMA , 4(2):108–153, 2015. [33] Sergio Calvo Ordoñez, Jonathan Plenk, Richard Bergna, Alvaro Cartea, José Miguel Hernández-Lobato, Konstantina Palla, and Kamil Ciosek. A gaussian process view on observation noise and initialization in wide neural networks. In The 29th International Conference on Artificial Intelligence and Statistics , 2026. [34] Ian Osband, John Aslanides, and Albin Cassirer. Randomized prior functions for deep rein-forcement learning. Advances in neural information processing systems , 31, 2018. [35] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, et al. Pytorch: An imperative style, high-performance deep learning library. Advances in neural information processing systems , 32, 2019. [36] Alethea Power, Yuri Burda, Harrison Edwards, Ian Goodfellow, and Vineet Misra. Grokking: Generalization beyond overfitting on small algorithmic datasets. arXiv preprint arXiv:2201.02177 , 2022. 11 [37] Carl Edward Rasmussen and Christopher K I Williams. Gaussian Processes for Machine Learning . MIT Press, 2006. [38] Grant M Rotskoff and Eric Vanden-Eijnden. Neural networks as interacting particle systems: Asymptotic convexity of the loss landscape and universal scaling of the approximation error. In 
+
+Advances in Neural Information Processing Systems , volume 31, 2018. [39] Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. Distilbert, a distilled version of bert: smaller, faster, cheaper and lighter. arXiv preprint arXiv:1910.01108 , 2019. [40] Daniel Soudry, Elad Hoffer, Mor Shpigel Nacson, Suriya Gunasekar, and Nathan Srebro. The implicit bias of gradient descent on separable data. Journal of Machine Learning Research , 19 (70):1–57, 2018. [41] Andrei Nikolaevich Tikhonov. Solution of incorrectly formulated problems and the regulariza-tion method. Soviet Math. Dokl. , 4:1035–1038, 1963. [42] Stephen Wiggins. Normally hyperbolic invariant manifolds in dynamical systems , volume 105. Springer Science & Business Media, 1994. [43] Blake Woodworth, Suriya Gunasekar, Jason D Lee, Edward Moroshko, Pedro Savarese, Itay Golan, Daniel Soudry, and Nathan Srebro. Kernel and rich regimes in overparametrized models. In Conference on Learning Theory , pages 3635–3673. PMLR, 2020. [44] Mingyue Xu, Gal Vardi, and Itay Safran. To grok grokking: Provable grokking in ridge regression. In Forty-third International Conference on Machine Learning , 2026. URL https: //arxiv.org/abs/2601.19791 .[45] Ge Yang, Edward Hu, Igor Babuschkin, Szymon Sidor, Xiaodong Liu, David Farhi, Nick Ryder, Jakub Pachocki, Weizhu Chen, and Jianfeng Gao. Tuning large neural networks via zero-shot hyperparameter transfer. Advances in Neural Information Processing Systems , 34:17084–17097, 2021. [46] Greg Yang. Wide feedforward or recurrent neural networks of any architecture are gaussian processes. Advances in neural information processing systems , 32, 2019. [47] Greg Yang. Tensor programs ii: Neural tangent kernel for any architecture. arXiv preprint arXiv:2006.14548 , 2020. [48] Greg Yang. Tensor programs iii: Neural matrix laws. arXiv preprint arXiv:2009.10685 , 2020. [49] Greg Yang and Edward J Hu. Tensor programs iv: Feature learning in infinite-width neural networks. In International Conference on Machine Learning , pages 11727–11737. PMLR, 2021. [50] Yuan Yao, Lorenzo Rosasco, and Andrea Caponnetto. On early stopping in gradient descent learning. Constructive approximation , 26(2):289–315, 2007. [51] Guodong Zhang, James Martens, and Roger B Grosse. Fast convergence of natural gradient descent for over-parameterized neural networks. Advances in Neural Information Processing Systems , 32, 2019. [52] Xiang Zhang, Junbo Zhao, and Yann LeCun. Character-level convolutional networks for text classification. Advances in neural information processing systems , 28, 2015. [53] Zhifei Zhang, Yang Song, and Hairong Qi. Age progression/regression by conditional adver-sarial autoencoder. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR) .IEEE, 2017. 12 A Assumptions 
+
+We collect here the full list of atomic hypotheses on which the main results rely. Each entry states the assumption, lists the main-text results that depend on it, and sketches its justification. Smoothness of the flow manifold near the interpolant, normal hyperbolicity of Θ⋆, local properness of g|Mflow (θ0),and existence of a unique gradient flow ω-limit are derivable consequences — stated and proved as theorems or lemmas in Appendices D and E rather than assumed. 
+
+(A.1) Smoothness. Statement. The network f (·; θ) is C∞ in θ on the parameter domain of interest. 
+
+Used by. All main-text results. Justification. Finite composition of smooth activations is C∞ by elementary calculus. The practically relevant restriction is that activations satisfy the pseudo-Lipschitz / polynomially bounded growth hypothesis imposed by the TensorPrograms framework [ 47 , 48 ], covering analytic variants of tanh , smooth SiLU , and smooth approximations of ReLU .
+
+(A.2) Data. Statement. The training dataset D = ( X, Y ) has finite n and distinct inputs Xi̸ = Xj
+
+for i̸ = j. Used by. All main-text results. Justification. Distinct inputs are necessary for the output fibre Θ ( c) to be well-defined at every achievable c; finiteness of n ensures the Jacobian 
+
+J (θ) ∈ Rn×m has finite domain. 
+
+(A.3) Loss and gradient flow dynamics. Statement. Training is the continuous-time gradient flow ˙θ = −∇ θ L (g (θ) , Y ) = J (θ)⊤ u with u := −∂cL (c, Y ) |c=g(θ). The main text takes 
+
+L (c, Y ) = ∥c − Y ∥2 (squared error), giving u = 2( Y − g (θ)) , ∇2
+
+> c
+
+L (·, Y ) = 2 I, and Hessian 
+
+∇2 
+
+> θ
+
+L (g (θ) , Y ) = 2 J (θ)⊤ J (θ) + 2 P
+
+> i
+
+(g (θ) − Y )i ∇2gi, which reduces to 2 J (θ)⊤ J (θ) at any 
+
+θ ∈ Θ⋆. Used by. All main-text results. Justification. A definitional choice of optimiser. Discrete-time gradient descent approximates this dynamics in the small step-size limit. The squared-error specialisation is natural for the canonical regression setting underlying the NTK–GP correspondence; extension to any strictly convex, μ-strongly-convex, M -smooth loss is straightforward (the SSE-specific identity Hessian becomes μI ⪯ ∇ 2
+
+> c
+
+L (, Y ) ⪯ M I everywhere needed) and is treated implicitly throughout the appendix. 
+
+(A.4) Uniform Jacobian conditioning near interpolation. Statement. There exist an open neigh-bourhood U ⊇ Θ⋆ and constants 0 < c ≤ C < ∞ such that for all θ ∈ U ,
+
+c ≤ σmin (J (θ)) and σmax (J (θ)) ≤ C. 
+
+The gradient flow trajectory from θ0 converges to a limit point θ⋆ ∈ Θ⋆ ∩ U (formally As-sumption 2.1). Used by. All main-text Theorems and Definitions in Sections 3 and 4; Lem-mas D.5, D.4, D.6, D.7; and proofs throughout Appendix E. Justification. A.4 is a single hypothesis collecting the geometric structure required for the local-NHIM analysis. Its three components — lower spectral bound on J (θ), upper spectral bound, and convergence of the gradient flow trajectory to Θ⋆ — are all standard in wide-network analysis. Under μP scaling for TensorPrograms-compatible architectures with smooth activations [ 47 , 48 ], σmin (J (θ0)) and σmax (J (θ0)) concentrate around positive bounded infinite-width limits at initialisation; continuity propagates these bounds to a neigh-bourhood. Convergence of gradient flow to an interpolator is observed empirically and proved in special cases [ 17 , 10 ]. Three downstream properties are derived (not assumed) from A.4: Θ⋆ ∩ U is an embedded C∞ codimension-n submanifold (regular-value theorem applied to g [ 26 ]); the loss Hessian ∇2L = 2 J⊤J on Θ⋆ ∩ U has n eigenvalues bounded below by 2c2 and m − n zero eigen-values with eigenspace ker J (θ), making Θ⋆ ∩ U normally hyperbolic for the gradient flow vector field; and the leaf Mflow (θ0) ∩ V of the resulting stable-manifold foliation, restricted to a smaller neighbourhood V ⊆ U , is an embedded n-dimensional C∞ submanifold tangent to Im( J (θ⋆)⊤) at 
+
+θ⋆ (Theorem C.2). 
+
+Remark A.1 ( μP scaling and Assumption 2.1) . Under μP scaling for TensorPrograms-compatible architectures with smooth activations [ 47 , 48 ], the NTK Gram matrix K(θ0) = J (θ0) J (θ0)⊤
+
+concentrates around its positive-definite infinite-width limit at initialisation, with eigenvalues bounded above and below at width m → ∞ . Continuity of σmin , σ max in θ then propagates the spectral bounds to a neighbourhood of θ0, and stability arguments along the gradient flow trajectory extend them to a neighbourhood of Θ⋆.13 B Extended Related Work 
+
+Implicit bias and minimum-norm interpolation. The connection between gradient flow and minimum-norm solutions in overparametrised linear models is classical [ 3]: the gradient flow limit is the Moore–Penrose pseudoinverse solution, which is also the ℓ2-minimum-norm interpolator. The same identity holds in kernel regression and in NTK-regime neural networks [ 17 , 25 , 10 ]: the gradient flow limit is the minimum-RKHS-norm interpolator, whose Gibbs distribution is the Gaussian Process prior N (g (θ0) , K ) [37 , 13 , 33 ]. The kernel vs. rich dichotomy of Woodworth et al. [43] delineates when networks behave like linear models (kernel regime) vs. when feature learning occurs. Our contribution is to identify the energy underlying this selection—not merely the norm—and to generalise it to the feature-learning regime. Theorem 3.1 shows that, beyond the kernel regime, the min-Euclidean-norm interpolator and the gradient flow limit diverge; the energy-based view moves beyond the implicit-bias framing to a positive characterisation of the canonical function-space prior. 
+
+Implicit bias in classification and structured models. The implicit bias of gradient descent has been characterised in several other settings. For classification with the logistic loss on linearly separable data, gradient descent converges in direction to the max-margin (hard-SVM) solution [ 40 ,18 ]; for homogeneous networks this extends to a KKT-based characterisation of the margin [ 27 ]. For matrix factorisation, gradient descent induces an implicit nuclear-norm penalty [ 12 ], and for wide two-layer networks trained with the logistic loss a related max-margin structure emerges [ 7 ]. These results characterise the direction of implicit bias in specific architectures or losses; our framework instead characterises the function-space energy underlying gradient flow selection and provides a geometric generalisation that applies across architectures and losses within the feature-learning regime. 
+
+Feature-learning theory. The mean-field limit [ 6, 29 , 38 ] describes the infinite-particle dynamics of two-layer networks in a regime where the Jacobian varies substantially, complementing the NTK picture. The Tensor Programs framework of Yang and Hu [49] provides a unified characterisation of wide networks via a dynamical dichotomy between kernel and feature-learning regimes, with μP 
+
+scaling [ 45 ] as the canonical parameterisation enabling stable feature learning. Recent work has analysed what gradient descent actually learns in the feature-learning regime: Damian et al. [8] prove that gradient descent can learn representations unavailable to fixed-kernel methods, and Lauditi et al. [24] characterise the adaptive kernel that emerges at the feature-learning infinite-width limit. Our work complements these results by characterising the regulariser that is canonical for the dynamics induced by gradient flow in this regime, rather than describing what those dynamics converge to. 
+
+Weight decay beyond RKHS regularisation. Weight decay has been studied as a driver of phenomena beyond its interpretation as an RKHS prior. The grokking phenomenon—delayed generalisation long after data loss reaches zero—was first documented by Power et al. [36] and has been given a provable analysis in the setting of ridge regression by Xu et al. [44] . The effect of weight decay on the features learned by neural networks, and its connection to the adaptive kernel at the feature-learning limit, is analysed by Lauditi et al. [24] . Theorem 3.1 and Remark C.4 provide a complementary theoretical perspective: in the feature-learning regime, both standard ridge and anchored ridge select interpolating solutions that differ systematically from the gradient flow limit. Their practical effect is therefore solution-set modification rather than prior specification , and the benefits observed in practice may arise partly from this solution-selection property rather than from Bayesian regularisation. 
+
+Geometry-aware optimisers. Natural gradient descent [ 2] preconditions the gradient by the inverse Fisher information matrix, which in the supervised learning setting equals K (θ)−1 [28 , 32 ]. Under this preconditioning, function-space dynamics become isotropic and training trajectories approximate geodesics on Mflow (θ0) [51 , 5 ]; several wide-network approximations reproduce this isotropic behaviour [ 20 ]. Recent optimisers implement related principles at scale [ 19 , 4]. Our work is complementary: rather than proposing a new optimiser, we characterise the regulariser canonical for the geometry induced by gradient flow; preconditioning the gradient flow by the natural-gradient (NTK) metric is a direct route to tightening our path-length bound, but we leave its full development to future work. 14 C Extended Results 
+
+We collect here the formal statements of results whose informal versions appear in the main text. Proofs of all results appear in Appendix E. 
+
+C.1 Convergence of gradient flow under uniform Jacobian conditioning Proposition C.1 (Gradient-flow convergence to an interpolator) . Under Assumptions A.1, A.3, and 2.1, the gradient flow trajectory θ(t) = ϕgf (θ0, t ) converges to a limit θ⋆ ∈ Θ⋆ at exponential rate. For squared-error loss, ∥g (θ(t)) − Y ∥ ≤ ∥ g (θ0) − Y ∥ e−2c2t, where c is the lower spectral bound of Assumption 2.1. In particular, θ(t) stays in U for all t ≥ 0, and ω(θ0) := lim t→∞ θ(t) exists. 
+
+C.2 Local manifold and metric structure of Mflow (θ)
+
+Theorem C.2 (Local manifold chart) . Under Assumption 2.1, there exists an open neighbourhood 
+
+V ⊆ U of θ⋆ such that: (i) Θ⋆ ∩ V is an embedded C∞ codimension-n submanifold of V with Tθ (Θ ⋆ ∩ V ) = ker J (θ)
+
+at every θ ∈ Θ⋆ ∩ V ;(ii) the gauge-fixed flow manifold Mflow (θ0) ∩ V is an embedded C∞ n-submanifold of V
+
+tangent at θ⋆ to Im( J (θ⋆)⊤), varying C∞-smoothly with the basepoint across Θ⋆ ∩ V ;(iii) the restriction g|Mflow (θ0)∩V is a C∞ diffeomorphism onto its open image C0(θ0) := 
+
+g(Mflow (θ0) ∩ V ) ⊆ Rn, with inverse the gauge-fixed representative g|−1 
+
+> θ0
+
+(c).
+
+Theorem C.3 (Metric gap of Mflow (θ0) from the kernel-regime affine plane) . Let A(c) := 
+
+Dg |−1 
+
+> θ0
+
+(c) and write A(c) = A∥(c) + N (c) with A∥(c) := J  g|−1 
+
+> θ0
+
+(c)⊤ K  g|−1 
+
+> θ0
+
+(c)−1 and 
+
+N (c) := ( I − Pg|−1 
+
+> θ0(c)
+
+) A(c), where Pθ is the orthogonal projector onto Im( J (θ)⊤). Then the pullback metric G(c) := A(c)⊤A(c) on C0(θ0) admits the orthogonal decomposition 
+
+G(c) = K  g|−1 
+
+> θ0
+
+(c)−1 + N (c)⊤N (c),
+
+so G ⪰ K−1 pointwise, with equality G(c) = K  g|−1 
+
+> θ0
+
+(c)−1 if and only if Tg|−1 
+
+> θ0(c)
+
+Mflow (θ0) = Im( J  g|−1 
+
+> θ0
+
+(c)⊤) (the kernel-regime alignment). Moreover, along the realised gradient flow tra-jectory θ(t) = g|−1 
+
+> θ0
+
+(c(t)) , the velocity ˙c(t) satisfies N (c(t)) ˙ c(t) = 0 , so the trajectory’s G-energy reduces to ˙c⊤K (θ(t)) −1 ˙c.
+
+C.3 Uniqueness of the canonical kernel-regime energy and lift 
+
+The kernel-regime canonical function-space energy E(c) = ( c − g (θ0)) ⊤K−1(c − g (θ0)) of Definition 4.1 is the unique continuous output-space energy compatible with the natural geometry of the flow manifold; “naturality” alone — the property that vanishing-regularisation MAP estimation recovers the gradient flow limit — does not single it out. We make these statements formal here. 
+
+Theorem C.4 (Output-space energy uniqueness) . Let G ∈ Rn×n be symmetric positive definite. Suppose ρG : Rn → [0 , ∞) is continuous, satisfies ρG(0) = 0 , is nontrivial, and obeys (i) (G−1-isometry invariance) ρG(U c) = ρG(c) for every U ∈ Rn×n with U ⊤G−1U = G−1;(ii) (orthogonal additivity) u⊤G−1v = 0 = ⇒ ρG(u + v) = ρG(u) + ρG(v).Then ρG(c) = α c⊤G−1c for some constant α > 0.
+
+In words, axiom (i) asks that ρG depends only on the G−1-geometry of the displacement, not on the basis we describe it in (the analogue of rotational invariance for the standard inner product); axiom (ii) asks that G−1-orthogonal displacements contribute additively (the function-space analogue of the Pythagorean identity). Together they leave a single scale degree of freedom, absorbed into the prior temperature β. Applied with G = K−1, this characterises the kernel-regime canonical energy of Definition 4.1 uniquely. The corresponding parameter-space lift inherits this uniqueness: in the kernel regime, the orthogonal decomposition Rm = Im( J⊤) ⊕ ker J coincides with the flow-tangent 15 / fibre decomposition globally, and the squared ambient distance along Θ ( g (θ)) is the unique fibre extension respecting orthogonal additivity in this decomposition. 
+
+Remark C.1 (Both axioms of Theorem C.4 are individually necessary) . Dropping axiom (i) (isometry invariance), the functional ρG(c) := ( c1 − g (θ0)1)2 is continuous, vanishes at the origin, is non-trivial, and is orthogonally additive (every basis-aligned splitting of c trivially satisfies the additivity hypothesis); but it depends on the chosen first coordinate and is not of the form α c⊤G−1c. Dropping axiom (ii) (orthogonal additivity), the functional ρG(c) :=  c⊤G−1c2 is continuous, G−1-isometry invariant, and non-trivial; but G−1-orthogonal displacements satisfy ρG(u + v) = ( s + t)2̸ =
+
+s2 + t2 = ρG(u) + ρG(v) for s, t > 0, so axiom (ii) fails. Hence both axioms are individually necessary for the uniqueness conclusion. 
+
+Proposition C.5 (No-go for naturality alone in the kernel regime) . Let θ⋆ be the gradient-flow interpolator from θ0 in a kernel-regime model with constant Jacobian J ∈ Rn×m and K = JJ ⊤ ≻ 0.Consider the two-parameter family of trajectory-blind quadratic regularisers 
+
+F := 
+
+n
+
+Ra,B (θ) := a ∥θ − θ0∥2 +  J(θ − θ0)⊤B  J(θ − θ0) : a > 0, B ∈ Sym +
+
+> n
+
+o
+
+,
+
+where Sym + 
+
+> n
+
+denotes the cone of symmetric positive semi-definite n × n matrices. Distinct (a, B )
+
+give distinct regularisers in F (their Hessians 2( aI m + J⊤BJ ) differ), and distinct elements of F
+
+correspond to distinct Gaussian MAP parameter priors N (θ0, 12λ (aI m + J⊤BJ )−1). Yet every element of F attains the same vanishing-regularisation limit: 
+
+lim  
+
+> λ↓0
+
+arg min 
+
+> θ
+
+L (g (θ) , Y ) + λR a,B (θ) = θ⋆ ∀(a, B ) ∈ R>0 × Sym + 
+
+> n
+
+.
+
+The vanishing-regularisation property (“naturality”) therefore does not pin out anchored ridge — only the special case B = 0 does, and singling it out within F requires the additional orthogonal-additivity axiom of Theorem C.4. 
+
+Theorem C.6 (Uniqueness of the canonical lift) . Fix the canonical function-space energy E of Definition 4.1. Among all functionals R : Θ → [0 , ∞) satisfying (a) (additivity to E) R(θ) = E(g (θ)) + S(θ) for some S : Θ → [0 , ∞) depending only on the on-fibre displacement of θ from g|−1 
+
+> θ0
+
+(g (θ)) ;(b) (Euclidean fibre quadratic) the restriction of S to each fibre Θ ( g (θ)) ∩ V is a quadratic in the ambient Euclidean metric inherited from Rm;(c) (vanishing at the gauge-fixed representative) S(g|−1 
+
+> θ0
+
+(g (θ))) = 0 ,the unique solution (up to a positive scale) is 
+
+R(θ) = E(g (θ)) + inf 
+
+> ψ
+
+Z 10
+
+˙ψ(t) 2
+
+dt = E(g (θ)) + d2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ ,
+
+where the infimum runs over piecewise-C1 paths ψ : [0 , 1] → Θ ( g (θ)) with ψ(0) = g|−1 
+
+> θ0
+
+(g (θ)) ,
+
+ψ(1) = θ. In the kernel regime this reduces to anchored ridge; in the feature-learning regime it is geodesic ridge of Proposition 4.1. 
+
+Theorem C.7 (Combined uniqueness of geodesic ridge as the canonical regulariser) . Under As-sumption 2.1, the only functional R : Θ → [0 , ∞) on a neighbourhood of Θ⋆ which simultaneously satisfies the function-space-energy axioms of Theorem C.4 (with G = K−1 at θ0) on the output channel g (θ), the lift axioms (a)–(c) of Theorem C.6 on the parameter-space channel, and the vanishing-regularisation property arg min( L (g (·) , Y ) + λR ) → θ⋆ as λ ↓ 0, is, up to a single positive scale, 
+
+R(θ) = d2 (θ, θ0) = d2flow 
+
+ θ0, g |−1 
+
+> θ0
+
+(g (θ))  + d2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ ,
+
+i.e. geodesic ridge. In the kernel regime this collapses to anchored ridge; the corresponding function-space prior is uniquely the Riemannian Gibbs Process of Definition 4.2, collapsing to the NTK Gaussian process under linear J.
+
+C.4 Geometry of the flow manifold and output fibres Proposition C.8 (Output fibres are smooth submanifolds) . Under Assumption 2.1, for every c ∈ g(U )
+
+the output fibre Θ ( c) ∩ U is an embedded C∞ submanifold of Rm of codimension n.
+
+16 Remark C.2 (Path-connectivity of output fibres) . In the overparametrised regime m ≫ n, the connected component of Θ ( c) ∩ V containing g|−1 
+
+> θ0
+
+(c) is path-connected via the implicit-function-theorem chart on Θ ( c) over V [ 26 ], so the fibre distance dfibre 
+
+ θ, g |−1 
+
+> θ0
+
+(c) = θ − g|−1 
+
+> θ0
+
+(c) in Definition 4.3 is finite. 
+
+Corollary C.1 (Unique fibre–flow intersection in V ). Under the hypotheses of Theorem C.2, for every c ∈ C0(θ0) the intersection (Mflow (θ0) ∩ V ) ∩ Θ ( c) consists of exactly one point, which we denote g|−1 
+
+> θ0
+
+(c). In particular θ⋆ = θ′(Y ), and the ω-limit ω(θ0) = lim t→∞ ϕgf (θ0, t ) = θ⋆.
+
+Proposition C.9 (Constant-speed optimality) . Among piecewise-C1 paths γ : [0 , 1] →
+
+(Mflow (θ0) , ambient Euclidean ) with fixed endpoints, the squared-energy R 10 ∥ ˙γ(t)∥2 dt is min-imised by constant-speed parametrisations of length-minimising paths, and at the minimiser the energy equals the squared arc length: E(γopt ) = L2(γopt ).Remark C.3 (Existence and non-uniqueness of minimising geodesics) . On the smooth Riemannian manifold (Mflow (θ0) ∩ V, g ambient ) near θ⋆, geodesic completeness on a compact sublevel set of the squared distance from θ0 follows from local properness of g|Mflow (θ0)∩V (Lemma D.7); the Hopf–Rinow theorem [ 9, Ch. 7, Thm. 2.8] then yields a length-minimising geodesic between any two endpoints in the same component. Minimisers need not be unique: conjugate points and non-trivial topology of Mflow (θ0) ∩ V can create multiple equal-length shortest paths. The gradient 
+
+∇θ E(g (θ)) is correspondingly a set-valued quantity in general; any continuously tracked minimising geodesic yields a valid subgradient selection, and each element of this subdifferential is a valid descent direction for E. The squared path-length regulariser of Definition 4.4 circumvents this non-uniqueness by tracking a specific (training-induced) horizontal path on Mflow (θ0), with gradient given by Proposition F.3. 
+
+Remark C.4 (Standard ridge fails doubly in feature-learning networks) . Standard ridge, Rstd (θ) = 
+
+∥θ∥2, fails in feature-learning networks for two independent reasons. First , it ignores the initialisation: for any θ0̸ = 0, minimising ∥θ∥2 rather than ∥θ − θ0∥2 already biases solutions away from the gradient flow limit in the kernel regime , where anchored ridge is the correct canonical regulariser [ 13 ,33 ]. For linear models, anchored ridge is the classical Tikhonov regulariser [ 41 ] centred at the initial estimate θ0, equivalent to MAP estimation under the Gaussian parameter prior N (θ0, 12λ I) [34 ]; ridge regression [ 16 ] corresponds to the special case θ0 = 0. Second , even for networks with zero initialisation, Rstd = Rctr |θ0=0, so Theorem 3.1 applies directly: whenever J (θ) is non-constant along the training trajectory, the minimum-Euclidean-norm interpolator centred at the origin diverges from θ⋆. In summary, anchored ridge is the correct target in the kernel regime but is itself insufficient in the feature-learning regime, where only the canonical curved lift of Definition 4.3 selects the gradient flow solution. 
+
+C.5 Kernel-regime reduction of the canonical objects Proposition C.10 (Kernel-regime reduction) . Suppose the model has constant Jacobian J (θ) ≡ J
+
+on U , with K = JJ ⊤ ≻ 0 on the corresponding NTK Gram matrix. Then the canonical objects of Section 4 reduce as follows: (a) Affine flow manifold: Mflow (θ0) ∩ U =  θ0 + Im( J⊤) ∩ U ;(b) Closed-form gauge-fixed representative: g|−1 
+
+> θ0
+
+(c) = θ0 + J⊤K−1(c − g (θ0)) ;(c) RKHS canonical energy: E(c) = ( c − g (θ0)) ⊤K−1(c − g (θ0)) = ∥c − g (θ0)∥2RKHS ;(d) Pythagorean lift: the canonical lift of Definition 4.3 satisfies R(θ) = ∥θ − θ0∥2 (anchored ridge); (e) Geodesic distance: d2flow (θ0, θ) = ∥θ − θ0∥2 for every θ ∈ M flow (θ0), and the metric gap operator N (c) of Theorem C.3 vanishes identically; (f) NTK Gaussian Process prior: the Riemannian Gibbs Process of Definition 4.2 reduces to 
+
+g (θ) ∼ N (g (θ0) , (2 β)−1K), equivalently f (·; θ) ∼ GP (f (·; θ0) , (2 β)−1kNTK ).
+
+Corollary C.2 (Anchored ridge is the canonical lift in the kernel regime) . Under the hypotheses of Proposition C.10, geodesic ridge of Proposition 4.1 coincides with anchored ridge: d2 (θ, θ0) = 
+
+∥θ − θ0∥2 for every θ ∈ U .
+
+Corollary C.3 (Riemannian Gibbs Process is the NTK Gaussian Process in the kernel regime) . Under the hypotheses of Proposition C.10, the canonical function-space prior of Definition 4.2 coincides 
+
+17 with the NTK Gaussian Process posterior N (g (θ0) , (2 β)−1K) on the training-output coordinates and pushes forward, under evaluation at any finite test inputs Xte ⊂ X , to a Gaussian on Y|Xte | with the standard NTK-GP mean and covariance. 
+
+C.6 Failure of non-canonical regularisation in the feature-learning regime 
+
+The bias of anchored ridge identified by Theorem 3.1 is not specific to the chord ∥θ − θ0∥2: every 
+
+trajectory-blind quadratic regulariser whose curvature-correcting tensor is independent of training history exhibits the same pathology, and every regulariser that depends only on outputs cannot disambiguate the gauge-fixed representative from any other point on the same fibre. 
+
+Proposition C.11 (Static-anchor regularisers bias gradient flow) . Let M ∈ Sym + 
+
+> m
+
+and v ∈ Rm
+
+be independent of the gradient-flow trajectory (functions of θ0 only). Define RM, v (θ) := (θ − v)⊤M (θ − v) and θ⋆M, v := lim λ↓0 arg min θ [L (g (θ) , Y ) + λR M, v (θ)] . Then θ⋆M, v is characterised by M (θ⋆M, v − v) ∈ Im( J  θ⋆M, v
+
+⊤) and, under Assumption 2.1, satisfies θ⋆M, v = θ⋆
+
+if and only if 
+
+M (θ⋆ − v) ∈ Im( J (θ⋆)⊤).
+
+In particular, whenever the gradient-flow displacement θ⋆ − θ0 has a non-trivial component in 
+
+ker( J (θ⋆)) (the generic feature-learning regime under non-constant J (θ(t)) ), no choice of static 
+
+(M, v) can satisfy this condition, so every trajectory-blind quadratic biases the gradient-flow limit. 
+
+Proposition C.12 (Output-norm regularisers fail to select the gauge-fixed representative) . Let f :
+
+Rn → [0 , ∞) be continuous with f (g (θ0)) = 0 and f strictly convex on C0(θ0). The pure output-shaped regulariser R(θ) := f (g (θ)) satisfies, for every λ > 0,
+
+arg min 
+
+> θ
+
+L (g (θ) , Y ) + λR (θ) = Θ ( cλ) ∩ U, 
+
+i.e. the entire output fibre at the optimal output value cλ is selected. The vanishing-regularisation limit 
+
+lim λ↓0 arg min is therefore Θ⋆ ∩ U , not the singleton {θ⋆}. A non-trivial fibre extension is therefore necessary in the canonical lift of Definition 4.3; pure output-energy is structurally insufficient to select the gradient-flow limit. 
+
+Proposition C.13 (anchored ridge lower-bounds the canonical regulariser) . For every θ ∈Mflow (θ0),
+
+∥θ − θ0∥2 ≤ d2flow (θ0, θ) = d2 (θ, θ0) .
+
+The inequality is an instance of the relaxation principle: anchored ridge is the minimum of 
+
+R 10 ∥ ˙γ(t)∥2 dt over paths from θ0 to θ without the horizontal constraint ˙γ ∈ Im( J (γ)⊤), whereas the canonical regulariser is the minimum of the same functional with the horizontal constraint imposed. Dropping a constraint can only decrease the minimum. 
+
+Corollary C.4 (Sandwich bound and shared vanishing-regularisation limit) . For every θ ∈Mflow (θ0) reached by a piecewise-C1 horizontal training path γtrain from θ0,
+
+∥θ − θ0∥2 ≤ d2flow (θ0, θ) = d2 (θ, θ0) ≤ L2(γtrain ).
+
+Each of the three regularisers (anchored ridge ∥θ − θ0∥2, geodesic ridge d2 (θ, θ0), arc ridge 
+
+L2(γtrain )) attains the same vanishing-regularisation limit when the corresponding regularised objective is minimised under exact gradient flow: lim λ↓0 arg min( L (g (·) , Y ) + λR ) = θ⋆ for 
+
+R ∈ {∥· − θ0∥2 |Mflow (θ0), d 2 (·, θ0) , L 2(γtrain )}. The three regularisers therefore agree at the gradient-flow limit but disagree away from it; arc ridge is the minimax-optimal point of this sandwich (Proposition F.2). 
+
+Proposition C.14 (Properness of the Riemannian Gibbs Process) . Under Assumption 2.1, the partition function of the Riemannian Gibbs Process prior of Definition 4.2 is finite: 
+
+Z := 
+
+Z
+
+> C0(θ0)
+
+exp   − βE (c) dc ≤
+
+ π C 2
+
+β
+
+n/ 2
+
+,
+
+where C is the upper Jacobian bound of Assumption 2.1. The Riemannian Gibbs Process is therefore a proper probability measure on C0(θ0).
+
+18 Proposition C.15 (Kolmogorov consistency over arbitrary finite test inputs) . Fix a training set 
+
+X = ( X1, . . . , X n), an initialisation θ0, and a temperature β > 0. Define the parameter-space prior 
+
+πβ on Mflow (θ0) ∩ V by 
+
+πβ (dθ) = Z−1 
+
+> β
+
+exp   − β d 2flow (θ0, θ)  dvol gambient (θ),
+
+where dvol gambient is the Riemannian volume measure induced by the ambient Euclidean metric. For any finite test set Xte = ( Xn+1 , . . . , X n+ℓ) ⊆ X , let ΦXte : Mflow (θ0)∩V → Rℓ be the evaluation map θ 7 → (f (Xn+1 ; θ) , . . . , f (Xn+ℓ; θ)) . The push-forward family 
+
+μXte := (Φ Xte )♯πβ , Xte ⊆ X finite ,
+
+is Kolmogorov consistent: for any pair Xte ⊇ X′
+
+> te
+
+, the marginal of μXte on the coordinates indexed by X′ 
+
+> te
+
+equals μX′ 
+
+> te
+
+. By the Kolmogorov extension theorem, the family {μXte } defines a unique stochastic process on X at the fixed training set (X, θ0, β ). (Consistency across training subsets remains an open problem.) Remark C.5 (Status of the Riemannian Gibbs Process as a Bayesian prior) . Properness. Under Assumption 2.1 the partition function R exp( −βE (c)) dc is finite (Proposition C.14); outside this regime we make no such claim. MAP well-posedness. The MAP estimator arg min θ L(g (θ) , Y ) + 
+
+λE (g (θ)) is well-defined and finite for every λ > 0 regardless of normalisation. NTK reduction. In the kernel regime, where E reduces to the squared RKHS norm, the prior is the proper Gaussian Process N (g (θ0) , (2 β)−1K). Kolmogorov consistency. Verification of Kolmogorov consistency for the projective family {pX }X across input subsets remains open; however, the parametric structure buys us consistency over arbitrary finite test inputs at any fixed training set: any parameter prior on 
+
+Mflow (θ0) ∩ V — naturally the Riemannian Gibbs measure ∝ exp( −β d 2flow (θ0, ·)) with respect to the induced Riemannian volume — pushed through evaluation at any finite Xte ⊂ X yields a Kolmogorov-consistent family of finite-dimensional marginals [31, 37, 46]. 
+
+## D Preliminary Lemmas 
+
+All lemmas in this appendix are stated under the standing assumptions of Appendix A. Each proof is brief; references to external sources are made where the argument is classical. 
+
+D.1 Gradient flow basics Lemma D.1 (Gradient formula) . For any loss with output gradient u := −∂cL (c, Y ) |c=g(θ),
+
+∇θ L (g (θ) , Y ) = −J (θ)⊤ u. The SSE special case L = ∥g (θ) − Y ∥2 gives u = 2( Y − g (θ)) 
+
+and ∇θ L = 2 J (θ)⊤ (g (θ) − Y ).Proof. Chain rule applied to L (g (·) , Y ).
+
+Lemma D.2 (Lyapunov decrease) . Along any gradient flow solution θ(t), ddt L (g (θ(t)) , Y ) = 
+
+− ∥∇ θ L (g (θ(t)) , Y )∥2 ≤ 0, with equality iff ∇θ L = 0 .Proof. ddt L = ⟨∇L , ˙θ⟩ = − ∥∇L∥ 2 by A.3. 
+
+Lemma D.3 (Critical points are interpolators) . Under Assumptions 2.1 and A.3, ∇θ L (g (θ) , Y ) = 0 ⇐⇒ g (θ) = Y . Consequently, the critical set of L coincides with Θ⋆.Proof. By Lemma D.1, ∇θ L = −J (θ)⊤ u. If g (θ) = Y then u = −∂cL| Y = 0 by A.3 (loss minimum at Y ), so ∇θ L = 0 . Conversely, if J (θ)⊤ u = 0 , left-multiplying by J (θ) gives 
+
+K (θ) u = 0 ; A.4 makes K (θ) invertible, so u = 0 , and strict convexity of L (·, Y ) in c (A.3) with minimum at Y forces g (θ) = Y .19 D.2 Structural lemmas Lemma D.4 (NHIM stable-manifold structure of Mflow (θ0)). Under Assumptions A.1 and 2.1, there exists an open neighbourhood V ⊆ U of θ⋆ such that: (i) Θ⋆ ∩ V is an embedded C∞ submanifold of V of codimension n, with Tθ (Θ ⋆ ∩ V ) = ker J (θ) at every θ ∈ Θ⋆ ∩ V .(ii) Under squared-error A.3, the loss Hessian at θ ∈ Θ⋆ ∩V equals ∇2 
+
+> θ
+
+L(θ) = 2 J (θ)⊤ J (θ);it has n eigenvalues bounded below by 2c2 on Im( J (θ)⊤) and m − n zero eigenvalues on 
+
+ker J (θ) = Tθ (Θ ⋆ ∩ V ).(iii) Θ⋆ ∩ V is normally hyperbolic for the gradient flow vector field −∇ θ L, with stable bundle 
+
+Im( J (·)⊤)|Θ⋆∩V and trivial unstable bundle. The local stable manifold W s
+
+> loc
+
+(θ⋆) := 
+
+Mflow (θ0) ∩ V is an embedded C∞ n-dimensional submanifold of V tangent at θ⋆ to 
+
+Im( J (θ⋆)⊤), varying C∞-smoothly with the basepoint across Θ⋆ ∩ V .Proof. (i) On U , J (θ) has rank n by Assumption 2.1, so Y is a regular value of g|U . The regular-value theorem [ 26 , Cor. 5.14] gives Θ⋆ ∩ U = ( g|U )−1(Y ) is an embedded C∞ codimension-n
+
+submanifold with Tθ (Θ ⋆ ∩ U ) = ker J (θ). Restrict to a relatively compact V ⋐ U containing θ⋆.
+
+(ii) For SSE, ∇2 
+
+> θ
+
+L(θ) = 2 J (θ)⊤ J (θ) + 2 P
+
+> i
+
+(g (θ) − Y )i∇2gi. At θ ∈ Θ⋆ residuals vanish, leaving ∇2L = 2 J (θ)⊤ J (θ). The eigenvalue claim follows from σmin (J (θ)) ≥ c on V .
+
+(iii) The linearisation of the gradient flow vector field −∇ θ L at θ ∈ Θ⋆ ∩ V is −2J (θ)⊤ J (θ): it has n negative eigenvalues bounded above by −2c2 on Im( J (θ)⊤) and m − n zero eigenvalues on 
+
+Tθ (Θ ⋆ ∩ V ) = ker J (θ). The zero eigenspace coincides with the tangent space of Θ⋆ ∩ V , with uniform spectral gap 2c2 in the transverse direction; hence Θ⋆ ∩ V is a normally hyperbolic invariant manifold for the gradient flow [ 42 , 15 , Def. 2]. The NHIM stable-manifold theorem [ 42 , Thm. 4.1] gives a C∞ foliation of a neighbourhood of Θ⋆ ∩ V in V by stable manifolds, each an embedded 
+
+C∞ n-submanifold tangent to Im( J (·)⊤) at its basepoint and varying smoothly with the basepoint. The leaf containing the gradient-flow trajectory from θ0 is W s
+
+> loc
+
+(θ⋆) = Mflow (θ0) ∩ V by definition of the flow manifold (Definition 3.2) and uniqueness of the ω-limit. 
+
+Lemma D.5 (Output fibres are embedded submanifolds) . Under Assumption 2.1, for every c ∈ g(U )
+
+the output fibre Θ ( c) ∩ U = g|−1 
+
+> U
+
+(c) is an embedded C∞ submanifold of U of codimension n.Proof. c is a regular value of g|U since J (θ) has rank n on U by Assumption 2.1. The regular-value theorem [26, Cor. 5.14] then gives the conclusion. 
+
+D.3 Dynamical and properness lemmas Lemma D.6 (Trajectory length bound) . Under Assumption 2.1 and A.3 (with L (·, Y ) μ-strongly convex and M -smooth), the gradient flow trajectory from θ0 satisfies 
+
+Z ∞
+
+> 0
+
+˙θ(t) dt ≤ σmax M 2
+
+c2μ2
+
+q 2
+
+> μ
+
+ L (g (θ0) , Y ) − L ⋆,
+
+where L⋆ := min c L (c, Y ) = L (Y, Y ) and σmax is a uniform upper bound on the largest singular value of J (θ) on Mflow (θ0). In particular, trajectories have finite total arc length. The SSE special case ( μ = M = 2 , L − L ⋆ = ∥r∥2) recovers R ∞ 
+
+> 0
+
+˙θ dt ≤ (σmax /c 2) ∥Y − g (θ0)∥.Proof. Write h(c) := L (c, Y ) and r(t) := g (θ(t)) − Y . By A.3, h is μ-strongly convex with minimiser Y , giving ∥∇ h(c)∥ ≥ μ ∥r∥ and L − L ⋆ ≥ μ 
+
+> 2
+
+∥r∥2; M -smoothness gives ∥∇ h(c)∥ ≤ 
+
+M ∥r∥ and L − L ⋆ ≤ M 
+
+> 2
+
+∥r∥2. By Lemma D.2 and Assumption 2.1, 
+
+ddt L = − J (θ)⊤ ∇h(g (θ)) 2
+
+≤ − c2 ∥∇ h(g (θ)) ∥2 ≤ − c2μ2 ∥r∥2 ≤ − 2c2μ2
+
+M
+
+ L − L ⋆.
+
+Grönwall’s inequality [ 21 ] yields L(t) − L ⋆ ≤  L0 − L ⋆e−2c2μ2t/M and hence ∥r(t)∥ ≤
+
+q 2 
+
+> μ
+
+(L0 − L ⋆) e−c2μ2t/M . The trajectory is therefore bounded, and continuity of θ 7 →
+
+20 ∥J (θ)∥op (A.1) gives a finite supremum σmax on its compact closure. Then ˙θ(t) =
+
+J (θ(t)) ⊤ ∇h(g (θ(t))) ≤ σmax M ∥r(t)∥, and integrating from 0 to ∞ yields the stated con-stant. 
+
+Lemma D.7 (Local properness of g|Mflow (θ0)∩V ). Under Assumption 2.1, with V the neighbourhood of Lemma D.4, the restricted output map g|Mflow (θ0)∩V : Mflow (θ0) ∩ V → C0(θ0) ⊆ Rn is proper. Proof. By Lemma D.4(iii), Mflow (θ0) ∩ V is an embedded C∞ n-submanifold of V . Shrink V to a relatively compact open neighbourhood V ′ ⋐ V of θ⋆ with closure V ′ compact in V . The closed subset Mflow (θ0) ∩ V ′ is compact, so Mflow (θ0) ∩ V ′ is relatively compact. For any compact 
+
+K ⊆ g(V ′ ∩ M flow (θ0)) , the preimage (g|Mflow (θ0)∩V ′ )−1(K) is closed in the relatively compact 
+
+Mflow (θ0) ∩ V ′, hence compact. Replacing V by V ′ throughout gives local properness. 
+
+D.4 Geometric identities Lemma D.8 (Infinitesimal orthogonality) . At every θ with full-rank J (θ), Im( J (θ)⊤) ⊥ ker J (θ)
+
+in the ambient Euclidean inner product on Rm, and Rm = Im( J (θ)⊤) ⊕ ker J (θ) as an orthogonal decomposition. Proof. If v ∈ Im( J (θ)⊤) and w ∈ ker J (θ), write v = J (θ)⊤ u; then v⊤w = u⊤J (θ) w = 0 .Dimension count: dim Im( J (θ)⊤) = rank J (θ) = n and dim ker J (θ) = m − n, summing to 
+
+m.
+
+Lemma D.9 (Geodesic length dominates ambient chord) . For any embedded C1 submanifold 
+
+M ⊆ Rm and any two points p, q ∈ M in the same path component, the intrinsic geodesic distance 
+
+dM (p, q ) (defined as infimum of arc lengths of C1 curves in M ) satisfies dM (p, q ) ≥ ∥ p − q∥.Proof. For any C1 curve γ : [0 , 1] → M with γ(0) = p, γ(1) = q, Length( γ) = R 10 ∥ ˙γ(t)∥ dt ≥
+
+R 10 ˙γ(t) dt = ∥q − p∥ by the triangle inequality for integrals. Taking the infimum over γ preserves the inequality. 
+
+Lemma D.10 (Arc-length endpoint gradient) . Let γ : [0 , T ] → Rm be piecewise-C1 with ˙γ(T −)̸ = 0 .Then the arc length s(T ) = R T 
+
+> 0
+
+∥ ˙γ(t)∥ dt is Fréchet-differentiable with respect to the endpoint γ(T ),with 
+
+∂s ∂γ (T ) = ˙γ(T −)
+
+∥ ˙γ(T −)∥ .
+
+Equivalently, by the envelope theorem applied to the arc-length functional [ 30 ]: the gradient of the arc length with respect to the endpoint equals the terminal unit tangent vector. For a geodesic, this coincides with the terminal momentum (cotangent vector in the Hamiltonian formulation). Proof. Fix h ∈ Rm and δ > 0. Consider the comparison path ˜γ that agrees with γ on [0 , T − δ] and connects γ(T − δ) linearly to γ(T ) + εh on [T − δ, T ]. The arc length of the final segment is 
+
+˙γ(T −)δ + εh = ˙γ(T −) δ 1 + εδ
+
+*
+
+˙γ(T −)
+
+∥ ˙γ(T −)∥2 , h 
+
++
+
++ O
+
+ ε2
+
+δ2
+
+!1/2
+
+,
+
+so ∆s = sε − s = ε⟨ ˙γ(T −)/ ∥ ˙γ(T −)∥ , h ⟩ + O(ε2/δ + εδ ). Setting δ = √ε gives ∆s =
+
+ε⟨ ˙γ(T −)/ ∥ ˙γ(T −)∥ , h ⟩ + O(ε3/2), confirming the stated Fréchet derivative. 21 D.5 Optimisation lemma Lemma D.11 (Vanishing-regularisation selection principle) . Let L : Θ → [0 , ∞) be continuous with non-empty arg min L, and let R : Θ → [0 , ∞] be continuous. Assume that for each λ > 0 the regularised problem admits a unique minimiser ˆθλ ∈ arg min( L + λR ), and that every sequence 
+
+{ ˆθλk } with λk ↓ 0 has a convergent subsequence. Then every limit point of ˆθλ as λ ↓ 0 lies in 
+
+arg min L and, among arg min L, minimises R.Proof. Let ¯θ ∈ arg min L and set L⋆ := min L. By optimality, L( ˆθλ) + λR ( ˆθλ) ≤ L ⋆ + λR ( ¯θ),so L( ˆθλ) ≤ L ⋆ + λR ( ¯θ) and R( ˆθλ) ≤ (L⋆ − L ( ˆθλ)) /λ + R( ¯θ) ≤ R( ¯θ). Taking λ ↓ 0 along a convergent subsequence with limit θ∞, continuity yields L(θ∞) ≤ L ⋆, so θ∞ ∈ arg min L. Passing to the limit in R( ˆθλ) ≤ R( ¯θ) gives R(θ∞) ≤ R( ¯θ) for every ¯θ ∈ arg min L; hence θ∞ minimises 
+
+R over arg min L.
+
+## E Proofs 
+
+We restate each main-text result at the head of its proof for convenience. Proofs cite Assumptions A.1–A.4 of Appendix A and Lemmas D.1–D.11 of Appendix D by label. 
+
+E.1 Proof of Proposition C.1 (gradient-flow convergence) 
+
+Proof of Proposition C.1. A.1 makes the gradient-flow vector field −∇ θ L (g (θ) , Y ) locally Lips-chitz on U , so the Picard–Lindelöf theorem [ 21 , Thm. 2.2] gives a unique maximal C1 solution θ(·)
+
+from θ0. By A.4, the trajectory remains in U for all t ≥ 0.
+
+Output-error decay. Write r(t) := g (θ(t)) − Y . Under A.3 with the squared-error specialisation, 
+
+˙g (θ) = J (θ) ˙θ = −2 K (θ) r, so 
+
+ddt ∥r(t)∥2 = 2 r⊤ ˙r = −4 r⊤K (θ(t)) r ≤ − 4c2 ∥r(t)∥2 ,
+
+where the last bound uses K (θ) ⪰ c2In from σmin (J (θ)) ≥ c on U (A.4). Grönwall’s inequality [ 21 ,Lem. A.1] then gives ∥r(t)∥2 ≤ ∥ r(0) ∥2 e−4c2t, i.e. ∥r(t)∥ ≤ ∥ r(0) ∥ e−2c2t.
+
+Existence of ω-limit. A.4 gives σmax (J (θ)) ≤ C on U , so ˙θ(t) = J (θ(t)) ⊤ 2r(t) ≤
+
+2C ∥r(t)∥ ≤ 2C ∥r(0) ∥ e−2c2t, which is Lebesgue-integrable on [0 , ∞). Cauchy completeness of 
+
+Rm then gives θ⋆ := lim t→∞ θ(t), and continuity of g together with r(t) → 0 gives g (θ⋆) = Y ,hence θ⋆ ∈ Θ⋆. By A.4, θ⋆ ∈ U , and by Lemma D.4 (i), θ⋆ ∈ Θ⋆ ∩ V for the neighbourhood V
+
+defined there. (For general strictly convex μ-strongly-convex M -smooth losses the argument repeats with rate 2c2μ2/M in place of 2c2.) 
+
+E.2 Proof of Theorem C.4 (output-space energy uniqueness) 
+
+Proof of Theorem C.4. Step 1: ρK is a function of ∥c∥2 
+
+> K−1
+
+. The group GK−1 := {U ∈ GL( n) : 
+
+U ⊤K−1U = K−1} acts transitively on each level set {c : c⊤K−1c = s} for s ≥ 0: any two such vectors are related by a K−1-orthogonal transformation. Axiom (i) therefore gives ρK (c) = 
+
+f (c⊤K−1c) for some f : [0 , ∞) → [0 , ∞) with f (0) = 0 ; continuity of ρK implies continuity of f .
+
+Step 2: f is additive on [0 , ∞). For s, t ≥ 0, choose u, v with u⊤K−1u = s, v⊤K−1v = t,
+
+u⊤K−1v = 0 ; such pairs exist for any s, t since dim n ≥ 1 and K−1 ≻ 0. Then (u + v)⊤K−1(u +
+
+v) = s + t, so by axiom (ii), f (s + t) = f (s) + f (t).
+
+Step 3: solve Cauchy. Continuous solutions to f (s + t) = f (s) + f (t) on [0 , ∞) with f (0) = 0 
+
+are linear [ 1, Ch. 2]: f (s) = αs for some α ∈ R. Non-triviality and ρK ≥ 0 force α > 0. Hence 
+
+ρK (c) = α c⊤K−1c.22 E.3 Proof of Proposition C.5 (naturality alone is non-unique) 
+
+Proof of Proposition C.5. Fix (a, B ) ∈ R>0 × Sym + 
+
+> n
+
+. The Hessian ∇2Ra,B = 2( aI m + J⊤BJ ) is positive definite (the first term is aI m ≻ 0 and the second is positive semi-definite), hence Ra,B is strictly convex and coercive on Θ. By Lemmas D.11 and D.3, the vanishing-regularisation limit lies in Θ⋆ and minimises Ra,B over Θ⋆.Constant J gives Θ⋆ = θlin + ker J with θlin := θ0 + J⊤K−1(Y − g (θ0)) , the kernel-regime gradient-flow interpolator (Lemma D.4, kernel-regime specialisation). Decompose any θ ∈ Θ⋆ as 
+
+θ = θlin + w with w ∈ ker J. Then J(θ − θ0) = J(θlin − θ0) is a fixed vector independent of 
+
+w, so the second term of Ra,B is constant on Θ⋆. The first term decomposes by the orthogonality 
+
+ker J ⊥ Im( J⊤) of Lemma D.8 and the inclusion θlin − θ0 ∈ Im( J⊤):
+
+∥θ − θ0∥2 = ∥θlin − θ0∥2 + ∥w∥2 .
+
+Hence Ra,B (θ) = a ∥w∥2 + const on Θ⋆, and the unique minimiser over Θ⋆ is w = 0 , i.e. θ = θlin .Since the kernel-regime gradient-flow trajectory is the constant-velocity straight line from θ0 to θlin 
+
+(Lemma D.4, kernel specialisation), θ⋆ = θlin , and the vanishing-regularisation limit equals θ⋆ for every (a, B ).The map (a, B ) 7 → ∇ 2Ra,B = 2( aI m + J⊤BJ ) is injective on R>0 × Sym + 
+
+> n
+
+: the trace of aI m +
+
+J⊤BJ pins a given Tr( J⊤BJ ) = Tr( KB ) (knowable up to a), and K ≻ 0 makes the map 
+
+B 7 → J⊤BJ injective on Sym + 
+
+> n
+
+. Hence distinct (a, B ) give distinct Hessians, distinct quadratic forms Ra,B , and distinct Gaussian MAP priors N (θ0, 12λ (aI m + J⊤BJ )−1). The family is therefore uncountable, all members satisfy naturality, and only the special case B = 0 recovers anchored ridge (up to the scale a). The orthogonal-additivity axiom of Theorem C.4 (acting on the output channel g (θ) rather than on θ directly) is what eliminates every non-trivial B to single out anchored ridge. 
+
+E.4 Proof of Proposition C.10 (kernel-regime reduction) 
+
+Proof of Proposition C.10. Throughout, J (θ) ≡ J is constant on U and K = JJ ⊤ ≻ 0.
+
+(a) Affine flow manifold. Constant J makes the parameter dynamics ˙θ = J⊤u confined to θ0 +Im( J⊤) for any L2 control u; hence Oflow (θ0) ⊆ θ0 + Im( J⊤). The reverse inclusion follows from constant-control reachability: every point θ0 + J⊤a is hit by u(t) ≡ a/T at time T . The basin sheet 
+
+Mflow (θ0) then equals the connected component of θ0 + Im( J⊤) containing the trajectory, which (by linearity of the GF dynamics on this affine subspace) is the whole subspace intersected with U .
+
+(b) Closed-form gauge-fixed representative. On the affine flow manifold, g(θ) = g (θ0) + J(θ − θ0).Setting g(θ) = c and requiring θ − θ0 ∈ Im( J⊤) gives θ − θ0 = J⊤a with JJ ⊤a = Ka =
+
+c − g (θ0), so a = K−1(c − g (θ0)) and g|−1 
+
+> θ0
+
+(c) = θ0 + J⊤K−1(c − g (θ0)) .
+
+(c) RKHS canonical energy. The differential Dg |−1 
+
+> θ0
+
+(c) = J⊤K−1 is constant. The pullback metric on C0(θ0) is therefore G = ( J⊤K−1)⊤(J⊤K−1) = K−1JJ ⊤K−1 = K−1, constant in c.Geodesics of a constant Riemannian metric are constant-speed straight lines (Definition: a curve with vanishing covariant acceleration on (Rn, K −1) is exactly an affine line [ 9, Ch. 2, Prop. 3.5]). The constant-speed straight line from g (θ0) to c has G-energy R 10 (c − g (θ0)) ⊤K−1(c − g (θ0)) dt =(c − g (θ0)) ⊤K−1(c − g (θ0)) = ∥c − g (θ0)∥2RKHS .
+
+(d) Pythagorean lift. By Lemma D.8, θ − θ0 decomposes orthogonally as (g|−1 
+
+> θ0
+
+(g (θ)) − θ0) + (θ − g|−1 
+
+> θ0
+
+(g (θ))) with components in Im( J⊤) and ker J respectively; the Pythagorean identity gives ∥θ − θ0∥2 = g|−1 
+
+> θ0
+
+(g (θ)) − θ0 
+
+> 2
+
++ θ − g|−1 
+
+> θ0
+
+(g (θ)) 2. Using (b), g|−1 
+
+> θ0
+
+(g (θ)) − θ0 =
+
+J⊤K−1(g (θ) − g (θ0)) , whose squared Euclidean norm equals (g (θ) − g (θ0)) ⊤K−1(g (θ) −
+
+g (θ0)) = E(g (θ)) from (c). The path-infimum on the fibre Θ ( g (θ)) ∩ V from g|−1 
+
+> θ0
+
+(g (θ)) to θ is realised by the ambient-Euclidean straight line, of squared length θ − g|−1 
+
+> θ0
+
+(g (θ)) 2. Hence the canonical lift R(θ) = E(g (θ)) + θ − g|−1 
+
+> θ0
+
+(g (θ)) 2 = ∥θ − θ0∥2, anchored ridge. 23 (e) Geodesic distance and vanishing metric gap. For any θ ∈ M flow (θ0), the geodesic from θ0 to θ
+
+on the affine (Mflow (θ0) , g ambient ) is the ambient straight line, of squared length ∥θ − θ0∥2. By Theorem C.3, the metric gap operator N (c) = ( I − Pg|−1 
+
+> θ0(c)
+
+) Dg |−1 
+
+> θ0
+
+(c) vanishes precisely when 
+
+Im Dg |−1 
+
+> θ0
+
+(c) ⊆ Im( J⊤). Constant J gives Dg |−1 
+
+> θ0
+
+(c) = J⊤K−1, whose image is Im( J⊤), so 
+
+N ≡ 0 on all of C0(θ0).
+
+(f) NTK Gaussian Process prior. The Riemannian Gibbs measure of Definition 4.2 on 
+
+C0(θ0) has density p(c) ∝ exp( −β ∥c − g (θ0)∥2 
+
+> K−1
+
+) by (c), which is the Gaussian den-sity N (g (θ0) , (2 β)−1K). The corresponding parametric pushforward through f (·; θ) at any test inputs Xte = (Xn+1 , . . . , X n+ℓ) is, in the constant-Jacobian regime, the Gaussian 
+
+N  f (Xte ; θ0) , (2 β)−1 Jte J⊤(JJ ⊤)−1J J ⊤
+
+> te
+
+ with Jte the Jacobian at the test inputs. The covari-ance kernel k(x, x′) = ∇θ f (x; θ0)⊤ ∇θ f (x′; θ0) pre- and post-conditioned through the training set agrees with the conventional NTK posterior ( 37 , Eq. 2.41); collecting all test inputs yields the full Gaussian process GP (f (·; θ0) , (2 β)−1kNTK ).
+
+E.5 Proof of Corollary C.2 (anchored ridge is the canonical lift in the kernel regime) 
+
+Proof of Corollary C.2. By Proposition C.10(d), the canonical lift R(θ) = ∥θ − θ0∥2 on 
+
+Mflow (θ0) ∪ { Θ ( g (θ)) }θ . Geodesic ridge of Proposition 4.1 is by definition the same lift R
+
+when the flow component is computed as squared geodesic distance on Mflow (θ0) and the fibre component along Θ ( g (θ)) . Proposition C.10(e) identifies the squared geodesic distance with the squared ambient chord; Lemma D.8 identifies the fibre component with the squared ambient distance to g|−1 
+
+> θ0
+
+(g (θ)) . The two components reassemble into ∥θ − θ0∥2 as in (d). 
+
+E.6 Proof of Corollary C.3 (Riemannian Gibbs Process is the NTK GP) 
+
+Proof of Corollary C.3. By Proposition C.10(f), the Riemannian Gibbs Process density on training-output coordinates is the Gaussian N (g (θ0) , (2 β)−1K). For any finite test inputs Xte ⊆ X ,evaluation of f (·; θ) at Xte is, under constant Jacobian, an affine map θ 7 → f (Xte ; θ0) + Jte (θ − θ0)
+
+with Jte ∈ R|Xte |× m the joint output Jacobian. Affine pushforwards of Gaussians are Gaussian (standard result), giving the joint NTK GP marginal at the union X ∪ Xte . The conditional on 
+
+g (θ) = Y then matches the standard GP posterior under the NTK kernel [37]. 
+
+E.7 Proof of Theorem C.2 (local manifold structure) 
+
+Proof of Theorem C.2. Conclusions (i), (ii), (iii) follow directly from Lemma D.4 (parts (i), (ii), (iii)). For the final claim, g|Mflow (θ0)∩V is a local C∞ diffeomorphism: at any θ ∈ M flow (θ0) ∩ V , the dif-ferential dg θ |Tθ (Mflow (θ0)∩V ) equals J (θ) restricted to Im( J (θ)⊤) (using Tθ⋆ (Mflow (θ0) ∩ V ) = Im( J (θ⋆)⊤) from Lemma D.4(iii) and continuity for nearby θ). J (θ) |Im( J(θ)⊤) is a linear isomor-phism onto Rn since σmin (J (θ)) ≥ c on V (Assumption 2.1) and Lemma D.8 gives the orthogonal decomposition Rm = Im( J (θ)⊤) ⊕ ker J (θ). By the inverse function theorem, g|Mflow (θ0)∩V
+
+is a local C∞ diffeomorphism. Properness of g|Mflow (θ0)∩V on a possibly smaller relatively com-pact neighbourhood follows from Lemma D.7; combined with the local-diffeomorphism property, 
+
+g|Mflow (θ0)∩V is then a C∞ diffeomorphism onto its open image C0(θ0) := g(Mflow (θ0) ∩ V ).
+
+E.8 Proof of Theorem C.3 (metric-gap decomposition) 
+
+Proof of Theorem C.3. Write g|−1 
+
+> θ0
+
+(c) := ( g|Mflow (θ0)∩V )−1(c) and A(c) := Dg |−1 
+
+> θ0
+
+(c). Since 
+
+g ◦ θ′ = id on C0(θ0), differentiating gives J  g|−1 
+
+> θ0
+
+(c) A(c) = In.
+
+Decomposition. Let Pθ := J (θ)⊤ K (θ)−1 J (θ), the orthogonal projector onto Im( J (θ)⊤) in the ambient inner product (Lemma D.8). Decompose 
+
+A(c) = Pg|−1 
+
+> θ0(c)
+
+A(c) + ( I − Pg|−1 
+
+> θ0(c)
+
+)A(c) =: A∥(c) + N (c).
+
+Apply J  g|−1 
+
+> θ0
+
+(c): J  g|−1 
+
+> θ0
+
+(c) N (c) = J  g|−1 
+
+> θ0
+
+(c) (I − Pg|−1 
+
+> θ0(c)
+
+)A(c) =(J  g|−1 
+
+> θ0
+
+(c) − J  g|−1 
+
+> θ0
+
+(c))A(c) = 0 (using J (θ) Pθ = J (θ)). Hence N (c)
+
+24 ranges in ker J  g|−1 
+
+> θ0
+
+(c). Also J  g|−1 
+
+> θ0
+
+(c) A∥(c) = J  g|−1 
+
+> θ0
+
+(c) A(c) = In, giving 
+
+J  g|−1 
+
+> θ0
+
+(c) J  g|−1 
+
+> θ0
+
+(c)⊤ K  g|−1 
+
+> θ0
+
+(c)−1 J  g|−1 
+
+> θ0
+
+(c) A(c)/K  g|−1 
+
+> θ0
+
+(c)−1 = In; equivalently 
+
+A∥(c) = J  g|−1 
+
+> θ0
+
+(c)⊤ K  g|−1 
+
+> θ0
+
+(c)−1.
+
+Pythagorean identity. Since A∥(c) ∈ Im( J  g|−1 
+
+> θ0
+
+(c)⊤) and N (c) ∈ ker J  g|−1 
+
+> θ0
+
+(c), the columns are pairwise ambient-orthogonal (Lemma D.8); the cross terms in A⊤A vanish, giving 
+
+G(c) = A(c)⊤A(c) = A∥(c)⊤A∥(c) + N (c)⊤N (c) = K  g|−1 
+
+> θ0
+
+(c)−1 + N (c)⊤N (c),
+
+where the last equality uses A⊤∥ A∥ = K (θ)−1 J (θ) J (θ)⊤ K (θ)−1 = K (θ)−1. Positivity of 
+
+N ⊤N gives G ⪰ K−1, with equality iff N (c) = 0 iff Im A(c) ⊆ Im( J  g|−1 
+
+> θ0
+
+(c)⊤), equivalently 
+
+Tg|−1 
+
+> θ0(c)
+
+Mflow (θ0) = Im( J  g|−1 
+
+> θ0
+
+(c)⊤).
+
+Trajectory directions lie in ker N . Along the realised gradient flow trajectory θ(t) = θ′(c(t)) , the velocity ˙θ(t) = −J (θ(t)) ⊤ ∇h(g (θ(t))) ∈ Im( J (θ(t)) ⊤) (by gradient flow A.3 and chain rule). Differentiating g ◦ θ′ = id at c(t) gives A(c(t)) ˙ c(t) = ˙θ(t) ∈ Im( J (θ(t)) ⊤). Decomposing 
+
+A ˙c = A∥ ˙c + N ˙c with A∥ ˙c ∈ Im( J (θ(t)) ⊤) and N ˙c ∈ ker J (θ(t)) , and noting that the sum lies in Im( J (θ(t)) ⊤), the orthogonal decomposition forces N (c(t)) ˙ c(t) = 0 . Hence the trajectory’s 
+
+G-energy reduces to ˙c⊤A⊤∥ A∥ ˙c = ˙ c⊤K (θ(t)) −1 ˙c.
+
+E.9 Proof of Proposition C.8 (output fibres) 
+
+Proof of Proposition C.8. Immediate from Lemma D.5. 
+
+E.10 Proof of Corollary C.1 (fibre–flow intersection in V )
+
+Proof of Corollary C.1. By Theorem C.2, g|Mflow (θ0)∩V is a C∞ diffeomorphism onto C0(θ0),hence a bijection. For each c ∈ C0(θ0) the preimage (g|Mflow (θ0)∩V )−1(c) is a singleton, denoted 
+
+g|−1 
+
+> θ0
+
+(c). Setting c = Y identifies θ′(Y ) as the unique interpolator on Mflow (θ0) ∩ V . Convergence of the gradient flow trajectory to a point in Θ⋆ ∩ V is part of Assumption 2.1; uniqueness of the limit on Mflow (θ0) ∩ V identifies ω(θ0) = θ⋆ := θ′(Y ).
+
+E.11 Proof of Theorem 4.2 (canonical regulariser characterisation) 
+
+Proof of Theorem 4.2. (a) Fix c ∈ C0(θ0) and θ ∈ Θ ( c) ∩ V . By Definition 4.3, 
+
+d2 (θ, θ0) = d2flow 
+
+ θ0, g |−1 
+
+> θ0
+
+(c) + d2fibre 
+
+ g|−1 
+
+> θ0
+
+(c) , θ ,
+
+where the first term depends only on c, and the second is θ − g|−1 
+
+> θ0
+
+(c) 2 ≥ 0 with equality iff 
+
+θ = g|−1 
+
+> θ0
+
+(c). The unique minimiser over Θ ( c) ∩ V is therefore g|−1 
+
+> θ0
+
+(c).
+
+(b) The gradient flow trajectory enters V in finite time (Assumption 2.1); thereafter θ(t) ∈Mflow (θ0) ∩ V and Corollary C.1 gives θ(t) = θ′(g (θ(t))) . Hence d2fibre (θ′(g (θ(t))) , θ(t)) = 0 
+
+and d2 (θ(t), θ0) = d2flow (θ0, θ(t)) = E(g (θ(t))) by Definition 4.1. 
+
+(c) Apply Lemma D.11: d2 (·, θ0) is continuous on V (smoothness of dflow (·, ·) on the smooth Riemannian manifold Mflow (θ0) ∩ V and dfibre (θ′(·), ·) as ambient Euclidean), and tends to +∞
+
+outside V by definition. For λ > 0 small, d2 (θλ, θ0) ≤ d2 (θ⋆, θ0) < ∞ forces θλ ∈ V ; local properness (Lemma D.7) plus boundedness of the ambient Euclidean component along the flow normals confines θλ to a compact set. Lemma D.11 then gives θλ → θ⋆ as λ ↓ 0, since (a) identifies 
+
+θ⋆ = θ′(Y ) as the unique minimiser of d2 (·, θ0) over Θ⋆ ∩ V .
+
+E.12 Proof of Theorem C.6 (uniqueness of the canonical lift) 
+
+Proof of Theorem C.6. Axiom (a) writes R(θ) = E(g (θ)) + S(θ) with S a function of the on-fibre displacement θ − g|−1 
+
+> θ0
+
+(g (θ)) alone. Restricting attention to a fibre Θ ( g (θ)) ∩ V , we may 25 parametrise by piecewise-C1 paths ψ : [0 , 1] → Θ ( g (θ)) with ψ(0) = g|−1 
+
+> θ0
+
+(g (θ)) , ψ(1) = θ.Axiom (b) says S is a quadratic functional on each fibre; in the ambient Euclidean metric ∥·∥ 2
+
+inherited from Rm, the unique quadratic functional vanishing at one endpoint and depending only on the path-equivalence class of ψ is the squared length of the minimising fibre geodesic, namely 
+
+inf ψ
+
+R 10 ˙ψ(t) 2
+
+dt , by Proposition C.9 applied to Θ ( g (θ)) ∩ V with the ambient Euclidean metric. Axiom (c) fixes the additive constant: S(g|−1 
+
+> θ0
+
+(g (θ))) = 0 .Existence is clear (the formula in the conclusion satisfies (a)–(c) and is finite by Lemma D.7 and Remark C.2). For uniqueness, suppose R′ also satisfies (a)–(c). Decompose R′(θ) = E(g (θ)) + 
+
+S′(θ) by (a). Restricting to a fibre, S′ is a quadratic functional in the ambient Euclidean metric vanishing at g|−1 
+
+> θ0
+
+(g (θ)) . The classical reduction of quadratic forms in Euclidean space [ 26 , Ch. 10], combined with the absence of cross-terms (a single-endpoint quadratic on a fibre with fixed reference 
+
+g|−1 
+
+> θ0
+
+(g (θ)) ), gives S′(θ) = α d 2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ for some α ≥ 0. Non-negativity of R′ forces 
+
+α > 0; absorbing α into the global temperature β of Definition 4.2 (which is the only free scale parameter in the canonical objects, by gradient-flow scale invariance) recovers α = 1 . Hence R = R′.In the kernel regime, Proposition C.10(d) collapses this to anchored ridge; in the feature-learning regime, the flow component d2flow 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ0
+
+ replaces the Euclidean chord, giving geodesic ridge of Proposition 4.1. 
+
+E.13 Proof of Theorem C.7 (combined uniqueness of geodesic ridge) 
+
+Proof of Theorem C.7. Apply Theorem C.4 with G = K−1 at θ0: the function-space-energy axioms identify E(g (θ)) uniquely up to scale. Apply Theorem C.6: given this E, the lift axioms (a)–(c) identify R(θ) = E(g (θ)) + d2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ uniquely up to a positive scale. Theorem 4.2(c) shows this R has the vanishing-regularisation property; by Lemma D.11 the property identifies the gradient-flow limit uniquely on Θ⋆ ∩ V .By definition d2flow 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ0
+
+ ≡ E(g (θ)) (Proposition 4.1 together with Definition 4.1; the canonical energy is the squared geodesic distance on Mflow (θ0) from θ0 to g|−1 
+
+> θ0
+
+(g (θ)) by construction of the energy as a constrained kinetic-energy minimisation). Substitution gives the stated form R(θ) = d2flow 
+
+ θ0, g |−1 
+
+> θ0
+
+(g (θ))  + d2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ = d2 (θ, θ0).In the kernel regime, Proposition C.10(d) collapses R to anchored ridge and Corollary C.3 collapses the Riemannian Gibbs Process to the NTK Gaussian Process. 
+
+E.14 Proof of Proposition C.9 (constant-speed optimality) 
+
+Proof of Proposition C.9. Let γ : [0 , 1] → Rm be a C1 path with fixed endpoints and length 
+
+L := R 10 ∥ ˙γ(t)∥ dt . By Cauchy–Schwarz, 
+
+L2 =
+
+Z 10
+
+∥ ˙γ(t)∥ · 1 dt 
+
+2
+
+≤
+
+Z 10
+
+∥ ˙γ(t)∥2 dt ·
+
+Z 10
+
+12 dt = E(γ),
+
+with equality iff ∥ ˙γ(t)∥ is constant in t. Hence among all parametrisations of any fixed image-curve (with time budget T = 1 ), energy E is minimised by constant-speed parametrisations, and at that minimiser E = L2. Minimising over image-curves as well selects the length-minimising (geodesic) image, proving E(γopt ) = L2(γopt ).
+
+E.15 Proof of Proposition C.13 (anchored ridge lower bound via relaxation) 
+
+Proof of Proposition C.13. Let θ ∈ Mflow (θ0). By Definition 4.3 and dfibre (θ, θ) = 0,
+
+d2 (θ, θ0) = d2flow (θ0, θ). Consider two minimisation problems over paths γ : [0 , 1] → Rm
+
+with γ(0) = θ0, γ(1) = θ:
+
+(Puncon ) : min 
+
+> γ
+
+Z 10
+
+∥ ˙γ(t)∥2 dt, 
+
+(Phor ) : min 
+
+> γ
+
+Z 10
+
+∥ ˙γ(t)∥2 dt s.t. γ(t) ∈ M flow (θ0) and ˙γ(t) ∈ Im( J (γ(t)) ⊤).
+
+26 Problem (Puncon ) is solved by the constant-speed straight line with optimal value ∥θ − θ0∥2. Problem 
+
+(Phor ) is the energy-minimisation over horizontal paths on Mflow (θ0), solved by the constant-speed geodesic on Mflow (θ0) with optimal value d2flow (θ0, θ) (Proposition C.9). Since (Phor ) has a strictly smaller feasible set than (Puncon ), val (Phor ) ≥ val (Puncon ), i.e. d2flow (θ0, θ) ≥ ∥ θ − θ0∥2.
+
+E.16 Proof of Corollary C.4 (sandwich bound and shared vanishing-reg limit) 
+
+Proof of Corollary C.4. The lower bound ∥θ − θ0∥2 ≤ d2flow (θ0, θ) is Proposition C.13. The fibre-vanishing identity d2flow (θ0, θ) = d2 (θ, θ0) for θ ∈ M flow (θ0) follows from the proof of Proposition C.13 (the fibre term is zero when θ is a flow-manifold point). The upper bound 
+
+d2 (θ, θ0) ≤ L2(γtrain ) is Theorem 4.3. For the shared limit, all three regularisers are coercive, lower-semicontinuous, and have the gradient-flow interpolator θ⋆ as a common minimiser over Θ⋆ (anchored ridge: by minimum-Euclidean-norm characterisation in the kernel regime applied along the affine Mflow (θ0) ∩ V leaf; geodesic ridge: by Theorem 4.2(a); arc ridge: L2(γtrain ) depends on the path image, and on Θ⋆ the path attaining 
+
+L2 = 0 is the trivial constant path at θ⋆). Lemma D.11 then gives the shared λ ↓ 0 limit at θ⋆.
+
+E.17 Proof of Theorem 4.3 (path-length upper bound) 
+
+Proof of Theorem 4.3. dflow (θ0, θ) is defined as the infimum of arc lengths over piecewise-C1 paths from θ0 to θ on Mflow (θ0) ∩ V (Lemma D.9-style infimum); since γtrain is one such admissible path, dflow (θ0, θ) ≤ L(γtrain ). Squaring gives the inequality d2flow (θ0, θ) ≤ L2(γtrain ). Under exact gradient flow, the trajectory remains on Mflow (θ0) (Definition 3.2), so θ(T ) = θ′(g (θ(T ))) ,
+
+d2fibre 
+
+ g|−1 
+
+> θ0
+
+(g (θ)) , θ = 0 , and d2 (θ, θ0) = d2flow (θ0, θ) ≤ L2(γtrain ).
+
+Endpoint gradient. By Lemma D.10, ∂s/∂γ train (T ) = ˙ γtrain (T −)/ ∥ ˙γtrain (T −)∥, so ∇γtrain (T )L2 =2s(T ) ˙ γtrain (T −)/ ∥ ˙γtrain (T −)∥. Under gradient flow ˙γtrain (T −) = J (θ)⊤ u(T −) ∈ Im( J (θ)⊤).Theorem C.3 gives ˙c(T −) ∈ ker N (c(T −)) , equivalently ˙γtrain (T −) ∈ Tθ Mflow (θ0) ∩ Im( J (θ)⊤).The gradient ∇θ L2 thus lies along the realised gradient flow direction within both the flow-manifold tangent space and Im( J (θ)⊤); it has no component along the flow normals or transverse to the realised gradient flow direction. 
+
+E.18 Proof of Theorem 3.1 (anchored ridge biases feature-learning solutions) 
+
+Proof of Theorem 3.1. Identifying θminnorm . For each λ > 0, θλ minimises L (g (·) , Y )+ λ ∥· − θ0∥2.Taking λ ↓ 0 along a convergent subsequence, Lemma D.11 (with Lemma D.3 identifying 
+
+arg min L = Θ ⋆) gives that the limit θminnorm minimises ∥· − θ0∥2 over Θ⋆. By Lemma D.4, 
+
+Tθminnorm Θ⋆ = ker J (θminnorm ); the first-order condition for θminnorm ∈ arg min θ∈Θ⋆ ∥θ − θ0∥2
+
+is that θminnorm − θ0 is ambient-orthogonal to ker J (θminnorm ), equivalently θminnorm − θ0 ∈
+
+Im( J (θminnorm )⊤) (Lemma D.8). 
+
+θminnorm ̸ = θ⋆ in general. Under gradient flow, θ⋆ − θ0 = R ∞ 
+
+> 0
+
+˙θ(s) ds = R ∞ 
+
+> 0
+
+J (θ(s)) ⊤ u(s) ds . If 
+
+J (θ(t)) is constant along the trajectory (kernel regime), all integrand terms lie in the same subspace 
+
+Im( J⊤), so θ⋆ − θ0 ∈ Im( J⊤) = Im( J (θ⋆)⊤) and θminnorm = θ⋆. If J (θ(t)) varies along the trajectory, the integrand explores a varying family of subspaces Im( J (θ(s)) ⊤), and the integral generically has a non-zero component in ker J (θ⋆). Concretely, by Theorem C.3, the operator 
+
+N (c(t)) measures the deviation of T Mflow (θ0) from Im( J (·)⊤); non-zero N over the trajectory image is equivalent to θ⋆ − θ0 /∈ Im( J (θ⋆)⊤), hence θminnorm ̸ = θ⋆.The bias has a direct geometric interpretation: the anchored ridge regularisation gradient 2λ(θ −
+
+θ0) has fibre component 2λ(I − Pθ )( θ − θ0) that pushes parameters along (Tθ Mflow (θ0)) ⊥,leaving the basin and lowering anchored-ridge penalty without affecting outputs. The discrepancy 
+
+∥θminnorm − θ⋆∥ scales with the total variation of Im( J (θ(t)) ⊤) along the trajectory. 27 E.19 Proof of Proposition C.11 (static-anchor regularisers bias gradient flow) 
+
+Proof of Proposition C.11. By Lemma D.11 and Lemma D.3, θ⋆M, v minimises RM, v over Θ⋆ ∩
+
+V . Lemma D.4(i) gives Tθ⋆M, v (Θ ⋆ ∩ V ) = ker J  θ⋆M, v
+
+. The first-order optimality condition is 
+
+∇RM, v (θ⋆M, v ) ⊥ ker J  θ⋆M, v
+
+, equivalently ∇RM, v (θ⋆M, v ) ∈ Im( J  θ⋆M, v
+
+⊤) by Lemma D.8. Since ∇RM, v (θ) = 2 M (θ − v), the condition becomes M (θ⋆M, v − v) ∈ Im( J  θ⋆M, v
+
+⊤).Setting θ⋆M, v = θ⋆ requires M (θ⋆ − v) ∈ Im( J (θ⋆)⊤), equivalently (using the orthogonal decom-position of Lemma D.8) M (θ⋆ − v) ⊥ ker J (θ⋆). By Theorem 3.1, in the feature-learning regime with non-constant J (θ(t)) , θ⋆ − θ0 has a generic non-trivial component along ker J (θ⋆). For static 
+
+(M, v) to satisfy the orthogonality condition, M must depend on θ⋆ (via J (θ⋆) in the projection) — exactly the trajectory-dependence ruled out by hypothesis. Hence no static (M, v) pinned by θ0
+
+alone can satisfy θ⋆M, v = θ⋆ in the generic feature-learning case, giving θ⋆M, v̸ = θ⋆.
+
+E.20 Proof of Proposition C.12 (output-norm regularisers fail fibre selection) 
+
+Proof of Proposition C.12. Fix λ > 0. The Lagrangian decomposes: 
+
+L (g (θ) , Y ) + λf (g (θ)) = Φ( g (θ)) , Φ( c) := L (c, Y ) + λf (c),
+
+i.e. a functional of g (θ) alone. Since L (·, Y ) is strictly convex (A.3) and f is strictly convex on 
+
+C0(θ0), Φ is strictly convex on C0(θ0) and admits a unique minimum at some cλ ∈ C0(θ0). The set of θ minimising Φ( g (θ)) is therefore {θ : g (θ) = cλ} = Θ ( cλ) ∩ U , the entire output fibre at cλ. By Proposition C.8, Θ ( cλ) ∩ U is an embedded (m − n)-dimensional submanifold, hence uncountable. As λ ↓ 0, cλ → Y by continuity of the unique-minimiser map c 7 → arg min[ L (c, Y ) + λf (c)] ,giving Θ ( cλ) → Θ ( Y )∩U = Θ ⋆ ∩U . The vanishing-regularisation limit (in the set-valued sense) is therefore the entire interpolating set, not the singleton {θ⋆}. A non-trivial fibre extension is therefore necessary in the canonical lift of Definition 4.3; the parameter-space lift is structurally indispensable for selecting θ⋆.
+
+E.21 Proof of Proposition C.14 (Riemannian Gibbs Process properness) 
+
+Proof of Proposition C.14. By Theorem C.2, g|Mflow (θ0)∩V is a C∞ diffeomorphism onto C0(θ0) ⊆
+
+Rn. The pullback metric on C0(θ0) is G(c) = Dg |−1 
+
+> θ0
+
+(c)⊤ Dg |−1 
+
+> θ0
+
+(c) = K(g|−1 
+
+> θ0
+
+(c)) −1 +
+
+N (c)⊤N (c) by Theorem C.3. The squared geodesic distance E(c) of Definition 4.1 is the cor-responding infimum over piecewise-C1 paths. 
+
+Step 1 (two-sided spectral bound on G). Assumption 2.1 gives c ≤ σmin (J (θ)) ≤ σmax (J (θ)) ≤ C
+
+on V , hence c2In ⪯ K(θ) ⪯ C2In and C−2In ⪯ K(θ)−1 ⪯ c−2In for θ ∈ M flow (θ0) ∩ V .Adding the positive-semidefinite term N (c)⊤N (c) ⪰ 0 preserves the lower bound: 
+
+G(c) ⪰ K(g|−1 
+
+> θ0
+
+(c)) −1 ⪰ C−2In ∀ c ∈ C0(θ0).
+
+Step 2 (quadratic lower bound on E). For any admissible curve γ : [0 , 1] → C0(θ0) with γ(0) = 
+
+g (θ0) and γ(1) = c, Step 1 yields 
+
+Z 10
+
+˙γ(t)⊤G(γ(t)) ˙ γ(t) dt ≥ C−2
+
+Z 10
+
+∥ ˙γ(t)∥2 dt. 
+
+Cauchy–Schwarz on [0 , 1] gives R 10 ∥ ˙γ∥2 dt ≥   R 10 ∥ ˙γ∥ dt 2, and the triangle inequality gives 
+
+R 10 ∥ ˙γ∥ dt ≥ ∥ c − g (θ0)∥. Taking the infimum over γ,
+
+E(c) ≥ C−2 ∥c − g (θ0)∥2 .
+
+Step 3 (Gaussian-tail integrability). Using Step 2 and extending the integration domain from C0(θ0)
+
+to Rn,
+
+Z =
+
+Z
+
+> C0(θ0)
+
+exp   − βE (c) dc ≤
+
+Z
+
+> Rn
+
+exp   − β C −2 ∥c − g (θ0)∥2  dc = ( π C 2/β )n/ 2.
+
+Continuity of E on C0(θ0) with E(g (θ0)) = 0 ensures Z > 0. Hence Z ∈ (0 , ∞) and p(c) = 
+
+Z−1 exp( −βE (c)) is a proper probability measure on C0(θ0).28 E.22 Proof of Proposition C.15 (Kolmogorov consistency over finite test inputs) 
+
+Proof of Proposition C.15. By Theorem C.2, Mflow (θ0)∩V is a smooth n-dimensional Riemannian manifold and the Riemannian volume measure dvol gambient is well-defined on it. By Proposition C.14 (and the change of variables θ = g|−1 
+
+> θ0
+
+(c) pushing dvol to pdet G(c) dc on C0(θ0)), the normal-ising constant Zβ := R  
+
+> Mflow (θ0)∩V
+
+exp( −β d 2flow (θ0, θ)) dvol gambient (θ) is finite, so πβ is a Borel probability measure on Mflow (θ0) ∩ V .For each finite Xte ⊆ X , the evaluation map ΦXte : Mflow (θ0) ∩ V → R|Xte | is continuous (A.1) and Borel-measurable, so the push-forward μXte := (Φ Xte )♯πβ is a Borel probability measure on 
+
+R|Xte |.
+
+Consistency. Suppose X′ 
+
+> te
+
+⊆ Xte and let π : R|Xte | → R|X′ 
+
+> te |
+
+be the coordinate projection onto the indices in X′
+
+> te
+
+. By construction, ΦX′ 
+
+> te
+
+= π ◦ ΦXte . Functoriality of push-forward gives 
+
+π♯μXte = π♯(Φ Xte )♯πβ = ( π ◦ ΦXte )♯πβ = (Φ X′ 
+
+> te
+
+)♯πβ = μX′ 
+
+> te
+
+.
+
+Hence the family {μXte }Xte ⊆X finite satisfies the Kolmogorov consistency condition. By the Kol-mogorov extension theorem [ 31 , Thm. A.6], there exists a unique stochastic process (Fx)x∈X on X
+
+at the fixed training set whose finite-dimensional marginals are exactly {μXte }. Consistency across 
+
+training subsets requires verifying compatibility of the parameter-space measure πβ as the training set X varies, which is genuinely additional structure not provided by this construction. 
+
+## F Detailed Analysis of Arc Ridge Regularisation 
+
+We provide detailed derivations justifying the squared path-length regulariser R = L2(γtrain ) = 
+
+s(T )2, where s(T ) = R T 
+
+> 0
+
+˙θ(t) dt is the cumulative Euclidean arc length of the training path. Throughout, we work in effective-parameter-space (parameters scaled by μP widths as in Section 4) and suppress the subscript eff for readability. 
+
+F.1 Detailed Derivation of the Upper Bound 
+
+We expand the proof of Theorem 4.3 and clarify when the bound is tight. 
+
+Proposition F.1 (Upper bound via constant-speed optimality, expanded) . Let γ : [0 , T ] → M flow (θ0)
+
+be any piecewise-C1 horizontal path from θ0 to θ ∈ M flow (θ0). Then 
+
+d2flow (θ0, θ) ≤ L2(γ) = 
+
+Z T
+
+> 0
+
+∥ ˙γ(t)∥ dt 
+
+!2
+
+.
+
+Equality holds if and only if γ is a geodesic on Mflow (θ0) (traversed at any constant or non-constant speed). Proof. Step 1: Geodesic distance as infimum of arc lengths. The geodesic distance dflow (θ0, θ)
+
+equals the infimum of arc lengths L(γ) = R T 
+
+> 0
+
+∥ ˙γ(t)∥ dt over all piecewise-C1 horizontal paths γ
+
+from θ0 to θ; this is the standard definition of Riemannian distance with the ambient Euclidean metric restricted to Mflow (θ0). Therefore, for any admissible path γ,
+
+dflow (θ0, θ) ≤ L(γ) ≤ L(γtrain ),
+
+where the second inequality holds because γtrain is itself an admissible horizontal path. Squaring both sides gives d2flow (θ0, θ) ≤ L2(γtrain ).
+
+Step 2: Tightness condition. Equality d2flow (θ0, θ) = L2(γ) holds if and only if L(γ) = dflow (θ0, θ),i.e. γ is a length-minimising path. By Proposition C.9, among all paths of fixed total arc length, the minimum energy E(γ) = R ∥ ˙γ∥2 dt is achieved by the constant-speed reparametrisation; length-minimising paths are exactly the geodesics, regardless of their time-parametrisation. Since L2(γ) = (arc length )2 depends only on the set-theoretic image of γ, equality holds for any time-parametrisation of a geodesic. 29 Step 3: Inclusion of the fibre term. When θ(T ) lies exactly on Mflow (θ0) (as guaranteed by Corollary C.1 under exact gradient flow), the canonical regulariser satisfies d2 (θ(T ), θ0) =
+
+d2flow (θ0, θ(T )) , and the bound applies directly. In the discrete-step setting, θ(T ) may deviate slightly off the manifold, contributing a non-negative fibre term d2fibre (θ′(g (θ(T ))) , θ(T )) ; the path length still upper-bounds the total canonical regulariser since it upper-bounds the flow component alone. 
+
+F.2 Minimax Robust Motivation 
+
+Propositions C.13 and F.1 establish the sandwich 
+
+∥θ − θ0∥2 ≤ d2 (θ, θ0) ≤ L2(γtrain ) =: s(T )2,
+
+which holds for all θ ∈ M flow (θ0) at any time T . The canonical regulariser d2 (θ, θ0) is intractable, but at each training step t the accumulated path length s(t) is known exactly. 
+
+Proposition F.2 (Minimax robust regulariser) . Fix λ > 0 and let the unknown regulariser value 
+
+r⋆ = d2 (θ, θ0) be known only to lie in the interval [rlo , r hi ] = [ ∥θ − θ0∥2 , s (T )2] (from the sandwich). The solution to the minimax problem 
+
+min  
+
+> θ
+
+max 
+
+> r∈[rlo , r hi ]
+
+L (g (θ) , Y ) + λr 
+
+uses the worst-case regulariser r = rhi = s(T )2 and is therefore equivalent to minimising the path-length regularised objective L (g (θ) , Y ) + λs (T )2. Squared path length is thus the minimax-optimal practical regulariser within the sandwich. Proof. For any fixed θ, the map r 7 → L (g (θ) , Y )+ λr is linear and strictly increasing in r (since λ > 
+
+0). Therefore, max r∈[rlo ,r hi ][L (g (θ) , Y ) + λr ] = L (g (θ) , Y ) + λr hi = L (g (θ) , Y ) + λs (T )2,attained at r = s(T )2. Minimising over θ gives the stated equivalence. The choice λ = σ2/n —where σ2 is the observation noise variance and n is the number of training points—has a Bayesian interpretation as the ratio of the likelihood precision to the prior precision in MAP inference. Under a Gaussian likelihood with noise σ (i.e., the SSE setting of A.3 paired with L (g (θ) , Y ) as − log p(Y |g (θ)) up to constants), this λ makes the regularisation gradient dimensionally consistent with the data gradient (both scale as 1/n in the large-data limit), and the stopping criterion derived in Section F.4 below requires only an estimate of σ2 rather than a validation set. For other strictly convex losses, the analogous coupling reads λ ∝ β/ (likelihood precision ),with the prior scale β of Definition 4.1 substituted for the Gaussian-specific factor 1/(2 σ2).
+
+F.3 Gradient Under Standard Gradient Flow 
+
+We derive the regularisation gradient ∇θ R = ∇θ s(T )2 in the case of unmodified gradient flow. 
+
+Proposition F.3 (Path-length regularisation gradient) . Under gradient flow ˙θ(t) = −∇ θ L (g (θ) , Y ),the gradient of the squared path-length regulariser R(T ) = s(T )2 with respect to the endpoint θ(T )
+
+is 
+
+∇θ(T )R = 2 s(T ) · ˙θ(T )
+
+˙θ(T )
+
+= − 2s(T )
+
+∥∇ θ L∥ · ∇ θ L θ(T )
+
+.
+
+This gradient lies in Im( J (θ(T )) ⊤), has magnitude 2s(T ), and is anti-parallel to the data gradient. Proof. Write s(T ) = R T 
+
+> 0
+
+˙θ(t) dt . By Lemma D.10, ∂s/∂ θ(T ) = ˙θ(T )/ ˙θ(T ) , the unit tangent at the endpoint. Applying the chain rule: ∇θ(T )R = 2 s(T ) · ∂s/∂ θ(T ) = 2 s(T ) ˙θ(T )/ ˙θ(T ) .Under gradient flow ˙θ = −∇ θ L, so ˙θ/ ˙θ = −∇ θ L/ ∥∇ θ L∥ . Since gradient flow satisfies 
+
+˙θ = −∇ θ L = J (θ)⊤ u for some u (Lemma D.1), we have ˙θ ∈ Im( J (θ)⊤); hence the gradient lies in Im( J (θ)⊤) = Tθ(T )Mflow (θ0) and has no fibre component, as claimed by Theorem 4.3. 30 Two properties of this gradient deserve emphasis: • Monotonically increasing magnitude : s(T ) grows throughout training, so ∥∇ R∥ = 2 s(T )
+
+increases over time regardless of whether the loss is decreasing. • No fibre bias : ∇R ∈ Im( J (θ)⊤), so regularisation by λR introduces no gradient component in ker( J (θ)) ; it does not push θ off the flow manifold. 
+
+F.4 Formal Equivalence to Early Stopping Under Gradient Flow Proposition F.4 (Path-length regularisation is equivalent to early stopping) . Assume additionally that 
+
+L(·, Y ) is strictly convex in model outputs (i.e. c 7 → L (c, Y ) is strictly convex on Yn; this holds for all standard losses including SSE, softmax cross-entropy, and logistic loss). Under gradient flow with regularised objective L (g (θ) , Y ) + λR , where R = s(T )2, the training trajectory {θ(t)}t≥0 is identical (as a set-valued path in parameter-space) to the unregularised gradient flow trajectory. (In particular, s(T ) is the arc length of the path-image, which depends only on the path geometry and not on its time parametrisation; it is therefore the same quantity whether computed along the regularised or unregularised trajectory.) The dynamics converge at the unique stopping time T ⋆ satisfying 
+
+2λs (T ⋆) = ∇θ L θ(T ⋆) , (1) 
+
+at which the total gradient is zero. Moreover, T ⋆ < ∞ whenever λ > 0.Proof. By Proposition F.3, the total regularised gradient is 
+
+∇θ
+
+L + λR  = ∇θ L − 2λs (T )
+
+∥∇ θ L∥ · ∇ θ L =
+
+
+
+1 − 2λs (T )
+
+∥∇ θ L∥ 
+
+
+
+∇θ L.
+
+As long as 2λs (t) < ∥∇ θ L(θ(t)) ∥, the factor in parentheses is positive, so ∇θ [L + λR ] is a positive scalar multiple of ∇θ L. Gradient flow in the direction −∇ θ [L+λR ] is therefore identical in direction (though not in speed) to unregularised gradient flow in direction −∇ θ L; the trajectory is the same path. To show T ⋆ exists and is finite: s(t) is non-decreasing and tends to ∞ along a trajectory that does not converge (since ˙θ = ∥∇ θ L∥ is bounded away from zero until convergence). By A.3, 
+
+∇θ L(θ) = 0 if and only if g (θ) = Y (Lemma D.3); under Assumption 2.1, the Grönwall bound in Lemma D.6 gives ∥∇ θ L(θ(t)) ∥ = J (θ(t)) ⊤ ∇h(g (θ(t))) ≤ σmax M ∥r(t)∥ → 0 exponentially (with h := L (·, Y )). Therefore the continuous function h(t) = 2 λs (t) − ∥∇ θ L(θ(t)) ∥ satisfies 
+
+h(0) < 0 and h(t) → +∞; by the intermediate value theorem there exists T ⋆ with h(T ⋆) = 0 , i.e. condition (1) holds. 
+
+Comparison with classical early stopping. Proposition F.4 shows that path-length regularisation is a continuous-time, gradient-based analogue of early stopping: (i) Same trajectory : the model visits the same sequence of parameter values as unregularised training, only stopping earlier. (ii) No validation set : the stopping condition (1) depends only on training quantities—the cumulative arc length s(T ), the current data-loss gradient magnitude, and λ. Classical early stopping requires a held-out validation set. (iii) Interpretable via noise : setting λ = σ2/n links the stopping criterion to the observation noise σ2: training stops at T ⋆ with s(T ⋆) = ∥∇ θ L(θ(T ⋆)) ∥ · n/ (2 σ2). An estimate of σ2
+
+from the likelihood model or held-out noise is sufficient. (iv) Grokking avoidance : the path length s(t) is monotone; as training approaches the interpolat-ing manifold, ∥∇ θ L∥ → 0 while s continues to grow, ensuring that T ⋆ lies strictly before full interpolation for any λ > 0.
+
+## G Experimental Details 
+
+We discuss here the main details surrounding the two large-scale experiments in Section 5. We share our codebase at https://github.com/GWhittle110/canonical-regularization/, which is predominantly based on the PyTorch [35] and mup [45] libraries. 31 G.1 UTKFace 
+
+For this experiment, we adapt the ResNet18 architecture [ 14 ] by replacing the classification head with a MuReadout regression head using default Pytorch Linear initialisation (kaiming uniform). We transfer learn from pretraining with no weight freezing, ensuring μP via per-layer learning rate scaling. We train each regulariser setup over 3 seeds for 50 epochs with a batch size of 128, base learning rate of 0.003 (decreased to 0.0003 for the largest regularisation strength due to instability; early stopping prevents non-regulariser-induced undertraining here nonetheless), and momentum of 0.9 (to account for stochasticity induced by minibatching). We report test performance from the designated evaluation dataset [ 53 ], and use an 80-20 validation split for early stopping. We further corrupt targets with a per-datapoint fixed (for a given training run) additive isotropic 0-mean Gaussian noise with a standard deviation of 0.3 years. 
+
+G.2 Yelp Review 
+
+For this experiment, we use the DistilBERT [ 39 ] encoder base architecture, again with a MuReadout regression head using default Pytorch Linear initialisation (kaiming uniform). We transfer learn from pretraining again with with no weight freezing, ensuring μP via per-layer learning rate scaling. We train each regulariser setup over 2 seeds (due to excess runtime) over a number of epochs determined using the patience mechanism, that is, we train for a base 20 epochs, then subsequently whenever the final epoch exhibits the best validation loss we train for a further three epochs, again due to the excessive runtime preventing substantial overtraining. We again train with a base learning rate of 0.003 (this time decreasing to 0.0001 for the largest regularisation strength) and momentum of 0.9. We further process the training dataset by first transforming it to a valid regression target by normalising the scores (1 star to 5 star) to the interval [0, 1] by affine transformation, transforming to the reals via logit transform (clipping scores at 0.01 and 0.99 to prevent infinite targets), then corruption by with a per-datapoint fixed (for a given training run) additive isotropic 0-mean Gaussian noise with a standard deviation of 0.1 (unitless). 
+
+G.3 Compute 
+
+Both experiments were carried out remotely on Modal A10 GPUs. The UTKFace experiments run relatively quickly at roughly 10 minutes per regulariser per seed, while the Yelp Review experiment is considerably slower at roughly 5 hours per regulariser per seed. Total project compute spend was roughly $315 up to the point of submission. 
+
+## H Empirical Verification of Assumption 2.1 
+
+We probe Assumption 2.1 (uniform Jacobian conditioning) directly along gradient-flow trajectories. Recall the assumption claims the existence of constants 0 < c ≤ C < ∞ such that c ≤ σmin (J (θ)) 
+
+and σmax (J (θ)) ≤ C for all θ ∈ U , with U an open neighbourhood of Θ⋆ traversed by the trajectory. Equivalently, the NTK Gram K (θ) = J (θ) J (θ)⊤ has σ2min (J (θ)) ≤ λmin (K (θ)) 
+
+and λmax (K (θ)) ≤ σ2max (J (θ)) , so monitoring λmin (K (θ)) and λmax (K (θ)) along training is a direct empirical proxy. 
+
+Setup. We train a μP -parameterised MLP with two hidden layers and GELU activations [ 45 ,48 ] on the 1-D regression toy dataset D = {(xi, y i)}16  
+
+> i=1
+
+with xi ∈ [−1, 1] uniformly spaced, 
+
+yi = sin( π 
+
+> 2
+
+xi) + εi for εi ∼ N (0 , σ 2) with σ small. Training uses full-batch gradient descent (a discrete-time approximation of gradient flow) with no regularisation (Ridgeless), at hidden widths 
+
+dmodel ∈ { 64 , 256 , 1024 , 4096 , 16384 } across multiple seeds. At each epoch we record λmin (K (θ)) ,
+
+λmax (K (θ)) , and the training loss; epochwise quantities are aggregated across seeds with shaded confidence regions denoting standard error. 
+
+Results. Figure 4 shows the three quantities. Two qualitative observations support Assumption 2.1: (i) the minimum NTK eigenvalue λmin (K (θ)) remains bounded away from 0 throughout training, with stable properties across width and growth to a stable maximum across training; (ii) the maximum NTK eigenvalue λmax (K (θ)) remains finite throughout training, with width-dependent magnitude that stabilises as dmodel → ∞ ;32 (iii) the training loss decreases monotonically, consistent with exponential convergence of gradient flow to an interpolator under Assumption 2.1 (Proposition C.1). The combination of (i) a strict positive lower bound on λmin (K (θ)) along the trajectory and (ii) a uniform upper bound on λmax (K (θ)) is exactly the spectral condition required by Assumption 2.1; (iii) verifies the trajectory remains in U until convergence. Together these provide preliminary empiri-cal evidence that Assumption 2.1 holds across widths in the practical μP regime, complementing the theoretical justification in Appendix A (A.4) and Remark A.1. A more comprehensive verification across architectures and tasks remains a natural avenue for follow-up work. 0 100000 200000 300000 400000 500000                                   
+
+> Epoch
+> 0
+> 10 5
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> min (K( t))
+> d= 64
+> d= 256
+> d= 1024
+> d= 4096
+> d= 16384 0100000 200000 300000 400000 500000
+> Epoch
+> 10 2
+> 10 3
+> max (K( t))
+> d= 64
+> d= 256
+> d= 1024
+> d= 4096
+> d= 16384 0100000 200000 300000 400000 500000
+> Epoch
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> (g( ),  Y)
+> d= 64
+> d= 256
+> d= 1024
+> d= 4096
+> d= 16384
+
+Figure 4: Empirical verification of Assumption 2.1 along gradient-flow trajectories of a 2-hidden-layer μP MLP with GELU activations on a 16-point 1-D regression toy ( y = sin( π 
+
+> 2
+
+x) + ε), at widths 
+
+dmodel ∈ { 64 , 256 , 1024 , 4096 , 16384 }. Left : minimum NTK eigenvalue λmin (K (θ)) over training (corresponds to the lower spectral bound 2c2 in Assumption 2.1). Centre : maximum NTK eigenvalue 
+
+λmax (K (θ)) over training (corresponds to the upper spectral bound 2C2). Right : training loss over training. Both spectral quantities remain bounded throughout training and across widths; the loss decreases monotonically, consistent with the exponential-convergence prediction of Proposition C.1. 33
