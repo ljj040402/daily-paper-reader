@@ -25,3 +25,60 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: ai
+      description: 请帮我查找ai和人工智能论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: artificial intelligence
+          keyword_cn: 人工智能
+          query: artificial intelligence research papers
+        - keyword: machine learning
+          keyword_cn: 机器学习
+          query: machine learning paper survey
+        - keyword: deep learning
+          keyword_cn: 深度学习
+          query: deep learning recent advances
+        - keyword: neural network
+          keyword_cn: 神经网络
+          query: neural network architectures
+        - keyword: natural language processing
+          keyword_cn: 自然语言处理
+          query: natural language processing techniques
+        - keyword: reinforcement learning
+          keyword_cn: 强化学习
+          query: reinforcement learning algorithms
+      intent_queries:
+        - query: find papers on artificial intelligence and machine learning
+          query_cn: 查找人工智能和机器学习论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: search for deep learning and neural network surveys
+          query_cn: 搜索深度学习和神经网络综述
+          enabled: true
+          source: manual
+          note: ''
+        - query: look for recent advances in natural language processing
+          query_cn: 查找自然语言处理最新进展
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-05-25T13:02:47.602Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
