@@ -7,85 +7,87 @@
 
 ## 每次日报
 - 最新运行日期：2026-05-16 ~ 2026-05-25
-- 运行时间：2026-05-25 13:29:02 UTC
+- 运行时间：2026-05-25 13:54:33 UTC
 - 运行状态：成功
 - 本次总论文数：22
 - 精读区：11
 - 速读区：11
 
 ### 今日简报（AI）
-今日精读11篇，速读11篇，重点聚焦边缘AI硬件搜索与智能层级理论新突破。最值得关注LLMForge提出的多后端硬件感知无限头注意力NAS，以及Artificial Adaptive Intelligence对窄到通用智能的中间阶段定义。建议先速读《Full Attention Strikes Back》掌握注意力高效迁移技巧，再精读LLMForge实战边缘模型优化。
+今日推荐22篇论文，精读聚焦AI智能阶段与点云分析两篇高分综述。  
+最值得看的方向：《Artificial Adaptive Intelligence》揭示窄/通用智能间的关键过渡，以及点云分类分割的深度学习架构系统梳理。  
+普通读者可优先速读《Full Attention Strikes Back》中百步稀疏化技巧与《QQJ》生成式AI人类对齐评估方法。
 - 详情：[/20260516-20260525/README](/20260516-20260525/README)
 
 ### 精读区论文标签
-1. [LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models](/20260516-20260525/2605.17653v1-llmforge-multi-backend-hardware-aware-neural-architecture-search-with-infinite-head-attention-for-edge-language-models)  
-   标签：评分：10.0/10、query:ai
-   evidence：针对边缘语言模型的硬件感知神经架构搜索与新型注意力机制
-2. [Artificial Adaptive Intelligence: The Missing Stage Between Narrow and General Intelligence](/20260516-20260525/2605.16844v1-artificial-adaptive-intelligence-the-missing-stage-between-narrow-and-general-intelligence)  
+1. [Artificial Adaptive Intelligence: The Missing Stage Between Narrow and General Intelligence](/20260516-20260525/2605.16844v1-artificial-adaptive-intelligence-the-missing-stage-between-narrow-and-general-intelligence)  
    标签：评分：9.0/10、query:ai
-   evidence：提出人工自适应智能这一缺失阶段，整合元学习、神经架构搜索、AutoML等方向
-3. [RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation](/20260516-20260525/2605.17072v1-raga-reading-and-graph-building-agent-for-autonomous-knowledge-graph-construction-and-retrieval-augmented-generation)  
-   标签：评分：9.0/10、query:ai
-   evidence：基于LLM的知识图谱构建与检索增强生成，属于NLP
-4. [A Systematic Survey on Deep Learning Architectures for Point Cloud Classification and Segmentation](/20260516-20260525/2605.17131v1-a-systematic-survey-on-deep-learning-architectures-for-point-cloud-classification-and-segmentation)  
+   evidence：涵盖元学习、神经架构搜索、AutoML的人工自适应智能概念
+2. [A Systematic Survey on Deep Learning Architectures for Point Cloud Classification and Segmentation](/20260516-20260525/2605.17131v1-a-systematic-survey-on-deep-learning-architectures-for-point-cloud-classification-and-segmentation)  
    标签：评分：9.0/10、query:ai
    evidence：点云深度学习架构的系统综述
-5. [Stochastic Penalty-Barrier Methods for Constrained Machine Learning](/20260516-20260525/2605.18618v1-stochastic-penalty-barrier-methods-for-constrained-machine-learning)  
+3. [ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks](/20260516-20260525/2605.17458v1-clahf-a-human-feedback-inspired-reinforcement-learning-framework-for-improving-classification-tasks)  
    标签：评分：9.0/10、query:ai
-   evidence：用于约束深度学习的随机罚-障碍方法
-6. [m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder](/20260516-20260525/2605.19568v1-m3bert-a-modern-multi-lingual-matryoshka-bidirectional-encoder)  
+   evidence：受人类反馈启发的强化学习框架用于文本分类
+4. [Sampling-Based Safe Reinforcement Learning](/20260516-20260525/2605.19469v1-sampling-based-safe-reinforcement-learning)  
    标签：评分：9.0/10、query:ai
-   evidence：具有套娃表示学习的多语言BERT
-7. [Findings of the Counter Turing Test: AI-Generated Text Detection](/20260516-20260525/2605.20761v1-findings-of-the-counter-turing-test-ai-generated-text-detection)  
+   evidence：基于采样的安全强化学习
+5. [Efficient Table QA via TableGrid Navigation and Progressive Inference Prompting](/20260516-20260525/2605.20254v1-efficient-table-qa-via-tablegrid-navigation-and-progressive-inference-prompting)  
    标签：评分：9.0/10、query:ai
-   evidence：AI生成文本检测属于NLP任务
-8. [A Unified Framework for Uncertainty-Aware Explainable Artificial Intelligence: A Case Study in Power Quality Disturbance Classification](/20260516-20260525/2605.21114v1-a-unified-framework-for-uncertainty-aware-explainable-artificial-intelligence-a-case-study-in-power-quality-disturbance-classification)  
+   evidence：基于NLP提示的表格问答技术
+6. [Findings of the Counter Turing Test: AI-Generated Text Detection](/20260516-20260525/2605.20761v1-findings-of-the-counter-turing-test-ai-generated-text-detection)  
    标签：评分：9.0/10、query:ai
-   evidence：利用贝叶斯神经网络的不确定性可解释人工智能框架
-9. [Kernel-Based Safe Exploration in Deep Reinforcement Learning](/20260516-20260525/2605.22207v1-kernel-based-safe-exploration-in-deep-reinforcement-learning)  
+   evidence：对AI生成文本检测技术的综合分析及共享任务
+7. [Gaussian Sheaf Neural Networks](/20260516-20260525/2605.21435v1-gaussian-sheaf-neural-networks)  
    标签：评分：9.0/10、query:ai
-   evidence：基于核方法的深度强化学习安全探索
-10. [Infra-Bayesian Reinforcement Learning Agents Outperform Classical RL For Worst-Case Robustness](/20260516-20260525/2605.23146v1-infra-bayesian-reinforcement-learning-agents-outperform-classical-rl-for-worst-case-robustness)  
+   evidence：面向高斯特征图数据的神经网络架构
+8. [Kernel-Based Safe Exploration in Deep Reinforcement Learning](/20260516-20260525/2605.22207v1-kernel-based-safe-exploration-in-deep-reinforcement-learning)  
    标签：评分：9.0/10、query:ai
-   evidence：用于鲁棒性的新RL算法
-11. [ARMS: Automatic Reward Shaping for Sparse-Reward Multi-Agent Reinforcement Learning](/20260516-20260525/2605.23562v1-arms-automatic-reward-shaping-for-sparse-reward-multi-agent-reinforcement-learning)  
+   evidence：深度强化学习中的安全探索
+9. [Neural Flow Operators can Approximate any Operator: Abstract Frameworks and Universal Approcimations](/20260516-20260525/2605.22557v1-neural-flow-operators-can-approximate-any-operator-abstract-frameworks-and-universal-approcimations)  
    标签：评分：9.0/10、query:ai
-   evidence：稀疏奖励多智能体强化学习中的自动奖励塑造
+   evidence：引入抽象神经流框架用于网络和算子
+10. [Forecasting Scientific Progress with Artificial Intelligence](/20260516-20260525/2605.22681v1-forecasting-scientific-progress-with-artificial-intelligence)  
+   标签：评分：9.0/10、query:ai
+   evidence：人工智能研究论文，预测科学进展
+11. [Can AI Guess What You Know? Performance Comparison of Large Language Models for Human Domain Knowledge Estimation From Communication Logs](/20260516-20260525/2605.22971v1-can-ai-guess-what-you-know-performance-comparison-of-large-language-models-for-human-domain-knowledge-estimation-from-communication-logs)  
+   标签：评分：9.0/10、query:ai
+   evidence：利用大语言模型从通讯日志推断人类领域知识
 
 ### 速读区论文标签
 1. [Full Attention Strikes Back: Transferring Full Attention into Sparse within Hundred Training Steps](/20260516-20260525/2605.16928v1-full-attention-strikes-back-transferring-full-attention-into-sparse-within-hundred-training-steps)  
    标签：评分：8.0/10、query:ai
-   evidence：将LLM的全注意力高效转换为稀疏注意力
-2. [ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks](/20260516-20260525/2605.17458v1-clahf-a-human-feedback-inspired-reinforcement-learning-framework-for-improving-classification-tasks)  
+   evidence：将全注意力大语言模型转化为高稀疏模型仅需极少训练
+2. [QQJ: Quantifying Qualitative Judgment for Scalable and Human-Aligned Evaluation of Generative AI](/20260516-20260525/2605.17382v1-qqj-quantifying-qualitative-judgment-for-scalable-and-human-aligned-evaluation-of-generative-ai)  
    标签：评分：8.0/10、query:ai
-   evidence：使用基于人类反馈的强化学习优化分类
-3. [Residual Semantic Decomposition of Word Embeddings](/20260516-20260525/2605.17482v1-residual-semantic-decomposition-of-word-embeddings)  
+   evidence：提出可扩展的人类对齐生成AI评估框架
+3. [LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models](/20260516-20260525/2605.17653v1-llmforge-multi-backend-hardware-aware-neural-architecture-search-with-infinite-head-attention-for-edge-language-models)  
    标签：评分：8.0/10、query:ai
-   evidence：词嵌入的语义分解方法
+   evidence：面向边缘语言模型的硬件感知神经架构搜索
 4. [Canonical Regularisation of Wide Feature-Learning Neural Networks](/20260516-20260525/2605.18180v1-canonical-regularisation-of-wide-feature-learning-neural-networks)  
    标签：评分：8.0/10、query:ai
-   evidence：宽特征学习神经网络的规范化
+   evidence：宽特征学习神经网络的规范化分析
 5. [NGM: A Plug-and-Play Training-Free Memory Module for LLMs](/20260516-20260525/2605.16893v1-ngm-a-plug-and-play-training-free-memory-module-for-llms)  
    标签：评分：7.0/10、query:ai
-   evidence：为大型语言模型提供的免训练记忆模块
+   evidence：提出N-gram内存模块，是神经网络架构创新
 6. [A Fourier perspective on the learning dynamics of neural networks: from sample complexities to mechanistic insights](/20260516-20260525/2605.16913v1-a-fourier-perspective-on-the-learning-dynamics-of-neural-networks-from-sample-complexities-to-mechanistic-insights)  
    标签：评分：7.0/10、query:ai
-   evidence：神经网络学习动力学的傅里叶分析
-7. [Integration of AI in Cybersecurity: Current Trends with a Focused Look at Intrusion Detection Applications](/20260516-20260525/2605.17219v1-integration-of-ai-in-cybersecurity-current-trends-with-a-focused-look-at-intrusion-detection-applications)  
+   evidence：从傅里叶视角研究神经网络学习动态
+7. [RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation](/20260516-20260525/2605.17072v1-raga-reading-and-graph-building-agent-for-autonomous-knowledge-graph-construction-and-retrieval-augmented-generation)  
    标签：评分：7.0/10、query:ai
-   evidence：网络安全中的AI综述
-8. [Exact Convex Reformulations of Linear Neural Networks via Completely Positive Lifting](/20260516-20260525/2605.17692v1-exact-convex-reformulations-of-linear-neural-networks-via-completely-positive-lifting)  
+   evidence：基于LLM代理的自主知识图谱构建与检索增强生成
+8. [Residual Semantic Decomposition of Word Embeddings](/20260516-20260525/2605.17482v1-residual-semantic-decomposition-of-word-embeddings)  
    标签：评分：7.0/10、query:ai
-   evidence：通过提升实现线性神经网络的凸松弛
+   evidence：词嵌入的残差分解用于语义解释
 9. [Capturing LLM Capabilities via Evidence-Calibrated Query Clustering](/20260516-20260525/2605.17110v1-capturing-llm-capabilities-via-evidence-calibrated-query-clustering)  
    标签：评分：6.0/10、query:ai
-   evidence：用于能力感知LLM评估的查询聚类
-10. [Pegs, Floats, and Forests: A Machine Learning Revisit of Exchange Rate Regimes and Growth in Transition Economies](/20260516-20260525/2605.17391v1-pegs-floats-and-forests-a-machine-learning-revisit-of-exchange-rate-regimes-and-growth-in-transition-economies)  
+   evidence：通过查询聚类进行LLM评估，属于NLP技术
+10. [State-of-the-Art Claims Require State-of-the-Art Evidence](/20260516-20260525/2605.17273v1-state-of-the-art-claims-require-state-of-the-art-evidence)  
    标签：评分：6.0/10、query:ai
-   evidence：机器学习应用于经济增长分析
-11. [NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents](/20260516-20260525/2605.17596v1-neusymms-a-hybrid-neuro-symbolic-memory-system-for-persistent-self-curating-llm-agents)  
+   evidence：对AI/ML研究中SOTA声明的批判性分析
+11. [PAREDA: A Multi-Accent Speech Dataset of Natural Language Processing Research Discussions](/20260516-20260525/2605.17860v1-pareda-a-multi-accent-speech-dataset-of-natural-language-processing-research-discussions)  
    标签：评分：6.0/10、query:ai
-   evidence：结合神经与符号方法的LLM智能体混合记忆系统
+   evidence：面向NLP研究讨论的多口音语音数据集
 
 
 <div class="dpr-home-promo-card">

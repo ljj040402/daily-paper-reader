@@ -1,42 +1,38 @@
 # 日报 · 2026-05-16 ~ 2026-05-25
 
-- 生成时间：2026-05-25 13:29:02 UTC
+- 生成时间：2026-05-25 13:54:33 UTC
 - 当次推荐总数：22
 - 精读区：11
 - 速读区：11
 
 ## 今日简报（AI）
-本期精读两篇高分论文，涵盖边缘语言模型架构搜索与人工自适应智能理论，速读四篇含全注意力迁移等低开销改进方向。
-
-最值得关注的是LLMForge的无限头注意力硬件感知搜索，以及人工自适应智能作为狭义与通用智能之间的缺失环节。
-
-建议普通读者重点关注边缘设备上轻量级语言模型的设计思路，并思考AI发展阶段中“自适应”概念的实际应用价值。
+聚焦AI从窄到通用智能的“缺失环节”与3D点云深度学习架构的系统综述两大精读方向。最值得关注的两篇9分精读：Artificial Adaptive Intelligence提出介于窄与通用之间的新智能阶段，Point Cloud分类分割综述则系统梳理了130+深度学习架构。建议普通读者优先精读这两篇经典总结，再结合速读中对稀疏注意力、人本评估等前沿方法的快速浏览。
 
 ## 精读区
-1. [LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models](/20260516-20260525/2605.17653v1-llmforge-multi-backend-hardware-aware-neural-architecture-search-with-infinite-head-attention-for-edge-language-models) （10.0/10）
-2. [Artificial Adaptive Intelligence: The Missing Stage Between Narrow and General Intelligence](/20260516-20260525/2605.16844v1-artificial-adaptive-intelligence-the-missing-stage-between-narrow-and-general-intelligence) （9.0/10）
-3. [RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation](/20260516-20260525/2605.17072v1-raga-reading-and-graph-building-agent-for-autonomous-knowledge-graph-construction-and-retrieval-augmented-generation) （9.0/10）
-4. [A Systematic Survey on Deep Learning Architectures for Point Cloud Classification and Segmentation](/20260516-20260525/2605.17131v1-a-systematic-survey-on-deep-learning-architectures-for-point-cloud-classification-and-segmentation) （9.0/10）
-5. [Stochastic Penalty-Barrier Methods for Constrained Machine Learning](/20260516-20260525/2605.18618v1-stochastic-penalty-barrier-methods-for-constrained-machine-learning) （9.0/10）
-6. [m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder](/20260516-20260525/2605.19568v1-m3bert-a-modern-multi-lingual-matryoshka-bidirectional-encoder) （9.0/10）
-7. [Findings of the Counter Turing Test: AI-Generated Text Detection](/20260516-20260525/2605.20761v1-findings-of-the-counter-turing-test-ai-generated-text-detection) （9.0/10）
-8. [A Unified Framework for Uncertainty-Aware Explainable Artificial Intelligence: A Case Study in Power Quality Disturbance Classification](/20260516-20260525/2605.21114v1-a-unified-framework-for-uncertainty-aware-explainable-artificial-intelligence-a-case-study-in-power-quality-disturbance-classification) （9.0/10）
-9. [Kernel-Based Safe Exploration in Deep Reinforcement Learning](/20260516-20260525/2605.22207v1-kernel-based-safe-exploration-in-deep-reinforcement-learning) （9.0/10）
-10. [Infra-Bayesian Reinforcement Learning Agents Outperform Classical RL For Worst-Case Robustness](/20260516-20260525/2605.23146v1-infra-bayesian-reinforcement-learning-agents-outperform-classical-rl-for-worst-case-robustness) （9.0/10）
-11. [ARMS: Automatic Reward Shaping for Sparse-Reward Multi-Agent Reinforcement Learning](/20260516-20260525/2605.23562v1-arms-automatic-reward-shaping-for-sparse-reward-multi-agent-reinforcement-learning) （9.0/10）
+1. [Artificial Adaptive Intelligence: The Missing Stage Between Narrow and General Intelligence](/20260516-20260525/2605.16844v1-artificial-adaptive-intelligence-the-missing-stage-between-narrow-and-general-intelligence) （9.0/10）
+2. [A Systematic Survey on Deep Learning Architectures for Point Cloud Classification and Segmentation](/20260516-20260525/2605.17131v1-a-systematic-survey-on-deep-learning-architectures-for-point-cloud-classification-and-segmentation) （9.0/10）
+3. [ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks](/20260516-20260525/2605.17458v1-clahf-a-human-feedback-inspired-reinforcement-learning-framework-for-improving-classification-tasks) （9.0/10）
+4. [Sampling-Based Safe Reinforcement Learning](/20260516-20260525/2605.19469v1-sampling-based-safe-reinforcement-learning) （9.0/10）
+5. [Efficient Table QA via TableGrid Navigation and Progressive Inference Prompting](/20260516-20260525/2605.20254v1-efficient-table-qa-via-tablegrid-navigation-and-progressive-inference-prompting) （9.0/10）
+6. [Findings of the Counter Turing Test: AI-Generated Text Detection](/20260516-20260525/2605.20761v1-findings-of-the-counter-turing-test-ai-generated-text-detection) （9.0/10）
+7. [Gaussian Sheaf Neural Networks](/20260516-20260525/2605.21435v1-gaussian-sheaf-neural-networks) （9.0/10）
+8. [Kernel-Based Safe Exploration in Deep Reinforcement Learning](/20260516-20260525/2605.22207v1-kernel-based-safe-exploration-in-deep-reinforcement-learning) （9.0/10）
+9. [Neural Flow Operators can Approximate any Operator: Abstract Frameworks and Universal Approcimations](/20260516-20260525/2605.22557v1-neural-flow-operators-can-approximate-any-operator-abstract-frameworks-and-universal-approcimations) （9.0/10）
+10. [Forecasting Scientific Progress with Artificial Intelligence](/20260516-20260525/2605.22681v1-forecasting-scientific-progress-with-artificial-intelligence) （9.0/10）
+11. [Can AI Guess What You Know? Performance Comparison of Large Language Models for Human Domain Knowledge Estimation From Communication Logs](/20260516-20260525/2605.22971v1-can-ai-guess-what-you-know-performance-comparison-of-large-language-models-for-human-domain-knowledge-estimation-from-communication-logs) （9.0/10）
 
 ## 速读区
 1. [Full Attention Strikes Back: Transferring Full Attention into Sparse within Hundred Training Steps](/20260516-20260525/2605.16928v1-full-attention-strikes-back-transferring-full-attention-into-sparse-within-hundred-training-steps) （8.0/10）
-2. [ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks](/20260516-20260525/2605.17458v1-clahf-a-human-feedback-inspired-reinforcement-learning-framework-for-improving-classification-tasks) （8.0/10）
-3. [Residual Semantic Decomposition of Word Embeddings](/20260516-20260525/2605.17482v1-residual-semantic-decomposition-of-word-embeddings) （8.0/10）
+2. [QQJ: Quantifying Qualitative Judgment for Scalable and Human-Aligned Evaluation of Generative AI](/20260516-20260525/2605.17382v1-qqj-quantifying-qualitative-judgment-for-scalable-and-human-aligned-evaluation-of-generative-ai) （8.0/10）
+3. [LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models](/20260516-20260525/2605.17653v1-llmforge-multi-backend-hardware-aware-neural-architecture-search-with-infinite-head-attention-for-edge-language-models) （8.0/10）
 4. [Canonical Regularisation of Wide Feature-Learning Neural Networks](/20260516-20260525/2605.18180v1-canonical-regularisation-of-wide-feature-learning-neural-networks) （8.0/10）
 5. [NGM: A Plug-and-Play Training-Free Memory Module for LLMs](/20260516-20260525/2605.16893v1-ngm-a-plug-and-play-training-free-memory-module-for-llms) （7.0/10）
 6. [A Fourier perspective on the learning dynamics of neural networks: from sample complexities to mechanistic insights](/20260516-20260525/2605.16913v1-a-fourier-perspective-on-the-learning-dynamics-of-neural-networks-from-sample-complexities-to-mechanistic-insights) （7.0/10）
-7. [Integration of AI in Cybersecurity: Current Trends with a Focused Look at Intrusion Detection Applications](/20260516-20260525/2605.17219v1-integration-of-ai-in-cybersecurity-current-trends-with-a-focused-look-at-intrusion-detection-applications) （7.0/10）
-8. [Exact Convex Reformulations of Linear Neural Networks via Completely Positive Lifting](/20260516-20260525/2605.17692v1-exact-convex-reformulations-of-linear-neural-networks-via-completely-positive-lifting) （7.0/10）
+7. [RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation](/20260516-20260525/2605.17072v1-raga-reading-and-graph-building-agent-for-autonomous-knowledge-graph-construction-and-retrieval-augmented-generation) （7.0/10）
+8. [Residual Semantic Decomposition of Word Embeddings](/20260516-20260525/2605.17482v1-residual-semantic-decomposition-of-word-embeddings) （7.0/10）
 9. [Capturing LLM Capabilities via Evidence-Calibrated Query Clustering](/20260516-20260525/2605.17110v1-capturing-llm-capabilities-via-evidence-calibrated-query-clustering) （6.0/10）
-10. [Pegs, Floats, and Forests: A Machine Learning Revisit of Exchange Rate Regimes and Growth in Transition Economies](/20260516-20260525/2605.17391v1-pegs-floats-and-forests-a-machine-learning-revisit-of-exchange-rate-regimes-and-growth-in-transition-economies) （6.0/10）
-11. [NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents](/20260516-20260525/2605.17596v1-neusymms-a-hybrid-neuro-symbolic-memory-system-for-persistent-self-curating-llm-agents) （6.0/10）
+10. [State-of-the-Art Claims Require State-of-the-Art Evidence](/20260516-20260525/2605.17273v1-state-of-the-art-claims-require-state-of-the-art-evidence) （6.0/10）
+11. [PAREDA: A Multi-Accent Speech Dataset of Natural Language Processing Research Discussions](/20260516-20260525/2605.17860v1-pareda-a-multi-accent-speech-dataset-of-natural-language-processing-research-discussions) （6.0/10）
 
 ---
 使用键盘方向键可在日报/论文之间快速切换。

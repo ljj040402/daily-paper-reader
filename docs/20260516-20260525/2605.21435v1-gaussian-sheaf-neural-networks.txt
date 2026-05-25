@@ -1,0 +1,3424 @@
+Title: Gaussian Sheaf Neural Networks
+
+URL Source: https://arxiv.org/pdf/2605.21435v1
+
+Published Time: Thu, 21 May 2026 01:28:01 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# GAUSSIAN SHEAF NEURAL NETWORKS 
+
+André Ribeiro 
+
+Getulio Vargas Foundation 
+
+andre.guimaraes@fgv.br 
+
+Ana Luiza Tenório 
+
+Getulio Vargas Foundation 
+
+ana.tenorio@fgv.br 
+
+Tiago da Silva 
+
+MBZUAI 
+
+tiago.dasilva@mbzuai.ac.ae 
+
+Diego Mesquita 
+
+Getulio Vargas Foundation 
+
+diego.mesquita@fgv.br 
+
+May 21, 2026 
+
+## ABSTRACT 
+
+Graph Neural Networks (GNNs) have become the de facto standard for learning on re-lational data. While traditional GNNs’ message passing is well suited for vector-valued node features, there are cases in which node features are better represented by probability distributions than real vectors. Concretely, when node features are Gaussians, characterized by a mean and a covariance matrix, naively concatenating their parameters into a single vector and applying standard message passing discards the geometric and algebraic struc-ture that governs means and covariances. We propose Gaussian Sheaf Neural Networks (GSNNs), a principled framework that incorporates these inductive biases into graph-based learning. Building on the theory of cellular sheaves, we derive a new Laplacian operator that generalizes the sheaf Laplacian to this setting and preserves its key properties. We complement our theoretical contributions with experiments on synthetic and real-world data that illustrate the practical relevance of GSNNs. 
+
+# 1 Introduction 
+
+Graph neural networks (GNNs) are the de facto standard for machine learning over networked data, with applications in molecular modeling [Duvenaud et al., 2015, Gilmer et al., 2017], recommender systems [Ying et al., 2018], and physics simulation [Sanchez-Gonzalez et al., 2020]. While traditional message passing is well suited for vector-valued node features, many problems are more naturally posed in terms of distributions 
+
+attached to nodes: uncertainty-aware predictions on traffic or sensor networks, knowledge-graph entities equipped with confidence, nodes representing populations or cohorts, and Gaussian-process-style features over relational domains, among others. A canonical and particularly tractable instance is the case in which each node is associated with a Gaussian distribution, characterized by a mean and a covariance matrix. Although their parameters can be flattened into a vector, doing so leaves on the table the geometric and algebraic structure that governs means and covariances — structure that is highly informative as an inductive bias for learning. In this work, we observe that the recently introduced cellular sheaves provide a natural way to encode this structure in graph-based learning. 
+
+> arXiv:2605.21435v1 [cs.LG] 20 May 2026
+
+A PREPRINT - M AY 21, 2026 Table 1: Summary of our main contributions.               
+
+> Contribution Reference
+> Construction of the sheaf of means ( Vect ) and covariances ( SDef )Definition 3.2 Characterization of SDef ’s Laplacian ( LC)Theorem 3.2 Design of the Gaussian sheaf ( ”Vect ˆSDef ) & its Laplacian ( LF)Definitions 3.3 and 3.4 Expressivity of the Gaussian sheaf for diverse restriction map classes Propositions 4.1–4.6 Introduction of GSNN for DoD regression on networked data Section 5 GSNN often outperforms baselines in both synthetic and real-world datasets Tables 2 and 3 GSNN is robust against oversmoothing as model depth increases Proposition A.1 and Table 5
+
+Cellular sheaves are simplified versions of sheaves defined over a graph, associating (i) a vector space, the 
+
+stalk , to each vertex and each edge, and (ii) a linear map, the restriction map , to each incident vertex–edge pair. These constructs induce a continuous-time diffusion process over the graph that can be discretized into neural architectures for relational data. Early sheaf-based models [Hansen and Gebhart, 2020] relied on hand-crafted restriction maps, while Bodnar et al. [2022] proposed learning them end-to-end – yielding models that avoid oversmoothing and adaptively control the Dirichlet energy, even when adequate restriction maps are not known beforehand. Crucially, the case for sheaf-based architectures fits within a broader program in geometric deep learning that argues for respecting the intrinsic geometry of the data rather than forcing it into a flat Euclidean container [Bronstein et al., 2021, 2017]. A recurring lesson from this line of work is that disregarding the structure of the underlying space — whether it be a manifold of hierarchies [Nickel and Kiela, 2017, Chami et al., 2019] or a non-Euclidean space of mixed curvature [Gu et al., 2019, Xiong et al., 2022] — incurs distortion and hampers expressivity. Gaussian-valued node features are a clear instance of this phenomenon: their parameter space is not a flat vector space but the statistical manifold N pRdq – Rd ˆ Sd
+
+> `
+
+, admitting only a restricted class of structure-preserving maps. Cellular sheaves, by attaching a stalk and a restriction map to each incidence in the graph, give us precisely the local-to-global language needed to encode such structure as an inductive bias for message passing — and, as we show, this language extends gracefully beyond the vector-space setting in which it was originally formulated. In this work, we define a Gaussian sheaf in analogy to a cellular sheaf, replacing each vector-space stalk with a space of Gaussian distributions, parameterized by a mean and a covariance. This seemingly small modification, however, breaks several of the categorical properties that make the standard sheaf Laplacian well-defined, and recovering them requires non-trivial work. Cellular sheaves over Vect form a category equivalent to that of actual sheaves, an equivalence implicitly used by Hansen and Gebhart [2020], Bodnar et al. [2022], Barbero et al. [2022] to define the sheaf Laplacian via the (coboundary) operators of sheaf cohomology. Replacing Vect with a category Gauss of Gaussian distributions raises the question of whether 
+
+Gauss is well-behaved enough for the same construction to go through. We show that it is, despite the additional difficulty that Gauss is not abelian — so cohomological constructions like the coboundary map (a generalization of the incidence matrix) must draw on tools from non-abelian settings [Patchkoria, 2006, Jun, 2017]. We elaborate on this in Section 3 and provide further details in Appendix D. We summarize our main contributions in Table 1. 2A PREPRINT - M AY 21, 2026 
+
+# 2 Notation and Background 
+
+A graph is a mathematical structure represented as G “ p V, E q, where V is the set of nodes and E is the set of edges. In this paper, we consider undirected, connected, and unweighted graphs. We use |S| to denote the cardinality of any finite set S. Our theoretical developments rely on basic notions of category theory, for which we provide a brief self-contained introduction in Section C. 
+
+## 2.1 Cellular sheaves on a graph 
+
+We start recalling the main structures in the Neural Sheaf Diffusion (NSD) model. 
+
+Definition 2.1. A cellular sheaf pG, Fq over a (undirected) graph G “ p V, E q associates: 1. Vector spaces Fpvq and Fpeq to each vertex v P V and each edge e P E, called stalks .2. Linear maps Fv⊴e : Fpvq Ñ Fpeq to incident vertex-edge pair v ⊴ e, called restriction maps .In this work, the above definition is understood as a Vect -valued sheaf. Formally, Vect is a category whose objects are finite-dimensional vectors spaces and whose morphism are linear maps. More generally, a 
+
+D-valued sheaf is a sheaf whose stalks and restrictions maps are in D.Cellular sheaves allow us to introduce a generalized Laplacian that enhances the performance of GNNs, but first we describe the domain and codomain of a coboundary operator, δ, which plays a central role in defining the sheaf Laplacian. 
+
+Definition 2.2. The space of 0-cochains and the space of 1-cochains of a cellular sheaf pG, Fq are 
+
+C0pG, Fq “ à
+
+> vPV
+
+Fpvq and C1pG, Fq “ à
+
+> ePE
+
+Fpeq.
+
+where ‘ denotes the (external) direct sum. To define the coboundary operator δ : C0pG, Fq Ñ C1pG, Fq, we choose an orientation e “ u Ñ v for every e P E and set pδXqe “ Fv⊴exv ´ Fu⊴exu. The sheaf Laplacian is then defined by LF “ δJδ, or equivalently by 
+
+LF pXqv :“ ÿ
+
+> v,u ⊴e
+
+FJ 
+
+> v⊴e
+
+pFv⊴exv ´Fu⊴exuq , @v P V. (1) This generalizes the usual graph Laplacian: when stalks are all R and restriction maps are identities, δJ is the incidence matrix and LF recovers the n ˆ n graph Laplacian. The diagonal and non-diagonal blocks 
+
+Lvv “ ř 
+
+> v⊴e
+
+FJ
+
+> v⊴e
+
+Fv⊴e and Luv “ LJ 
+
+> vu
+
+“ ´ FJ
+
+> v⊴e
+
+Fu⊴e define a sheaf degree matrix D and a sheaf adjacency A, respectively. We fix a common dimension d for node and edge stalks, so LF P Rnd ˆnd .Sheaf-based networks typically use the normalized form ∆F “ D´ 12 LF D´ 12 .
+
+Neural Sheaf Diffusion. Inspired by the Sheaf Neural Network given by the equation 9Xptq “ ´ σp∆FptqpI b
+
+W1qXtW2q Hansen and Ghrist [2019], Bodnar et al. [2022] proposed the NSD model: 
+
+Xt`1 “ p 1 ` εqXt ´ σp∆FptqpI b Wt
+
+> 1
+
+qXtWt
+
+> 2
+
+q, (2) where W1 and W2 are weight matrices, b the Kronecker product, σ an activation and ε P r´ 1, 1snd .Furthermore, the Laplacian is learned locally through the graph features: each restriction map Fv⊴e is learned using a function Φ : R2d Ñ Rdˆd, with Fv⊴e“p v,u q “ Φpxv , xuq.Finally, we recall that a global section of a cellular sheaf over G is a certain choice of element for each node stalk. Formally, the space of global sections for pG, Fq is: 
+
+ΓpG, Fq “ t X P C0pG, Fq | Fv⊴exv “ Fu⊴exuu
+
+3A PREPRINT - M AY 21, 2026 It is straightforward to check that ΓpG, Fq “ ker LF “ ker δ. Observing that δ is a coboundary operator built upon a cohomology theory for cellular sheaves Hansen and Ghrist [2019], Hansen [2020], Hansen and Ghrist [2021], we also have H0pG, Fq :“ ker δ.
+
+Problem statement. We focus on distribution-on-distribution (DoD) regression over networked (i.e., non-iid) data. Equivalently, this task can be seen as a special case of node-level prediction in which both the node features and their respective outputs are probability distributions. For mathematical convenience, we assume that input features can be well-approximated by multivariate Gaussian measures. 
+
+# 3 Gaussian Cellular Sheaves 
+
+Figure 1: A Gaussian sheaf pG, Fq shown for a single edge e “ p u, v q of G. The stalks are GpR2q » R2 ˆ
+
+S2
+
+> `
+
+, the space of Gaussian distributions on R2. The distribution features move between the spaces through restriction maps. We propose a cellular sheaf suited for graph data whose node features are multivariate normal distri-butions. Briefly, each stalk of a Gaussian sheaf is a space of Gaussian distributions, and restriction maps are structure-preserving maps between such spaces. Since Gaussians are uniquely determined by their parameters (mean and covariance), there is an isomorphism between the space GpRdq of Gaus-sian distributions on Rd and Rd ˆ Sd
+
+> `
+
+, in which Sd
+
+> `
+
+is the cone of n-dimensional positive semidefinite matrices. Figure 1 illustrates the Gaussian sheaf. In this section, we introduce the sheaf of means whose stalks are Rd, and the sheaf of covariances whose stalks are Sd
+
+> `
+
+, which will be melded together to define Gaussian sheaves. Readers primarily interested in the GSNN architecture can take Definition 3.3 and the normalized Laplacian (Definition 3.2) as the key objects: the categorical machinery developed here ensures these are well-defined. 
+
+Remark 3.1 . For a Gaussian distribution ν “ N pμ, Σq with μ P Rd and Σ P Sd
+
+> `
+
+, the pushforward of ν by a matrix A P Rdˆd is the Gaussian distribution A#ν “ N pAμ, A ΣAJq. This closure under pushforward by linear maps is what inspired us to develop a Gaussian sheaf connecting the mean and covariance sheaves through their restriction maps. Observe that the sheaf of means is a standard cellular sheaf, as defined in Definition 2.1. The nomenclature is to reinforce that the vectors in it stalks should be interpreted as a mean in a Gaussian distribution. Thus, we dedicate our attention to introduce the sheaf of covariances, which is the technically challenging part. 
+
+## 3.1 Sheaves for covariance matrices 
+
+As an intermediate step towards Gaussian sheaves, we propose the category SDef whose objects are the (con-vex) cones Sn 
+
+> `
+
+“ t Σ P Rnˆn | Σ “ ΣJ, Σ ľ 0u of positive semidefinite matrices, and whose morphisms φA :
+
+Sn 
+
+> `
+
+Ñ Sm 
+
+> `
+
+act by φApΣq “ AΣAJ for A P Hom pRn, Rmq. The family of such morphisms is closed under ad-dition and satisfies φB ˝ φA “ φBA . We use the same symbol for a linear map and its matrix in a chosen basis. 
+
+The sheaf of covariances. Let G “ p V, E q be an undirected graph and pG, Mq a sheaf of means with stalk dimension d, and assume Mv⊴e P Rdˆd is invertible for every v ⊴ e. The sheaf of covariances 
+
+pG, Cq has Sd 
+
+> `
+
+as stalks (for both nodes and edges), with restriction maps Cv⊴e “ φMv⊴e induced by those of pG, Mq.4A PREPRINT - M AY 21, 2026 To define the cochain spaces of pG, Cq, observe that Cpvq and Cpeq are not vector spaces, so direct sums no longer apply. Category theory provides the natural replacement: finite direct sums in Vect correspond to categorical products, and the analogous product in SDef for Sn
+
+> `
+
+, Sm 
+
+> `
+
+is the cone of block-diagonal PSD matrices Sn 
+
+> `
+
+‘ Sm 
+
+> `
+
+“ t Σ1 ‘ Σ2 | Σ1 P Sn
+
+> `
+
+, Σ2 P Sm 
+
+> `
+
+u, where Σ1 ‘ Σ2 denotes the block-diagonal matrix with Σ1 and Σ2 on the diagonal. We thus define C0pG, Cq “ À 
+
+> vPV
+
+Cpvq and C1pG, Cq “ À 
+
+> ePE
+
+Cpeq,where À is the product in SDef .We would like to define a coboundary map δC and recover H0pG, Cq “ ker δC , but for A ‰ 0 the equation 
+
+AΣAJ “ 0 forces Σ “ 0, so kernels in SDef are degenerate. We instead use equalizers , which generalize kernels by capturing the set on which two maps agree: for φA, φ B : Sn 
+
+> `
+
+Ñ Sm 
+
+> `
+
+, Eq pφA, φ B q “ t Σ P
+
+Sn 
+
+> `
+
+| AΣAJ “ BΣBJu. For comparison, in Vect , given a linear map φ and the null map 0, we have 
+
+Eq pφ, 0q “ ker pφq. Importantly, the constructions of products and equalizers extend to sub-cones of Sn
+
+> `
+
+; we provide a more thorough treatment in Appendix C. Now, similarly to works on the (co)homology of semi-modules [Patchkoria, 2018] (which, like PSD cones, lack additive inverses and thus admit only trivial kernels), we define δC in terms of a pair of positive and negative operators pδ` 
+
+> C
+
+, δ ´ 
+
+> C
+
+q and characterize H0pG, Cq as the equalizer of both. We also define δ` 
+
+> C
+
+and δ´
+
+> C
+
+as a function of their counterparts δ` 
+
+> M
+
+and δ´ 
+
+> M
+
+in M, where δ` 
+
+> M
+
+´ δ´ 
+
+> M
+
+“ δM. This dependence captures the idea that taking linear transformations of independent random variables has a coordinated impact in both the resulting mean-vector and the covariance matrix (see Remark 3.1). 
+
+Definition 3.1. Let teiuiPr| E|s be the standard basis of R|E|, and consider a family tAiuiPr| E|s with 
+
+Ai “ p ei eJ 
+
+> i
+
+q b Id. We define the operator δC “ δ` 
+
+> C
+
+` δ´ 
+
+> C
+
+s.t. for all Σ P C0pG, Cq
+
+δ` 
+
+> C
+
+pΣq “ ÿ
+
+> i
+
+φAi
+
+´
+
+φδ`
+
+> M
+
+pΣq
+
+¯
+
+and δ´ 
+
+> C
+
+pΣq “ ÿ
+
+> i
+
+φAi
+
+´
+
+φδ´
+
+> M
+
+pΣq
+
+¯
+
+.
+
+The family of Ai guarantees that we only have nonzero entries on the diagonal blocks, thus δC preserves the block-diagonal structure in the target space. Once the operator is defined as the sum of positive operators applied on a PSD matrix, δC also preserves the PSD property. We note that Eq pδ`
+
+> M
+
+, δ ´
+
+> M
+
+q “ ker δM, so equalizers can be used to define H0pG, Mq for the sheaf of means. Therefore our construction is a natural extension of the standard case. Moreover, we can continue extending the theory of cellular sheaves valued on Vect to cellular sheaves valued on SDef . For instance, the following holds: 
+
+Theorem 3.1. We have that H0pG, Cq “ ΓpG, Cq, and for an oriented edge e “ p v, u q P E the output of δC
+
+in pG, Cq is δC pΣqe “ Cv⊴epΣv q ` Cu⊴epΣuq. Furthermore, δC pΣq “ ř 
+
+> i
+
+φAi φδM pΣq.
+
+Now, we use δC to define the Laplacian diffusion operator. 
+
+Definition 3.2. The sheaf Laplacian operator for a sheaf pG, Cq valued on SDef over an undirected graph G
+
+is the map LC : C0pG, Cq Ñ C0pG, Cq defined on a 0-cochain Σ as LC pΣq “ řni“1 φBi
+
+pφpδ` 
+
+> MqJ
+
+pδC pΣqq ` 
+
+φpδ´ 
+
+> MqJ
+
+pδC pΣqqq , with Bi “ p ei eJ 
+
+> i
+
+q b Id P Rnd ˆnd . Moreover, 
+
+LC pΣqv “ ÿ
+
+> v,u ⊴e
+
+φMJ 
+
+> v⊴e
+
+pφMv⊴e pΣv q ` φMu⊴e pΣuqq . (3) In words, the covariance Laplacian at node v aggregates pushforwards of neighboring covariances along the restriction maps, mirroring the neighborhood aggregation of the standard sheaf Laplacian LM but acting on the PSD cone rather than on a vector space. We can also describe this operator in terms of LM. Let k “ max vPV |N pvq| and decompose LM “
+
+řki“1 Li ` L1, where each Li is the block-diagonal matrix with pLiqvv “ MJ 
+
+> v⊴ei
+
+Mv⊴ei if v has an i-th 5A PREPRINT - M AY 21, 2026 neighbor (and zero otherwise), and L1 contains the off-diagonal entries pL1qvu “ ´ MJ
+
+> v⊴e
+
+Mu⊴e. The block-diagonals satisfy př 
+
+> i
+
+Liqvv “ p LMqvv , so LC pΣq “ řki“1 φLi pΣq ` řnj“1 φBj pφL1 pΣqq .We also define the normalized covariance sheaf Laplacian: 
+
+∆C pΣq “ 
+
+> k
+
+ÿ
+
+> i“1
+
+φ∆i pΣq ` 
+
+> n
+
+ÿ
+
+> j“1
+
+φBj ∆1 pΣq, (4) with ∆i “ D´ 12 LiD´ 12 and ∆1 “ D´ 12 L1D´ 12 .Theorem 3.2 shows that the identity ker LM “ H0pG, Mq in the Vect -valued sheaf is translated to the 
+
+SDef -valued sheaf in terms of equalizers. Concretely, LC admits a decomposition LC “ L` 
+
+> C
+
+` L´ 
+
+> C
+
+into positive and negative parts, mirroring the analogous decomposition of LM in Vect (see Section B). 
+
+Theorem 3.2. Let G be a connected graph and pG, Cq be a sheaf valued in SDef . Then Eq pL` 
+
+> C
+
+, L ´ 
+
+> C
+
+q “ 
+
+H0pG, Cq.
+
+In summary , The sheaf of covariances is a SDef -valued cellular sheaf, whose respective notions of coboundary map and sheaf Laplacian are induced by Vect -valued cellular sheaf valued. Moreover, central results regarding the standard sheaf Laplacian are extended to a sheaf Laplacian in SDef .
+
+## 3.2 Gaussian sheaves 
+
+We now define Gaussian sheaves combining sheaves of means (in Vect ) and of covariances (in SDef ). 
+
+Definition 3.3. Given an undirected graph G “ p V, E q, a Gaussian (cellular) sheaf pG, Fq associates: 1. A product space Fpvq :“ p Rdv , Sdv 
+
+> `
+
+q for every v P V .2. A product space Fpeq :“ p Rde , Sde 
+
+> `
+
+q for every e P E.3. A map ΦFv⊴e: FpvqÑ Fpeq for every incident pair v ⊴ e, w/ ΦFv⊴e pμ, Σq “ p Fv⊴eμ, φ Fv⊴e pΣqq .Note that H0pG, Fq “ H0pG, Mqˆ H0pG, Cq. We denote by pG, Fq the Gaussian sheaf over G and from now on this will be our main object of interest. We fix a common dimension dv “ de “ d for all stalks in our sheaf. These constructions can be described as a sheaf valued in a category of Gaussian distributions, since there is a bijection GpRdq » Rd ˆ Sd
+
+> `
+
+, where GpRdq denotes the space of Gaussian distributions on Rd. Both descriptions are equivalent — see Appendix E for details. The sheaf Laplacian for the Gaussian sheaf is obtained by the combination of the means and covariances’ Laplacian. 
+
+Definition 3.4. For every pμ, Σq P C0pG, Fq, the Gaussian sheaf Laplacian is the map 
+
+LF : C0pG, Fq Ñ C0pG, Fq given by 
+
+LF pμ, Σq “ p LMμ, L C pΣqq .
+
+Similarly, we define the normalized Gaussian sheaf Laplacian as ∆F pμ, Σq “ p ∆Mμ, ∆C pΣqq .
+
+Example 3.1. Consider the constant sheaf on G, i.e., a sheaf whose stalks are pR, R`q and whose restriction maps Mv⊴e are identities (providing Cv⊴e are identities too). On the mean side, the Laplacian LM is the graph Laplacian LG. On the covariance side we obtain LC pΣqv “ deg pvqΣv ` ř  
+
+> uPNpvq
+
+Σu or, equivalently, 
+
+LC pΣq “ ř 
+
+> j
+
+Bj LGΣLJ
+
+> G
+
+BJ 
+
+> j
+
+.
+
+The Laplacian for Gaussian sheaves generalizes the graph Laplacian in the sense that the constant sheaf valued on Vect ˆ SDef can be made into the constant sheaf valued on Vect by letting all stalks be pR, t0uq ,where it holds that Vect ˆ 0 is isomorphic to Vect , and 0 denotes the trivial category with only one object. We could also retrieve the cellular sheaf of Bodnar et al. [2022] if we let the stalk spaces be pRd, t0uq . Notice that both last examples would describe Dirac delta distributions. 6A PREPRINT - M AY 21, 2026 
+
+# 4 Analyzing classes of restriction maps 
+
+Since GpRdq is closed under linear maps, we can describe their action on Gaussians as group actions 
+
+gý GpRdq, with g the group containing the restriction maps. Following Bodnar et al. [2022], we consider 
+
+g P t GL pdq, O pdq, D pdqu and analyze the consequences of each choice. In what follows, we fix a Gaussian ϑ P GpRdq with parameters pμ, Σq and define, for a path γ “pv, v 1, . . . , v ℓ, u q, the transport PγvÑu : Fpvq Ñ Fpuq as the composition ΦFJ
+
+> u⊴e1
+
+˝ΦFvℓ⊴e1 ˝¨ ¨ ¨˝ ΦFJ
+
+> v1⊴eℓ`1
+
+˝
+
+ΦFv⊴eℓ`1 along the edges of γ.
+
+Proposition 4.1. A Gaussian ϱ P GpRdq with parameters pμ1, Σ1q is in the orbit of ϑ under the action of 
+
+Opdq only if }μ1}2 “ } μ}2 and Σ1 has the same eigenvalues as Σ.
+
+Hence Opdq maps transport νv only to Gaussians whose mean lies on the sphere of radius }μv } and whose covariance is similar to Σv . Global sections then exist when }μv } “ c and Σv P r Σ˚s for all v, with some 
+
+c P R and Σ˚ P Sd
+
+> `
+
+.
+
+Proposition 4.2. Let λ1, . . . , λ k be the eigenvalues of Σ with multiplicities m1, . . . , m k. If we write μ “pμ1, . . . , μ kq where μj P Rmj , the stabilizer of ϑ is in bijection with śkj“1 Opmj ´ 1tμj ‰0uq. If all eigenvalues are different, the stabilizer is in bijection with pZ2q|t j | μj “0u| .
+
+Therefore, a transported νv with distinct covariance eigenvalues has a strict stabilizer and will in general differ from its transport into Fpuq. Proposition 4.3 gives us a clean characterization of when global sections exist. 
+
+Proposition 4.3. Let pG, Fq be a Gaussian sheaf with Opdq maps over a connected graph G. Then 
+
+Dν P H0pG, Fq with νv “ ϑ if, and only if, for every cycle γ based at v holds that PγvÑv P Stab pϑq.
+
+When stabilizers are trivial, the only way for PγvÑv to fix νv is for it to be the identity, i.e. 
+
+FJ 
+
+> v⊴eℓ
+
+Fvℓ⊴eℓ ¨ ¨ ¨ FJ 
+
+> v1⊴e0
+
+Fv⊴e0 “ Id. A single node with trivially stabilized distribution thus im-poses a stringent condition on every cycle through it. When the transport is path-independent, this product is automatically the identity and global sections always exist; we now characterize them in this regime. 
+
+Proposition 4.4. Let pG, Fq be a Gaussian sheaf with Opdq maps over a connected graph G where the transport is path-independent. Then H0pG, Fq and GpRdq are in bijection. 
+
+Proposition 4.4 generalizes the result of [Bodnar et al., 2022] that under path-independent transport 
+
+H0pG, Mq – Rd.
+
+Proposition 4.5. The orbit of ϑ under the action of Dpdq is isomorphic to Dpdq and the stabilizer is always trivial, if μi ‰ 0 for all i “ 1, . . . , n .
+
+This, for each μ1 there is a unique ϱ P Dpdq ¨ ϑ with mean μ1, whose covariance is determined by μ, μ 1, and 
+
+Σ. Restriction maps in GL pdq reach a wider class of Gaussians at the cost of more parameters. 
+
+Proposition 4.6. Under the action of GL pdq we can achieve any mean vector by restricting the covariances to a specific set. Moreover, if Σ is positive-definite, by restricting the means to a specific set then we can also achieve any positive-definite covariance matrix. 
+
+# 5 Gaussian Sheaf Neural Networks 
+
+We have established the foundations of Gaussian sheaves and their Laplacian operators. Building upon this, we now introduce Gaussian Sheaf Neural Network (GSNN), the first method for DoD regression on networked 7A PREPRINT - M AY 21, 2026 data. Towards this objective, let G “ p V, E q be a graph with nodes V “ t v1, . . . , v nu, and assume each 
+
+v P V is equipped with a s-variate Gaussian distribution νv “ Nspμv , Σv q. Also, let I be the n-dimensional identity matrix, and let h and d be the hidden and stalk dimensions. In practice, Nspμv , Σv q is estimated from a node-wise empirical observations via maximum likelihood. As described next, GSNN takes as input a graph G “ p V, E q with distributional features tNspμv , Σv q : v P V u
+
+and learns to output samples from a (possibly non-Gaussian) distribution. 
+
+Gaussian Sheaf Neural Networks. The ℓ-layer GSNN with weights Wo P Rhˆdˆs, W1 P Rdˆd, and 
+
+W2 P Rhˆh is defined by the following operations. 1. Let ‘ be the concatenation operator. We initially embed each νs into the sheaf stalks, 
+
+μ0 Ð à
+
+> iPr ns
+
+Woμvi , Σ0 Ð à
+
+> iPr ns
+
+WoΣvi W J 
+
+> o
+
+,
+
+where we broadcast tensor-matrix products fixing the first dimension of the tensor. We then reshape into μ P Rnd ˆh and Σ P Rnd ˆnd ˆh. Intuitively, each node vi carries h copies of a d-dimensional Gaussian distribution. 2. We apply the weights on both parameters, broadcasting the application of φInbW1 on Σ over its last dimension h:
+
+μ0 Ð p In b W1qμ0W2, Σ0 Ð p In b W1qΣ0pIn b W1qJW2
+
+3. Let ∆M and ∆C be the normalized Laplacians of the sheaf of means M and of covariances C,respectively. We compute 
+
+μℓ “ p I ´ ∆Mqℓμ0, Σℓ “ p I ` ∆C qℓΣ0
+
+4. As a final step, we obtain samples from the approximate target distribution for each node v P V
+
+by drawing T samples from the learned distribution N pμ1 
+
+> v
+
+, Σ1 
+
+> v
+
+q, pν1 
+
+> v
+
+q0, . . . , pν1 
+
+> v
+
+qT , for each node 
+
+v, and pushing them through an MLP. GSNN takes the ℓ-th power of the Laplacian rather than interleaving ℓ 1-hop iterations with non-linearities, in the spirit of simple graph convolution Wu et al. [2019]. This is computationally cheaper and, importantly, preserves positive-semidefiniteness of Σ1.Notably, we train our model using the 2-Wasserstein distance as a loss function. More specifically, we compute the 2-Wasserstein distance between GSNN output samples and those observed for the nodes in the training split, using the Sinkhorn algorithm [Bonneel et al., 2011]. We further discuss the merits of this choice in Section H. Additionally, restriction maps are parametrized for each incident pair v ⊴ e :“ p v, u q as 
+
+Fv⊴e:“p v,u q “ σpΨpr μv } μus } r Σv } Σusqq , (5) in which σ is a non-linear activation function and Ψ an MLP. Importantly, Bodnar et al. [2022] show MLPs can learn any sheaf pG, Fq whose stalks are vector spaces given pxv , xuq ‰ p xw, xz q for all pv, u q ‰ p w, z q P E.Since the covariance sheaf restriction maps are determined by those of the mean sheaf, Ψ may learn any Gaussian sheaf (recall Definition 3.2). 
+
+# 6 Experiments 
+
+In this section, we provide an empirical illustration of GSNN’s behavior, showing that it produces lower 2-Wasserstein distance to the target distribution than vector-based baselines on a small set of synthetic 8A PREPRINT - M AY 21, 2026 and real-world datasets. In Section 6.2, we introduce two additional baselines to highlight the importance of aligning model design with the underlying data structure, as well as the benefits of learning the sheaf Laplacian. Overall, we position these experiments as empirical validations that complement our theoretical contributions, than a comprehensive empirical study. 
+
+## 6.1 Distribution-on-distribution regression over graphs 
+
+Simulated data. We simulate four datasets, each consisting of a graph with 200 nodes linked using the Barabasi-Albert or the Watts-Strogatz models. For the Barabasi-Albert model, we set the attachment parameter 
+
+m P t 25 , 50 u. For the Watts-Strogatz model, mean degree k P t 25 , 45 u and rewiring probability p “ t 0.3, 0.5u.To define node v’s distributions, we draw a mean vector μνv „ N pU1, U 2U T 
+
+> 2
+
+q and a covariance matrix 
+
+Σνv „ Wishart-Inv pU2U T 
+
+> 2
+
+q, where U1 P Rs and U2 P Rsˆs are drawn point-wise from a uniform with support 
+
+r´ 1, 1s. Denoting by N pvq the 1-hop of vertex v and νv its associated Gaussian distribution, we create the tar-get distribution yv as νv ˚ f uPN pvq αuνu, where ˚, f denote the convolution operation. The constants αu “ 
+
+> DKL pxv|| xuq´1
+
+{ max   
+
+> uPNpvqDKL pxv|| xuq´1
+
+, @u P N pvq weigh each neighbor’s contribution to the output distribution. 
+
+Real-world data. We consider two real-world datasets consisting of daily weather data from cities in Canada from Canada Weather Stats, with 200/12524 and 201/12630 nodes/edges. The neighbors of a given city are those cities that lie within a circle of radius of 200 km centered at it. For the first dataset we use the joint distribution of average temperature and dew point for each day in the spring of 2018 to predict the average humidity and pressure station for each day in the summer of 2018. In the second dataset, we use the average dew point and pressure station to predict the average temperature and humidity, for the same period. For both datasets, we recover the mean vector and covariance matrix from the daily measurements to use as input for GSNN, and use the raw measurements as input for the vector-based neural networks. 
+
+Baselines. To our best knowledge, GSNN is the first method for distribution-on-distribution regression over graphs. Therefore, we propose five baselines to compare GSNN against. The core idea of the baselines is to sample values from the node distributions and push them through well-established predictive models, along with the graph skeleton if the model permits. More specifically, we consider MLPs, GCNs, and NSD with different types of restriction maps. Similar to our model, all baselines are trained using the 2-Wasserstein distance to the target node distributions as loss. 
+
+Experimental setup. We use a 60% {20% {20% node split for train, test, and validation. All experiments were repeated ten times with different seeds. We provide more details on hyperparameter search in Table 8, and the runtime is available at Table 7. Table 2: Mean and standard deviation of the 2-Wasserstein distance for each model and dataset. The two best performances are in green and purple respectively. Our model ( GSNN ) shows the best performance in 5 out of 6 datasets. Barabasi-Albert Barabasi-Albert Watts-Strogatz Watts-Strogatz Weather1 Weather2 Parameters m = 25 m = 50 k = 25, p = 0.3 k = 45, p = 0.5 - -MLP 10 .04 ˘0.39 12 .85 ˘0.63 13 .37 ˘1.39 13 .37 ˘1.39 7.80 ˘0.57 3.23 ˘0.21 
+
+GCN 10 .12 ˘0.89 13 .90 ˘0.34 13 .41 ˘0.42 13 .41 ˘0.42 7.40 ˘0.77 4.74 ˘0.25 
+
+Diag-NSD 9.86 ˘1.36 9.86 ˘1.36 11 .27 ˘1.00 10 .85 ˘0.47 5.79 ˘0.29 5.05 ˘2.06 
+
+O(d)-NSD 9.91 ˘1.27 11 .12 ˘0.55 9.87 ˘1.27 11 .91 ˘1.20 5.83 ˘1.04 4.43 ˘1.52 
+
+Gen-NSD 9.63 ˘1.79 9.63 ˘1.79 11 .52 ˘0.89 11 .46 ˘0.87 5.86 ˘0.59 6.38 ˘4.46 
+
+Diag-GSNN 8.66 ˘0.72 8.76 ˘0.56 12 .22 ˘0.55 12 .22 ˘0.55 5.46 ˘0.11 3.92 ˘0.19 
+
+O(d)-GSNN 8.45 ˘0.61 8.63 ˘0.62 12 .29 ˘1.29 11 .80 ˘0.70 5.41 ˘1.03 3.41 ˘0.41 
+
+Gen-GSNN 8.48 ˘0.47 8.48 ˘0.47 8.87 ˘0.42 10 .87 ˘0.42 5.55 ˘0.78 2.64 ˘0.30 
+
+9A PREPRINT - M AY 21, 2026 
+
+Results. Table 2 reports the results for GSNN and all baselines in terms of average 2-Wasserstein distance and standard deviation. Notably, GSNN achieves the best performance on five out of six datasets. As expected from Proposition 4.6, general restriction maps (Gen-GSNN) typically lead to better results, yielding the best or second-best performance in 4/6 datasets. There is a statistical relevance analysis in Section F to confirm that our results are statistically better than other models. 
+
+## 6.2 Further assessment of GSNN’s geometry-informed convolutions 
+
+To further highlight the importance of aligning model design with the underlying data structure, we compare GSNN against two additional baselines, which are described below. 
+
+GaussianGCN. To test GSNN against a naive approach for graphs with Gaussian distributions as vectors, we implement GaussianGCN as a GCN receiving concatenated Gaussian parameters for each node, i.e. a 5-dimensional vector μ|| vech pΣq, where vech is the vectorized lower triangular matrix of Σ. The GCN output is a mean vector and 3 numbers representing the covariance for each node, which may not form a PSD matrix. We use a linear layer to map them to two scalars, and then create a diagonal covariance matrix whose entries are the exponential of those values. 
+
+GSNN-GraphLap. To verify the necessity of learning restriction maps to generate the corresponding sheaf Laplacian, we implement GSNN-GraphLap as a version of GSNN where we use the graph Laplacian. 
+
+Results. The results in Table 3 show that GSNN significantly surpasses both the GaussianGCN and GSNN-GraphLap. This indicates that learning the sheaf through the restrictions maps is beneficial and that models developed to respect the natural structure of data (in this case, Gaussian distributions) are necessary. We hope this work encourages new distribution-based regression benchmarks. 
+
+# 7 Related Work 
+
+Table 3: Mean and standard deviation of the 2-Wasserstein distance on selected datasets. GSNN consistently outper-forms GSNN with standard graph Laplacian – showing that learning the Laplacian with sheaves is beneficial – and GCN receiving concatenated Gaussian parameters – pointing to the value of respecting the intrinsic structure of data.                                                       
+
+> Model BA ( m“50 )WS ( k“45 , p “0.5)Weather1 GaussianGCN 14.83 ˘0.33 14.41 ˘0.34 6.15 ˘0.89 GSNN-GraphLap 11.47 ˘0.29 11.48 ˘0.42 8.64 ˘1.25
+> Diag-GSNN 8.76 ˘0.56 12.22 ˘0.55 5.46 ˘0.11 O(d)-GSNN 8.63 ˘0.62 11.80 ˘0.70 5.41 ˘1.03 Gen-GSNN 8.48 ˘0.47 10.87 ˘0.42 5.55 ˘0.78
+
+Sheaf Neural Networks. SNN models were introduced in Hansen and Gebhart [2020], initiating the interest of the machine learning community in cellular sheaves whose stalks are vector spaces Barbero et al. [2022], Bodnar et al. [2022], Duta et al. [2023]. More recently Gillespie et al. [2024] using Bayesian inference to learn sheaves. The cellular sheaves in these works are all valued in Vect ;consequently, they do not exploit the geometric and algebraic structure that arises when node features are probability distributions, which is the inductive bias targeted by GSNN. 
+
+Distribution-on-distribution regression. While this is the first work dealing with networked data, the literature on distribution-on-distribution regression for independent data is blooming. For instance, Ghodrati and Panaretos [2022] perform regression when both input and output are probability distributions on a compact interval. Chen et al. [2023] develop a linear distribution-on-distribution model for univariate distributions. Zhang et al. [2022] proposes an autoregressive model for density time series by leveraging the tangent space structure on the space of distributions induced by the Wasserstein metric. Okano and Imaizumi [2024] 10 A PREPRINT - M AY 21, 2026 consider the case in which both input and target are Gaussian distributions, using a nearly isometric map from 
+
+GpRdq to a vector space and then using a linear model to perform the regression of one Gaussian into another. 
+
+Cellular Sheaves. Ghrist and Riess [2022] and Riess and Ghrist [2022] lay the theoretical foundations for sheaves whose stalks are partially ordered sets (i.e., lattices). Although lattices do not intuitively resemble distributions, they form a category that imposes similar technical difficulties. For instance, both develop a novel formulation for the Laplacian, and H0pG, Fq did not coincide with the kernel of the former. In fact, we defined our Lyapunov energy inspired by their work. 
+
+# 8 Discussion 
+
+This work proposed Gaussian Sheaf Neural Networks (GSNN), the first method for distribution-on-distribution regression over graphs. Towards that end, we extended the theory of cellular sheaves to define the Gaussian sheaf and its Laplacian. Since in real-world applications there is no recipe to define restriction maps a priori ,we propose learning the Gaussian sheaf in an end-to-end fashion. After defining a transport between nodes through the composition of restriction maps, we investigated how its expressivity along a path depends on whether the restriction maps are in Opnq, Dpnq, or GL pnq (Section 4). Section A (in the appendix) further studies oversmoothing in our setting, showing that GSNN can control a Lyapunov energy through its parameters. We also validated GSNN with experiments on four simulated and two real-world datasets. The main limitation of GSNN is that we assume the input node distributions can be encoded as multivariate Gaussians, even though GSNN’s output is a free-form distribution. We believe extending GSNN to different input distributions is a promising direction for future works. Beyond GSNN itself, our work shows how category-theoretic principles can extend sheaf-based deep learning to node features beyond vector spaces, reinforcing the view that category theory provides a unifying framework for architecture design Gavranovi´ c et al. [2024]. 
+
+Societal Impact. We foresee no immediate ethical or societal risks associated with the developments presented in this paper. 
+
+# References 
+
+Federico Barbero, Cristian Bodnar, Haitz Sáez de Ocáriz Borde, Michael Bronstein, Petar Veliˇ ckovi´ c, and Pietro Liò. Sheaf neural networks with connection laplacians. In ICML Topological, Algebraic and Geometric Learning Workshop 2022 , 2022. Cristian Bodnar. Topological deep learning: graphs, complexes, sheaves . PhD thesis, University of Cambridge, 2023. Cristian Bodnar, Francesco Di Giovanni, Benjamin Chamberlain, Pietro Lio, and Michael Bronstein. Neural sheaf diffusion: A topological perspective on heterophily and oversmoothing in gnns. Advances in Neural Information Processing Systems , 35:18527–18541, 2022. Nicolas Bonneel, Michiel Van De Panne, Sylvain Paris, and Wolfgang Heidrich. Displacement interpolation using lagrangian mass transport. In Proceedings of the 2011 SIGGRAPH Asia conference , pages 1–12, 2011. Michael M Bronstein, Joan Bruna, Yann LeCun, Arthur Szlam, and Pierre Vandergheynst. Geometric deep learning: going beyond euclidean data. IEEE Signal Processing Magazine , 34(4):18–42, 2017. 11 A PREPRINT - M AY 21, 2026 Michael M Bronstein, Joan Bruna, Taco Cohen, and Petar Veliˇ ckovi´ c. Geometric deep learning: Grids, groups, graphs, geodesics, and gauges. arXiv preprint arXiv:2104.13478 , 2021. Chen Cai and Yusu Wang. A note on over-smoothing for graph neural networks. In Proceedings of the 37th International Conference on Machine Learning , volume 108 of Proceedings of Machine Learning Research (PMLR) , 2020. Ines Chami, Zhitao Ying, Christopher Ré, and Jure Leskovec. Hyperbolic graph convolutional neural networks. 
+
+Advances in neural information processing systems , 32, 2019. Yaqing Chen, Zhenhua Lin, and Hans-Georg Müller. Wasserstein regression. Journal of the American Statistical Association , 2023. Justin Michael Curry. Sheaves, cosheaves and applications . PhD thesis, University of Pennsylvania, 2014. Iulia Duta, Giulia Cassarà, Fabrizio Silvestri, and Pietro Lió. Sheaf hypergraph networks. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. David K Duvenaud, Dougal Maclaurin, Jorge Iparraguirre, Rafael Bombarell, Timothy Hirzel, Alán Aspuru-Guzik, and Ryan P Adams. Convolutional networks on graphs for learning molecular fingerprints. Advances in neural information processing systems (NeurIPS) , 2015. Bruno Gavranovi´ c, Paul Lessard, Andrew Joseph Dudzik, Tamara von Glehn, João Guilherme Madeira Araújo, and Petar Veliˇ ckovi´ c. Position: Categorical deep learning is an algebraic theory of all architectures. In Forty-first International Conference on Machine Learning , 2024. Laya Ghodrati and Victor M Panaretos. Distribution-on-distribution regression via optimal transport maps. 
+
+Biometrika , 2022. Robert Ghrist and Hans Riess. Cellular sheaves of lattices and the tarski laplacian. Homology, Homotopy and Applications , 24(1):325–345, 2022. Patrick Gillespie, Vasileios Maroulas, and Ioannis Schizas. Bayesian sheaf neural networks. ArXiv preprint 2410.09590 , 2024. Justin Gilmer, Samuel S Schoenholz, Patrick F Riley, Oriol Vinyals, and George E Dahl. Neural message passing for quantum chemistry. In International conference on machine learning (ICML) , 2017. Albert Gu, Frederic Sala, Beliz Gunel, and Christopher Ré. Learning mixed-curvature representations in product spaces. In International Conference on Learning Representations , 2019. Jakob Hansen. Laplacians of Cellular Sheaves: Theory and Applications . PhD thesis, University of Pennsylvania, 2020. Jakob Hansen and Thomas Gebhart. Sheaf neural networks. NeurIPS Workshop on Topological Data Analysis and Beyond , 2020. Jakob Hansen and Robert Ghrist. Toward a spectral theory of cellular sheaves. Journal of Applied and Computational Topology , 2019. Jakob Hansen and Robert Ghrist. Opinion dynamics on discourse sheaves. SIAM Journal on Applied Mathematics , 2021. Jaiung Jun. ˇ Cech cohomology of semiring schemes. Journal of Algebra , 2017. Maximillian Nickel and Douwe Kiela. Poincaré embeddings for learning hierarchical representations. 
+
+Advances in neural information processing systems , 30, 2017. Ryo Okano and Masaaki Imaizumi. Distribution-on-distribution regression with wasserstein metric: Multi-variate gaussian case. Journal of Multivariate Analysis , 2024. Kenta Oono and Taiji Suzuki. Graph neural networks exponentially lose expressive power for node classifica-tion. In International Conference on Learning Representations (ICLR) , 2020. 12 A PREPRINT - M AY 21, 2026 Alex Patchkoria. On exactness of long sequences of homology semimodules. Journal of Homotopy and Related Structures , 2006. Alex Patchkoria. Cohomology monoids of monoids with coefficients in semimodules II. In Semigroup Forum ,2018. Hans Riess and Robert Ghrist. Diffusion of information on networked lattices by gossip. In IEEE Conference on Decision and Control (CDC) , 2022. Alvaro Sanchez-Gonzalez, Jonathan Godwin, Tobias Pfaff, Rex Ying, Jure Leskovec, and Peter Battaglia. Learning to simulate complex physics with graph networks. In International conference on machine learning (ICML) , 2020. Felix Wu, Amauri Souza, Tianyi Zhang, Christopher Fifty, Tao Yu, and Kilian Weinberger. Simplifying graph convolutional networks. In International conference on machine learning (ICML) , 2019. Bo Xiong, Shichao Zhu, Nico Potyka, Shirui Pan, Chuan Zhou, and Steffen Staab. Pseudo-riemannian graph convolutional networks. Advances in Neural Information Processing Systems , 35:3488–3501, 2022. Rex Ying, Ruining He, Kaifeng Chen, Pong Eksombatchai, William L Hamilton, and Jure Leskovec. Graph convolutional neural networks for web-scale recommender systems. In ACM SIGKDD international conference on knowledge discovery & data mining (KDD) , 2018. Chao Zhang, Piotr Kokoszka, and Alexander Petersen. Wasserstein autoregressive models for density time series. Journal of Time Series Analysis , 2022. 
+
+# A Oversmoothing: Gaussian sheaves and the Lyapunov energy 
+
+Oversmoothing in GNNs occurs when increasing network depth causes node embeddings within a connected component to become indistinguishable. This phenomenon can be assessed using the Dirichlet energy, which quantifies the smoothness of node embeddings by summing the squared differences between connected nodes Cai and Wang [2020]. The message-passing mechanism in deep GNNs behaves similarly to iterative Laplacian smoothing, effectively minimizing the Dirichlet energy. As layers deepen, this energy decreases, driving embeddings toward uniformity and reducing their discriminative power, ultimately degrading predictive performance Oono and Suzuki [2020]. Although not explicitly related to the NSD model’s capacity to avoid oversmoothing, Bodnar et al. [2022] proves that sheaf diffusion models in Vect can both increase or decrease the Dirichlet energy of the sheaf, given by EF pxq :“ xJ∆F x, in circumstances that Graph Convolution Networks (GCNs) cannot. This indicates that sheaves provide flexible models by default. Here we show that GSNN shares this same malleable behavior. A simple verification reveals x P ker p∆F q ô EF pxq “ 0. However, for SDef -valued sheaves, the kernel of 
+
+∆C is always trivial, indicating that the Dirichlet energy a poor measure in our context. Therefore, to analyze GSNN, we propose the Lyapunov energy. 
+
+Definition A.1. Let d be a distance function between probability measures. The Lyapunov energy of a Gaussian sheaf is given by 
+
+V pνq “ ÿ
+
+> pv,u qP E
+
+d
+
+ˆ
+
+ΦFv⊴eD´ 12
+
+> v
+
+pνv q, ΦFu⊴eD´ 12
+
+> u
+
+pνuq
+
+˙2
+
+Using the 2-Wasserstein, and writing Σ1 
+
+> v
+
+“ φFv⊴eD´ 12
+
+> v
+
+pΣv q, the Lyapunov energy reduces to 
+
+V pνq “ EMpμq ` ÿ
+
+> pv,u qP E
+
+tr 
+
+ˆ
+
+Σ1 
+
+> v
+
+` Σ1 
+
+> u
+
+´ 2
+
+´
+
+Σ1 12 
+
+> v
+
+Σ1 
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+.
+
+13 A PREPRINT - M AY 21, 2026 Note that V pνq “ 0 exactly when ν P H0pG, Fq, and when restriction maps are identities this forces 
+
+νu “ νv across all neighbors — precisely the oversmoothing condition. Thus V is a meaningful measure of ‘smoothness’. Proposition A.1 below shows that GSNN can freely control the Lyapunov energy depending on parameter choice, mirroring the Dirichlet energy behavior of vector-valued sheaf diffusion (recall the pushforward parameterization in Remark 3.1). 
+
+Proposition A.1. Let G be a connected graph and pG, Fq a Gaussian sheaf with orthogonal restriction maps. Then there exist a family tνj ujPJ Ă C0pG, Fq and weight matrices Wα, Wβ such that V pp I b Wαq#νj q ą 
+
+V pνj q and V pp I b Wβ q#νj q ă V pνj q.
+
+Next, to empirically illustrate that GSNN avoids oversmoothing, we sample a synthetic dataset with 100 nodes using the Barabasi-Albert model with m “ 25 . We fix the hyperparameters for all models, since the motivation behind this experiment is illustrate the capacity of GSNN to avoid oversmoothing. Both input and target distributions are bidimensional Gaussians, with 30 samples for the target distributions. Table 4 shows that, contrary to GCN, GSNN models keeps the 2-Wasserstein distance stable through the layers. In Table 5 we provide the Dirichlet energy of GCN and the energy of the sheaf of means of O(d)-GSNN. This results combined suggest that the GSNN ability to control the Lyapounov energy — foreseen by Proposition A.1 — is responsible for its general better performance. Table 4: Effect of adding more layers to the models. Both input and target distributions are bidimensional Gaussians, with 30 samples for the target distributions. 1 2 4 8GCN 9.67 ˘0.49 10 .56 ˘0.67 57 .03 ˘40 .91 30874 ˘42864 
+
+Diag-GSNN 11 .02 ˘0.91 11 .58 ˘1.81 10 .55 ˘1.34 10 .79 ˘1.77 
+
+O(d)-GSNN 10 .68 ˘1.03 11 .79 ˘1.51 11 .21 ˘1.57 11 .79 ˘2.27 
+
+Gen-GSNN 11 .68 ˘1.35 12 .71 ˘1.95 11 .00 ˘1.21 11 .75 ˘2.38 
+
+Table 5: Dirichlet energy for GCN and sheaf of means of GSNN. We can see that GCN quickly converges to 0 energy, while the energy for GSNN is stable. 1 2 3 4 5 6 7 8GCN 23495 .02 99 .85 0.79 0.04 0.0033 0.0009 0.000035 0.000007 
+
+O(d)-GSNN 66 .7167 66 .7315 66 .7367 66 .7383 66 .7387 66 .7388 66 .7388 66 .7388 
+
+# B Proofs 
+
+## B.1 Proof of Theorem 3.1 
+
+Theorem 3.1. We have that H0pG, Cq “ ΓpG, Cq, and for an oriented edge e “ p v, u q P E the output of δC
+
+in pG, Cq is δC pΣqe “ Cv⊴epΣv q ` Cu⊴epΣuq. Furthermore, δC pΣq “ ř 
+
+> i
+
+φAi φδM pΣq.
+
+Proof. First we introduce some notation and use an example to illustrate the operations. Let B P Rnd ˆnd be a matrix defined block-wise by d ˆ d matrices. We will denote the i-th block-line of B as Bi and Bi its i-th 14 A PREPRINT - M AY 21, 2026 block-column. For instance if n “ 3, we have 
+
+B “
+
+«B11 B12 B13 
+
+B21 B22 B23 
+
+B31 B32 B33 
+
+ff 
+
+, B 1 “ r B11 B12 B13 s , B 1 “
+
+«B11 
+
+B21 
+
+B31 
+
+ff 
+
+.
+
+Also, Ak “ ‘ iPr| E|s Aki , with Aki “ 0dˆd if i ‰ k and Aki “ Idˆd if i “ k. For |E| “ 3 we have 
+
+A1 “
+
+«Idˆd 0 00 0 00 0 0
+
+ff 
+
+, A2 “
+
+«0 0 00 Idˆd 00 0 0
+
+ff 
+
+, A3 “
+
+«0 0 00 0 00 0 Idˆd
+
+ff 
+
+Notice that the operator φAk is simply extracting the k-th block-diagonal of φδ`
+
+> M
+
+pΣq and φδ´
+
+> M
+
+pΣq, so we only need to find these entries. We label the lines of δM by edges, the columns by vertices, and then each line has only two entries — since the entries are matrices, these are not exactly the lines and columns, but we can group them that way as we did in the example. Thus the positive and negative parts will have only one non-zero entry at each line. The output at an edge e :“ p v, u q P E of this operator gives a nice picture of what is happening: 
+
+δMpμqe “ Fv⊴eμv ´ Fu⊴eμu “ δ`
+
+> M
+
+pμqe ´ δ´
+
+> M
+
+pμqe
+
+Since each line has only one nonzero entry, the structure of δ`
+
+> M
+
+Σ is the same of δ`
+
+> M
+
+, i.e. the nonzero entries are exactly the same. Letting ei :“ p vi, u iq P E:
+
+φδ`
+
+> M
+
+pΣqii “ p δ`
+
+> M
+
+Σqi ¨ rp δ`
+
+> M
+
+qJsi “ Fvi⊴ei Σvi FJ
+
+> vi⊴ei
+
+φδ´
+
+> M
+
+pΣqii “ p δ´
+
+> M
+
+Σqi ¨ rp δ´
+
+> M
+
+qJsi “ Fui⊴ei Σui FJ
+
+> ui⊴ei
+
+,
+
+since the i-th column of the transpose is the line of the original matrix, with each entry block transposed. Therefore, if δ` 
+
+> C
+
+“ ř 
+
+> k
+
+φAk φδ`
+
+> M
+
+and δ´ 
+
+> C
+
+“ ř 
+
+> k
+
+φAk φδ´
+
+> M
+
+, the output of δC “ δ` 
+
+> C
+
+` δ´ 
+
+> C
+
+on the i-th edge/line is 
+
+δC pΣqei “ δC pΣqi “ Fvi⊴ei Σvi FJ 
+
+> vi⊴ei
+
+` Fui⊴ei Σui FJ 
+
+> ui⊴ei
+
+,
+
+as expected. Also 
+
+H0pG, Cq “ Eq pδ` 
+
+> C
+
+, δ ´ 
+
+> C
+
+q “ t Σ P C0pG, Cq | δ` 
+
+> C
+
+pΣq “ δ´ 
+
+> C
+
+pΣqu “ t Σ P C0pG, Cq | Fv⊴eΣv FJ 
+
+> v⊴e
+
+“ Fu⊴eΣuFJ
+
+> u⊴e
+
+u“ ΓpG, Cq
+
+A similar argument shows that φδM pΣqii “ Fvi⊴ei Σv FJ 
+
+> vi⊴ei
+
+` Fui⊴ei ΣuFJ 
+
+> ui⊴ei
+
+.
+
+## B.2 Proof of Theorem 3.2 
+
+Setup. Before turning to the proof, we make explicit the decomposition LC “ L` 
+
+> C
+
+` L´ 
+
+> C
+
+used in the statement. Using the decomposition δM “ δ` 
+
+> M
+
+´ δ´ 
+
+> M
+
+we get 
+
+LM “ δJ
+
+> M
+
+δM “ δ`J 
+
+> M
+
+δ` 
+
+> M
+
+` δ´J 
+
+> M
+
+δ´
+
+> M
+
+looooooooomooooooooon 
+
+> L`
+> M
+
+´p δ`J 
+
+> M
+
+δ´ 
+
+> M
+
+` δ´J 
+
+> M
+
+δ`
+
+> M
+
+looooooooomooooooooon 
+
+> L´
+> M
+
+q.
+
+15 A PREPRINT - M AY 21, 2026 Expanding the terms in the definition of LC and using the decomposition above, we can write LC “ L` 
+
+> C
+
+` L´
+
+> C
+
+with 
+
+L` 
+
+> C
+
+pΣq “ ÿ
+
+> i,j
+
+φBi
+
+´
+
+φpδ` 
+
+> MqJAjδ`
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ´
+> M
+
+pΣq
+
+¯
+
+,L´ 
+
+> C
+
+pΣq “ ÿ
+
+> i,j
+
+φBi
+
+´
+
+φpδ` 
+
+> MqJAjδ´
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ`
+> M
+
+pΣq
+
+¯
+
+.
+
+Theorem 3.2. Let G “ p V, E q be a connected graph and pG, Cq a SDef -valued sheaf. Then Eq pL` 
+
+> C
+
+, L ´ 
+
+> C
+
+q “ 
+
+H0pG, Cq.
+
+Proof. The equalizer is the subset of C0pG, Cq for which 
+
+> n
+
+ÿ
+
+> i“1
+
+φBi
+
+˜ÿ
+
+> j
+
+φpδ` 
+
+> MqJAjδ`
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ´
+> M
+
+pΣq
+
+¸
+
+“
+
+> n
+
+ÿ
+
+> i“1
+
+φBi
+
+˜ÿ
+
+> j
+
+φpδ` 
+
+> MqJAjδ´
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ`
+> M
+
+pΣq
+
+¸
+
+.
+
+Since each Bi has the effect of extracting the i-th (d-dimensional block) diagonal, we get for each i P r ns in the left hand side (lhs) «
+
+φpδ`
+
+> MqJ
+
+˜ÿ
+
+> j
+
+φAj δ`
+
+> M
+
+pΣq
+
+¸
+
+` φpδ´
+
+> MqJ
+
+˜ÿ
+
+> j
+
+φAj δ´
+
+> M
+
+pΣq
+
+¸ff 
+
+> ii
+
+,
+
+and in the right hand side (rhs) 
+
+«
+
+φpδ`
+
+> MqJ
+
+˜ÿ
+
+> j
+
+φAj δ´
+
+> M
+
+pΣq
+
+¸
+
+` φpδ´
+
+> MqJ
+
+˜ÿ
+
+> j
+
+φAj δ`
+
+> M
+
+pΣq
+
+¸ff 
+
+> ii
+
+.
+
+But what appears inside the parenthesis are exactly the definition of δ` 
+
+> C
+
+and δ´ 
+
+> C
+
+, thus 
+
+”
+
+φpδ`
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq˘ ` φpδ´
+
+> MqJ
+
+`δ´ 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+“
+
+”
+
+φpδ`
+
+> MqJ
+
+`δ´ 
+
+> C
+
+pΣq˘ ` φpδ´
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+.
+
+Rearranging: 
+
+”
+
+φpδ`
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq˘ ´ φpδ`
+
+> MqJ
+
+`δ´ 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+“
+
+”
+
+φpδ´
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq˘ ´ φpδ´
+
+> MqJ
+
+`δ´ 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+”
+
+φpδ`
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+“
+
+”
+
+φpδ´
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq˘ı
+
+> ii
+
+. (6) Since δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq is a block-diagonal matrix, pδ`
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqq will have the same structure as 
+
+pδ`
+
+> M
+
+qJ, i.e., the non-zero entries are in the exact same indices. Note that since we are only interested in the diagonal entries, Equation 6 will be similar to an inner product of the i-th line of pδ`
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqq 
+
+and the i-th column of δ`
+
+> M
+
+. This is not exactly an inner product because our entries are matrices and the output of this operation is again a matrix. The same holds for the rhs. The coboundary operator of the Vect -valued sheaf is defined using an arbitrary choice of direction for each edge. If e :“ p v, u q P E and we choose e “ v Ñ u, we get δMpμqe “ Fv⊴eμv ´ Fu⊴eμu. Using this notion, we define δ`
+
+> M
+
+pμqe “ Fv⊴eμv and δ´
+
+> M
+
+pμqe “ Fu⊴eμu. This extends to all vertices and edges on the graph. Now, similar to the proof of Theorem 3.1 we can label the lines of δM by edges and the columns by vertices, 16 A PREPRINT - M AY 21, 2026 and then the coboundary has only two entries per line. This implies that the positive and negative parts will have only one entry at each line. Moreover, using the notation described in the proof of Theorem 3.1, if an edge e has node v as source, then pδ`
+
+> M
+
+qve “ Fv⊴e, pδ´
+
+> M
+
+qve “ 0dˆd and pδ`
+
+> M
+
+qve “ 0dˆd, pδ´
+
+> M
+
+qve “ Fu⊴e.Since the orientation of the edges is arbitrary, our results must be independent of these choices. We have 
+
+n “ | V | equations in the form of Equation (6). Each index can be identified with a node and from now on we fix a node v P V , since all equations have the same structure and depend only on the column v of the positive and negative parts of the coboundary map (resp. the line v in their transposes), as we mentioned before. We have 2|E| possible orientations for the edges, and we will denote Eq the set of oriented edge for some q P “2|E|‰. Notice that the relevant orientations in this case are only those related to v, thus we can restrict ourselves to a subset Ev “ t Evq1 . . . , E vq2|N pvq| u of orientations that only accounts for v and its neighbors. Let Sv be the solution set of Equation (6) for our fixed node v. Then Sv “ Ş 
+
+> r
+
+SEqr  
+
+> v
+
+, where SEqr 
+
+> v
+
+is the specific solution set for the given oriented edge set Eqr . We will omit the superscript v in the oriented edge set since S already has it as subscript. Consider that for our fixed node v, we choose all its incident edges to have v as source, and assume that this orientation is given by the first element in Ev . Then @e P Evq1 s.t. v ⊴ e we have pδ`
+
+> M
+
+qve “ Fv⊴e, and consequently pδ´
+
+> M
+
+qve “ 0dˆd. Therefore the column v in δ´ 
+
+> M
+
+is composed only by zeros, the remaining edges that are not incident to v clearly have null entry at this column. For simplicity, assume that the column indexed by v is the first one. We pointed out that both sides of Equation (6) have a description that resembles an inner product between the lines and columns of the corresponding matrices, in particular, for pδ´
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqq and δ´
+
+> M
+
+. The first column, indexed by v, in δ´ 
+
+> M
+
+is zero. Using only subscripts since the result is a square matrix, that can be indexed by vertices, we have: 
+
+”
+
+φpδ´
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq˘ı
+
+> vv
+
+“ rp δ´
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqqs v rδ´
+
+> M
+
+sv “ 0.
+
+Hence, Equation (6) can be rewritten as 
+
+”
+
+φpδ`
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq˘ı
+
+> vv
+
+“ 0 ùñ rp δ`
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqqs v rδ`
+
+> M
+
+sv “ 0.
+
+Let tej ujPr| E|s be some ordering of the edges such that the first |N pvq| edges are incident to v (the lines/columns of δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq are e1, . . . , e |N pvq| , . . . , e |E|). Also let 
+
+δ` 
+
+> C
+
+pΣq “ block-diag pδ` 
+
+> 1
+
+, . . . , δ `|E|q
+
+δ´ 
+
+> C
+
+pΣq “ block-diag pδ´ 
+
+> 1
+
+, . . . , δ ´|E|q.
+
+Then 
+
+rp δ`
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqqs v rδ`
+
+> M
+
+sv “ 
+
+> |Npvq|
+
+ÿ
+
+> j“1
+
+FJ 
+
+> v⊴ej
+
+pδ` 
+
+> j
+
+´ δ´ 
+
+> j
+
+qFv⊴ej “ 0. (7) Therefore, the solution set SEq1 
+
+> v
+
+of Equation (6) can be described as  
+
+> |Npvq|
+
+ÿ
+
+> j“2
+
+FJ 
+
+> v⊴ej
+
+pδ` 
+
+> j
+
+´ δ´ 
+
+> j
+
+qFv⊴ej “ ´ FJ 
+
+> v⊴e1
+
+pδ` 
+
+> 1
+
+´ δ´ 
+
+> 1
+
+qFv⊴e1 . (8) 17 A PREPRINT - M AY 21, 2026 Now, we consider another orientation Eq2 for the edges incident to v: using our numbering of the edges above, we only change the orientation of the first edge e1. Thus, the only nonzero entry in the column v of 
+
+δ´ 
+
+> M
+
+is Fv⊴e1 and we get on the rhs of equation 6: 
+
+”
+
+φpδ´
+
+> MqJ
+
+`δ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣq˘ı
+
+> vv
+
+“ rp δ´
+
+> M
+
+qJpδ` 
+
+> C
+
+pΣq ´ δ´ 
+
+> C
+
+pΣqqs v rδ´
+
+> M
+
+sv “ FJ 
+
+> v⊴e1
+
+pδ` 
+
+> 1
+
+´ δ´ 
+
+> 1
+
+qFv⊴e1 .
+
+The lhs is the lhs of Equation (8). Hence:  
+
+> |Npvq|
+
+ÿ
+
+> j“2
+
+FJ 
+
+> v⊴ej
+
+pδ` 
+
+> j
+
+´ δ´ 
+
+> j
+
+qFv⊴ej “ FJ 
+
+> v⊴e1
+
+pδ` 
+
+> 1
+
+´ δ´ 
+
+> 1
+
+qFv⊴e1 . (9) From Equations 8 and 9, i.e. the intersection SEq1 
+
+> v
+
+X SEq2 
+
+> v
+
+, we conclude that 
+
+FJ 
+
+> v⊴e1
+
+pδ` 
+
+> 1
+
+´ δ´ 
+
+> 1
+
+qFv⊴e1 “ 0.
+
+Since all restriction maps in the sheaf are invertible this is equivalent to δ` 
+
+> 1
+
+“ δ´ 
+
+> 1
+
+. Notice that Equation (8) can be actually rewritten as  
+
+> |Npvq|
+
+ÿ
+
+> j“1
+> j‰p
+
+FJ 
+
+> v⊴ej
+
+pδ` 
+
+> j
+
+´ δ´ 
+
+> j
+
+qFv⊴ej “ ´ FJ 
+
+> v⊴ep
+
+pδ` 
+
+> p
+
+´ δ´ 
+
+> p
+
+qFv⊴ep , @p P r| N pvq|s ,
+
+and we can choose an orientation Eqp`1 as we did for Eq2 to conclude that the intersection SEq1 
+
+> v
+
+X SEqp`1 
+
+> v
+
+is 
+
+FJ 
+
+> v⊴ep
+
+pδ` 
+
+> p
+
+´ δ´ 
+
+> p
+
+qFv⊴ep “ 0 ùñ δ` 
+
+> p
+
+“ δ´ 
+
+> p
+
+, @p P r| N pvq|s .
+
+Then we have |N pvq|` 1č
+
+> r“1
+
+SEqr  
+
+> v
+
+“ t δ` 
+
+> j
+
+“ δ´ 
+
+> j
+
+, @j P r| N pvq|u .
+
+Consequently, 
+
+tδ` 
+
+> j
+
+“ δ´ 
+
+> j
+
+, @j P r| N pvq|u Ă  
+
+> 2|Npvq|
+
+č 
+
+> r“| Npvq|` 2
+
+SEqr  
+
+> v
+
+,
+
+and we can conclude that Sv “ t δ` 
+
+> j
+
+“ δ´ 
+
+> j
+
+, @j P r| N pvq|u .Our fixed node v was arbitrarily chosen, therefore we can extend the same argument to other nodes until all edges are used, obtaining the final solution 
+
+Eq pL` 
+
+> C
+
+, L ´ 
+
+> C
+
+q “ ď
+
+> vPV
+
+Sv “ t δ` 
+
+> j
+
+“ δ´ 
+
+> j
+
+, @j P r| E|su “ Eq pδ` 
+
+> C
+
+, δ ´ 
+
+> C
+
+q.
+
+## B.3 Proof of Proposition 4.1 
+
+Proposition 4.1. A Gaussian ϱ P GpRdq with parameters pμ1, Σ1q is in the orbit of ϑ under the action of Opdq
+
+only if }μ1}2 “ } μ}2 and Σ1 has the same eigenvalues as Σ.
+
+Proof. Let ν “ N pμ, Σq, thus ϱ P Opdq ¨ ν is of the form N pQμ, Q ΣQJq with Q P Opdq. Therefore 
+
+}Qμ }2 “ } μ}2 and Σ1 “ QΣQJ “ QΣQ´1 is similar to Σ.18 A PREPRINT - M AY 21, 2026 
+
+## B.4 Proof of Proposition 4.2 
+
+Proposition 4.2. Let λ1, . . . , λ k be the eigenvalues of Σ with multiplicities m1, . . . , m k. If we write 
+
+μ “ p μ1, . . . , μ kq where μj P Rmj , the stabilizer of ϑ is in bijection with śkj“1 Opmj ´ 1tμj ‰0uq. If all eigenvalues are different, the stabilizer is in bijection with pZ2q|t j | μj “0u| .
+
+Proof. Let ν “ N pμ, Σq. We will study the stabilizer of the parameters separately. For the covariances, we first consider the simplest case where Σ “ diag pλ1, . . . , λ nq.If all eigenvalues are different, we get Stab pΣq “ t diag pα1, . . . , α dq, α i P t˘ 1uu » p Z2qd.If we have k eigenvalues with multiplicities m1, . . . , m k, then Σ “ Àkj“1 λj Imj . On one hand, if QΣQJ “
+
+Σ, then Q must preserve each block, i.e. Q “ Àkj“1 Qj , with Qj P Opmj q. On the other hand, if 
+
+Q “ Àkj“1 Qj , with Qj P Opmj q:
+
+QΣQJ “
+
+> k
+
+à
+
+> j“1
+
+Qj λj Imj QJ 
+
+> j
+
+“
+
+> k
+
+à
+
+> j“1
+
+λj Qj QJ 
+
+> j
+
+“
+
+> k
+
+à
+
+> j“1
+
+λj Imj “ Σ.
+
+Therefore, Stab pΣq – śkj“1 Opmj q. For the general setting, we know that Σ can be written as V ΛV J with 
+
+V P Opdq, thus 
+
+QΣQJ “ QV ΛV JQJ “ V ΛV J ùñ p V JQV qΛpV JQV qJ “ Λ,
+
+and taking U “ V JQV P Opdq we have Stab pΣq – Stab pΛq.Now, for the means, we recall that the stabilizer of a vector μ P Rd is isomorphic to Opd ´ 1q if μ ‰ 0 and to Opdq if μ “ 0. If we decompose μ “ p μ1, ..., μ kq where μj P Rmj , since Q P Stab pΣq is of the form 
+
+Q “ Àkj“1 Qj with Qj P Opmj q, we get that 
+
+Qμ “ μ ðñ Qj μj “ μj , @j P t 1, . . . , k u,
+
+thus Stab pνq “ Stab pΣq X Stab pμq “ śkj“1 O `mj ´ 1tμj ‰0u
+
+˘.If all eigenvalues are different, Stab pνq “ p Z2q|t j | μj “0u| 
+
+## B.5 Proof of Proposition 4.3 
+
+Proposition B.1. Let pG, Fq be a Gaussian sheaf with orthogonal restriction maps over a connected graph 
+
+G. Then for any ν P H0pG, Fq and cycle γ based at v P V we have PγvÑv pνv q “ νv .Proof. Let ν P H0pG, Fq and γ “ p v0, v 1, . . . , v ℓ, v ℓ`1q with v0 “ vℓ`1 “ v. Then letting ei :“ p vi, v i`1q
+
+we have 
+
+Fvi`1⊴ei μvi`1 “ Fvi⊴ei μvi ùñ μvi`1 “ FJ 
+
+> vi`1⊴ei
+
+Fvi⊴ei μvi
+
+for the means and 
+
+Cvi`1⊴ei pΣvi`1 q “ Cvi⊴ei pΣvi q ùñ Fvi`1⊴ei Σvi`1 FJ 
+
+> vi`1⊴ei
+
+“ Fvi⊴ei Σvi FJ
+
+> vi⊴ei
+
+ùñ Σvi`1 “ FJ 
+
+> vi`1⊴ei
+
+Fvi⊴ei Σvi FJ 
+
+> vi⊴ei
+
+Fvi`1⊴ei
+
+ùñ Σvi`1 “ φFJ 
+
+> vi`1⊴eiFvi⊴ei
+
+pΣvi q
+
+19 A PREPRINT - M AY 21, 2026 for the covariances. Hence the transport 
+
+PγvÑv pνv q “ 
+
+´
+
+ΦFJ
+
+> v⊴eℓ
+
+˝ ΦFvℓ⊴eℓ
+
+¯
+
+˝ . . . ˝
+
+´
+
+ΦFJ
+
+> v1⊴e0
+
+˝ ΦFv⊴e0
+
+¯
+
+pνv q“ ΦFJ 
+
+> v⊴eℓFvℓ⊴eℓ
+
+˝ . . . ˝
+
+´
+
+ΦFJ 
+
+> v1⊴e0Fv⊴e0
+
+pνv q
+
+¯
+
+can be described by the following operations over the parameters (consider PγvÑv pνv q “ N pμ˚, Σ˚q)
+
+μ˚ “ FJ 
+
+> v⊴eℓ
+
+Fvℓ⊴eℓ ¨ ¨ ¨ FJ 
+
+> v1⊴e0
+
+Fv⊴e0 μv
+
+Σ˚ “ φFJ 
+
+> v⊴eℓFvℓ⊴eℓ
+
+˝ ¨ ¨ ¨ ˝ 
+
+´
+
+φFJ 
+
+> v1⊴e0Fv⊴e0
+
+pΣv q
+
+¯
+
+Using the global section property obtained before we conclude that μ˚ “ μv and Σ˚ “ Σv , i.e. PγvÑv pνv q “ 
+
+νv .
+
+Proposition 4.3 Let pG, Fq be a Gaussian sheaf with Opdq maps over a connected graph G. Then Dν P
+
+H0pG, Fq with νv “ ϑ if, and only if, for every cycle γ based at v holds that PγvÑv P Stab pϑq.
+
+Proof. Let ν P H0pG, Fq with νv “ ϑ. Then for every loop γ based at v, we get PγvÑv pϑq “ ϑ, i.e. 
+
+PγvÑv P Stab pϑq.Consider a path ς : v Ñ w, and define νw “ PςvÑwpϑq. Take another path ϖ : v Ñ w, and define the loop 
+
+γ “ ϖ´1 ˝ ς, thus PςvÑw “ PϖvÑw ˝ PγvÑv . If PγvÑv P Stab pϑq for every loop γ at v, then 
+
+νw “ PςvÑwpϑq “ PϖvÑwpPγvÑv pϑqq “ PϖvÑwpϑq,
+
+thus we have a well-defined map ν : V pGq Ñ GpRdq. To see that it is a global section, consider an edge 
+
+e “ p w, u q P EpGq, and the unit-length path κ : w Ñ u. Thus νw “ PςvÑwpϑq and νu “ Pκ˝ςvÑupϑq “ 
+
+Pκ
+
+> wÑu
+
+pPςvÑwpϑqq “ Pκ
+
+> wÑu
+
+pνwq. Recall that Pκ 
+
+> wÑu
+
+“ ΦFJ 
+
+> u⊴eFw⊴e
+
+, therefore 
+
+Pκ
+
+> wÑu
+
+pνwq “ N `FJ
+
+> u⊴e
+
+Fw⊴eμw, pFJ
+
+> u⊴e
+
+Fw⊴eqΣwpFJ
+
+> u⊴e
+
+Fw⊴eqJ˘ “ N pμu, Σuq.
+
+This yields a system of equations, and since the restriction maps are orthogonal 
+
+"μu “ FJ
+
+> u⊴e
+
+Fw⊴eμw
+
+Σu “ p FJ
+
+> u⊴e
+
+Fw⊴eqΣwpFJ
+
+> u⊴e
+
+Fw⊴eqJ ùñ 
+
+"Fu⊴eμu “ Fw⊴eμw
+
+Fu⊴eΣuFJ 
+
+> u⊴e
+
+“ Fw⊴eΣwFJ
+
+> w⊴e
+
+.
+
+We conclude that ν “ p ν1, . . . , ν nq P H0pG, Fq.
+
+## B.6 Proof of Proposition 4.4 
+
+Proposition 4.4. Let pG, Fq be a Gaussian sheaf with Opdq maps over a connected graph G where the transport is path-independent. Then H0pG, Fq and GpRdq are in bijection. 
+
+Proof. For each ν P H0pG, Fq, we can define maps fi : H0pG, Fq Ñ GpRdq with fipνq “ νi “ N pμi, Σiq,the Gaussian associated with each node vi P V pGq. Fix i “ k and consider the function fk.Injectivity of fk: Let ν, ν 1 P H0pG, Fq with fkpνq “ fkpν1q. For any vj P V , choose γ : vk Ñ vj path, thus 
+
+νj “ fj pνq “ Pγvk Ñvj pfkpνqq “ Pγvk Ñvj pfkpν1qq “ ν1 
+
+> j
+
+.
+
+20 A PREPRINT - M AY 21, 2026 Since this holds @j P r nszt ku and fkpνq “ fkpν1q, we get ν “ ν1, i.e., fk is injective. Surjectivity of fk: Let ϑ P GpRdq and define g : V pGq Ñ GpRqd by gpvj q “ Pγvk Ñvj pϑq for a path 
+
+γ : vk Ñ vj . Notice that this is well-defined due to path-independence. Let e “ p vℓ, v mq and ς : vk Ñ vℓ,then ϖ : κ˝ς, where κ : vℓ Ñ vm is the unit-length path from vℓ to vm. Therefore, since gpvℓq “ Pςvk Ñvℓ pϑq:
+
+gpvmq “ Pϖvk Ñvm pϑq “ Pκ 
+
+> vℓÑvm
+
+pPςvk Ñvℓ pϑqq “ Pκ 
+
+> vℓÑvm
+
+pgpvℓqq .
+
+Consequently, ν “ p gpv1q, . . . , g pvk´1q, ϑ, g pvk`1q, . . . , g pvnqq P H0pG, Fq. Thus, @ϑ P GpRdq, Dν P
+
+H0pG, Fq as constructed above with fkpνq “ ϑ. So fk is surjective, as desired. We conclude that fk : H0pG, Fq Ñ GpRdq is a bijection. 
+
+## B.7 Proof of Proposition 4.5 
+
+Proposition 4.5. The orbit of ϑ under the action of Dpdq is isomorphic to Dpdq and the stabilizer is always trivial, if μi ‰ 0 for all i “ 1, . . . , n .
+
+Proof. Let ν “ N pμ, Σq. Each mean vector μ1 “ p μ1
+
+> 1
+
+, . . . , μ 1
+
+> n
+
+q uniquely determines a matrix D “
+
+diag 
+
+´ μ1 
+
+> 1
+> μ1
+
+, . . . , μ1
+
+> n
+> μn
+
+¯
+
+such that Dμ “ μ1. Thus given a mean vector, the covariance matrix is completely deter-mined: pDΣDJqij “ μ1 
+
+> iμ1
+> j
+> μiμj
+
+Σij . Also for a general matrix D P Dpdq, we have that Dμ “ p d1μ1, . . . , d nμnq
+
+is in the stabilizer only if di “ 1, @i P r ds
+
+## B.8 Proof of Proposition 4.6 
+
+Proposition 4.6. Under the action of GL pdq we can achieve any mean vector by restricting the covariances to a specific set. Moreover, if Σ is positive-definite, by restricting the means to a specific set then we can also achieve any positive-definite covariance matrix. 
+
+Proof. Let ν “ N pμ, Σq. Given any mean vector μ1 P Rd, there exist a family of matrices A P GL pdq
+
+satisfying Aμ “ μ1. Thus we restrict the covariances to the subset of PSD matrices that can be achieved through this family. Also if Σ is positive definite, there exists decomposition Σ “ BJB with B P GL pdq
+
+(Cholesky, square root...), and for any covariance matrix Σ1 that is also positive definite with AΣAJ “ Σ1
+
+and Σ1 “ CJC, then A “ CJQpBJq´1 with Q P Opdq. Now we limit the set of possible mean vectors to the images of μ under the action of this family parameterized by C, Q and B.
+
+## B.9 Proposition A.1. 
+
+Proposition A.1 Let G be a connected graph and pG, Fq a Gaussian sheaf with orthogonal restriction maps. Then there exists a family tνj ujPJ Ă C0pG, Fq and weight matrices Wα, Wβ such that V pp I b Wαq#νq ą 
+
+V pνq and V pp I b Wβ q#νq ă V pνq.
+
+Proof. Let ν “ N pμ, Σq, with Σv “ σv I, and W “ cI . In cellular sheaves over a graph with orthogonal restriction maps we have Dv “ deg pvqI, @v P V . We analyze a single parcel of the energy V pνq in the edge 21 A PREPRINT - M AY 21, 2026 
+
+e :“ p v, u q P E for the covariances. Using the linearity of the trace we get 
+
+tr 
+
+ˆ
+
+Σ1 
+
+> v
+
+` Σ1 
+
+> u
+
+´ 2
+
+´
+
+Σ1 12 
+
+> v
+
+Σ1
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+“ tr pΣ1 
+
+> v
+
+q ` tr pΣ1
+
+> u
+
+q ´ 2 tr 
+
+ˆ´
+
+Σ1 12 
+
+> v
+
+Σ1
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+.
+
+The parcel tr pΣ1 
+
+> v
+
+q is 
+
+tr pΣ1 
+
+> v
+
+q “ tr pFv⊴eD´ 12 
+
+> v
+
+pσv IqD´ 12 
+
+> v
+
+FJ
+
+> v⊴e
+
+q“ σv tr pFv⊴eD´1 
+
+> v
+
+FJ
+
+> v⊴e
+
+q“ σv tr pFv⊴epdeg pvq´1IqFJ
+
+> v⊴e
+
+q“ σv deg pvq´1 tr pFv⊴eFJ
+
+> v⊴e
+
+q“ σv deg pvq´1 tr pIq“ d σv
+
+deg pvq ,
+
+hence tr pΣ2
+
+> u
+
+q “ d σu 
+
+> deg puq
+
+. For the last parcel: 
+
+tr 
+
+ˆ´
+
+Σ1 12 
+
+> v
+
+Σ1
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+“ tr 
+
+´`Σ1
+
+> u
+
+Σ1
+
+> v
+
+˘ 12
+
+¯
+
+“ tr 
+
+ˆ´
+
+Fv⊴eD´ 12 
+
+> v
+
+pσv IqD´ 12 
+
+> v
+
+FJ
+
+> v⊴e
+
+Fu⊴eD´ 12 
+
+> u
+
+pσuIqD´ 12 
+
+> u
+
+FJ
+
+> u⊴e
+
+¯ 12
+
+˙
+
+“ p σv σuq 12 tr 
+
+´`Fv⊴epdeg pvq´1IqFJ
+
+> v⊴e
+
+Fu⊴epdeg puq´1IqFJ
+
+> u⊴e
+
+˘ 12
+
+¯
+
+“ p σv σuq 12 pdeg pvq deg puqq ´ 12 tr 
+
+´
+
+pFv⊴eFJ
+
+> v⊴e
+
+Fu⊴eFJ
+
+> u⊴e
+
+q 12
+
+¯
+
+“ p σv σuq 12 pdeg pvq deg puqq ´ 12 tr pIq“ d
+
+c σv σu
+
+deg pvq deg puq .
+
+We conclude that 
+
+tr 
+
+ˆ
+
+Σ1 
+
+> v
+
+` Σ1 
+
+> u
+
+´ 2
+
+´
+
+Σ1 12 
+
+> v
+
+Σ1
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+“ d
+
+ˆ σv
+
+deg pvq ` σu
+
+deg puq ´ 2
+
+c σv σu
+
+deg pvq deg puq
+
+˙
+
+For the energy in the next layer, V pp I b W q#νq, letting Σ2 
+
+> v
+
+“ φFv⊴eD´ 12  
+
+> vW
+
+pΣv q a similar calculation yields 
+
+tr 
+
+ˆ
+
+Σ2 
+
+> v
+
+` Σ2 
+
+> u
+
+´ 2
+
+´
+
+Σ2 12 
+
+> v
+
+Σ2
+
+> u
+
+Σ2 12
+
+> v
+
+¯ 12
+
+˙
+
+“ c2d
+
+ˆ σv
+
+deg pvq ` σu
+
+deg puq ´ 2
+
+c σv σu
+
+deg pvq deg puq
+
+˙
+
+“ c2 tr 
+
+ˆ
+
+Σ1 
+
+> v
+
+` Σ1 
+
+> u
+
+´ 2
+
+´
+
+Σ1 12 
+
+> v
+
+Σ1
+
+> u
+
+Σ1 12
+
+> v
+
+¯ 12
+
+˙
+
+Now for the means, from EMpμq “ μJ∆Mμ we can easily conclude that EMpp I b W qμq “ c2Epμq.Putting everything together, V pp I b W q#νq “ c2V pνq. Therefore, choosing c P p 0, 1q we get V pp I b
+
+W q#νq ă V pνq, and choosing c ą 1 yields the opposite inequality. 22 A PREPRINT - M AY 21, 2026 
+
+# C A categorical definition of sheaves: why do we care about the target category 
+
+In this section, we give an introduction to the main definitions in category theory that lead us to the definition of sheaves whose domain are a category of open sets of some topological space. Then, we present cellular sheaves for a cell complex and explain how both notions are deeply connected. 
+
+Definition C.1. A category C consists of a collection of objects and a collection of morphism between pair of objects such that 1. If f : A Ñ B and g : C Ñ B are morphism of C, there must exist a unique morphism of C, called composition, g ˝ f : A Ñ C. Moreover, the composition is associative, i.e, for any three composable morphisms f, g, h it holds that f ˝ p g ˝ hq “ p f ˝ gq ˝ h.2. For every object A of C, there must exist a unique morphism of C, called identity, id A : A Ñ A.Moreover, it must satisfy that for any morphism f : A Ñ B we have f ˝ id A “ f “ id B ˝ f .
+
+Example C.1. Set is the category whose objects are sets, and morphisms are functions between them. Vect is the category whose objects are vector spaces, and morphisms are linear maps between them. 
+
+Example C.2. Any poset pP, ďq (set with partial order) can be seem as a category whose objects are elements of P and for any two objects A, B , there is a unique morphism A Ñ B if A ď B.
+
+Example C.3. Given a category C, we can define its opposite category Cop by reversing the direction of the morphisms. In other words, A Ñ B is a morphism of C iff B Ñ A is a morphism of Cop .
+
+Proposition C.1. SDef is a category. Proof. Recall SDef denotes the category of positive semidefinite matrices whose objects are the (convex) cones of positive semidefinite matrices. A map φ : C Ñ C1 in SDef is defined by a unique linear operator A
+
+through φApΣq “ AΣAJ.Since φA ˝ φB “ φAB , we have: 
+
+pφA ˝ φB q ˝ φC “ φAB ˝ φC “ φABC “ φA ˝ φBC “ φA ˝ p φB ˝ φC q
+
+So the composition is associative. If we take sum of maps in SDef , the composition still is associative. For any cone C of positive semidefinite matrices, the identity map is uniquely determined by the identity matrix, since φI pΣq “ IΣIJ “ Σ, for every Σ P C.
+
+Definition C.2. Given C and D two categories. A functor F : C Ñ D maps each object and morphism of C
+
+to a correspondent object and morphism of D in such way that: 1. F pid Aq “ id F pAq for every object A of C.2. F pg ˝ f q “ F pgq ˝ F pf q for every composable morphisms f, g of C.
+
+Example C.4. Let X be a topological space and denote by OpXq the category associated with the poset of all open sets of X, i.e. whose objects are open sets of X and whose morphisms are given by the inclusion relation. Consider F : OpXqop Ñ Set such that for each open U we define F pU q “ t f : U Ñ R|f is continuous u
+
+and for each U Ď V – which corresponds to the arrow V Ñ U in OpXqop – we have that f P F pV q is sent to its restriction f|U P F pU q. This functor is the presheaf of continuous functions and, actually, it is a classic example of a sheaf. 
+
+Definition C.3. The equalizer of a pair of morphism A B
+
+> f
+> g
+
+of C consists of an object Eq pf, g q and a morphism e : Eq pf, g q Ñ A in C satisfying f ˝ e “ g ˝ e and that given an object Z and any morphism 23 A PREPRINT - M AY 21, 2026 
+
+z : Z Ñ A of C satisfying f ˝ z “ g ˝ z then we have a unique morphism u : Z Ñ E such that e ˝ u “ z.This definition is represented by the following diagram: 
+
+Z
+
+E A B 
+
+> uz
+> e
+> f
+> g
+
+Example C.5. In Vect , the kernel of a morphism f : A Ñ B is the equalizer of f and the trivial linear map 
+
+0 : A Ñ B.
+
+Proposition C.2. The category SDef has equalizers for all pair of morphisms. Proof. Given a pair of morphisms C C1
+
+> φA
+> φB
+
+, if Eq pφA, φ B q “ t Σ P C | AΣAJ “ BΣBJu and 
+
+i : Eq pφA, φ B q Ñ C is the inclusion, it is clear that φA ˝ i “ φB ˝ i.Given a cone in SDef and a morphism φX : Z Ñ C such that φA ˝ φX “ φB ˝ φX , we can define a morphism u : Z Ñ Eq pφA, φ B q by upΣq “ XΣXJ, for all Σ P Z. In this way, upΣq P Eq pφA, φ B q
+
+because φA ˝ φX “ φB ˝ φX and i ˝ u “ φX . Moreover, u is the unique morphism such that i ˝ u “ φX .Indeed, suppose v : Z Ñ Eq pφA, φ B q is such that i ˝ v “ φX , then v “ i ˝ v “ φX “ i ˝ u “ u. 
+
+Definition C.4. The product of two objects A and B of C is an object of C denoted by A ˆ B equipped with projection morphisms π1 : A ˆ B Ñ A and π2 : A ˆ B Ñ B satisfying that for any object Z equipped with morphisms z1 : Z Ñ A and z2 : Z Ñ B, there exists a unique morphism u : Z Ñ A ˆ B such that 
+
+π2 ˝ u “ z2 and π1 ˝ u “ z1. Diagrammatically: 
+
+Z
+
+A A ˆ B B   
+
+> z1uz2
+> π1π2
+
+It is also possible to define product of an arbitrary (not necessarily finite) family. In this case, the product in 
+
+Vect is the cartesian product with addition defined component-wise, and the scalar multiplication distributing over all the components; thus, is the direct product. Since we are interested only in vector spaces of finite dimension, we can use that the finite direct product is isomorphic to the finite direct sum. Then the direct sum is the product for the category of finite vector spaces. In the infinite case, the direct sum is a dual notion called coprodut. 
+
+Proposition C.3. The category SDef has all finite products. Proof. We will show that if C and C1 are cones in SDef , then the direct sum C ‘ C1 is the product in SDef .The proof is the same if we have a finite direct sum of cones of PSD matrices. Suppose C is formed by PSD matrices in MnpRq and C1 is formed by PSD matrices in MmpRq. Then 
+
+C ‘ C1 “
+
+"
+
+Σ1 ‘ Σ2 “
+
+„ Σ1 0nˆm
+
+0mˆn Σ2
+
+ȷ ˇˇˇ Σ1 P C, Σ2 P C1
+
+*
+
+.
+
+The resulting matrices Σ1 ‘ Σ2 are still PSD: if v Pn`m then vJpΣ1 ‘ Σ2qv “ v1Σ1v1 ` v2Σ2v2 ě 0, with 
+
+v1 Pn, v 2 Pm and v “ v1 ‘ v2.24 A PREPRINT - M AY 21, 2026 The projection morphism φπ1 : C ‘ C1 Ñ C and φπ2 : C ‘ C1 Ñ C are given by 
+
+φπ1 pΣ1 ‘ Σ2q “ r Inˆn 0nˆms p Σ1 ‘ Σ2q r Inˆn 0nˆmsJ
+
+φπ2 pΣ1 ‘ Σ2q “ r 0mˆn Imˆms p Σ1 ‘ Σ2q r 0mˆn ImˆmsJ ,,
+
+If Z is any other cone in SDef equipped with morphisms φX1 : Z Ñ C and φX2 : Z Ñ C1, define 
+
+u : Z Ñ C ‘ C1 by upΣq “ φX1 pΣq ‘ φX2 pΣq, then φπ1 ˝ u “ φX1 and φπ2 ˝ u “ φX2 . Note that u is a morphism of SDef since 
+
+upΣq “ 
+
+„φX1 pΣq 00 φX2 pΣq
+
+ȷ
+
+“
+
+„I 00 0
+
+ȷ „ φX1 pΣq 00 φX2 pΣq
+
+ȷ „ I 00 0
+
+ȷJ
+
+`
+
+„0 00 I
+
+ȷ „ φX1 pΣq 00 φX2 pΣq
+
+ȷ „ 0 00 I
+
+ȷJ
+
+Note that such u is unique: if v : Z Ñ C ‘ C1 satisfies φπ1 ˝ v “ φX1 and φπ2 ˝ v “ φX2 . Since 
+
+vpΣq P C ‘ C1, we can write vpΣq “ v1pΣq ‘ v2pΣq such that v1pΣq P C and v2pΣq P C1. Thus, 
+
+upΣq “ φπ1 pvpΣqq ‘ φπ2 pvpΣqq “ v1pΣq ‘ v2pΣq “ vpΣq.
+
+Definition C.5. An object T is terminal if for every object A in C, there exist precisely one morphism 
+
+A Ñ T . Dually, an object I is initial if for every object A in C, there exist precisely one morphism I Ñ A.
+
+Example C.6. In Vect , the trivial vector space is both initial and terminal. In Set , the empty set is the initial object and every singleton is a terminal object. 
+
+Proposition C.4. The category SDef has terminal and initial object. Proof. The trivial vector space is the terminal and the initial object. Indeed, there is only one map that takes 
+
+Sn 
+
+> `
+
+to t0nˆnu, and only one map from the latter space to the former, taking it to itself (notice that the zero matrix is PSD). But t0nˆnu is isomorphic to t01ˆ1u, which is isomorphic to the trivial vector space t0u.Again, we denote by OpXq the category associated with the poset of all open sets of a topological space X.A presheaf of sets on X is a functor F : OpXqop Ñ Set . Given inclusions U Ď V , we use s|VU (or just s|U )to denote the “restriction map” from F pV q to F pU q.
+
+Definition C.6. A presheaf F : OpXqop Ñ Set is a sheaf (of sets) if for any open U and any open cover 
+
+U “ Ť
+
+> iPI
+
+Ui the following diagram is an equalizer in the category Set 
+
+F pU q ś
+
+> iPI
+
+F pUiq ś
+
+> pi,j qP IˆI
+
+F pUi X Uj qe p
+
+> q
+
+where: 1. eptq “ t t|Ui | i P Iu, t P F pU q
+
+2. ppp tkqkPI q “ p ti|UiXUj
+
+qpi,j qP IˆI
+
+qpp tkqkPI q “ p tj|UiXUj
+
+qpi,j qP IˆI , ptkqkPI P ś
+
+> kPI
+
+F pUkq
+
+The above equalizer reads as follows: if ti P F pUiq is a compatible family , i.e., ti|UiXUj
+
+“ tj|UiXUj
+
+for all 
+
+i, j P I, there is a unique t P F pU q such that t|Ui “ ti, i P I.25 A PREPRINT - M AY 21, 2026 This definition makes sense for sets because Set has equalizers for all pairs of morphisms and products for a collection of sets, provided the collection is itself a set 1. In other words, Set is a complete category. Then this definition makes sense for any complete category, such as Vect .The terminal object in Set plays an implicit role in the definition of a sheaf: take U as the empty subspace of 
+
+X and I the empty set of indices. Then a necessary condition for a presheaf F be a sheaf is that F pHq is a singleton. We already argued that the trivial vector space is the terminal and initial object in SDef . Consequently, we can define sheaves of positive semidefinite matrices. Now, we briefly relate sheaves on a topological space with cellular sheaves. Using ¯X to denote the closure of X:
+
+Definition C.7. Curry [2014] A cell complex is a space X with a partition into pieces tXσ uσPPX satisfying: 1. Each point x P X has an open neighborhood U intersecting only finitely many Xσ .2. Xσ is homeomorphic to Rk, for some k (where R0 is one point). 3. If ¯Xτ X Xσ is non-empty, then Xσ Ď ¯Xτ . When this occurs we say the pair are incident or that Xσ
+
+is a face of Xτ . The face relation makes the indexing set PX into a poset by declaring σ ď τ .
+
+Definition C.8. Curry [2014] A cellular sheaf F valued in D on a cell complex X is a functor F : PX Ñ D.Note that a graph G “ p V, E q is a cell complex of dimension 1, where the set of indices is PG “ V Y E.Explicitly, 
+
+x Ĳ y ðñ 
+
+"x P y, if x P V, y P Ex “ y, otherwise (10) is the preorder over PG, providing that pPG, ⊴q is a poset. We can now define an Alexandrov topology on this poset: 
+
+τ “ t U Ď PG : @x, y P PG, px P U ^ x Ĳ yq ùñ y P U u, (11) for which the following sets (called open stars at x) form a basis: 
+
+Ux “ t y P PG | x Ĳ yu, (12) It is easily seen that for two open stars Ux and Uy , we have Ux Ď Uy ðñ y Ĳ x.Finally, 
+
+Proposition C.5. Let D be a complete category and pX, P X q be a cell complex. A cellular sheaf on X is a sheaf on PX equipped with the Alexandrov topology. Such a sheaf is uniquely determined by a functor 
+
+F : PX Ñ D.Proof. This is the Corollary 4.2.13 in Curry [2014]. Therefore, a sheaf of SDef on PG is uniquely determined by a cellular sheaf of SDef on a graph G, as desired.   
+
+> 1Saying that the collection is a set is implicitly given us a notion of size. In general, we need small products but we prefer to not address details about it here, since the results we prove are for finite vector spaces and then we only consider finite products.
+
+26 A PREPRINT - M AY 21, 2026 
+
+# D Cohomology and the sheaf Laplacian 
+
+Rather than using a coboundary map δ we had to consider a pair tδ`, δ ´u to reason about cohomology for a cellular sheaf valued in SDef , because ker δ in this context would be always trivial and, therefore, uninteresting. In this section, we clarify in which sense tδ`, δ ´u is a coboundary map. We recall that a cochain complex in Vect is a sequence of vector spaces tCiu equipped with linear maps 
+
+δi : Ci Ñ Ci`1 such that δi`1 ˝ δi “ 0. These δi are called coboundary maps. 
+
+C0 C1 C2 C3 . . . δ0 
+
+> 0
+> δ1
+> 0
+> δ2δ3
+
+The condition δi`1 ˝ δi “ 0 guarantees Im pδi´1q Ă ker pδiq and we define the cohomology groups by 
+
+HipC‚q “ ker pδiq
+
+Im pδi´1q , where C‚ denotes a cochain complex. Considering that δ´1 “ 0, we have that 
+
+H0pC‚q “ ker pδ0q. Suppose we can write δi “ p δiq` ´ p δiq´, for all i P N. Then 0 “ δi`1 ˝ δi “pp δi`1q` ´ p δi`1q´q ˝ pp δiq` ´ p δiq´q. Each linear map δi have an associated matrix, which we denote by the same symbol δi and then composition is just multiplication of matrices. So: 
+
+0 “ p δi`1q`pδiq` ` p δi`1q´pδiq´ ´ p δi`1q´pδiq` ´ p δi`1q`pδiq´
+
+While this equation holds for general matrices, it does not work for PSD matrices. However, there is an equivalent way of stating this equation that is suitable for PSD matrices: 
+
+Definition D.1. A cochain complex in SDef is a sequence of cones of positive semidefinite matrices tCiu
+
+equipped with morphisms pδiq`, pδiq´ : Ci Ñ Ci`1 such that 
+
+pδi`1q`pδiq` ` p δi`1q´pδiq´ “ p δi`1q´pδiq` ` p δi`1q`pδiq´
+
+Then we say the pair tp δiq`, pδiq´u is a coboundary map. Note that a cochain complex of semimodules over semirings is defined in the same way in Patchkoria [2006]. The definition of the cohomology groups is then given by HipC‚q “ Eq pp δiq`, pδiq´q
+
+ρi , where ρi is a congruence relation on Eq pp δiq`, pδiq´q. Although positive semidefinite matrices are not semimodules, both structures present the same failure: the absence of an inverse of the addition. The above consideration explains why we translated constructions in Patchkoria [2006] to explore basic cohomological constructions in SDef .In the case of cohomology for a cellular sheaf F over a graph G, there are only two non-trivial vector spaces in our cochain complex: 
+
+C0pG, F q C1pG, F q 0 0 . . . δ0“δ 
+
+> 0
+> 0
+> 0
+> 00
+
+In other words, Ci “ À 
+
+> vPV
+
+F pi ´ cells q, for all i ě 0, δi “ 0 for all i ‰ 0, and δ0 “ δ is the coboundary map defined in Section 2. For clarity, observe that if we had a cell complex X with faces connecting edges, then the sequence would be of the form 27 A PREPRINT - M AY 21, 2026 
+
+C0pX, F q C1pX, F q C2pX, F q 0 . . . δ 
+
+> 0
+> δ1
+> 0
+> 00
+
+Since we work only with sheaves over a graph, we only have to worry with δ0, thus, we can omit the index. Therefore, for cellular sheaves valued in SDef , it is enough to study H0pC‚q “ Eq pδ`, δ ´q
+
+ρ0 , and xρ 0y iff 
+
+x “ y. A calculation shows that H0pC‚q “ Eq pp δ0q`, pδ0q´q [Jun, 2017]. Since for graphs pδiq` “ 0 “ p δiq´, for all i ‰ 0, the maps for the sheaf of covariances defined as 
+
+δ` 
+
+> C
+
+pΣq “ ř 
+
+> i
+
+φAi pφδ`
+
+> M
+
+pΣqq and δ´ 
+
+> C
+
+pΣq “ ř 
+
+> i
+
+φAi pφδ´
+
+> M
+
+pΣqq form a coboundary map in SDef , where 
+
+δ “ δ0.Now, recall that if F is Vect -valued cellular sheaf on a graph G, the sheaf Laplacian of F is defined by 
+
+LF “ δJ 
+
+> F
+
+δF , with δF : C0pG, Fq Ñ C1pG, Fq the correspondent coboundary map. However, in SDef , we have a pair tδ`, δ ´u playing the role of δ. We could repeat the same idea and break the Laplacian, in Vect ,
+
+δF “ δ` 
+
+> F
+
+´ δ´ 
+
+> F
+
+. Then 
+
+LF “ δ`J 
+
+> F
+
+δ` 
+
+> F
+
+` δ´J 
+
+> F
+
+δ´ 
+
+> F
+
+´ p δ`J 
+
+> F
+
+δ´ 
+
+> F
+
+` δ´J 
+
+> F
+
+δ` 
+
+> F
+
+q “ L` 
+
+> F
+
+´ L´ 
+
+> F
+
+.
+
+Again, this works in Vect but L defined in this way is not enough to build a good operator in SDef , we need a nice behavior locally and the preservation of the block structure. Thus we defined the Laplacian in an alternative way aiming to keep the use of the coboundary maps: define a map δC pΣq “ δ` 
+
+> C
+
+pΣq ` δ´ 
+
+> C
+
+pΣq
+
+and then the Laplacian by LC pΣq “ řni“1 φBi pφpδ` 
+
+> MqJ
+
+pδC pΣqq ` φpδ´ 
+
+> MqJ
+
+pδC pΣqqq , with Bi P Rnd ˆnd 
+
+block-diagonal matrix whose i-th block equals Idˆd and all others are 0dˆd. Notice that 
+
+LC pΣq “ 
+
+> n
+
+ÿ
+
+> i“1
+
+φBi pφpδ` 
+
+> MqJ
+
+pδ` 
+
+> C
+
+pΣq ` δ´ 
+
+> C
+
+pΣqq ` φpδ´ 
+
+> MqJ
+
+pδ` 
+
+> C
+
+pΣq ` δ´ 
+
+> C
+
+pΣqqq “
+
+> n
+
+ÿ
+
+> i“1
+
+φBi
+
+˜ÿ
+
+> j
+
+φpδ` 
+
+> MqJAjδ`
+> M
+
+pΣq ` φpδ` 
+
+> MqJAjδ´
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ`
+> M
+
+pΣq ` φpδ´ 
+
+> MqJAjδ´
+> M
+
+pΣq
+
+¸
+
+,
+
+i.e. we are using the morphisms φ induced by tδ`J 
+
+> F
+
+δ` 
+
+> F
+
+, δ ´J 
+
+> F
+
+δ´ 
+
+> F
+
+, δ `J 
+
+> F
+
+δ´ 
+
+> F
+
+, δ ´J 
+
+> F
+
+δ` 
+
+> F
+
+u, with the addition of correcting factors Aj and Bi. This operator together with the sheaf Laplacian of sheaf of means in Vect 
+
+provided the Laplacian for the Gaussian sheaf in Vect ˆ SDef , which recovered results analogous to those obtained in Bodnar [2023]. For instance: it generalizes the graph Laplacian; the equalizer of the positive and negative parts of the Laplacian coincides with H0pG, Fq; under suitable conditions, any Gaussian sheaf can be learned; and the adequate notion of energy is zero only when the distribution is an element in the global section of the Gaussian sheaf. 
+
+# E An alternative description of the Gaussian sheaf 
+
+Now, we explicitly describe the Gaussian sheaf and the GSNN model in terms of the distributions intead of their parameters (mean and covariance). First, consider the product category Vect ˆ SDef , whose objects are pairs of vector spaces and PSD cones pV, Sn
+
+> `
+
+q, and morphisms pA, φ B q. Since both categories are complete, their product is again complete. We are particularly interested in a subcategory D of this product, 28 A PREPRINT - M AY 21, 2026 whose objects takes the form pRn, Sn
+
+> `
+
+q and with morphisms restricted to ΦA “ p A, φ Aq. Notice that 
+
+ΦB ˝ ΦA “ p BA, φ BA q “ ΦBA .Let GpRdq be the space of Gaussian distributions on Rd. The structure preserving operation in this space is the pushforward by linear maps (whose representation are square matrices), i.e. for a Gaussian distribution 
+
+ν with parameters pμ, Σq, A#ν is again Gaussian with parameters pAμ, A ΣAJq, for A P MnpRq (notice that the parameters of the Gaussian A#ν are ΦApμ, Σq). We can also go to any other space GpRmq pushing forward the distribution by any B P Hom pRn, Rmq. The pushforward by the identity map is the identity operation, and B#pA#νq “ p BA q#ν for suitable maps A and B. Therefore, we have a category Gauss 
+
+whose objects are spaces of Gaussian distributions and morphisms are pushforward by linear maps (the remaining desired properties follows directly from properties of linear maps). Notice that when we described this category we only cared about how the parameters of a given Gaussian distribution changed under the action of the pushforward. This is due to the bijection we mentioned before, i.e. GpRdq » Rn ˆ Sn
+
+> `
+
+. This gives an isomorphism of categories Gauss » D.The Gaussian sheaf we defined before was formed by the sheaf of means, which was valued on Vect , and by the sheaf of covariances, which was valued on SDef . In other words, the Gaussian sheaf was valued in 
+
+Vect ˆ SDef . Equivalently, we can define the following Gaussian sheaf with values on Gauss .
+
+Definition E.1. Given an undirected graph G “ p V, E q, a Gaussian (cellular) sheaf pG, Fq associates: • A space of Gaussian distributions Fpvq :“ GpRdv q for every vertex v P V .• A space of Gaussian distributions Fpeq :“ GpRde q for every edge e P E.• A morphism ΦFv⊴e : Fpvq Ñ Fpeq to every incident vertex-edge pair v ⊴ e, the pushforward by the linear map Fv⊴e.The isomorphism between the categories provides this sheaf is categorically equivalent to the sheaf we defined in terms of means and covariances separately. In terms of distributions, we point out that a 0-cochain ν P C0pG, Fq is ν “ p νv1 , . . . , ν vn q with νvi “
+
+N pμvi , Σvi q. We have that ν “ Â
+
+> iPr ns
+
+N pμvi , Σvi q, therefore ν is also Gaussian, with first moment μ “
+
+À
+
+> iPr ns
+
+μvi P Rnd and covariance operator Σ “ À
+
+> iPr ns
+
+Σvi , i.e. ν is induced by the product measure of the measures associated to each of its components. We define the convolution of the coboundaries and Laplacian on this new sheaf. 
+
+Definition E.2. Let pG, Fq be a Gaussian sheaf defined in terms of distributions. Given a 0-cochain 
+
+ν P C0pG, Fq, we define  
+
+> δFpνq “
+> |E|
+
+# fi“1   
+
+> Ai#rp δ`
+> M#νq ˚ p´ δ´
+> Mq#νs(13)
+> LFpνq “ n
+
+# fj“1    
+
+> Bj#rp δ`
+> MqJ#δFpνq ˚ p´ δ´
+> MqJ#δFpνqs ,(14)
+
+where f denotes the convolution operator between the obtained distributions for each index. The next result illustrates the connection of the two definitions of the Gaussian sheaf through the application of the δF and LF defined above. 
+
+Corollary E.1. For a 0-cochain ν P C0pG, Fq with parameters μ and Σ, we have δF pνq “ N pδMμ, δ C pΣqq 
+
+and LF pνq “ N pLMμ, L C pΣqq .
+
+29 A PREPRINT - M AY 21, 2026 
+
+Proof. Using definition E.2, we have 
+
+# f
+
+> i
+
+Ai#pδ`
+
+> M
+
+#νq “ N
+
+˜ÿ
+
+> i
+
+Aiδ`
+
+> M
+
+μ, ÿ
+
+> i
+
+φAi pφδ`
+
+> M
+
+Σq
+
+¸
+
+“ N
+
+˜˜ ÿ
+
+> i
+
+Ai
+
+¸
+
+δ`
+
+> M
+
+μ, δ ` 
+
+> C
+
+pΣq
+
+¸
+
+“ N pδ`
+
+> M
+
+μ, δ ` 
+
+> C
+
+pΣqq ,
+
+since ř 
+
+> i
+
+Ai “ I|E|dˆ| E|d. Also fi Ai#pp´ δ´
+
+> M
+
+q#νq “ N p´ δ´
+
+> M
+
+μ, δ ´ 
+
+> C
+
+pΣqq . Therefore 
+
+δF pνq “ f 
+
+> i
+
+Ai#pδ`
+
+> M
+
+#νq ˚ f 
+
+> i
+
+Ai#pδ´
+
+> M
+
+#νq “ N pδ`
+
+> M
+
+μ ´ δ´
+
+> M
+
+μ, δ ` 
+
+> C
+
+pΣq ` δ´ 
+
+> C
+
+pΣqq “ N pδMμ, δ C Σq.
+
+Following a similar computation we can conclude that LF pνq “ N pLMν, L C pΣqq .The normalized Laplacian ∆F can be achieved through ∆F pνq “ f ki ∆i#ν ˚ f j Bj #∆ 1#ν, where 
+
+∆i “ D´ 12 LiD´ 12 , ∆1 “ D´ 12 L1D´ 12 , and LM “ řki Li ` L1 is the decomposition mentioned before. It is also useful to define 
+
+pI ´ ∆F qp νq “ k
+
+# f
+
+> i“1
+
+pp k ` 1q´1I ´ ∆iq#ν ˚ n
+
+# f
+
+> j“1
+
+Bj #pp k ` 1q´1I ´ ∆1q#ν, (15) whose resulting distribution is pI ´ ∆F qp νq “ N pp I ´ ∆Mqμ, pI ´ ∆C qp Σqq , with pI ´ ∆C qp Σq being defined accordingly to the operations described above. Finally, recall that Section 5 introduced our GSNN in terms of means and covariances. The alternative way of presenting the GSNN model is the following: 
+
+ν1 “ p I ´ ∆F qℓpp I b W1q#fW2 pxq#νq, (16) with W1 P Rdˆd, W2 P Rhˆh weight matrices, ℓ the number of layers, and fW2 pxq “ p μW 2 ` p x ´ μqq an affine map that mixes the mean vectors in the channels. 
+
+# F Statistical Relevance 
+
+While some datasets show no significant difference among GSNN models, our results are statistically better than other models. To confirm this, we ran Wilcoxon Signed-Rank tests. This test verifies whether the distribution of one sample is stochastically smaller than the distribution of another sample. Importantly, this is a standard technique for assessing whether the performances of independent runs of competing algorithms on a given task are statistically distinguishable. We present the p-values for each pair of best-performing methods in Table 6. GSNN performs better than baselines at a 5% level of statistical significance. The only exception is the W-S (k=45), in which GSNN’s performance is statistically indistinguishable from Diag-NSD. 
+
+# G Runtime 
+
+To demonstrate that GSNN does not drastically increases the runtime of a standard GNN such as GCN, we provide Table 7. We acknowledge the scalability challenges of sheaf NNs; however, we also understand that the results are of the same magnitude order. Thus, any dataset that operates within a reasonable time-frame in GCN can be tested with a GSNN. Furthermore, the scalability issue is an intrinsic aspect of the current stage of sheaf models, as a nascent paradigm, representing a key area of ongoing research. 30 A PREPRINT - M AY 21, 2026 Table 6: p-values from one-sided Wilcoxon Signed-Rank tests computed over 10 independent runs for each method and dataset. GSNN models consistently outperform the baselines at a 5% significance level across real and synthetic datasets. The only exception is the Watts–Strogatz ( k “ 45 ) dataset, where the best-performing GSNN is statistically indistinguishable from the best NSD method. 
+
+Dataset Method 1 Method 2 p-val BA ( m “ 25 )GCN MLP 0.712 Gen-NSD MLP 0.070 Gen-NSD GCN 0.166 O(d)-GSNN Gen-NSD 0.055 O(d)-GSNN MLP 0.003 O(d)-GSNN GCN 0.005 BA ( m “ 50 )GCN MLP 0.997 Gen-NSD MLP 0.005 Gen-NSD GCN 0.003 Gen-GSNN Gen-NSD 0.014 Gen-GSNN GCN 0.003 Gen-GSNN MLP 0.003 Dataset Method 1 Method 2 p-val WS ( k “ 25 )GCN MLP 0.254 O(d)-NSD GCN 0.003 O(d)-NSD MLP 0.003 Gen-GSNN O(d)-NSD 0.046 Gen-GSNN GCN 0.003 Gen-GSNN MLP 0.003 WS ( k “ 45 )GCN MLP 0.254 Diag-NSD GCN 0.003 Diag-NSD MLP 0.003 Gen-GSNN Diag-NSD 0.600 Gen-GSNN GCN 0.003 Gen-GSNN MLP 0.003 Dataset Method 1 Method 2 p-val Weather1 GCN MLP 0.101 Diag-NSD GCN 0.003 Diag-NSD MLP 0.003 O(d)-GSNN Diag-NSD 0.006 O(d)-GSNN GCN 0.003 O(d)-GSNN MLP 0.003 Weather2 GCN MLP 0.998 Gen-NSD GCN 0.893 Gen-NSD MLP 0.998 Gen-GSNN Gen-NSD 0.002 Gen-GSNN GCN 0.002 Gen-GSNN MLP 0.002 
+
+# H Model details and hyperparameters 
+
+On the choice of the 2-Wasserstein metric. Beyond its role as a generalization of the MSE to probability distributions, the 2-Wasserstein metric offers two further advantages exploited by GSNN. First, unlike common divergence measures such as Kullback–Leibler or Rényi divergences, it is less sensitive to tail Table 7: Average training time per epoch (seconds) across datasets. All tests were performed on a NVIDIA GeForce RTX 3090. The results are of the same magnitude order. Model BA (m=25) BA (m=50) WS (k=25) WS (k=45) Weather1 Weather2 GCN 0.2168 0.2227 0.2185 0.2201 0.8829 0.8357 MLP 0.2195 0.2201 0.2196 0.2215 1.0647 0.8126 GenGSNN 0.9579 1.1704 0.6223 0.7370 1.5082 1.5196 GenNSD 0.3418 0.3703 0.3190 0.3421 0.9810 0.9898 31 A PREPRINT - M AY 21, 2026 discrepancies, which yields stabler training and avoids the need for an explicit parameterization of the underlying distributions. Second, both the metric and its gradients can be efficiently computed through the Sinkhorn algorithm, enabling scalable stochastic gradient-based optimization. 
+
+Sheaf-learning details. The sheaf-learning process is to learn the restriction maps using the features of the graph. Depending on the type of problem, one might be interested in using another version of Equation (5). In our experiments, we found it useful to feed the determinant of covariances to the MLP Ψ instead of the whole matrix. Another option is to use the vectorized lower triangular matrix vech pΣνv q as input. In Table 8 we show the hyperparameters used for the grid search in the experiments. We train the models for 1500 epochs, with a fixed learning rate, and perform early stopping and learning rate reduction after 100 and 20 epochs of no improvement, respectively. We fix the stalk dimension in 2, since the input distributions are all bi-dimensional. Stalk dimension 2Layers [1, 2] Hidden channels [32, 64] MLP (restriction maps) 1 layer of size [32, 64] MLP (readout) 1 layer of size 32 (synth) and 64 (real) Weight Decay 5e-3 Sheaf Decay 5e-3 Table 8: Hyperparameters for the experiments 32

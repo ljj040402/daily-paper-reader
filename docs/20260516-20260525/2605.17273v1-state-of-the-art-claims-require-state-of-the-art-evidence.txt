@@ -1,0 +1,1341 @@
+Title: State-of-the-Art Claims Require State-of-the-Art Evidence
+
+URL Source: https://arxiv.org/pdf/2605.17273v1
+
+Published Time: Tue, 19 May 2026 01:24:12 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+YongKyung Oh 1
+
+## Abstract 
+
+State-of-the-Art (SOTA) claims pervade Artifi-cial Intelligence (AI) and Machine Learning (ML) research. These claims rest on benchmark eval-uations, where models are ranked by aggregate scores across tasks. Public benchmarks or leader-boards are the most visible instance, but the same structure appears in paper tables throughout the literature. However, such minimal evidence often cannot support these strong claims. We identify a widespread claim-evidence gap in AI benchmark-ing. Claiming SOTA carries implicit assumptions beyond mean score superiority, suggesting that a model meaningfully outperforms alternatives across most tasks. However, a marginal improve-ment in the mean score merely indicates a top average rank rather than true superiority. Ana-lyzing ten cross-domain benchmarks from public leaderboards, we found that in more than half of top-model comparisons, at least one commonly assumed property of superiority does not hold. These properties include meaningful effect size, consistency across tasks, or robustness to dataset removal. Instead, aggregate gains are frequently driven by outlier datasets. This fragility persists even in benchmarks with many tasks. We argue that claim language should reflect the strength of the underlying evidence. This requires no addi-tional experiments, only honest reporting of what results actually show, enabling more precise and interpretable comparisons across models. 
+
+## 1. Introduction 
+
+State-of-the-Art (SOTA) claims shape how Artificial Intelli-gence (AI) and Machine Learning (ML) research measures progress. Models are compared across benchmark tasks, and the top performer by aggregate score is declared superior. Figure 1 illustrates the scale of the problem. The number of 
+
+> 1
+
+Medical & Imaging Informatics (MII), University of Califor-nia, Los Angeles (UCLA). Correspondence to: YongKyung Oh 
+
+<yongkyungoh@mednet.ucla.edu >.
+
+Preprint. May 19, 2026. 
+
+accepted papers at major AI conferences has grown rapidly. Throughout this expansion, a substantial proportion of pa-pers, frequently exceeding 30% at major venues, explicitly claim state-of-the-art performance in their abstracts. 2021 2022 2023 2024 2025 
+
+> Year
+> 0
+> 2000
+> 4000
+> 6000
+> Number of Papers
+> ICML
+> ICLR
+> NeurIPS
+> AAAI
+> CVPR
+> ACL
+
+Figure 1. Published papers mentioning “state-of-the-art” in ab-stracts across major AI conferences (2021–2025). Darker bars indicate SOTA mentions, and lighter bars indicate other papers. In this study, the empirical analysis in Section 4 focuses on bench-marks that aggregate across multiple tasks or datasets. 
+
+Please refer to Appendix A for details on the terminology, scope, and methodology used in Figure 1. A mean score across k tasks establishes only that a model ranks first on average. It does not show that the model wins on most tasks or would retain its rank under differ-ent dataset compositions. Dem ˇsar (2006) documented that statistical tests are routinely misapplied or omitted entirely. Prior work demonstrates that variance arising from data sam-pling, hyperparameter selection, and test set construction is often comparable to reported improvements (Bouthillier et al., 2021). However, marginal gains in aggregate scores continue to be interpreted as evidence of robust superiority. This claim-evidence gap is pervasive across modalities. In natural language processing, rankings are demonstrably sen-sitive to task composition and prompt formatting, often re-versing leadership based on minor perturbations (Dehghani et al., 2021; Alzahrani et al., 2024; Mirzadeh et al., 2025; Gema et al., 2025). Computer vision benchmarks exhibit similar volatility, where top-ranked models frequently de-grade under distribution shifts (Recht et al., 2019; Ozbulak et al., 2024). Analogous patterns plague time series fore-casting, where selective dataset reporting allows a vast ma-jority of methods to claim spurious superiority (Roque et al., 2025). Collectively, these findings confirm that benchmark-based rankings are inherently fragile. 1
+
+> arXiv:2605.17273v1 [cs.LG] 17 May 2026 State-of-the-Art Claims Require State-of-the-Art Evidence
+
+Despite widespread awareness, claim language remains un-changed. Researchers continue to claim “SOTA” based on the same thin evidence that prior work has shown to be unreliable. Thus, this paper makes three contributions: • We identify a claim-evidence gap. A mean score es-tablishes only that a model ranks first on average. It does not establish that the model wins consistently, improves meaningfully, or would retain its rank under different conditions. However, claiming “state-of-the-art” carries implicit assumptions beyond mean score superiority. Our diagnostics make these assumptions explicit and testable. • We show the gap is pervasive. We apply elementary statistical diagnostics to ten public leaderboards. We find that more than half of top-model comparisons lack support for at least one commonly assumed property of superiority. This pattern holds across benchmarks that aggregate semantically distinct tasks, separate datasets within a single task, or different evaluation dimensions. • We argue that closing the gap requires institutional norms. The diagnostics we apply require no new ex-periments. The persistence of the problem despite widespread awareness confirms that the barrier is insti-tutional, not technical. Individual authors cannot shift equilibria alone, but venue-level guidelines can. Our analysis addresses benchmark-based SOTA claims, that is, comparisons where models are ranked by aggregate scores across tasks. This structure dominates major venues, though some work uses application-specific evaluation. We are not criticizing benchmark design. Public benchmarks have accelerated progress by enabling reproducible compar-ison. Our concern is with interpretation: claim language that exceeds what the evidence supports. 
+
+We argue that claim language in the ML literature often exceeds what the computed evidence supports. Papers com-pute factual evidence but use language reserved for robust superiority. We support this argument by analyzing ten major benchmarks drawn from public leaderboards. The diagnostic methods apply to any benchmark comparison, whether published on a leaderboard or reported in a pa-per table. We call for venue-level norms that encourage claim-evidence alignment. This requires no new experi-ments, only honest interpretation of existing results. 
+
+Conflict of Interest Disclosure. No financial conflicts. 
+
+## 2. Related Work 
+
+2.1. Statistical Comparison Methods 
+
+Prior work has established statistical frameworks for model comparison centered on the Wilcoxon signed-rank test (Wilcoxon, 1945; Fix & Hodges, 1955; Woolson, 2008), which remains a standard recommendation for pairwise evaluation. Dem ˇsar (2006) showed that paired t-tests over cross-validation folds inflate Type I error, leading to a pref-erence for non-parametric alternatives. In practice, critical-difference diagrams (Dem ˇsar, 2006) are used in time-series studies (Ismail Fawaz et al., 2019; Oh et al., 2025). This analysis was extended to post-hoc comparisons and multiple testing corrections (Garc ´ıa & Herrera, 2008; Carterette, 2017; Dror et al., 2018). However, we address a distinct problem: even when appropriate tests are applied, claim language often exceeds what the evidence supports. Variance from hyperparameter selection often rivals reported improvements (Bouthillier et al., 2021). Similarly, cross-validation error estimation exhibits structural variance dom-inated by training set sensitivity (Rodriguez et al., 2010). Also, Berrar (2024) showed that marginal p-values yield low replication probability. Nevertheless, adoption remains limited. Our approach aligns with this diagnostic perspec-tive without necessitating experimental redesign. Instead, it focuses on the implementation of disciplined reporting. 
+
+2.2. Benchmark Fragility 
+
+Dehghani et al. (2021) introduced the “benchmark lottery” to describe how rankings depend on task selection. Roque et al. (2025) quantified dataset selection bias in time se-ries forecasting. Minor protocol changes such as prompt formatting can cause substantial ranking shifts (Alzahrani et al., 2024; Sclar et al., 2024). Human-preference eval-uation shows similar sensitivity. Position and verbosity biases change rankings when not controlled (Zheng et al., 2023). Furthermore, Mirzadeh et al. (2025) showed that per-formance varies substantially across semantically identical questions. Gema et al. (2025) found systematic errors in MMLU that change model rankings when corrected. Simi-larly, Recht et al. (2019) documented accuracy drops under distribution shift even on mature benchmarks. Rigorous reporting practices exist, though they remain rare. Chatbot Arena (Chiang et al., 2024) reports Bradley-Terry coefficients with confidence intervals rather than point rank-ings. FEV-Bench (Shchur et al., 2025) provides bootstrap confidence intervals on win rates, revealing that apparent gaps between top models are often not statistically distin-guishable. These examples demonstrate that uncertainty quantification is feasible at negligible cost. Their rarity reflects institutional barriers rather than technical ones. While prior research has diagnosed benchmark fragility and proposed technical remedies (e.g., new metrics or proto-cols), the language used to describe benchmark results has received far less scrutiny. We argue that SOTA designations must reflect the statistical strength of available evidence. 2State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+## 3. Matching Claims to Evidence 
+
+“Extraordinary claims require extraordinary evidence.” 
+
+– Carl Sagan (1979) Claims of greater scope require proportionally stronger ev-idence (Sagan, 1979). In ML, however, broad claims of model superiority often rely on single point estimates. We argue that the strength of a claim should be commensurate with the strength of the evidence. 
+
+3.1. Problem Formulation 
+
+Let D = {d1, . . . , d k} denote a benchmark comprising k
+
+evaluation units, called tasks, subjects, datasets, or dimen-sions depending on the domain (see Appendix A). Let M
+
+be a set of M models. For a model m ∈ M on dataset d,let sm(d) ∈ R denote the loss or error rate, assuming lower is better, without loss of generality. Under the conventional criterion, model A is declared supe-rior to B if and only if: 
+
+¯sA < ¯sB where ¯sm = 1
+
+k
+
+X
+
+> d∈D
+
+sm(d) (1) This inequality is the sole basis for most rankings. The question is whether a lower mean score reflects genuine superiority or statistical artifact. In this paper, we argue that the per-dataset view reveals patterns that aggregate scores obscure. For any model pair 
+
+(A, B ), we define the per-dataset performance differential as: 
+
+δd(A, B ) = sB (d) − sA(d) (2) where δd > 0 indicates that model A outperforms model B
+
+on dataset d. Given M models on a benchmark, we form all  M
+
+> 2
+
+ = M (M −1) 2 pairwise comparisons. For each pair, we designate the model with lower mean score (or higher mean score) as the winner and ask, does the evidence really support claims beyond this factual observation? 
+
+3.2. Deconstructing SOTA Claims 
+
+When a model is described as “state-of-the-art,” readers may expect one or more of the following properties to hold: - The model achieves a better average score. - The improvement is meaningfully large. - The model wins consistently across tasks. - The ranking is stable under minor perturbations. Current practice verifies only the first. The remaining three are assumed but often ignored. These properties are inde-pendent: a model pair may satisfy some while failing others. Our diagnostics make these implicit assumptions explicit and testable, rather than prescribing requirements: 1. Is the performance gap meaningful, or is it indistin-guishable from noise? 2. Does the top model actually win on most tasks, or does it lose more often than it wins? 3. Is the ranking stable, or does removing one dataset reverse the conclusion? We do not argue that every criterion must be satisfied. We argue that when any of these elementary tests fails, the comparison is fragile, and the strength of the claim should be tempered accordingly. A model that ranks first by mean score but loses on most tasks has demonstrated only a narrow form of superiority. It is the best on average, under one particular aggregation, on one particular set of datasets. Claiming broader superiority requires broader evidence. 
+
+3.3. Three Perspectives on Fragility 
+
+We do not propose novel statistical methods. Instead, we apply three well-established concepts from statistics to test whether observed rankings hold under minimal scrutiny. 
+
+Dimension 1: Magnitude (Effect Size). The implicit claim that A shows meaningful improvement can be tested via effect size. Standardized effect sizes address the limita-tion of statistical significance alone, which conflates effect magnitude with sample size (Cohen, 1988). Consequently, effect size reporting has been recommended for machine learning evaluation (Demˇ sar, 2006; Dror et al., 2018): 
+
+d(A, B ) = ¯δsδ
+
+where ¯δ = 1
+
+k
+
+X
+
+> d
+
+δd, sδ = std ({δd})
+
+(3) Cohen (1988) established conventions for interpreting d,characterizing 0.2 as small, 0.5 as medium, and 0.8 as large. Cohen’s d compares the performance gap between two mod-els to the variation of their scores across tasks. A value of 
+
+d = 0 .2 means the gap only slightly exceeds task-to-task variation. The default τd = 0 .2 therefore sets a small effect threshold. Failure indicates that the gap is negligible relative to cross-task variance. Two models may differ in mean yet remain practically indistinguishable. 
+
+Dimension 2: Consistency (Win Rate). The assumption that A outperforms B on most tasks can be tested via the win rate. This approach has precedent in machine learning as pairwise comparison (Dem ˇsar, 2006) and in clinical trials as the win ratio (Pocock et al., 2012; Redfors et al., 2020): WR (A, B ) = 1
+
+k
+
+X
+
+> d∈D
+
+1[δd(A, B ) > 0] (4) 3State-of-the-Art Claims Require State-of-the-Art Evidence 0.00 0.25 0.50 0.75 1.00 1.25 1.50 
+
+> Cohen's d
+> 0
+> 10
+> 20
+> 30
+> Number of Pairs  d=0.2
+
+(a) Effect size distribution 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> Win Rate
+> 0
+> 10
+> 20
+> 30
+> Number of Pairs  w=0.6
+
+(b) Win rate distribution 0.0 0.2 0.4 0.6 0.8 1.0  
+
+> Breakdown Point Ratio (BP / k)
+> 0
+> 10
+> 20
+> 30
+> Number of Pairs  b=0.2
+
+(c) Breakdown point distribution 
+
+Figure 2. Distribution of diagnostic metrics across all pairwise comparisons on HELM MMLU 
+
+Bouthillier et al. (2021) recommend a threshold of P (A > B) ≥ 0.75 for claiming superiority, whereas our default 
+
+τw = 0 .6 is deliberately more lenient. The win rate mea-sures how often the supposedly superior model wins across tasks. Failure indicates that A outperforms on only a minor-ity of tasks despite a higher average score. 
+
+Dimension 3: Stability (Breakdown Point). The implicit claim that A’s superiority is robust can be tested via the breakdown point. This concept from robust statistics mea-sures the fraction of observations that must be removed to change a conclusion (Hampel, 1971; Rousseeuw & Leroy, 1987). Influence diagnostics based on leave-one-out anal-ysis have been applied in meta-analysis to assess whether conclusions depend on individual studies (Viechtbauer & Cheung, 2010): BP (A, B ) = 1
+
+k min 
+
+n
+
+|S| : S ⊂ D , ¯s(−S) 
+
+> A
+
+≥ ¯s(−S)
+
+> B
+
+o
+
+(5) where ¯s(−S) is the mean score excluding subset S.In robust statistics, estimators with breakdown points below 
+
+0.2 are considered fragile (Rousseeuw & Leroy, 1987). Our default τb = 0 .2 adopts this convention. The breakdown point measures how many datasets must be removed be-fore the ranking reverses. Failure indicates that the ranking depends on a small subset of datasets, so removing a few favorable results can reverse the conclusion. 
+
+3.4. Fragility Rate 
+
+To quantify how often these assumptions lack support, we define the fragility rate F as the proportion of model pairs where the mean-score winner fails at least one elementary test. For all pairs (A, B ) where ¯sA < ¯sB :
+
+F = 1
+
+n
+
+X
+
+> (A,B )
+
+1 [WR ≤ τw ∨ d ≤ τd ∨ BP ≤ τb] (6) We do not propose these diagnostics as new criteria that models must satisfy, nor do we argue that failing any test disqualifies a claim. Instead, we use them to reveal how often current claims rest on fragile evidence. The fragility rate quantifies the problem rather than prescribing a solution. 
+
+## 4. Empirical Findings 
+
+4.1. Case Analysis: HELM MMLU 
+
+We begin with Massive Multitask Language Understanding (MMLU), a 57-subject benchmark for language model eval-uation (Hendrycks et al., 2021). Here, we use the MMLU evaluation provided by the Holistic Evaluation of Language Models (HELM) framework 1 (Liang et al., 2023). As a static benchmark, MMLU has well-documented limita-tions, including susceptibility to contamination (Xu et al., 2024; Balloccu et al., 2024) and sensitivity to answer order-ing (Alzahrani et al., 2024). Paraphrasing questions causes substantial accuracy drops despite preserving semantic con-tent (Lunardi et al., 2025). 
+
+Diagnostic Distributions. Figure 2 shows the distribution of each diagnostic metric across all model pairs. The ef-fect size distribution (a) shows wide variation with some pairs exhibiting negligible differences relative to cross-task variance. The win rate distribution (b) reveals that a nontriv-ial fraction of mean-score winners lose on more than 40% of tasks. The breakdown point distribution (c) is notably left-skewed. Many comparisons depend on a small subset of datasets to maintain their ranking which indicates that conclusions would reverse under minor perturbations to the benchmark composition. Magnitude Consistency Stability Fragility Rate   
+
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate
+> 23.16%
+> 33.68% 35.26% 39.47%
+> 50% threshold
+
+Figure 3. Summary of violation rates for each diagnostic test on HELM MMLU. Fragility rate indicates the proportion of model pairs where at least one test fails. 
+
+These distributions illustrate that the three tests capture distinct failure modes. For instance, a model pair may show consistent wins but a small effect size. Alternatively, it may exhibit large effects but poor stability. This heterogeneity 
+
+> 1
+
+https://crfm.stanford.edu/helm/mmlu/ 
+
+4State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+underscores why aggregate scores alone cannot characterize the reliability of a comparison. 10 20 30 40 50 60                 
+
+> Number of Top kModels
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate  Magnitude Consistency Stability
+> (a) By number of top-ranked models 717 27 37 47 57
+> Number of Sampled MDatasets
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate  Magnitude Consistency Stability
+> (b) By number of sampled datasets
+> Figure 4. Violation rates on HELM MMLU under varying analysis conditions. The purple line indicates the overall fragility rate.
+
+Figure 3 summarizes the violation rates across all pairwise comparisons among the top 20 models. Each test identifies a distinct failure mode: inconsistent wins, negligible effect sizes, or dependence on favorable dataset subsets. The over-all fragility rate reflects comparisons where the mean-score winner lacks support on at least one of these dimensions. 
+
+Robustness to Analysis Scope. Fragility is not uniform across the ranking. Figure 4 (a) demonstrates that viola-tion rates are highest among the top 10 models, precisely where SOTA claims concentrate. As additional models are included, fragility decreases. Expanding the analysis from the top 10 to the top 60 models increases the number of pair-wise comparisons from 45 to 1,770. However, the fragility rate declines rather than stabilizes. This pattern suggests that distinctions among top performers are less robust than the distinctions between top-tier and middle-tier models. A natural hypothesis is that fragility reflects insufficient task coverage. Figure 4 (b) tests this by subsampling datasets. Violation rates remain stable regardless of whether 7 or 57 tasks are included. Adding tasks does not resolve instability when tasks share similar characteristics. Consequently, the observed fragility reflects structural heterogeneity rather than an insufficient sample size. 
+
+4.2. Are the Tests Too Strict? 
+
+A natural concern is that our thresholds are too demanding, artificially inflating fragility rates. We do not argue that all three tests must pass to claim progress. Rather, we measure how often at least one commonly assumed property of superiority fails to hold. This concern can be addressed by three observations. First, the individual thresholds are lenient. A win rate of 0.6
+
+requires success on only 60% of tasks, well below the prob-ability of superiority threshold P (A > B ) ≥ 0.75 recom-mended by Bouthillier et al. (2021) for claiming one algo-rithm outperforms another. Cohen’s d = 0 .2 corresponds to the minimum threshold for a small effect (Cohen, 1988). A breakdown point ratio of 0.2 is the standard threshold below which estimators are considered fragile in robust statistics (Hampel, 1971; Rousseeuw & Leroy, 1987). Second, the tests capture distinct failure modes. Some pairs exhibit consistent wins with small effect sizes, while others demonstrate large effects but poor robustness. This pattern echoes the “benchmark lottery” phenomenon documented by Dehghani et al. (2021) where model rankings depend on which aspect of performance is emphasized. Therefore, mean score winners fail through distinct failure modes rather than a single common mechanism. Third, fragility rates remain high even when thresholds are relaxed. Figure 5 illustrates this robustness for HELM MMLU. As each threshold varies from lenient to strict, in-dividual violation rates change substantially. However, the overall fragility rate remains above 30% across all single-parameter configurations. Sensitivity analysis for all ten benchmarks (Appendix D) confirms that fragility rates re-main above 50% even under the most lenient individual threshold tested. This robustness to threshold choice is consistent with Dem ˇsar (2006)’s broader call for explicit statistical analysis in benchmark comparisons. In summary, the frequency with which at least one property fails reflects not excessive strictness but the fact that mean score superiority does not reliably imply consistent, mean-ingful, and robust superiority. This mismatch constitutes the claim-evidence gap identified in our analysis. 
+
+4.3. Cross-Domain Fragility Analysis 
+
+To test generality, we conducted a cross-domain analysis across ten diverse benchmarks spanning Large Language Model, Natural Language Processing, Computer Vision, Au-dio, Tabular, and Time Series domains. These benchmarks aggregate performance over units that range from subject ar-eas to individual datasets, but share the same mathematical structure, as explained in Section 3. We selected benchmarks that are widely adopted and peer-reviewed. HELM MMLU is a widely adopted benchmark for evaluating LLMs (Hendrycks et al., 2021; Gema et al., 2025). The remaining benchmarks were introduced at top-tier venues (Table 1). Please refer to Appendix B for publi-cation details. Our analysis builds upon these benchmarks. We do not critique their design. Instead, we examine whether reporting 5State-of-the-Art Claims Require State-of-the-Art Evidence 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d(Cohen's d threshold)
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate
+> Magnitude
+> Fragility Rate
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9   
+
+> w(Win Rate threshold)
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate
+> Consistency
+> Fragility Rate
+
+(b) Consistency 0.1 0.2 0.3 0.4 0.5   
+
+> b(Breakdown Point Ratio threshold)
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Violation Rate
+> Stability
+> Fragility Rate
+
+(c) Stability 
+
+Figure 5. Sensitivity to threshold selection on HELM MMLU. Each panel varies one threshold while holding others at defaults. 
+
+practices accurately communicate ranking uncertainty. We reconstructed pairwise comparison matrices using public performance logs with a cut-off date of December 31, 2025. Table 1 provides the detailed specifications for each dataset. Refer to Appendix B for details regarding each leaderboard. For each benchmark, we selected the top 20 models based on mean score (or the full set if fewer than 20 were available). We then computed all pairwise comparisons, yielding up to  20 2
+
+ = 190 pairs per benchmark. For each pair where model A outperformed model B on average, we applied the three diagnostics defined in Section 3. For each pair, the model with the better mean score is des-ignated as the winner. We then compute three diagnostics per pair: Cohen’s d, win rate, and breakdown point ratio. The reported mean and standard deviation summarize the distribution of these values across all pairs. We employed de-liberately lenient thresholds ( τw = 0 .6, τd = 0 .2, τb = 0 .2). We do not demand large, definitive differences, but rather test for the presence of any reliable difference. Appendix C and D detail each benchmark and examine the robustness of our results to threshold choices. Table 1 summarizes our analysis across ten leaderboard examples. Across more than 1,000 pairwise comparisons spanning six domains and ten benchmarks, a substantial fraction of pairwise comparisons exhibit at least one viola-tion. The diagnosed fragility appears in most comparisons. 
+
+The bottleneck varies. In language model benchmarks such as HELM MMLU and LiveBench, rankings tend to be stable, likely reflecting architectural similarity among top models. Tabular benchmarks exhibit higher fragility because gradient boosting and neural approaches each dominate dif-ferent dataset types, and no single method consistently out-performs across the heterogeneous problems in TabArena. Time series forecasting shows the highest fragility. This domain aggregates datasets from totally different generative processes. Therefore, rankings frequently reverse depending on the specific subset of domains prioritized. 
+
+Metric and dataset choices amplify fragility. TSFM-Bench evaluates identical models on identical datasets under both MAE and MSE. The MSE variant shows substantially higher fragility because squared errors amplify outlier sen-sitivity. This allows a single anomalous dataset to dominate aggregate rankings. Similarly, Open ASR and TabArena Multiclass each use only eight datasets. This limits statisti-cal power and makes rankings sensitive to the inclusion or exclusion of any single evaluation set. 
+
+Score gaps do not determine fragility. A model that leads by a narrow margin but wins consistently across tasks exhibits low fragility. Conversely, a model with a larger aggregate lead driven by dominance on a few outlier tasks can see its ranking collapse when those tasks are excluded. This distinction is invisible when only aggregate scores are reported. Thus, fragility arises from the distribution of performance rather than aggregate proximity. 
+
+4.4. When Do These Concerns Apply? 
+
+The claim-evidence gap is not an artifact of any single bench-mark but a structural feature of how leaderboards aggregate heterogeneous signals into scalar rankings. Any research reporting aggregate performance across multiple datasets or tasks faces the same fundamental question regarding whether the reported evidence supports the stated claim. We emphasize a narrow but important point regarding scope. Not every paper requires comprehensive multi-task analysis. A method evaluated on only two or three datasets naturally supports a limited claim, whereas assertions of state-of-the-art performance imply broader evidence. Problems arise not from small evaluations themselves but from pairing narrow evidence with expansive claim language. The diagnostics we discuss, scale naturally with evaluation size and incur negligible cost. Even in small comparisons, reporting how often one method wins or where improve-ments fail provides meaningful context. Our concern there-fore lies not with evaluation rigor but with claim calibration. Describing results without a claim-evidence gap is appro-priate when supported by point estimates alone. Describing the same evidence as a “robust state-of-the-art improvement” creates the gap we aim to make visible. Authors should assess whether their reporting language exceeds their ev-idence, regardless of whether the work involves a public leaderboard or standard benchmark. 6State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+Table 1. Cross-domain fragility analysis using ten public leaderboards (Cut-off: Dec 31, 2025). Values in parentheses are standard deviations across model pairs. Metrics and scales vary across benchmarks. Therefore, point estimate gaps are not directly comparable.                                                                                                                                  
+
+> HELM MMLU LiveBench Open ASR Open VLM VBench TabArena Binary TabArena Multiclass TabArena Regression TSFM (MAE) TSFM (MSE)
+> (Hendrycks et al., 2021) (White et al., 2025) (Srivastav et al., 2025) (Duan et al., 2024) (Huang et al., 2024) (Erickson et al., 2025) (Erickson et al., 2025) (Erickson et al., 2025) (Li et al., 2025) (Li et al., 2025) Domain NLP/LLM LLM Speech Vision-Language Video Gen. Tabular Tabular Tabular Time Series Time Series Snapshot 2025/01/10 2025/12/23 2025/10/30 2025/09/17 2025/08/15 2025/12/11 2025/12/11 2025/12/11 2025/08/03 2025/08/03 Number of Models (Total) 20 (79) 20 (58) 20 (39) 20 (284) 20 (68) 20 (47) 20 (47) 20 (47) 14 (17) 14 (17) Number of Datasets (Total) 57 (57) 21 (21) 8 (8) 29 (31) 16 (16) 30 (30) 8 (8) 13 (13) 72 (84) 72 (84) Metric Match (↑)Accuracy (↑)WER (↓)Accuracy (↑)Accuracy (↑)1-AUC (↓)Log Loss (↓)RMSE (↓)MAE (↓)MSE (↓)
+> Point Estimate
+> Score Gap (1st-2nd) 0.0007 1.0424 0.1075 1.9172 0.0113 0.0001 0.0012 91.2076 0.0031 0.0077 Score Gap (1st-2nd, %) 0.08% 1.41% 1.87% 1.05% 1.45% 0.09% 0.46% 1.41% 0.74% 1.32%
+> Statistical
+> Number of Pairs 190 190 190 190 190 190 190 190 91 91 Wilcoxon p < 0.05 (%) 74.74% 49.47% 8.95% 64.21% 35.79% 43.68% 7.37% 38.42% 58.24% 64.84%
+> Magnitude
+> Cohen’s d 0.53 (0.35) 0.51 (0.34) 0.40 (0.27) 0.28 (0.12) 0.40 (0.22) 0.33 (0.21) 0.32 (0.30) 0.28 (0.04) 0.33 (0.20) 0.23 (0.16) – Violation Rate (%) 23.16% 21.58% 30.00% 25.79% 21.58% 27.89% 43.68% 3.16% 28.57% 54.95%
+> Consistency
+> Win Rate (%) 69.88 (16.10) 63.86 (13.47) 64.41 (16.48) 74.81 (17.40) 63.22 (14.33) 65.65 (13.26) 60.20 (18.73) 60.08 (24.32) 63.84 (14.35) 54.01 (20.52) – Violation Rate (%) 33.68% 39.47% 34.74% 20.53% 34.21% 37.89% 41.58% 46.84% 46.15% 60.44%
+> Stability
+> BreakPoint rate (%) 39.45 (29.24) 34.66 (23.70) 33.68 (22.86) 37.42 (30.60) 28.52 (19.78) 21.32 (17.00) 27.57 (21.76) 29.64 (28.13) 22.41 (19.82) 17.05 (21.87) – Violation Rate (%) 35.26% 35.79% 32.11% 40.53% 47.37% 58.95% 51.58% 54.74% 57.14% 74.73%
+> Fragility Rate (%) 39.47% 44.21% 45.79% 42.11% 53.68% 61.05% 58.95% 58.42% 61.54% 74.73%
+
+## 5. Alternative Views 
+
+5.1. Mean Scores Suffice for Practical Decisions 
+
+A natural objection is that practitioners care only about which model performs best on average. This concern reflects legitimate practical constraints. Engineers facing deploy-ment deadlines cannot run extensive statistical analyses for every model comparison. For many applications, selecting the top-ranked model by average performance is reasonable. We do not dispute that mean scores provide useful signal. However, this objection conflates two distinct claims. The first is that mean scores help identify good models. The sec-ond is that mean scores justify superiority claims. We accept the first but reject the second. A model that ranks first by average accuracy can still fail on tasks that matter in deploy-ment. Performance on MMLU varies across its 57 subjects (Hendrycks et al., 2021). Small changes in question for-mat can shift rankings by several positions (Alzahrani et al., 2024). For instance, a practitioner selecting a model for chemistry tutoring based on aggregate MMLU scores may encounter weak accuracy on chemistry questions despite strong overall performance. Roque et al. (2025) demon-strate that dataset selection alone can make a large fraction of methods appear “best in class.” If practitioners need only average performance, authors should say so explicitly. The phrase “SOTA” implies broad superiority that mean scores alone do not establish. When benchmark tasks are heterogeneous, a low win rate shows that the aggregate winner specializes in a subset of tasks, which the mean obscures. This supports transparent reporting. Whether diagnostic violations reflect benchmark heterogeneity or weak evidence is a question of benchmark design that we do not address here (see Appendix B). 
+
+5.2. More Tasks Solve the Problem 
+
+A common counterargument suggests that fragility arises from insufficient task coverage. Proponents of this view argue that if rankings are unstable, the remedy is simply to increase the number of tasks. Averaging over a larger set of independent measurements decreases variance. This principle is statistically sound. If benchmark tasks provided independent evidence regarding model capability, adding more tasks would indeed stabilize rankings. However, this premise fails to hold in practice. Benchmark tasks are rarely independent. Instead, tasks within the same benchmark frequently share design choices, data sources, or evaluation protocols that induce high correlation (Dehghani et al., 2021). Different subsets of tasks produce different winners. If tasks were truly independent, the aggregate rank-7State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+ing should remain stable regardless of the specific subset examined. This sensitivity to task selection shows that task count alone does not guarantee stability (Wang et al., 2024; Mirzadeh et al., 2025; Gema et al., 2025). The critical factor is whether tasks provide genuinely inde-pendent evidence. Even superficial changes to benchmark questions, such as paraphrasing or answer reordering, can cause substantial performance drops despite preserving se-mantic content (Lunardi et al., 2025; Alzahrani et al., 2024). This finding suggests that aggregated scores often reflect sensitivity to surface features rather than purely underly-ing capability. Therefore, adding more tasks with similar characteristics does not address the fundamental issue. The solution lies not in creating larger benchmarks, but in accu-rately reporting the limitations of the results. 
+
+5.3. The Community Already Knows This 
+
+Another view accepts our diagnosis but questions its nov-elty. Experienced researchers understand that benchmark rankings are noisy and that small differences may not reflect real performance gaps. If awareness is widespread, what does this paper contribute? The objection has partial merit. Dem ˇsar (2006) identified the need for proper statistical comparison nearly two decades ago. Dror et al. (2019) showed that standard methods fail to reach decisions in half of Deep Neural Network (DNN) comparisons in NLP. Bouthillier et al. (2021) proposed prob-abilistic comparisons. The methodology exists. The prob-lems are known. However, knowledge has not produced change. Lipton & Steinhardt (2019) identified concerns in ML scholarship, and misuse of language such as unsupported SOTA claims remains common. Our contribution is to quantify this gap and provide a basis for institutional action. Three primary factors reinforce the status quo. First, publication pres-sure rewards bold claims. Consequently, authors who of-fer nuanced or hedged conclusions face a competitive dis-advantage. Second, subconscious biases in interpretation persist. Even factual phrases like “ranks first on this bench-mark” may be read as implicit superiority claims because the community lacks standardized terms to distinguish narrow from broad evidence. Finally, enforcement mechanisms are largely absent. Currently, research venues do not penalize claims that exceed the strength of the provided evidence. While certain benchmarks have already begun to incorpo-rate uncertainty metrics such as confidence intervals and bootstrap win rates (Chiang et al., 2024; Shchur et al., 2025), the majority still omit statistical significance (Reuel et al., 2024). At a broader level, Ott et al. (2022) report that many benchmarks saturate quickly yet continue to be used for ranking despite reduced discriminative power. Since these practices require no additional experiments, their rarity confirms that the barrier is primarily institutional rather than technical. 
+
+5.4. Institutional Change Requires Coordination 
+
+A pragmatic objection is that reviewers routinely request SOTA comparisons irrespective of how claims are framed. Therefore, conforming to existing norms remains a rational strategy. Metrics act as proxies that diverge from true ob-jectives under optimization pressure (Thomas & Uminsky, 2022). This divergence highlights precisely why institu-tional coordination is essential. Clinical medicine faced a similar problem decades ago and developed two complementary solutions. The CONSORT (Consolidated Standards of Reporting Trials) statement is a checklist requiring authors to disclose how trials were conducted so that readers can assess whether reported ef-fects are trustworthy (Moher et al., 2001; Altman et al., 2001; Hopewell et al., 2025). Additionally, the GRADE (Grading of Recommendations Assessment, Development and Evaluation) framework separates evidence quality from recommendation strength (Guyatt et al., 2008; Granholm et al., 2019; Sch ¨unemann et al., 2023). Both frameworks improved practice not by requiring new experiments but by mandating the honest reporting of existing ones. Our community has already begun to follow this path. The adoption of the ML Reproducibility Checklist (Pineau et al., 2021) and the REFORMS (Recommendations for Machine-learning-based Science) framework (Kapoor et al., 2024) shows that the community can coordinate around shared re-porting norms. However, current standards prioritize replica-bility over comparative validity. Because unilateral adoption of rigorous ranking criteria incurs a competitive disadvan-tage, venue-level requirements must expand to cover SOTA claims to break this equilibrium. Our contribution is not the diagnosis. Instead, it is the argument that awareness without enforcement changes nothing. 
+
+## 6. Limitations 
+
+• Model Selection: We analyze only top-ranked models. SOTA claims concentrate among top models, making this the relevant population. However, rankings further down may exhibit different fragility patterns. • Threshold Choice: We set thresholds for three tests at lenient levels grounded in prior literature. Our sen-sitivity analysis shows that conclusions hold across reasonable variations. However, we do not claim these thresholds are uniquely correct. • Single-Metric Focus: Our analysis examines bench-marks where a single aggregate metric determines rank-8State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+ings. Evaluation frameworks reporting multiple met-rics simultaneously may exhibit different patterns. • Temporal Scope: Our analysis reflects a single snap-shot of each benchmark. Public leaderboards evolve as models are submitted and deprecated. We do not track how fragility changes over time. • Causal Explanation: We document fragility but do not explain its sources. Why some benchmarks exhibit higher fragility likely depends on task diversity, metric choice, and model similarity. 
+
+## 7. Conclusion and Recommendations 
+
+Machine learning research has normalized a gap between ev-idence and claims. Our cross-domain analysis demonstrates that this gap is pervasive. The majority of top-model com-parisons lack the statistical support that “SOTA” implicitly promises. The tools to close this gap already exist. There-fore, the barrier is institutional rather than methodological. 
+
+7.1. For Authors 
+
+Claiming “state-of-the-art” carries assumptions that go be-yond ranking first by mean score. However, our analysis shows that these assumptions often lack support. Many mean-score winners do not win consistently, do not improve meaningfully, or do not retain their rank under minor pertur-bations, as shown in Breakdown Point analysis. We do not propose that authors must pass specific statistical tests. Instead, we propose that claim language should reflect what the evidence actually supports. When aggregate gains are narrow or inconsistent, phrases like “achieves lowest average error” or “ranks first on this benchmark” are more accurate than “state-of-the-art,” which serves as a marketing term rather than a precise scientific claim. However, termi-nology revision alone is insufficient if “ranks first” inherits the same subconscious connotations. Accompanying such claims with win rates and effect sizes prevents any single label from serving as an uncritical proxy for superiority. 
+
+7.2. For Reviewers 
+
+The gap we document can be identified without new experi-ments. Reviewers need not apply our specific diagnostics. Instead, a simpler question suffices: does the claim language accurately reflect the reported statistics? For instance, a pa-per describing a method that underperforms on a substantial fraction of tasks should not claim to “significantly outper-form” competitors. Verifying whether the interpretation aligns with the evidence is sufficient. We also encourage reviewers to reconsider standard requests such as “compare with the latest SOTA” or “add more base-lines.” Such demands can inadvertently pressure authors to pursue fragile leaderboard positions rather than articulat-ing genuine scientific contributions. The critical question is not “does this method surpass all predecessors?” but rather “what is the specific contribution, and is the evidence sufficient to support the claims made?” 
+
+7.3. For Venues 
+
+Public leaderboards significantly influence community norms. Currently, most platforms rank models exclusively by mean scores, thereby implicitly endorsing comparisons based on single point estimates. Leaderboards that incorpo-rate win rates or confidence intervals alongside aggregate scores would render the fragility of close rankings imme-diately apparent. This transparency would enable users to calibrate their interpretations without imposing additional burdens on authors. Some benchmarks already report uncer-tainty through confidence intervals or bootstrap win rates, revealing that apparent gaps are often not statistically distin-guishable. These practices require no additional burden. Broader adoption requires institutional support. Reviewer guidelines can ask whether claim language matches the re-ported evidence. Furthermore, submission checklists should prompt authors to characterize the robustness of their con-clusions. These interventions require no new experiments. Instead, they require only honest interpretation. 
+
+7.4. Concluding Remarks Matching Claims to Evidence. Our goal is to align claim language with the strength of the supporting evidence. In current practice, aggregate rankings are often interpreted as broad superiority, even when the underlying evidence may be narrow or heterogeneous. Reporting language should reflect these limitations, especially when performance varies across tasks or depends on specific evaluation choices. 
+
+Scope and Future Work. Our analysis focuses on single-metric, multitask benchmarks at a fixed snapshot in time. We do not address single-task settings or multi-metric deci-sion scenarios, where different notions of superiority may apply. Future work includes extending these diagnostics to multi-metric evaluation, tracking fragility over time, and analyzing domain-specific patterns that lead to instability, as well as studying how reviewer–author interactions shape SOTA claims in practice. 
+
+Institutional Context. The patterns we observe arise from widely adopted evaluation practices rather than isolated cases. Because these practices are shared across the commu-nity, changes in reporting are unlikely to occur at the level of individual papers alone. Aligning claims with evidence shifts attention away from marginal ranking differences and toward more stable comparisons. 9State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+Author Statement on Independence. The authors de-clare no financial conflicts of interest. The analyzed bench-marks are publicly maintained by external research groups, and the authors have no affiliation with the benchmark teams or model providers. This work was supported by the aca-demic grant acknowledged, without industry sponsorship or restrictions on the analysis or interpretation of results. 
+
+## Acknowledgements 
+
+We thank the maintainers of the public leaderboards and the broader open-source community. Their dedication to democ-ratizing access to evaluation results has not only driven the field forward but also provided the necessary transparency for the critical examination presented in this work. We are grateful to Prof. Alex Bui and the UCLA Medical Imaging Informatics (MII) group for their support. We also thank the anonymous reviewers for their constructive feedback and discussion, which improved this work. Dr. YongKyung Oh was supported by the Basic Science Research Program through the National Research Founda-tion of Korea (NRF) funded by the Ministry of Education (RS-2024-00407852). 
+
+## References 
+
+Altman, D. G., Schulz, K. F., Moher, D., Egger, M., Davidoff, F., Elbourne, D., Gøtzsche, P. C., and Lang, T. The Revised CON-SORT Statement for Reporting Randomized Trials: Explanation and Elaboration. Annals of Internal Medicine , 134(8):663–694, April 2001. doi: 10.7326/0003-4819-134-8-200104170-00012. Alzahrani, N. A., Alyahya, H. A., Alnumay, Y., Alrashed, S., Alsubaie, S., Almushayqih, Y., Mirza, F., Alotaibi, N., Al-Twairesh, N., Alowisheq, A., et al. When Benchmarks are Targets: Revealing the Sensitivity of Large Language Model Leaderboards. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), ACL 2024, Bangkok, Thailand, August 11-16, 2024 , pp. 13787–13805, 2024. doi: 10.18653/V1/2024.ACL-LONG.744. Balloccu, S., Schmidtov ´a, P., Lango, M., and Dusek, O. Leak, Cheat, Repeat: Data Contamination and Evaluation Malprac-tices in Closed-Source LLMs. In Proceedings of the 18th Con-ference of the European Chapter of the Association for Compu-tational Linguistics, EACL 2024 - Volume 1: Long Papers, St. Julian’s, Malta, March 17-22, 2024 , pp. 67–93, 2024. Berrar, D. Estimating the Replication Probability of Significant Classification Benchmark Experiments. Journal of Machine Learning Research , 25(311):1–42, 2024. Bouthillier, X., Delaunay, P., Bronzi, M., Trofimov, A., Nichy-poruk, B., Szeto, J., Mohammadi Sepahvand, N., Raff, E., Madan, K., Voleti, V., et al. Accounting for Variance in Ma-chine Learning Benchmarks. In Smola, A., Dimakis, A., and Stoica, I. (eds.), Proceedings of Machine Learning and Systems ,volume 3, pp. 747–769, 2021. Carterette, B. Statistical Significance Testing in Information Re-trieval: Theory and Practice. In Proceedings of the 40th Interna-tional ACM SIGIR Conference on Research and Development in Information Retrieval , SIGIR ’17, pp. 1387–1389, New York, NY, USA, August 2017. Association for Computing Machinery. doi: 10.1145/3077136.3082065. Chiang, W.-L., Zheng, L., Sheng, Y., Angelopoulos, A. N., Li, T., Li, D., Zhu, B., Zhang, H., Jordan, M. I., Gonzalez, J. E., et al. Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference. In Forty-first International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024 , 2024. Cohen, J. Statistical Power Analysis for the Behavioral Sciences .L. Erlbaum Associates, 1988. Dehghani, M., Tay, Y., Gritsenko, A. A., Zhao, Z., Houlsby, N., Diaz, F., Metzler, D., and Vinyals, O. The Benchmark Lottery, July 2021. Dem ˇsar, J. Statistical Comparisons of Classifiers over Multiple Data Sets. Journal of Machine Learning Research , 7(1):1–30, 2006. Dror, R., Baumer, G., Shlomov, S., and Reichart, R. The Hitch-hiker’s Guide to Testing Statistical Significance in Natural Lan-guage Processing. In Gurevych, I. and Miyao, Y. (eds.), Pro-ceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 1383– 1392, Melbourne, Australia, July 2018. Association for Compu-tational Linguistics. doi: 10.18653/v1/P18-1128. Dror, R., Shlomov, S., and Reichart, R. Deep Dominance - How to Properly Compare Deep Neural Models. In Korhonen, A., Traum, D., and M `arquez, L. (eds.), Proceedings of the 57th Annual Meeting of the Association for Computational Linguis-tics , pp. 2773–2785, Florence, Italy, July 2019. Association for Computational Linguistics. doi: 10.18653/v1/P19-1266. Duan, H., Yang, J., Qiao, Y., Fang, X., Chen, L., Liu, Y., Dong, X., Zang, Y., Zhang, P., Wang, J., et al. VLMEvalKit: An Open-Source ToolKit for Evaluating Large Multi-Modality Models. In Proceedings of the 32nd ACM International Conference on Multimedia , MM ’24, pp. 11198–11201, New York, NY, USA, October 2024. Association for Computing Machinery. doi: 10.1145/3664647.3685520. Erickson, N., Purucker, L., Tschalzev, A., Holzm ¨uller, D., Desai, P. M., Salinas, D., and Hutter, F. TabArena: A Living Bench-mark for Machine Learning on Tabular Data. In Advances in Neural Information Processing Systems , 2025. Fix, E. and Hodges, J. L. Significance Probabilities of the Wilcoxon Test. The Annals of Mathematical Statistics , 26(2): 301–312, 1955. Garc ´ıa, S. and Herrera, F. An Extension on “Statistical Compar-isons of Classifiers over Multiple Data Sets” for all Pairwise Comparisons. Journal of Machine Learning Research , 9(89): 2677–2694, 2008. Gema, A. P., Leang, J. O. J., Hong, G., Devoto, A., Mancino, A. C. M., Saxena, R., He, X., Zhao, Y., Du, X., Ghasemi Madani, M. R., et al. Are We Done with MMLU? In Chiruzzo, L., Ritter, A., and Wang, L. (eds.), Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for 
+
+10 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) , pp. 5069–5096, Albuquerque, New Mexico, April 2025. Association for Computational Linguistics. doi: 10.18653/v1/2025.naacl-long.262. Granholm, A., Alhazzani, W., and Møller, M. H. Use of the GRADE approach in systematic reviews and guidelines. British Journal of Anaesthesia , 123(5):554–559, November 2019. doi: 10.1016/j.bja.2019.08.015. Guyatt, G. H., Oxman, A. D., Vist, G. E., Kunz, R., Falck-Ytter, Y., Alonso-Coello, P., and Sch ¨unemann, H. J. GRADE: an emerging consensus on rating quality of evidence and strength of recommendations. BMJ , 336(7650):924, April 2008. doi: 10.1136/bmj.39489.470347.AD. Hampel, F. R. A General Qualitative Definition of Robustness. 
+
+The Annals of Mathematical Statistics , 42(6):1887–1896, 1971. Hendrycks, D., Burns, C., Basart, S., Zou, A., Mazeika, M., Song, D., and Steinhardt, J. Measuring Massive Multitask Language Understanding. In 9th International Conference on Learning Representations, ICLR 2021, Virtual Event, Austria, May 3-7, 2021 , 2021. Hopewell, S., Chan, A.-W., Collins, G. S., Hr ´objartsson, A., Moher, D., Schulz, K. F., Tunn, R., Aggarwal, R., Berkwits, M., Berlin, J. A., et al. CONSORT 2025 statement: updated guideline for reporting randomised trials. The Lancet , 405(10489):1633– 1640, May 2025. doi: 10.1016/S0140-6736(25)00672-5. Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang, Y., Wu, T., Jin, Q., Chanpaisit, N., et al. VBench: Comprehensive Benchmark Suite for Video Generative Models. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2024, Seattle, WA, USA, June 16-22, 2024 , pp. 21807–21818, 2024. doi: 10.1109/CVPR52733.2024.02060. Ismail Fawaz, H., Forestier, G., Weber, J., Idoumghar, L., and Muller, P.-A. Deep learning for time series classification: a review. Data Mining and Knowledge Discovery , 33(4):917– 963, July 2019. doi: 10.1007/s10618-019-00619-1. Kapoor, S., Cantrell, E. M., Peng, K., Pham, T. H., Bail, C. A., Gundersen, O. E., Hofman, J. M., Hullman, J., Lones, M. A., Malik, M. M., et al. REFORMS: Consensus-based Recommen-dations for Machine-learning-based Science. Science Advances ,10(18):eadk3452, May 2024. doi: 10.1126/sciadv.adk3452. Li, Z., Qiu, X., Chen, P., Wang, Y., Cheng, H., Shu, Y., Hu, J., Guo, C., Zhou, A., Jensen, C. S., et al. TSFM-Bench: A Comprehensive and Unified Benchmark of Foundation Models for Time Series Forecasting. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2 , KDD ’25, pp. 5595–5606, New York, NY, USA, August 2025. Association for Computing Machinery. doi: 10.1145/ 3711896.3737442. Liang, P., Bommasani, R., Lee, T., Tsipras, D., Soylu, D., Ya-sunaga, M., Zhang, Y., Narayanan, D., Wu, Y., Kumar, A., et al. Holistic Evaluation of Language Models. Transac-tions on Machine Learning Research , October 2023. doi: 10.48550/arXiv.2211.09110. Lipton, Z. C. and Steinhardt, J. Research for practice: troubling trends in machine-learning scholarship. Commun. ACM , 62(6): 45–53, 2019. Lunardi, R., Mea, V. D., Mizzaro, S., and Roitero, K. On Robust-ness and Reliability of Benchmark-Based Evaluation of LLMs. In ECAI 2025 - 28th European Conference on Artificial Intel-ligence, 25-30 October 2025, Bologna, Italy - Including 14th Conference on Prestigious Applications of Intelligent Systems (PAIS 2025) , pp. 4603–4610, 2025. doi: 10.3233/FAIA251363. Mirzadeh, I., Alizadeh, K., Shahrokhi, H., Tuzel, O., Bengio, S., and Farajtabar, M. GSM-Symbolic: Understanding the Limita-tions of Mathematical Reasoning in Large Language Models. In The Thirteenth International Conference on Learning Repre-sentations, ICLR 2025, Singapore, April 24-28, 2025 , 2025. Moher, D., Schulz, K. F., and Altman, D. G. The CONSORT statement: revised recommendations for improving the quality of reports of parallel-group randomised trials. The Lancet , 357 (9263):1191–1194, April 2001. doi: 10.1016/S0140-6736(00) 04337-3. Oh, Y., Kim, H., and Kim, S. TSSI: Time Series as Screenshot Images for multivariate time series classification using convolu-tional neural networks. Computers & Industrial Engineering ,209:111393, November 2025. doi: 10.1016/j.cie.2025.111393. Ott, S., Barbosa-Silva, A., Blagec, K., Brauner, J., and Samwald, M. Mapping global dynamics of benchmark creation and satu-ration in artificial intelligence. Nature Communications , 13(1): 6793, November 2022. doi: 10.1038/s41467-022-34591-0. Ozbulak, U., Anzaku, E. T., Kang, S., De Neve, W., and Vanker-schaver, J. Self-supervised Benchmark Lottery on ImageNet: Do Marginal Improvements Translate to Improvements on Similar Datasets? In 2024 International Joint Conference on Neural Networks (IJCNN) , pp. 1–8, June 2024. doi: 10.1109/IJCNN60899.2024.10650017. Pineau, J., Vincent-Lamarre, P., Sinha, K., Lariviere, V., Beygelz-imer, A., d’Alche Buc, F., Fox, E., and Larochelle, H. Improv-ing Reproducibility in Machine Learning Research(A Report from the NeurIPS 2019 Reproducibility Program). Journal of Machine Learning Research , 22(164):1–20, 2021. Pocock, S. J., Ariti, C. A., Collier, T. J., and Wang, D. The win ratio: a new approach to the analysis of composite endpoints in clinical trials based on clinical priorities. European Heart Journal , 33(2):176–182, January 2012. doi: 10.1093/eurheartj/ ehr352. Recht, B., Roelofs, R., Schmidt, L., and Shankar, V. Do ImageNet Classifiers Generalize to ImageNet? In Proceedings of the 36th International Conference on Machine Learning , pp. 5389–5400. PMLR, May 2019. Redfors, B., Gregson, J., Crowley, A., McAndrew, T., Ben-Yehuda, O., Stone, G. W., and Pocock, S. J. The win ratio approach for composite endpoints: practical guidance based on previ-ous experience. European Heart Journal , 41(46):4391–4399, December 2020. doi: 10.1093/eurheartj/ehaa665. Reuel, A., Hardy, A., Smith, C., Lamparth, M., Hardy, M., and Kochenderfer, M. J. BetterBench: Assessing AI Benchmarks, Uncovering Issues, and Establishing Best Practices. In Glober-son, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U., Tom-czak, J., and Zhang, C. (eds.), Advances in Neural Information Processing Systems , volume 37, pp. 21763–21813. Curran As-sociates, Inc., 2024. doi: 10.52202/079017-0685. 
+
+11 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+Rodriguez, J. D., Perez, A., and Lozano, J. A. Sensitivity Analysis of k-Fold Cross Validation in Prediction Error Estimation. IEEE Transactions on Pattern Analysis and Machine Intelligence , 32 (3):569–575, March 2010. doi: 10.1109/TPAMI.2009.187. Roque, L., Cerqueira, V., Soares, C., and Torgo, L. Cherry-Picking in Time Series Forecasting: How to Select Datasets to Make Your Model Shine. Proceedings of the AAAI Conference on Artificial Intelligence , 39(19):20192–20199, April 2025. doi: 10.1609/aaai.v39i19.34224. Rousseeuw, P. J. and Leroy, A. M. Robust Regression and Outlier Detection . Wiley Series in Probability and Statistics. Wiley, 1 edition, October 1987. doi: 10.1002/0471725382. Sagan, C. Broca’s brain: reflections on the romance of science .Random House, New York, 1st ed edition, 1979. Sch ¨unemann, H. J., Brennan, S., Akl, E. A., Hultcrantz, M., Alonso-Coello, P., Xia, J., Davoli, M., Rojas, M. X., Meer-pohl, J. J., Flottorp, S., et al. The development methods of official GRADE articles and requirements for claiming the use of GRADE – A statement by the GRADE guidance group. 
+
+Journal of Clinical Epidemiology , 159:79–84, July 2023. doi: 10.1016/j.jclinepi.2023.05.010. Sclar, M., Choi, Y., Tsvetkov, Y., and Suhr, A. Quantifying Lan-guage Models’ Sensitivity to Spurious Features in Prompt De-sign or: How I learned to start worrying about prompt format-ting. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 ,2024. Shchur, O., Ansari, A. F., Turkmen, C., Stella, L., Erickson, N., Guerron, P., Bohlke-Schneider, M., and Wang, Y. fev-bench: A Realistic Benchmark for Time Series Forecasting, September 2025. Srivastav, V., Zheng, S., Bezzam, E., Bihan, E. L., Moumen, A., and Gandhi, S. Open ASR Leaderboard: Towards Reproducible and Transparent Multilingual Speech Recognition Evaluation, December 2025. Thomas, R. L. and Uminsky, D. Reliance on metrics is a fun-damental challenge for AI. Patterns , 3(5), May 2022. doi: 10.1016/j.patter.2022.100476. Viechtbauer, W. and Cheung, M. W.-L. Outlier and influence diagnostics for meta-analysis. Research Synthesis Methods , 1 (2):112–125, 2010. doi: 10.1002/jrsm.11. Wang, Y., Ma, X., Zhang, G., Ni, Y., Chandra, A., Guo, S., Ren, W., Arulraj, A., He, X., Jiang, Z., et al. MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Bench-mark. In Globerson, A., Mackey, L., Belgrave, D., Fan, A., Pa-quet, U., Tomczak, J., and Zhang, C. (eds.), Advances in Neural Information Processing Systems , volume 37, pp. 95266–95290. Curran Associates, Inc., 2024. doi: 10.52202/079017-3018. White, C., Dooley, S., Roberts, M., Pal, A., Feuer, B., Jain, S., Shwartz-Ziv, R., Jain, N., Saifullah, K., Dey, S., et al. LiveBench: A Challenging, Contamination-Limited LLM Benchmark. In The Thirteenth International Conference on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025 , 2025. Wilcoxon, F. Individual Comparisons by Ranking Methods. Bio-metrics Bulletin , 1(6):80–83, 1945. doi: 10.2307/3001968. Woolson, R. F. Wilcoxon Signed-Rank Test. In D’Agostino, R. B., Sullivan, L., and Massaro, J. (eds.), Wiley Encyclopedia of Clinical Trials , pp. 1–3. Wiley, 1 edition, September 2008. doi: 10.1002/9780471462422.eoct979. Xu, R., Wang, Z., Fan, R.-Z., and Liu, P. Benchmarking Bench-mark Leakage in Large Language Models, April 2024. Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. In Advances in Neural Information Processing Systems 36: Annual Conference on Neural Information Processing Systems 2023, NeurIPS 2023, New Orleans, LA, USA, December 10 - 16, 2023. , 2023. 
+
+12 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+## A. SOTA Mention Analysis 
+
+We analyzed abstracts from six major AI conferences (2021–2025) using metadata from the Paper Copilot repository 2,accessed in early 2026. Papers were filtered to accepted submissions only, excluding rejected, withdrawn, and desk-rejected papers. For AAAI, we included main and special tracks, while for ACL, we excluded Findings papers. It is important to note that our filtered counts may differ slightly from official statistics due to data update timing and track inclusion criteria. Our focus is on cross-conference trends rather than absolute counts. 
+
+Table 2. Number of accepted papers by con-ference and year (counts may differ)                                   
+
+> 2021 2022 2023 2024 2025
+> ICML 1183 1233 1865 2610 3342 ICLR 860 1095 1575 2260 3704 NeurIPS 2508 2901 3584 4562 5812 AAAI 1654 1319 1720 2501 3182 CVPR 1661 2062 2359 2716 2871 ACL 710 700 1075 940 1699
+
+Table 3. Number of papers mentioning SOTA in abstract (based on filtered counts)                                   
+
+> 2021 2022 2023 2024 2025
+> ICML 264 262 386 566 783 ICLR 246 318 476 629 903 NeurIPS 627 716 895 1143 1611 AAAI 609 515 666 1000 1158 CVPR 885 1068 1090 1147 1184 ACL 232 211 299 193 335
+
+Table 4. Percentage of papers mentioning SOTA in abstract (based on filtered counts)                                   
+
+> 2021 2022 2023 2024 2025
+> ICML 22.32 21.25 20.70 21.69 23.43 ICLR 28.60 29.04 30.22 27.83 24.38 NeurIPS 25.00 24.68 24.97 25.05 27.72 AAAI 36.82 39.04 38.72 39.98 36.39 CVPR 53.28 51.79 46.21 42.23 41.24 ACL 32.68 30.14 27.81 20.53 19.72
+
+Terminology. Benchmarks across domains use varied terminology for their evaluation units. Natural language processing benchmarks refer to subjects or task categories, while speech recognition benchmarks are organized by distinct corpora. Computer vision benchmarks define evaluation dimensions. Tabular benchmarks involve multiple tasks and datasets, and time series forecasting benchmarks aggregate over individual datasets. Our framework treats these uniformly as evaluation units d ∈ D over which aggregate scores are computed. The mathematical structure, ranking models by mean score across k units, is identical regardless of the unit definition. We use “dataset” and “task” interchangeably as generic terms. 
+
+Scope and Methodology. We identified SOTA claims by matching the patterns: “state-of-the-art” (with hyphen variants), “state of the art”, “SOTA”, “SotA” (case-insensitive), and so on. This count includes papers across all evaluation settings, including single-task and single-dataset comparisons. We retain them because the purpose of this section is to characterize the prevalence of SOTA claim language across venues, not to filter by evaluation structure. Tables 2, 3, and 4 summarize our analysis. However, our goal is to identify cross-conference trends rather than report exact counts. The results show that a substantial fraction of accepted papers explicitly claim state-of-the-art performance in their abstracts, ranging from 20% to over 50% depending on the venue. Our keyword-based approach may underestimate the true rate, as semantically equivalent claims (e.g., “our model achieves the best performance”) are not captured. 
+
+## B. Benchmark Descriptions 
+
+This appendix provides detailed descriptions of the ten benchmarks analyzed in this study. We selected benchmarks that span diverse domains and remain actively maintained as of 2025. This selection shows that the claim-evidence gap appears across the machine learning landscape. With the exception of MMLU, all benchmarks were published in 2024 or 2025. The analysis does not question benchmark design. These benchmarks represent substantial community contributions. The focus is on how downstream users interpret results and make claims. 
+
+B.1. HELM MMLU 
+
+The Massive Multitask Language Understanding (MMLU) benchmark (Hendrycks et al., 2021) is a multiple-choice question answering test that covers 57 subjects, including elementary mathematics, US history, computer science, and law. The original paper found that model performance varies substantially across domains and that models are poorly calibrated, often failing to recognize when they are incorrect. Originally published at ICLR 2021, MMLU has become one of the most widely cited evaluation resources in NLP and LLM, with the dataset and evaluation code released under an MIT license. We use the MMLU evaluation provided by the Holistic Evaluation of Language Models (HELM) framework (Liang et al., 2023). HELM MMLU was introduced to address inconsistent evaluation practices across model developers, providing standardized prompts and full transparency of all raw prompts and predictions. 
+
+> 2
+
+https://github.com/papercopilot/paperlists 
+
+13 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+The evaluation uses the Multiple Choice Joint adaptation method, where the model directly generates the answer choice as text. The primary metric is Exact Match (EM). Based on the latest update, we collected 79 models across 57 subjects. The leaderboard is available at https://crfm.stanford.edu/helm/mmlu/ .
+
+B.2. LiveBench 
+
+LiveBench (White et al., 2025) is an LLM benchmark designed to address test set contamination and LLM judge bias. The benchmark contains questions based on recently released math competitions, arXiv papers, news articles, and datasets, with questions added and updated on a monthly basis. Each question has verifiable, objective ground-truth answers, allowing automatic scoring without the use of an LLM judge. The paper was accepted as a Spotlight at ICLR 2025. The code and benchmark data are publicly available under the Apache 2.0 license. LiveBench originally comprises six categories: mathematics, coding, reasoning, data analysis, instruction following, and language comprehension. To prevent contamination, approximately one-sixth of the questions are replaced in each monthly update, so that the benchmark is fully refreshed roughly every six months. In our analysis, we have included recent updates to the leaderboard and collected 58 models across 21 datasets spanning 7 categories. The leaderboard is available at 
+
+https://livebench.ai/ .
+
+B.3. Open ASR Leaderboard 
+
+The Open ASR Leaderboard (Srivastav et al., 2025) is a benchmark for automatic speech recognition systems designed to address the saturation of ASR evaluation with short-form English and the lack of efficiency reporting. The leaderboard compares open-source and proprietary systems across multiple datasets, standardizing text normalization and reporting both Word Error Rate (WER) for transcription quality and inverse Real-Time Factor (RTFx) for inference speed. The benchmark includes three evaluation tracks: English transcription, multilingual recognition (German, French, Italian, Spanish, and Portuguese), and long-form audio. All evaluation code and dataset loaders are open-sourced. For simplicity, we focused on 8 subjects from the English tasks and evaluated 39 models. The leaderboard is available at https: //huggingface.co/spaces/hf-audio/open_asr_leaderboard .The Open ASR Leaderboard is released as a recent preprint and is included because it evaluates frontier speech models from major industry labs alongside open-source systems. This setting provides a practically relevant comparison. 
+
+B.4. Open VLM Leaderboard 
+
+The Open VLM Leaderboard is built upon VLMEvalKit (Duan et al., 2024), an open-source toolkit designed for evaluating large vision-language models. VLMEvalKit employs generation-based evaluation for all models, reporting results derived from both exact matching and LLM-based answer extraction. The toolkit paper appeared at ACM Multimedia 2024, and the codebase is distributed under the Apache 2.0 license. The toolkit automates data preparation, distributed inference, prediction post-processing, and metric calculation. Reflecting the efficiency of the framework, the leaderboard contains over 200 models; however, we selected the top 20 for our analysis. Furthermore, we excluded ‘VCR’ and ‘COCO VAL’ due to missing data. The leaderboard is available at 
+
+https://huggingface.co/spaces/opencompass/open_vlm_leaderboard .
+
+B.5. VBench 
+
+VBench (Huang et al., 2024) is a benchmark suite for evaluating video generative models. The benchmark was developed to address the limitation that existing metrics do not fully align with human perceptions of video quality. Specifically, VBench decomposes video generation quality into 16 evaluation dimensions, covering both video quality aspects, and video-condition consistency aspects. For each dimension, the benchmark provides tailored prompts and evaluation methods for automatic objective assessment. The authors validated alignment with human perception through preference annotations for each dimension. VBench received a Highlight at CVPR 2024. The code is available under the Apache 2.0 license. We treat each of the 16 dimensions as a separate evaluation criterion, enabling fine-grained analysis of how model rankings vary across different aspects of video generation quality. While the leaderboard allows users to upload their own evaluations, we have chosen 68 models certified by the VBench team. The leaderboard is available at https: //huggingface.co/spaces/Vchitect/VBench_Leaderboard .14 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+B.6. TabArena 
+
+TabArena (Erickson et al., 2025) is a living benchmark for machine learning on tabular data, designed to address the limitations of static benchmarks that fail to update when flaws are discovered or new models are released. The benchmark features 51 manually curated datasets, covering binary classification, multiclass classification, and regression tasks across diverse domains. It was presented as a Spotlight at the NeurIPS 2025 Datasets and Benchmarks Track. The code and precomputed results are released under the Apache 2.0 license. The benchmark employs nested cross-validation with dataset-specific repetition strategies to guard against randomness. The official leaderboard uses an Elo rating system for aggregation, utilizing task-appropriate metrics: ROC AUC for binary classification, log-loss for multiclass classification, and RMSE for regression. A key finding is that post-hoc ensembling of hyperparameter configurations is essential to evaluate models at their full potential. For our analysis, we evaluate each task type separately rather than using the aggregated Elo scores, treating ROC-AUC error, log-loss, and RMSE as independent evaluation criteria. We denote TabArena Binary, TabArena Multiclass, and TabArena Regression as binary classification (30), multiclass classification (8), and regression tasks (13), respectively. The leaderboard is available at https://tabarena.ai/ .
+
+B.7. TSFM-Bench 
+
+TSFM-Bench (Li et al., 2025) is a benchmark for evaluating Time Series Foundation Models (TSFMs) pre-trained on massive heterogeneous time series data. It addresses the issue of incompatible evaluation settings in existing TSFMs, which complicates fair comparison. TSFM-Bench provides standardized experimental protocols for dataset splitting, loading, normalization, and few-shot sampling. The paper was published at KDD 2025. The benchmark covers 21 multivariate datasets across diverse domains with varied statistical characteristics. The primary metrics are Mean Absolute Error (MAE) and Mean Squared Error (MSE), computed per prediction horizon. For our analysis, we treat MSE and MAE as separate evaluation criteria and exclude model-dataset pairs with missing values caused by model incompatibility with certain prediction settings. Additionally, we consider each prediction horizon as an independent task. Thus, our analysis includes 14 models across 18 datasets (excluding “FRED-MD”, “NN5”, and “Wiki2000 96”). For further details, please refer to the original paper and the official repository at https://github. com/decisionintelligence/TSFM-Bench .
+
+## C. Summary of Individual Results 
+
+This section reports violation rates for each diagnostic test across the ten analyzed benchmarks. The code is available at 
+
+https://github.com/yongkyung-oh/SOTA .For each benchmark, we first rank models by mean score under the conventional criterion and select the top 20 models (or fewer if unavailable). We then form all  M
+
+> 2
+
+ pairwise comparisons. Within each pair, the model with the higher mean score is designated as the potential winner. Subsequently, we compute three diagnostics from the per-dataset score matrix. We did not classify individual model entries by publication status. The analysis uses the top 20 models by mean score on each leaderboard without filtering for peer-reviewed publications. Top-ranked positions are dominated by frontier models from well-resourced organizations with publications at major venues. • Cohen’s d. We compute the mean performance differential across datasets and divide it by the standard deviation. This process yields a scale-free measure of effect magnitude. Values below τd = 0 .2 indicate that the performance gap is negligible relative to cross-task variability. • Win Rate. For each pair, we calculate the fraction of datasets where the potential winner outperforms the loser. We exclude ties from the numerator. A win rate below τw = 0 .6 indicates that the advantage in mean score does not translate to consistent per-task superiority. • Breakdown Point. We determine the minimum proportion of datasets whose removal reverses the mean-score ranking. Datasets are sorted by the potential winner’s advantage and removed greedily in descending order until the ranking flips. Since the mean is additive, this greedy procedure yields the exact minimum. A breakdown point below τb = 0 .2
+
+indicates that the ranking relies on a small subset of favorable datasets. 15 State-of-the-Art Claims Require State-of-the-Art Evidence Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00   
+
+> Violation Rate
+> 23.16%
+> 33.68% 35.26% 39.47%
+
+50% threshold 
+
+(a) HELM MMLU Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00  
+
+> Violation Rate
+> 21.58%
+> 39.47% 35.79%
+> 44.21%
+
+50% threshold (b) LiveBench Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00   
+
+> Violation Rate
+> 30.00% 34.74% 32.11%
+> 45.79%
+
+50% threshold 
+
+(c) Open ASR Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00   
+
+> Violation Rate
+> 25.79% 20.53%
+> 40.53% 42.11%
+
+50% threshold (d) Open VLM Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00  
+
+> Violation Rate
+> 21.58%
+> 34.21%
+> 47.37% 53.68%
+
+50% threshold 
+
+(e) VBench Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00  
+
+> Violation Rate
+> 27.89%
+> 37.89%
+> 58.95% 61.05%
+
+50% threshold (f) TabArena Binary Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00   
+
+> Violation Rate
+> 43.68% 41.58%
+> 51.58% 58.95%
+
+50% threshold 
+
+(g) TabArena Multiclass Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00  
+
+> Violation Rate
+> 3.16%
+> 46.84%
+> 54.74% 58.42%
+
+50% threshold (h) TabArena Regression Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00  
+
+> Violation Rate
+> 28.57%
+> 46.15%
+> 57.14% 61.54%
+
+50% threshold 
+
+(i) TSFM (MAE) Magnitude Consistency Stability Fragility Rate 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00   
+
+> Violation Rate
+> 54.95% 60.44%
+> 74.73% 74.73%
+
+50% threshold (j) TSFM (MSE) 
+
+Figure 6. Violation rates by diagnostic test across ten benchmarks. The rightmost bar indicates the overall fragility rate. 
+
+Table 5. Fragility Rate by the number of top-ranked models 
+
+Number of Models Violation Rates Fragility Rate Magnitude Consistency Stability 
+
+10 35.56% 40.00% 48.89% 53.33% 20 23.16% 33.68% 35.26% 39.47% 30 22.99% 28.28% 35.86% 38.85% 40 19.10% 24.62% 30.13% 32.56% 50 14.61% 19.10% 23.35% 25.22% 60 12.03% 15.65% 18.93% 20.45% 
+
+Table 6. Fragility Rate by the number of sampled datasets 
+
+Number of Datasets Violation Rates Fragility Rate Magnitude Consistency Stability 
+
+7 9.47% 30.00% 14.21% 30.00% 17 12.11% 30.53% 24.74% 35.26% 27 20.00% 33.68% 31.05% 40.53% 37 18.95% 31.05% 32.11% 35.79% 47 21.58% 32.63% 34.74% 37.89% 57 23.16% 33.68% 35.26% 39.47% 
+
+Figure 6 shows the breakdown by magnitude, consistency, and stability along with the overall fragility rate. The dominant source of fragility varies by domain. Some benchmarks exhibit high consistency violations while others are constrained primarily by stability. This heterogeneity indicates that fragility arises from domain-specific characteristics rather than a 16 State-of-the-Art Claims Require State-of-the-Art Evidence 
+
+single systematic cause. Identifying which structural properties of a benchmark predict its dominant failure mode remains a direction for future work. Furthermore, Tables 5 and 6 report the numerical values corresponding to Figure 4 using HELM MMLU. Table 5 shows that fragility concentrates among top-ranked models where SOTA claims are most common. Table 6 confirms that adding tasks does not resolve instability. This supports our argument that fragility reflects structural heterogeneity rather than an insufficient sample size. These findings reinforce our central argument. Fragility is most pronounced precisely where SOTA claims concentrate. Furthermore, methodological remedies such as adding tasks do not resolve this issue. Consequently, the appropriate response is not larger benchmarks but calibrated reporting. 
+
+## D. Stability Across Thresholds 
+
+D.1. Single-Parameter Sensitivity 
+
+We examine the robustness of our findings regarding threshold selection across all benchmarks. Figures 7–16 illustrate how violation rates vary as each threshold changes while others remain at their default values ( τw = 0 .6, τd = 0 .2, τb = 0 .2). Across all benchmarks, the fragility rate remains stable as individual thresholds vary. This persists even though the violation rates for each test change substantially. This stability indicates that our findings do not depend on specific threshold choices. The dominant source of fragility differs by domain. Some benchmarks are constrained primarily by consistency while others are constrained by stability. However, the overall pattern persists regardless of which threshold is adjusted. These patterns indicate that threshold selection does not drive our conclusions. The claim-evidence gap persists under lenient, moderate, and strict standards alike. This robustness supports treating fragility as a structural property of benchmark-based comparison rather than an artifact of our analytical choices. We emphasize that these thresholds operationalize measurement rather than define publication standards. While different thresholds yield varying violation rates, the qualitative findings remain unchanged. Thus, fragility is pervasive regardless of the specific cutoffs selected. 
+
+D.2. Cross-Benchmark Consistency Relaxation 
+
+The single-parameter analysis above varies each threshold independently. Relaxing the consistency threshold to τw = 0 .5,which requires only a bare majority of task-level wins, reduces consistency violations in most benchmarks. Magnitude (τd = 0 .2) and stability ( τb = 0 .2) thresholds remain unchanged. 
+
+Table 7. Effect of relaxing the consistency threshold from τw = 0 .6 to τw = 0 .5 across all ten benchmarks.                                                 
+
+> τwDiagnostic HELM MMLU LiveBench Open ASR Open VLM VBench TabArena Binary TabArena Multiclass TabArena Regression TSFM (MAE) TSFM (MSE)
+> 0.6 Consistency 33.68% 39.47% 34.74% 20.53% 34.21% 37.89% 41.58% 46.84% 46.15% 60.44% Fragility Rate 39.47% 44.21% 45.79% 42.11% 53.68% 61.05% 58.95% 58.42% 61.54% 74.73% 0.5 Consistency 14.74% 16.32% 34.74% 12.11% 18.95% 14.21% 41.58% 39.47% 17.58% 45.05% Fragility Rate 35.26% 36.32% 45.79% 40.53% 48.42% 58.95% 58.95% 55.26% 57.14% 74.73%
+
+Fragility rates decrease only slightly and remain between 35% and 75% in all cases. Some benchmarks show no or negligible change, which indicates that magnitude or stability violations drive their fragility. Even under this lenient threshold, the claim-evidence gap persists across all domains. 
+
+D.3. Task/Dataset Heterogeneity Within Benchmark 
+
+Benchmark tasks vary in how homogeneous their evaluation units are. Some aggregate closely related datasets within a single task, while others combine distinct capabilities or opposing criteria. This heterogeneity affects diagnostic outcomes. A low win rate may reflect task conflict or weak performance. A small effect size may reflect heterogeneous scales or negligible improvement. A low breakdown point may reflect diversity in the benchmark or dependence on a few tasks. Our diagnostics do not distinguish between these sources. They reveal whether aggregate claims align with task-level evidence. These sources relate to benchmark design, which we do not critique. When a benchmark is highly heterogeneous, aggregate SOTA claims become less informative. Reporting diagnostics alongside mean scores makes these patterns visible and allows readers to evaluate the evidence directly. Quantifying task heterogeneity and its relationship to ranking stability remains an open direction for community study. 17 State-of-the-Art Claims Require State-of-the-Art Evidence 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 7. Sensitivity analysis of violation rates to threshold selection on the HELM MMLU leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 8. Sensitivity analysis of violation rates to threshold selection on the LiveBench leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 9. Sensitivity analysis of violation rates to threshold selection on the Open ASR leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 10. Sensitivity analysis of violation rates to threshold selection on the Open VLM leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 11. Sensitivity analysis of violation rates to threshold selection on the VBench leaderboard 
+
+18 State-of-the-Art Claims Require State-of-the-Art Evidence 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 12. Sensitivity analysis of violation rates to threshold selection on the TabArena Binary leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 13. Sensitivity analysis of violation rates to threshold selection on the TabArena Multiclass leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 14. Sensitivity analysis of violation rates to threshold selection on the TabArena Regression leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 15. Sensitivity analysis of violation rates to threshold selection on the TSFM (MAE) leaderboard 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> d
+
+(Cohen's d threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Magnitude 
+
+Fragility Rate 
+
+(a) Magnitude 0.4 0.5 0.6 0.7 0.8 0.9  
+
+> w
+
+(Win Rate threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Consistency 
+
+Fragility Rate (b) Consistency 0.1 0.2 0.3 0.4 0.5  
+
+> b
+
+(Breakdown Point Ratio threshold) 
+
+0.00 
+
+0.25 
+
+0.50 
+
+0.75 
+
+1.00 
+
+> Violation Rate
+
+Stability 
+
+Fragility Rate (c) Stability 
+
+Figure 16. Sensitivity analysis of violation rates to threshold selection on the TSFM (MSE) leaderboard 
+
+19

@@ -1,0 +1,1574 @@
+Title: Neural Flow Operators can Approximate any Operator: Abstract Frameworks and Universal Approcimations
+
+URL Source: https://arxiv.org/pdf/2605.22557v1
+
+Published Time: Fri, 22 May 2026 01:15:17 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+NEURAL FLOW OPERATORS CAN APPROXIMATE ANY OPERATOR: ABSTRACT FRAMEWORKS AND UNIVERSAL APPROXIMATIONS ∗
+
+SHUANG CHEN † , JUNCAI HE ‡ , AND XUE-CHENG TAI §
+
+Abstract. We introduce an abstract neural flow framework for neural networks and neural operators. The framework contains two continuous-depth models, namely neural flows with com-position and separation structures, and covers both finite-dimensional function approximation and infinite-dimensional operator approximation. We prove well-posedness and universal approximation properties for the corresponding neural flows, including, to the best of our knowledge, the first universal approximation result for flow-based models between infinite-dimensional spaces. We also obtain universal approximation results for convolutional neural flow models. Through suitable time discretizations, the composition structure recovers ResNet-type architectures, while the separation structure, via a splitting-based discretization, yields plain architectures. This gives a unified flow-based route to both residual and plain architectures for neural networks and neural operators with fully connected or convolutional linear layers. 
+
+Key words. neural flow, neural operators, universal approximation, convolutional architectures, time discretization 
+
+MSC codes. 68T07, 47J35, 41A65, 41A46, 65L05 
+
+1. Introduction. Deep learning architectures such as fully connected deep neu-ral networks (DNNs) [7, 42], convolutional neural networks (CNNs) [33, 40, 43], and, more recently, neural operators [48, 56] have achieved remarkable empirical success across computer vision, natural language processing, and scientific computing, as well as in data-driven modeling of complex systems. This success has led to a rapidly growing mathematical literature on expressive power, approximation properties, and architectural design. Despite substantial progress, however, much of the existing theory remains fragmented: most available results are developed for specific model classes, rely on architecture-dependent constructions, and are not easily transferred across finite-dimensional neural networks and operator-learning models on function spaces. For standard feedforward neural networks on finite-dimensional Euclidean spa-ces, the approximation theory is already extensive and well developed. For shallow (one-hidden-layer) neural networks, a substantial body of work has established qual-itative universal approximation results [16, 34, 44, 60], quantitative approximation estimates [4, 37, 61], rates in reproducing kernel Hilbert space and Barron-space set-tings [2, 19, 20], and, more recently, sharp optimal approximation rates [54, 73]. In comparison, deep neural networks exhibit substantially stronger expressivity and ap-proximation properties due to the presence of depth. On the expressivity side, a large literature has quantified the advantages of deep networks through piecewise linear representations [27, 28, 58, 62, 64, 78] and, more generally, piecewise polynomial rep-resentations [31, 32, 66]. On the approximation side, a sequence of superconvergence-type results [70, 71, 72, 80, 81, 82], building on the bit-extraction technique [5, 6], has 
+
+> ∗
+
+Submitted to the editors DATE. 
+
+> †
+
+Qiuzhen College, Tsinghua University, Haidian District, Beijing 100084, China (chen-shuang24@mails.tsinghua.edu.cn). 
+
+> ‡
+
+Yau Mathematical Sciences Center, Tsinghua University, Haidian District, Beijing 100084, China (jche@tsinghua.edu.cn), corresponding author. 
+
+> §
+
+Norwegian Research Center, Fantoftvegen 38, 5072 Bergen, Norway (xtai@norceresearch.no), corresponding author. 1
+
+> arXiv:2605.22557v1 [cs.LG] 21 May 2026
+
+2 S. CHEN, J. HE , AND X.-C. TAI 
+
+demonstrated a significant separation between the approximation power of deep and shallow networks. For CNNs, the approximation theory is less unified and remains more closely tied to architectural details. Existing analyses typically exploit specific features of convolution, such as locality, sparsity, and parameter sharing [3, 45, 83], together with structural assumptions on the target functions [65, 67]. More recently, general quantitative approximation results for deep CNNs with two-dimensional inputs were established in [26] and further extended to Korobov spaces in [21]. Nevertheless, most available proofs remain model-specific and do not by themselves provide a general framework that simultaneously encompasses fully connected networks and operator-learning architectures. For neural operators on infinite-dimensional or more general abstract vector spa-ces, a unifying theory is even more needed. Neural operators are designed to learn maps between function spaces and have emerged as effective models for approximating solution operators of partial differential equations [10, 39, 48, 49, 55, 56, 68] as well as other infinite-dimensional nonlinear maps [13, 22, 63, 79]. On the theoretical side, uni-versal approximation and quantitative error bounds have been established for several important architectures, including Fourier neural operators (FNO) [38] and Deep-ONet [41]. In addition, [29, 30] proposed an abstract infinite-dimensional feedforward framework covering a broad class of neural operator architectures and established corresponding qualitative approximation results. Nevertheless, most available analy-ses remain architecture-dependent, relying in essential ways on the particular lifting, kernel representation, or spectral parameterization used by the model. As a result, there is still no broadly applicable framework that explains, within a single formula-tion, why both neural networks and neural operators possess universal approximation properties and how these properties are connected. A natural bridge among these model classes is the continuous-depth viewpoint, namely, the interpretation of deep architectures through flow-type models. Distinct from deterministic flow-based generative models [23, 24, 52], continuous or dynamical-system descriptions of deep learning view layer composition as the evolution of an underlying flow [11, 12, 18, 25, 50, 57], rather than merely as a finite sequence of discrete transformations. This perspective is particularly attractive from the stand-point of numerical analysis, since it allows depth to be regarded as a discretization parameter and the underlying continuous model to be treated as the primary object. Recent theoretical advances have rigorously characterized the approximation and in-terpolation properties of such flow-based models from a control-theoretic viewpoint. In particular, universal approximation has been established for continuous-time resid-ual networks under mild structural assumptions [17, 36, 47, 74], while constructive control strategies have been developed to ensure both universal approximation and si-multaneous classification of multiple data distributions [69]. Closely related results on universal interpolation have also been obtained, revealing strong connections between interpolation capability and ensemble controllability of the underlying dynamical sys-tems [9, 14, 15, 17]. Moreover, the interplay among width, depth, and flow-based constructions has been used to study sharp width requirements for universal approx-imation [1, 8, 46]. Beyond ODE-based formulations, simultaneous depth-width lim-its have also led to PDE/integro-differential descriptions of learning dynamics [59], and even attention-based architectures such as Transformers admit related continu-ous formulations as discretizations of structured integro-differential systems [75, 76]. However, most existing continuous-depth analyses remain primarily finite-dimensional and do not provide a unified approximation framework covering both classical neural NEURAL FLOW OPERATORS 3networks and neural operators. In this work, we develop a unified abstract neural flow framework for both neural networks and neural operators. A central feature of the framework is the introduction of two distinct continuous-depth models: a neural flow with composition structure and a neural flow with separation structure. The separation-structured neural flow was first used in Potts-MgNet [75] to give a mathematical explanation of neural networks in the continuous and discrete setting. The formulation in this paper is partly in-spired by this idea and is further developed into a unified abstract framework that also includes separation-structured flows and infinite-dimensional operator settings. The proposed setting covers finite-dimensional flows for function approximation and infinite-dimensional flows for operator approximation within a common formulation. Crucially, the framework is formulated at the level of abstract Hilbert spaces and is not restricted to function spaces: the approximation results hold for arbitrary pairs of Hilbert spaces, regardless of whether they arise as spaces of functions defined on a domain. Within this framework, we establish well-posedness of the associated flow models and prove universal approximation properties for the resulting neural flows. To the best of our knowledge, this is the first work to extend the neural flow per-spective to infinite-dimensional operator approximation together with corresponding universal approximation results. By further restricting the admissible linear trans-formations to convolutional operators, we also obtain universal approximation results for convolutional neural flow models. The distinction between the two flow structures becomes particularly important at the discrete level. The composition structure recovers, through explicit time dis-cretization, the standard ResNet-type architectures that are commonly associated with continuous-depth models. In contrast, the separation structure, combined with a suitable splitting-based discretization, yields plain feedforward architectures. In this way, the same framework leads naturally to approximation results for finite-depth neu-ral networks and neural operators with either fully connected or convolutional linear layers, under both plain and ResNet-type architectures. To the best of our knowledge, previous flow-based analyses have mainly focused on residual-type models, while the present framework provides a unified route to both residual and plain architectures in finite- and infinite-dimensional settings. From the standpoint of numerical analysis, the neural flow may be viewed as the underlying dynamical system, while concrete architectures arise as its discretizations. This perspective provides a common analytical framework for understanding the ap-proximation properties of several important classes of learning models, and clarifies how different architectures can emerge from different continuous-depth structures and discretization procedures. The remainder of the paper is organized as follows. In Section 2, we introduce the notation and formulate the abstract neural flow framework. Section 3 shows how this framework recovers classical feedforward and convolutional neural networks and neural operators. Section 4 is devoted to well-posedness and universal approximation results for neural flows. In Section 5, we establish approximation results for convolu-tional neural flow models. Section 6 derives approximation results, via suitable time discretizations, for finite-depth neural networks and neural operators under both plain and ResNet-type architectures, in both fully connected and convolutional settings. Fi-nally, Section 7 concludes with a discussion of limitations, possible generalizations, and future directions. 4 S. CHEN, J. HE , AND X.-C. TAI 
+
+2. Our proposed neural flow operators. In this section, we introduce the notation and formulate the abstract neural flow framework studied throughout the paper. The framework is built around two continuous-depth flow models, which we call the composition-structured and separation-structured neural flows. A central goal is to work at the level of abstract Hilbert spaces from the outset, so that the result-ing theory applies simultaneously to finite-dimensional function approximation and infinite-dimensional operator approximation, without requiring separate treatments for neural networks and neural operators. 
+
+2.1. Abstract neural flow models. We describe two representative classes of neural flow models and explain how their suitable time discretizations recover finite-depth plain and ResNet-type architectures for both neural networks and neural oper-ators. The two flow structures play complementary roles: the composition structure leads naturally, via explicit time discretization, to ResNet-type architectures, while the separation structure, combined with a splitting-based discretization, yields plain feedforward architectures. This distinction at the continuous level, therefore, provides a unified and principled explanation for two of the most widely used architectural fam-ilies in deep learning. The central object of approximation is a map 
+
+O : C ⊂ X → Y ,
+
+where X and Y are Hilbert spaces over R, and C is a compact subset of X . No further structural assumptions are imposed on X and Y: they need not be spaces of functions defined on a domain, and the framework therefore covers settings beyond classical operator learning. The goal is to construct abstract neural flow operators that approximate O to arbitrary accuracy, and to identify the conditions under which such an approximation is possible. The abstract flow models we shall propose evolve in a latent space. To incorporate this, we introduce an abstract latent space Z, which is a separable Hilbert space over 
+
+R. Typical choices include finite-dimensional Euclidean spaces Rd, matrix spaces 
+
+Rd×d′
+
+, or function spaces such as Sobolev spaces Hs(Ω). For a given D ∈ N+, we write 
+
+ZD := Z × Z × · · · × Z 
+
+| {z }
+
+> D
+
+for the D-fold product space. The evolution of the flow is described by a differential equation on ZD . In par-ticular, if Z is finite-dimensional, the flow is governed by an ordinary differential equation; if Z is a function space, the flow may be described by a partial differential equation. In abstract form, we define the neural flow on ZD as 
+
+> n
+
+F(ZD ) := 
+
+(
+
+FTθt : ZD → Z D
+
+( dz 
+
+> dt
+
+= Φ θt (z), 0 < t ≤ T, 
+
+FTθt : z(0) 7 → z(T ) ∈ Z D .
+
+)
+
+where Φ θt denotes the nonlinear vector field parameterized by θt for t ∈ (0 , T ]. Given two bounded linear maps 
+
+P ∈ L (X , ZD ) and R ∈ L (ZD , Y),NEURAL FLOW OPERATORS 5we define the corresponding abstract neural flow model from X to Y by 
+
+R ◦ F Tθt ◦ P : X → Y FTθt ∈ nF(ZD ) .
+
+Motivated by two different ways of modeling the nonlinear vector field Φ θt , we focus on the following two representative classes. 
+
+Definition 2.1. Let σ, ψ : Z → Z be nonlinear maps, extended to ZD component -wise. The neural flow with composition structure is defined by 
+
+(2.1) nFc(ZD ) := 
+
+(
+
+FTθt
+
+( dz 
+
+> dt
+
+= Φ cθt (z) := σ(Wtz + bt), 0 < t ≤ T, 
+
+FTθt : z(0) 7 → z(T ) ∈ Z D ,
+
+)
+
+,
+
+where 
+
+θt = {W t ∈ L (ZD , ZD ), bt ∈ Z D }.
+
+The neural flow with separation structure is defined by 
+
+(2.2) nFs(ZD ) := 
+
+(
+
+FTθt
+
+( dz 
+
+> dt
+
+= Φ sθt (z) := Wtz + bt + αtψ(z), 0 < t ≤ T, 
+
+FTθt : z(0) 7 → z(T ) ∈ Z D ,
+
+)
+
+,
+
+where 
+
+θt = {W t ∈ L (ZD , ZD ), bt ∈ Z D , α t ∈ R}.
+
+Remark 2.2. Most of the neural flow studies in the literature have focused on the composition structure in (2.1), see [49, 59, 71, 73] which is closely related to the standard ResNet-type architectures. In contrast, the separation structure in (2.2) has received much less attention, and its approximation properties remain largely unexplored. The separation-structured neural flow in (2.2) was first introduced in Potts-MgNet [75], where continuous and discrete viewpoints were used to explain encoder-decoder-type neural networks. The present work is partly motivated by that perspective, but develops it further into a unified abstract framework that also in-cludes both composite and separation-structured flows, and infinite-dimensional op-erator settings. In particular, the current paper provides a systematic theoretical analysis of neural flow models, including well-posedness and universal approximation results. 
+
+2.2. Time discretization of neural flow models to recover conventional finite-depth neural architectures. The continuous-depth neural flow models in-troduced above provide the underlying mathematical framework, but practical neural network architectures are discrete, consisting of finitely many layers with prescribed transformations. The purpose of this subsection is to make this connection precise. We show that suitable time-discretization schemes applied to neural flows with com-position and separation structures naturally and transparently produce finite-depth architectures commonly used in deep learning. More specifically, explicit time discretization of the composition-structured flow recovers ResNet-type architectures, in which each layer is given by a residual update. In contrast, a splitting-based discretization of the separation-structured flow yields 6 S. CHEN, J. HE , AND X.-C. TAI 
+
+plain feedforward architectures, in which no skip connections are present. This cor-respondence applies to both fully connected and convolutional linear layers, and to both neural networks in finite-dimensional spaces and neural operators in infinite-dimensional settings. From the viewpoint of numerical analysis, the network depth L
+
+plays the role of the number of time steps, while the step size ∆ t = T /L determines the resolution of the discretization. In this way, depth is interpreted not merely as an architectural hyperparameter, but as a discretization parameter for the underlying continuous flow. To make this precise, let ∆t = TL , tℓ = ℓ ∆t, ℓ = 0 , 1, . . . , L, 
+
+be a uniform partition of [0 , T ] into L subintervals of equal length. For the neural flow with composition structure , we discretize it by the explicit Euler method: 
+
+z(tℓ+1 ) − z(tℓ)∆t = σ Wtℓ z(tℓ) + btℓ
+
+.
+
+Writing 
+
+zℓ := z(tℓ), Wℓ := Wtℓ−1 , bℓ := btℓ−1 ,
+
+This discretization gives us the finite-depth model (2.3) 
+
+F : v 7 → u
+
+z0 = Pv ∈ Z D ,zℓ = zℓ−1 + ∆ t σ  Wℓzℓ−1 + bℓ ∈ Z D , ℓ = 1 : L, 
+
+u = RzL ∈ Y ,
+
+
+
+which recovers the ResNet-type architecture. For the neural flow with separation structure , we adopt the following semi-implicit discretization: 
+
+
+
+zℓ− 12 − zℓ−1
+
+∆t = Wℓzℓ−1 + bℓ,zℓ − zℓ− 12
+
+∆t = αℓψ(zℓ),, ℓ = 1 : L. 
+
+Equivalently, 
+
+(
+
+zℓ− 12 = ( I + ∆ tWℓ)zℓ−1 + ∆ tbℓ = fWℓzℓ−1 + ebℓ,zℓ − ∆tα ℓψ(zℓ) = zℓ− 12 , ℓ = 1 : L. 
+
+For each ℓ = 1 : L, we assume that there exists a nonlinear map σℓ : Z → Z such that (2.4) σℓ z − ∆tα ℓψ(z) = z, 
+
+then the second step can be written explicitly as zℓ = σℓ(zℓ−1/2), and thus we obtain (2.5) 
+
+F : v 7 → u
+
+z0 = Pv ∈ Z D ,zℓ = σℓ  fWℓzℓ−1 + ebℓ ∈ Z D , ℓ = 1 , . . . , L, 
+
+u = RzL ∈ Y .
+
+NEURAL FLOW OPERATORS 7This yields a plain feedforward architecture. 
+
+Remark 2.3. In this work, we use three nonlinear functions: σ for both the composition-structured flow and its discretization, ψ for the separation-structured flow, and σℓ for the semi-implicit discretization of the neural flows. Although σℓ is allowed to vary with the layer index ℓ, Section 3.4 shows that it may be chosen uni-formly across all layers. In fact, commonly used activation functions σ, related to σℓ
+
+when it is independent of ℓ, satisfy the implicit relation (2.4) for a suitable choice of 
+
+ψ. See Sections 3.4 and 6 for details. 
+
+3. Our model recovers classical neural networks and operators. At this stage, the latent space Z, the activation map σ appearing in (2.3), and the layer-dependent activation map σℓ appearing in (2.5) are kept deliberately abstract. This level of generality is intentional: by leaving Z unspecified, the framework simul-taneously encompasses finite-dimensional Euclidean spaces, function spaces such as 
+
+Hs(Ω), and more general Hilbert spaces that need not arise as spaces of functions on a domain. Different choices of Z and of the linear operators L and R then yield dif-ferent concrete architectures, while the underlying flow structure and the associated approximation theory remain the same. We now make this correspondence explicit by showing how the abstract neural flow models introduced above recover several classical architectures as particular in-stances. Specifically, choosing Z to be a finite-dimensional Euclidean space and the linear operators to be standard matrix multiplications recovers fully connected and convolutional deep neural networks; choosing Z to be an infinite-dimensional function space and the linear operators to be bounded operators between such spaces recov-ers neural operator architectures. We follow the convention in the literature and use the term neural networks to refer to finite-dimensional models and neural operators 
+
+to refer to infinite-dimensional models, although both are special cases of the same abstract framework and are treated on an equal footing throughout this work. 
+
+3.1. Neural flow networks and deep (finite-depth) fully connected neu-ral networks. We first show that classical neural networks are covered by our pro-posed abstract models. Consider the finite-dimensional setting 
+
+X = Rdx , Y = Rdy , Z = R,
+
+with nonlinear functions σ, ψ : R → R. In this case, the abstract neural flow framework reduces to a flow map on RD . More precisely, the class of neural flow networks 
+
+with the composition structure is given by (3.1) nFc(RD ) := 
+
+(
+
+F Tθt : RD → RD
+
+( dz 
+
+> dt
+
+= σ(Wtz + bt), 0 < t ≤ T, F Tθt : z(0) 7 → z(T ) ∈ RD ,
+
+)
+
+,
+
+and the class with the separation structure is given by (3.2) nFs(RD ) := 
+
+(
+
+F Tθt : RD → RD
+
+( dz 
+
+> dt
+
+= Wtz + bt + αtψ(z), 0 < t ≤ T, F Tθt : z(0) 7 → z(T ) ∈ RD ,
+
+)
+
+,
+
+where Wt ∈ RD×D, bt ∈ RD , and αt ∈ R for all 0 < t ≤ T .It follows directly from the discretizations (2.3) and (2.5) that classical finite-depth fully connected neural networks, c.f. [7], arise as discrete realizations of these neural flow models. More precisely, the explicit discretization of the composition 8 S. CHEN, J. HE , AND X.-C. TAI 
+
+structure (3.1) yields ResNet-type fully connected networks with activation σ [33]. On the other hand, if for each layer ℓ the map σℓ : R → R satisfies (2.4) with respect to ψ in (3.2), then the semi-implicit discretization of the separation structure yields plain fully connected networks with activations σℓ.Accordingly, we define the class of neural flow networks from Rdx to Rdy by 
+
+ R ◦ F Tθt ◦ P : Rdx → Rdy F Tθt ∈ nFc(RD ) or nFs(RD ) ,
+
+where P ∈ L (Rdx , RD ) ∼= RD×dx and R ∈ L (RD , Rdy ) ∼= Rdy ×D . Their finite-depth discretizations recover the standard classes of fully connected feedforward networks from Rdx to Rdy , including both ResNet-type and plain architectures with width D.Universal approximation properties for deep neural networks have been estab-lished separately for ResNet-type architectures [36, 51, 53, 65] and for plain architec-tures [70, 71, 72, 80, 81, 82]. Our framework provides a unified derivation of these results and, moreover, clarifies how residual and plain architectures emerge from un-derlying flow models through different discretization mechanisms. 
+
+3.2. Neural flow operators and deep neural operators. We next show that the abstract framework also covers many neural operator architectures studied in the literature [29, 39, 48, 49, 55, 56, 68]. Consider the infinite-dimensional setting, where Ω ⊂ Rd is a bounded domain and both X and Y are Hilbert function spaces on Ω. In this case, it is natural to choose the latent space Z to be a Hilbert function space on Ω or one of its subspaces. For simplicity, throughout this work we assume that 
+
+Z ⊆ Hs(Ω) for some 0 ≤ s ≤ 1. The nonlinear activation is then induced by pointwise function composition, namely (3.3) σ : Hs(Ω) → Hs(Ω) ,z(x, t ) 7 → σ z(x, t ),
+
+and similarly for ψ and σℓ. In the neural-operator literature [39, 48], this is often interpreted as an elementwise activation. Here, however, it is viewed more naturally as a nonlinear operator acting on the function space Z.In this setting, the abstract neural flow framework reduces to flow maps on ZD .More precisely, the classes of neural flow operators with composition structure and 
+
+separation structure are given by 
+
+> n
+
+Fc(ZD ) and nFs(ZD ),
+
+which are defined exactly as in Definition 2.1, with the function space Z and the induced nonlinear activation on Z introduced in (3.3). Accordingly, we define the class of neural flow operators from X to Y by 
+
+ R ◦ F Tθt ◦ P : X → Y FTθt ∈ nFc(ZD ) or nFs(ZD ) ,
+
+where P ∈ L (X , ZD ) and R ∈ L (ZD , Y). It follows directly from the discretizations (2.3) and (2.5) that standard finite-depth neural operators arise as discrete realizations of these neural flow operators. More precisely, the explicit discretization of the composition structure nFc(ZD ) yields ResNet-type neural operators with activation σ. On the other hand, if for each layer 
+
+ℓ the map σℓ : Z → Z satisfies (2.4) with respect to ψ in nFs(ZD ), then the semi-implicit discretization of the separation structure yields plain neural operators with activations σℓ.NEURAL FLOW OPERATORS 9Moreover, as discussed in detail in [29], most popular neural operator architectures are of the plain type. The present framework recovers many such models [10, 39, 48, 49, 55, 56, 68] through appropriate choices of the latent space Z and of the parameterization of the linear operators Wℓ ∈ L (Z, Z). 
+
+3.3. Convolutional neural (flow) networks and operators. Here, we show that by restricting the admissible linear operators to convolutional forms, we can obtain convolutional neural flow models, whose discretizations recover standard con-volutional neural networks and neural operators. Consider the case where the admis-sible linear operators are restricted to a convolutional form. In the finite-dimensional setting, one typically has X = Rdx×dx×c, while Y = Rk for image classification and 
+
+Y = Rdy ×dy ×c for image segmentation. We take 
+
+Z = Rd×d and element-wise nonlinear activation σ : Rd×d → Rd×d
+
+In addition, we restrict each block operator [ Wt]i,j to be a convolution operator of kernel size (2 k + 1) × (2 k + 1), namely [Wt]i,j : Rd×d → Rd×d is a convolution with size (2 k + 1) × (2 k + 1) ,
+
+and assume that [ bt]i ∈ { a1 | a ∈ R} ⊂ Z , where 1 ∈ Rd×d denotes the matrix with all entries equal to 1. Under this specialization, we obtain the class of convolutional neural flow networks 
+
+ R ◦ F Tθt ◦ P : Rdx×dx×c → Rdy ×dy ×c F Tθt ∈ nFc(Rd×d) or nFs(Rd×d) ,
+
+whose time discretizations recover the standard classes of convolutional neural net-works, including both ResNet-type and plain architectures [7, 33]. To recover convolutional neural operators, we consider the infinite-dimensional setting with X and Y being function spaces on Ω. We take Z = Hs(Ω) as before, and restrict the admissible linear operators to convolutional integral operators. More precisely, for each t ∈ (0 , T ], we assume that [ Wt]i,j is a convolutional integral operator of the form: 
+
+
+
+[Wt]i,j [z]j
+
+
+
+(x, t ) = 
+
+Z
+
+> Ω
+
+Wi,j (x − y, t )[ z]j (y, t )d y, 
+
+so that the linear part is parameterized by D × D convolution kernels Wi,j (x − y, t ). These convolutional neural flow operators are closely related to the formulations in-troduced in [75, 76], where similar continuous structures were studied in the context of image processing. Moreover, the semi-implicit discretization of the above convolu-tional neural flow operators leads to a plain convolutional architecture that is closely related to the motivation of FNO [48]. 
+
+3.4. Activation functions. The neural flow framework assumes the existence of an activation function σℓ satisfying the implicit relation (2.4) for a general non-linear map ψ. While stated abstractly, this assumption is not restrictive in practice: most commonly used activation functions satisfy it for a suitably chosen ψ. In partic-ular, sigmoid and softmax activations satisfy relation (2.4), as shown in Section 3.1 of [35] and Sections 5.2 and Appendix A of [75], and activations incorporating layer normalization are covered in Section 2.4 of [77]. 10 S. CHEN, J. HE , AND X.-C. TAI 
+
+In the present work, we restrict attention to the parameterized Leaky ReLU family, which includes ReLU as the special case a = 0. For a ∈ R, we define 
+
+σa(t) = 
+
+(
+
+t, t ≥ 0,at, t < 0.
+
+Within this family, the implicit relation (2.4) can be made explicit. Taking ψ = σa,the function σℓ satisfying σℓ z − ∆t α ℓψ(z) = z can be determined explicitly. In particular, when αℓ = 1, one obtains (3.4) σℓ = 11 − ∆t σ 1−∆t
+
+> 1−a∆t
+
+,
+
+which belongs to the same Leaky ReLU family and is uniform across layers. Conse-quently, (2.5) recovers a plain network or operator with a uniform activation. The derivation of (3.4) follows from elementary calculations and is omitted. In the remainder of this work, unless otherwise stated, the activation σ in the composition model (2.1) and the nonlinear map ψ in the separation model (2.2) are both taken from the Leaky ReLU family, with the specific choice stated explicitly whenever needed. 
+
+4. Well-posedness and universal approximation properties of neural flow models. This section establishes two foundational theoretical properties of the proposed neural flow framework. First, we prove the well-posedness of the continuous-depth neural flow models, guaranteeing that the evolution equation (4.1) admits a unique solution that depends continuously on the model parameters. This is a neces-sary prerequisite for the framework to be mathematically sound and for the flow map 
+
+FTθt to be well defined as an approximation tool. Second, we establish universal ap-proximation properties for the resulting flow maps, showing that any continuous map 
+
+O : C ⊂ X → Y between abstract Hilbert spaces can be approximated to arbitrary accuracy by our proposed neural flow operator. Crucially, both results are established within a single unified framework that covers composition- and separation-structured flows, finite-dimensional and infinite-dimensional settings, and Hilbert spaces that need not arise as function spaces. 
+
+4.1. Well-posedness of neural flow models. Well-posedness of the neural flow models is established in two steps. We first show that the evolution equation (4.1) admits a unique solution for any piecewise constant parameter θt, and then show that this solution depends locally Lipschitz continuously on the parameters, ensuring that small perturbations in the network parameters produce small changes in the resulting flow. Together, these results confirm that the neural flow models are mathematically well defined and stable with respect to parameter variation, which is essential for both the approximation theory developed below and for the practical use of gradient-based training. For the purposes of the proofs that follow, we introduce norms on vector-valued functions and on the parameter space. For z = ( z1, . . . , z D ) and parameter θt =(Wt, bt, α t), we define 
+
+∥z∥∞(x, t ) := max  
+
+> 1≤i≤D
+
+|zi(x, t )|,
+
+∥z∥∞,∞ := max  
+
+> 1≤i≤D
+
+sup  
+
+> t∈[0 ,T ], x ∈Ω
+
+|zi(x, t )|,NEURAL FLOW OPERATORS 11 
+
+∥θ∥∞,∞ := max 
+
+(
+
+sup  
+
+> t∈[0 ,T ]
+
+∥W t∥∞, sup  
+
+> t∈[0 ,T ]
+
+∥bt∥∞, ∥αt∥C([0 ,T ]) 
+
+)
+
+.
+
+The following result establishes the well-posedness of the neural flow equation for piecewise constant parameters and, consequently, the well-definedness of the associ-ated flow map. 
+
+Theorem 4.1. For any θt that is piecewise constant on (0 , T ], the evolution equa-tion 
+
+(4.1) 
+
+
+
+∂z (x, t )
+
+∂t = Φ θt (z(x, t )) , 0 < t ≤ T, z(x, 0) = z0(x),
+
+admits a unique solution z(x, t ) for any initial condition z0(x), where Φθt (z) = Φ cθt (z)
+
+or Φsθt (z) as defined in (2.1) and (2.2) , with activation function σa(·) for any a ∈ R.Consequently, the flow map FTθt : z(x, 0) 7 → z(x, T ) is well defined. Proof. Since θt is piecewise constant, it suffices to establish existence and unique-ness for the system with constant par ameter θ:
+
+
+
+∂z (x, t )
+
+∂t = Φ θ (z(x, t )) , 0 < t ≤ T, z(x, 0) = z0(x).
+
+• When Φ θ (z(x, t )) = Φ cθ (z(x, t )) = σa(Wz(x, t ) + b) for certain W, b, the map Φcθ is Lipschitz continuous with respect to z:
+
+|| Φcθ (z1) − Φcθ (z2)|| ∞ = || σa(Wz1 + b) − σa(Wz2 + b)|| ∞
+
+≤ max {1, |a|} · ||W (z1 − z2)|| ∞
+
+≤ max {1, |a|} · ||W|| ∞|| z1 − z2|| ∞
+
+• When Φ θ (z(x, t )) = Φ sθ (z(x, t )) = Wz(x, t ) + b + ασ a(z(x, t )) for certain 
+
+W, b, α , the map Φ sθ is Lipschitz continuous with respect to z:
+
+|| Φsθ (z1) − Φsθ (z2)|| ∞ = ||W (z1 − z2) + α(σa(z1) − σa(z2)) || ∞
+
+≤ ||W (z1 − z2)|| ∞ + || α(σa(z1) − σa(z2)) || ∞
+
+≤ (||W|| ∞ + |α| · max {1, |a|} ) · || z1 − z2|| ∞
+
+Thus, we have || Φθ (z1) − Φθ (z2)|| ∞,∞ ≤ L|| z1 − z2|| ∞,∞ for some L > 0. The existence and uniqueness of solutions then follow from the classical theorem for dynamical systems. The next result establishes that the solution to (4.1) depends locally Lipschitz continuously on the parameter path θt.
+
+Theorem 4.2. For any T > 0, the solution z(x, t ) of the evolution equation (4.1) 
+
+depends locally Lipschitz continuously on the parameter θt and on |a| in the activation function σa(·). Specifically, for any piecewise constant θ1 
+
+> t
+
+, there exists a neighborhood 
+
+V of θ1 
+
+> t
+
+such that for any θ2 
+
+> t
+
+∈ V , the corresponding solutions z1(x, t ) and z2(x, t )
+
+with the same initial condition z0 satisfy 
+
+∥z1 − z2∥∞,∞ ≤ M T e LT ∥θ1 − θ2∥∞,∞,12 S. CHEN, J. HE , AND X.-C. TAI 
+
+where L is the Lipschitz constant of Φθ with respect to z, and M is the local Lipschitz constant of Φθ with respect to θ.Proof. We first show that Φ θ is locally Lipschitz continuous with respect to θ.When Φ θi (z(x, t )) = Φ cθi (z(x, t )), we have 
+
+|| Φcθ1 (z) − Φcθ2 (z)|| ∞,∞ = || σa(W1z + b1) − σa(W2z + b2)|| ∞,∞
+
+≤ max {1, |a|} · || (W1 − W 2)z + b1 − b2|| ∞,∞
+
+≤ max {1, |a|} · (|| (W1 − W 2)z|| ∞,∞ + || b1 − b2|| ∞,∞)
+
+≤ max {1, |a|} · (|| (W1 − W 2)|| ∞ · || z|| ∞,∞ + || b1 − b2|| ∞,∞)
+
+≤ max {1, |a|} · (|| z|| ∞,∞ + 1) || θ1 − θ2|| ∞,∞.
+
+And when Φ θi (z(x, t )) = Φ sθi (z(x, t )), 
+
+|| Φsθ1 (z) − Φsθ2 (z)|| ∞,∞ =|| (W1 − W 2)z + b1 − b2 + α1σa(z) − α2σa(z)|| ∞,∞
+
+≤|| (W1 − W 2)z|| ∞,∞ + || b1 − b2|| ∞,∞
+
++ || α1σa(z) − α2σa(z)|| ∞,∞
+
+≤|| (W1 − W 2)|| ∞ · || z|| ∞,∞ + || b1 − b2|| ∞,∞
+
++ || α1 − α2|| C([0 ,T ]) · max {1, |a|} ) · || z|| ∞,∞
+
+≤(|| z|| ∞,∞ + 1 + max {1, |a|} ) · || z|| ∞,∞)|| θ1 − θ2|| ∞,∞
+
+Then we have || Φθ1 (z)−Φθ2 (z)|| ∞,∞ ≤ M || θ1 −θ2|| ∞,∞ for some M > 0 depending on the solution z. Since ∂z i(x,t ) 
+
+> ∂t
+
+= Φ θit (zi(x, t )) , i = 1 , 2 with the same initial condition, we obtain 
+
+|z1 
+
+> i
+
+(x, t ) − z2 
+
+> i
+
+(x, t )| = |
+
+Z t
+
+> 0
+
+[Φ θ1 
+
+> t
+
+(z1) − Φθ2 
+
+> t
+
+(z2)] idτ |≤ | 
+
+Z t
+
+> 0
+
+[Φ θ1 
+
+> t
+
+(z1) − Φθ1 
+
+> t
+
+(z2)] idτ | + |
+
+Z t
+
+> 0
+
+[Φ θ1 
+
+> t
+
+(z2) − Φθ2 
+
+> t
+
+(z2)] idτ |
+
+where [ ·]i denotes the i-th component. Therefore, 
+
+|| z1 − z2|| ∞(x, t ) ≤
+
+Z t
+
+> 0
+
+|| Φθ1 
+
+> t
+
+(z1) − Φθ1 
+
+> t
+
+(z2)|| ∞dτ +
+
+Z t
+
+> 0
+
+|| Φθ1 
+
+> t
+
+(z2) − Φθ2 
+
+> t
+
+(z2)|| ∞,∞dτ 
+
+≤
+
+Z t
+
+> 0
+
+L|| z1 − z2|| ∞(x, τ )dτ + M || θ1 − θ2|| ∞,∞t
+
+By Gronwall’s inequality, we have 
+
+|| z1 − z2|| ∞,∞ ≤ M T e LT || θ1 − θ2|| ∞,∞
+
+4.2. Universal approximation properties of our neural flow operators. 
+
+We now establish the main result of this work: an abstract universal approximation theorem for neural flow operators in infinite-dimensional spaces. To the best of our knowledge, this is the first universal approximation result for flow models acting be-tween infinite-dimensional spaces; all existing approximation analyses are restricted to finite-dimensional settings. Furthermore, the theorem is formulated in the framework of abstract Hilbert spaces and is therefore not limited to function spaces. NEURAL FLOW OPERATORS 13 
+
+Theorem 4.3. Let X and Y be Hilbert spaces and let C ⊂ X be compact. Suppose that O : C → Y is continuous and that Z is a function space containing the constant functions. Then, for any ε > 0 and a̸ = 1 , there exist D ∈ N+, bounded linear operators L : X → Z D and R : ZD → Y , and a neural flow operator FTθt ∈ nFc(ZD )
+
+or FTθt ∈ nFs(ZD ) with activation function σa(·), such that 
+
+sup 
+
+> v∈C
+
+O(v) − R ◦ F Tθt ◦ L (v) Y ≤ ε. 
+
+Before proving the theorem, we need the following key lemma on uniform finite-dimensional approximation of a compact set in a Hilbert space. 
+
+Lemma 4.4. Let X be a Hilbert space and let C ⊂ X be compact. Define the closed linear subspace 
+
+X0 := span( C) ⊂ X .
+
+Then X0 is separable. Hence, there exists a countable orthonormal basis {ei}∞ 
+
+> i=1
+
+of 
+
+X0 such that for every ε > 0 there exists k ∈ N with 
+
+sup 
+
+> x∈C
+
+x −
+
+> k
+
+X
+
+> i=1
+
+(x, e i)ei < ε. 
+
+Lemma 4.5. Let Ω ⊂ Rdx be compact and F : Ω → Rdy be continuous. Then, for any D ≥ max(4 dx + 2 , 2dy ), a̸ = 1 and any ε > 0, there exist a neural flow map F Tθt ∈ nFc(RD ) or nFs(RD ) with activation function σa(·), and linear maps 
+
+P : Rdx → RD and R : RD → Rdy such that 
+
+∥R ◦ F Tθt ◦ P − F ∥L∞(Ω) ≤ ε. 
+
+Proof. The proof for this technical lemma is detailed in Appendix A. With these lemmas in hand, we present the proof. 
+
+Proof. Since C ⊂ X is compact and O is continuous, O(C) is also compact in Y.For any ε > 0, there exist an orthonormal basis {ξ1, . . . , ξ m} ⊂ Y and continuous functionals fi : C → R for i = 1 , . . . , m such that sup 
+
+> v∈C
+
+O(v) −
+
+> m
+
+X
+
+> i=1
+
+fi(v)ξi
+
+> Y
+
+≤ ε
+
+3 .
+
+It therefore suffices to construct flow operators FTθt and two affine maps P, L satisfying sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+fi(v)ξi − R ◦ F Tθt ◦ P (v)
+
+> Y
+
+≤ 2ε
+
+3 .
+
+Since X is a separable Hilbert space and C is compact, there exists k ∈ N+ and an orthogonal set {ηj }∞ 
+
+> j=1
+
+in X such that sup 
+
+> v∈C
+
+fi(v) − fi
+
+
+
+> k
+
+X
+
+> j=1
+
+⟨v, η j ⟩ηj
+
+
+
+> Y
+
+≤ ε
+
+3m , ∀i = 1 , . . . , m. 14 S. CHEN, J. HE , AND X.-C. TAI 
+
+Define the finite-dimensional function Fi : Rk → R by 
+
+Fi(x) = fi
+
+
+
+> k
+
+X
+
+> j=1
+
+xj ηj
+
+ , x ∈ [−M, M ]k
+
+where M = sup i sup v∈C |⟨ v, η i⟩| < ∞ (guaranteed by compactness of C). Combining the functions Fi into a vector-valued map F : Rk → Rm by 
+
+F(x) = ( F1(x), F 2(x), · · · , F m(x)) ⊤,
+
+where x = ( x1, x 2, · · · , x k) ∈ [−M, M ]k.By Lemma 4.5, there exists a neural flow network F Tθt on RD and linear maps 
+
+P : Rk → RD , R : RD → Rm such that sup  
+
+> x∈[−M,M ]k
+> m
+
+X
+
+> i=1
+
+|Fi(x) − ˜Fi(x)| ≤ ε
+
+3 .
+
+with ˜F(x) = ( ˜F1(x), ˜F2(x), · · · , ˜Fm(x)) = R ◦ F Tθt ◦ P (x)Next, we define the required operators. First, let 
+
+L(v) = 
+
+
+
+⟨v, η 1⟩1(x)...
+
+⟨v, η k⟩1(x)
+
+ ∈ Z k, Q (v1, · · · , v m) = 
+
+> m
+
+X
+
+> i=1
+
+viξi ∈ Y 
+
+where 1(x) ∈ Z is the constant function with value 1 everywhere on Ω. The dynamical system generating the flow map F Tθt is given by 
+
+dz dt = Wtz + bt + αtσa(z), t ∈ (0 , T ]or 
+
+dz dt = σa(Wtz + bt), t ∈ (0 , T ].
+
+Based on this, we define the PDE system as follows: 
+
+∂z ∂t = Wtz + bt + αtσa(z), t ∈ (0 , T ]or 
+
+∂z ∂t = σa(Wtz + bt), t ∈ (0 , T ].
+
+where z ∈ Z D , Wt ∈ RD×D.The corresponding neural flow operator is denoted by FTθt . Finally, we define the operators P = P ◦ L and R = Q ◦ R. Then this yields 
+
+R ◦ F Tθt ◦ P (v) = Q ◦ R ◦ F Tθt ◦ P ◦ L(v) = Q ◦ ˜F ◦ L(v)= Q
+
+
+
+˜F1(L(v)) ...˜Fm(L(v)) 
+
+ =
+
+> m
+
+X
+
+> i=1
+
+˜Fi(L(v)) ξiNEURAL FLOW OPERATORS 15 Denote f (v) = ( f1(v), f 2(v), · · · , f m(v)) ⊤. Then sup 
+
+> v∈C
+
+O(v) − R ◦ F Tθt ◦ P (v) Y
+
+≤ sup 
+
+> v∈C
+
+O(v) −
+
+> m
+
+X
+
+> i=1
+
+fi(v)ξi
+
+> Y
+
++ sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+fi(v)ξi − R ◦ F Tθt ◦ P (v)
+
+> Y
+
+= sup 
+
+> v∈C
+
+O(v) −
+
+> m
+
+X
+
+> i=1
+
+fi(v)ξi
+
+> Y
+
++ sup 
+
+> v∈C
+
+Q(f )( v) − Q( ˜F ◦ L)( v) Y
+
+≤ ε
+
+3 + sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+(f − ˜F ◦ L)i(v)ξi Y
+
+= ε
+
+3 + sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+|(f − ˜F ◦ L)i(v)| ∥ ξi∥Y
+
+≤ ε
+
+3 + sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+|(f − F ◦ L)i(v)| + sup 
+
+> v∈C
+> m
+
+X
+
+> i=1
+
+|(F ◦ L − ˜F ◦ L)i(v)|
+
+= ε
+
+3 +
+
+> m
+
+X
+
+> i=1
+
+sup 
+
+> v∈C
+
+|fi(v) − fi
+
+
+
+> k
+
+X
+
+> j=1
+
+⟨v, η j ⟩ηj
+
+ | + ε
+
+3
+
+≤ ε
+
+3 + m ε
+
+3m + ε
+
+3= ε
+
+5. Application I: Universal approximation properties for convolutional neural flow operators. The preceding sections establish universal approximation theorems for neural flow operators with fully connected linear layers. Convolutional architectures are of independent interest, since they incorporate translation equivari-ance and parameter sharing, and are therefore well suited to spatially structured problems such as partial differential equations and image-to-image mappings. We now show that the same universal approximation property also holds in this setting. Specifically, we introduce convolutional counterparts of the separation-structured and composition-structured neural flow operators, and establish that Theorem 4.3 remains valid when the admissible linear operators are restricted to convolutional form. We consider the following two convolutional neural flow operators with the sepa-ration structure: (5.1) 
+
+( ∂z (x,t ) 
+
+> ∂t
+
+= Wt ∗ z + bt + αtσa(z), t ∈ (0 , T ], x ∈ Ω,z(x, 0) = z0(x) = ( z01 , · · · , z 0 
+
+> D
+
+) ∈ Z D ,
+
+and the composition structure: (5.2) 
+
+( ∂z (x,t ) 
+
+> ∂t
+
+= σa(Wt ∗ z + bt), t ∈ (0 , T ], x ∈ Ω,z(x, 0) = z0(x) = ( z01 , · · · , z 0 
+
+> D
+
+) ∈ Z D .16 S. CHEN, J. HE , AND X.-C. TAI 
+
+Here, the convolution operator Wt∗ is defined componentwise by [Wt ∗ z]i =
+
+> D
+
+X
+
+> j=1
+
+[Wt]i,j [z]j , Wt =
+
+
+
+[Wt]1,1 [Wt]1,2 · · · [Wt]1,D 
+
+[Wt]2,1 [Wt]2,2 · · · [Wt]2,D 
+
+... ... . . . ...[Wt]D, 1 [Wt]D, 2 · · · [Wt]D,D 
+
+ ,
+
+for z ∈ Z D where each block operator [ Wt]i,j is a convolution operator on Z of the form 
+
+
+
+[Wt]i,j [z]j
+
+
+
+(x, t ) = 
+
+Z
+
+> Ω
+
+Wi,j (x − y, t )[ z]j (y, t ) d y. 
+
+The following result shows that the abstract universal approximation theorem remains valid when the admissible linear operators are restricted to convolutional form. 
+
+Theorem 5.1. Let X and Y be two Hilbert spaces, let C ⊂ X be compact, and let 
+
+O : C ⊂ X → Y be continuous. Assume that Z is a function space on Ω containing the constant functions. Then, for any ε > 0 and a̸ = 1 , there exist D ∈ N+, two bounded linear operators P : X → Z D and R : ZD → Y , and a convolutional neural flow operator FTθt generated by either (5.1) or (5.2) with activation function σa(·),such that 
+
+sup 
+
+> v∈C
+
+O(v) − R ◦ F Tθt ◦ P (v) Y ≤ ε. 
+
+Proof. The proof follows the same strategy as that of Theorem 4.3. It suffices to show that the fully connected linear dynamics used there can be realized exactly by convolutional operators with a suitable choice of kernels. Recall from the proof of Theorem 4.3 that the linear operator fWt is a piecewise constant matrix-valued function of time. To reproduce its action by convolution, we choose the kernel functions 
+
+Wi,j (x − y, t ) = [ fWt]i,j 
+
+|Ω| .
+
+Then, for any vector-valued function of the form z = ( c11(x), c 21(x), · · · , c D 1(x)), we have [Wt ∗ z]i =
+
+> D
+
+X
+
+> j=1
+
+[Wt]i,j [z]j =
+
+> D
+
+X
+
+> j=1
+
+Z
+
+> Ω
+
+Wi,j (x − y, t )[ z]j (y, t ) d y
+
+=
+
+> D
+
+X
+
+> j=1
+
+Z
+
+> Ω
+
+[ fWt]i,j 
+
+|Ω| cj 1(y) d y =
+
+> D
+
+X
+
+> j=1
+
+[ fWt]i,j cj
+
+=
+
+> D
+
+X
+
+> j=1
+
+[ fWt]i,j [z]j (x).
+
+Hence, we have Wt ∗ z = fWtz.Therefore, on the class of constant-in-space latent states used in the proof of Theorem 4.3, the convolutional operator Wt∗ reproduces exactly the same action as NEURAL FLOW OPERATORS 17 the fully connected matrix fWt. Consequently, the convolutional dynamical systems (5.1) and (5.2) generate the same flow maps as their fully connected counterparts on this invariant class of states. The universal approximation property established in Theorem 4.3 therefore carries over directly to the convolutional setting. As a particular case, this theorem also yields the universal approximation property for convolutional neural flow networks by taking X = Rdx×dx×c and Y = Rk or 
+
+Rdy ×dy ×c to be finite-dimensional Hilbert spaces. 
+
+6. Application II: Universal approximation properties of neural opera-tors with finite depth. The universal approximation results established in the pre-ceding sections are formulated for neural flow operators in continuous time, governed by the evolution equation (4.1). In practice, however, neural networks are finite-depth objects, obtained by discretizing the continuous flow in time. This section bridges that gap: we leverage numerical time discretization schemes to convert the continuous-time universal approximation results into corresponding approximation properties for neu-ral operators of finite depth, thereby providing theoretical guarantees directly at the level of practical architectures. Specifically, applying a time discretization to the evolution equation (4.1) yields a composition of finitely many residual-type update steps, each corresponding to one layer of a neural network. The depth of the resulting network is thus determined by the number of discretization steps. We consider several settings to demonstrate the breadth of the approach: fully connected versus convolutional architectures, and residual versus nonresidual (plain) architectures. In each case, we show that the corresponding finite-depth neural operators inherit the universal approximation prop-erty from their continuous-time counterparts, with the approximation error controlled jointly by the expressiveness of the network and the accuracy of the discretization scheme. 
+
+Theorem 6.1. Let X and Y be two Hilbert spaces and let C ⊂ X be compact. Assume that O : C ⊂ X → Y is continuous and that Z is a function space containing the constant functions. For any ε > 0, there exist a finite-depth neural operator eO
+
+with activation function σγ (·), defined by 
+
+
+
+z0 = Pv ∈ Z D ,zℓ = σγ
+
+ Wℓzℓ−1 + bℓ ∈ Z D , ℓ = 1 : L, 
+
+eO(v) = u = RzL ∈ Y ,
+
+such that 
+
+sup 
+
+> v∈C
+
+∥O (v) − eO(v)∥Y ≤ ε. 
+
+The proof relies on two auxiliary lemmas concerning the numerical discretization of the underlying continuous flow. We state and prove them first. 
+
+Lemma 6.2. For any neural flow operator FTθt defined on a compact set D ⊂ ZD and ε > 0, there exist δ > 0 such that for any ∆t < δ , one can construct a time-corrected neural flow operator GT ′
+
+> θ′
+> t
+
+satisfies: 
+
+1. sup z∈D ||F Tθt (z) − G T ′
+
+> θ′
+> t
+
+(z)|| ZD < ε 
+
+2. θ′ 
+
+> t
+
+is obtained from θt solely by adjusting time intervals, so that every contin-uous segment of θ′ 
+
+> t
+
+has length equal to an integer multiple of ∆t.18 S. CHEN, J. HE , AND X.-C. TAI 
+
+Proof. It suffices to prove the statement for the finite-dimensional realization (neural flow network). The construction relies on two continuity properties of the flow: uniform continuity in time and continuous dependence on the initial value. The former is guaranteed by restricting the total time T on each continuous parameter segment to a bounded interval (e.g., 0 < T < 1); the latter follows from the boundedness of Ω and the continuity of the flow map. Consider a Neural Flow Networks F Tθt ∈ nF(RD ), 
+
+F Tθt (x) = f τn 
+
+> θn
+
+◦ · · · ◦ f τ2 
+
+> θ2
+
+◦ f τ1 
+
+> θ1
+
+(x), T =
+
+> n
+
+X
+
+> i=1
+
+τi.
+
+where each θi is constant on a time interval of length τi.For each component flow f τi 
+
+> θi
+
+and any ε > 0, there exist a δi > 0 such that whenever |τi − τ ′ 
+
+> i
+
+| < δ i and || x′ − x′′ || < δ i, we have || f τi 
+
+> θi
+
+(x′) − f τ ′ 
+
+> i
+> θi
+
+(x′′ )|| < ε .Consequently, for any ε > 0 and x ∈ RD , we can choose a δ such that if |τi −τ ′ 
+
+> i
+
+| < δ 
+
+for all i = 1 , . . . , n , then 
+
+∥F Tθt (x) − GT ′ 
+
+> θ′
+> t
+
+(x)∥ < ε, 
+
+where GT ′
+
+> θ′
+> t
+
+(x) = f τ ′ 
+
+> n
+> θn
+
+◦ · · · ◦ f τ ′ 
+
+> 2
+> θ2
+
+◦ f τ ′ 
+
+> 1
+> θ1
+
+(x), and T ′ = Pni=1 τ ′ 
+
+> i
+
+. Hence, by taking ∆ t < δ 
+
+and adjusting each τi to a nearby integer multiple of ∆ t, we obtain a time-corrected flow that approximates the original one within error ε.Based on this lemma, we adopt the following semi-implicit scheme: (6.1) 
+
+
+
+Zk+ 12 = Zk + ∆ tWkZk + ∆ tbk
+
+Zk+1 = Zk+ 12 + ∆ tα k+1 σa(Zk+1 )
+
+Z0 = Z0(x)where tk = k∆t, Wk := Wtk , bk = btk . Let O∆tθt denote the operator defined by this numerical scheme, i.e., O∆tθt (Z0) = ZL, where ZL is the solution after L steps. Then we have the following error estimation lemma: 
+
+Lemma 6.3. For any ε > 0, the time-corrected numerical scheme O∆tθt can ap-proximate the neural flow operator FTθt with the following accuracy 
+
+sup 
+
+> z∈D
+
+||F Tθt (z) − O ∆tθt (z)|| ZD ≤ C1∆t + ε
+
+where the constant C1 depends on ε and is independent of ∆t.
+
+The proof follows from Lemma 6.2 and standard error estimates for the semi-implicit discretization of ordinary differential equations. The time correction ensures that the parameter path is aligned with the time grid, while the classical numerical analysis provides the O(∆ t) local truncation error, which accumulates to a global error of order C1∆t.We are now ready to prove Theorem 6.1. 
+
+Proof. (Proof of Theorem 6.1) The universal approximation property for the continuous neural flow operator FTθt has been established in Section 4. For any ε > 0, there exist two bounded linear operator P and R such that sup 
+
+> v∈C
+
+O(v) − R ◦ F Tθt ◦ P (v) Y ≤ ε
+
+4 .NEURAL FLOW OPERATORS 19 Consider FTθt being defined by the dynamical system 
+
+∂z (x, t )
+
+∂t = Wtz + bt + αtσa(z), x ∈ Ω, t ∈ (0 , T ],
+
+where, following the construction in [9], the coefficient αt may be restricted to the set {0, 1}. A direct discretization faces a technical difficulty: the parameter path 
+
+θt = ( Wt, bt, α t) is only piecewise continuous, and the lengths of the continuous segments may be incommensurate, preventing the use of a uniform time step ∆ t.Lemma 6.2 resolves this by allowing us to slightly perturb the segment lengths so that they all become integer multiples of a sufficiently small ∆ t, while controlling the approximation error. Applying Lemma 6.2 with error tolerance ε 
+
+> 4||R||
+
+yields a time-corrected operator 
+
+GT ′
+
+> θ′
+> t
+
+and a δ > 0. Choose ∆ t < min( δ, ε 
+
+> 4C1||R||
+
+), where C1 is the constant from Lemma 6.3. Discretizing GT ′
+
+> θ′
+> t
+
+with the semi-implicit scheme (6.1) gives an operator 
+
+O∆tθ′
+
+> t
+
+. By Lemma 6.3, we have sup 
+
+> z∈P (C)
+
+∥G T ′ 
+
+> θ′
+> t
+
+(z) − O ∆tθ′ 
+
+> t
+
+(z)∥ZD ≤ C1∆t + ε
+
+4||R|| < ε
+
+2||R|| .
+
+Combining this with the bound from Lemma 6.2 yields sup 
+
+> z∈P (C)
+
+∥F Tθt (z) − O ∆tθ′ 
+
+> t
+
+(z)∥ZD
+
+≤ sup 
+
+> z∈P (C)
+
+∥F Tθt (z) − G T ′ 
+
+> θ′
+> t
+
+(z)∥ZD + sup 
+
+> z∈P (C)
+
+∥G T ′ 
+
+> θ′
+> t
+
+(z) − O ∆tθ′ 
+
+> t
+
+(z)∥ZD
+
+≤ ε
+
+4||R|| + ε
+
+2||R|| = 3ε
+
+4||R|| .
+
+Thus, we have sup 
+
+> v∈C
+
+∥O (v) − R ◦ O ∆tθ′ 
+
+> t
+
+◦ P (v)∥Y
+
+≤ sup 
+
+> v∈C
+
+∥O (v) − R ◦ F Tθt ◦ P (v)∥Y + sup 
+
+> v∈C
+
+∥R ◦ F Tθt ◦ P (v) − R ◦ O ∆tθ′ 
+
+> t
+
+◦ P (v)∥Y
+
+≤ ε
+
+4 + ||R|| · sup 
+
+> z∈P (C)
+
+∥F Tθt (z) − O ∆tθ′ 
+
+> t
+
+(z)∥ZD ≤ ε
+
+4 + ||R|| · 3ε
+
+4||R|| = ε. 
+
+Finally, we rewrite the iteration (6.1) in a layer-wise form. When αk = 0, the update reduces to an affine transformation; consecutive affine layers can be merged. After merging, we may assume that every nonlinear step has αk = 1. For the Leaky-ReLU activation, the second equation in (6.1) admits the closed-form solution 
+
+Zk+1 =
+
+
+
+11 − ∆t Zk+ 12 , Zk+ 12 ≥ 0,
+
+11 − ∆ta Zk+ 12 , Zk+ 12 < 0,
+
+= σ 1−∆t
+
+> 1−∆ta
+
+ Zk+ 12
+
+1 − ∆t
+
+
+
+= σγ
+
+ cWkZk + bbk
+
+
+
+,20 S. CHEN, J. HE , AND X.-C. TAI 
+
+where γ = 1−∆t 
+
+> 1−∆ta
+
+, and cWk, bbk are suitable affine coefficients derived from Wk, bk and the scaling factor 1 /(1 −∆t). Stacking these updates and adding the initial lifting map 
+
+P and the final projection map R exactly reproduces the fixed-depth architecture 
+
+
+
+z0 = Pv ∈ Z D ,zℓ = σγ
+
+ Wℓzℓ−1 + bℓ ∈ Z D , ℓ = 1 , . . . , L, 
+
+eO(v) = u = RzL ∈ Y .
+
+The operator eO constructed this way coincides with R ◦ O ∆tθ′
+
+> t
+
+◦ P . This completes the proof. A similar universal approximation result for the ResNet architecture can be ob-tained by applying a forward Euler discretization to the composition model. 
+
+Theorem 6.4. Let X and Y be two Hilbert spaces, not necessarily function spaces, and let C ⊂ X be compact. Assume that O : C ⊂ X → Y is continuous and that Z
+
+is a function space containing the constant functions. For any ε > 0 and 0 ≤ a < 1,there exist a neural operator ˜O defined by 
+
+
+
+z0 = Pv ∈ Z D ,zℓ = zℓ−1 + σa
+
+ Wℓzℓ−1 + bℓ ∈ Z D , ℓ = 1 : L, 
+
+eO(v) = u = RzL ∈ Y ,
+
+such that 
+
+sup 
+
+> v∈C
+
+||O (v) − ˜O(v)|| Y ≤ ε. 
+
+Proof. This theorem can be proven using a similar approach. Building on the discussion in Section 5, the universal approximation results es-tablished above can be directly extended to convolutional architectures. The key is that, as shown in Section 5, a standard fully-connected layer can be exactly realized by a convolutional layer with a specially designed constant kernel. Consequently, the same approximation guarantees hold for their convolutional counterparts. 
+
+Corollary 6.5. Let X and Y be two Hilbert spaces and let C ⊂ X be compact. Assume that O : C ⊂ X → Y is continuous and that Z is a function space containing the constant functions. For any ε > 0, there exist a convolution neural operator ˜O
+
+defined by 
+
+
+
+z0 = Pv ∈ Z D ,zℓ = σγ
+
+ Wℓ ∗ zℓ−1 + bℓ ∈ Z D , ℓ = 1 : L, 
+
+eO(v) = u = RzL ∈ Y ,
+
+such that 
+
+sup 
+
+> v∈C
+
+||O (v) − ˜O(v)|| Y ≤ ε. 
+
+Corollary 6.6. Let X and Y be two Hilbert spaces and let C ⊂ X be compact. Assume that O : C ⊂ X → Y is continuous and that Z is a function space containing NEURAL FLOW OPERATORS 21 
+
+the constant functions. For any ε > 0 and 0 ≤ a < 1, there exist a convolution neural operator ˜O defined by 
+
+
+
+z0 = Pv ∈ Z D ,zℓ = zℓ−1 + σa
+
+ Wℓ ∗ zℓ−1 + bℓ ∈ Z D , ℓ = 1 : L, 
+
+eO(v) = u = RzL ∈ Y ,
+
+such that 
+
+sup 
+
+> v∈C
+
+||O (v) − ˜O(v)|| Y ≤ ε. 
+
+We first observe that the above results apply directly to deep neural networks by taking X and Y to be Euclidean spaces, such as Rd, with Z = R, and to deep convo-lutional neural networks by taking X and Y to be image spaces such as Rd×d×c with 
+
+Z = Rd×d. In both cases, the theory covers plain as well as ResNet-type architectures. In summary, this section establishes a unified framework for the universal approx-imation properties of finite-depth fully connected and convolutional neural networks and neural operators, under both plain and ResNet-type architectures. Existing re-sults in the literature are often derived separately for particular model classes, whereas the present framework treats them in a common manner. 
+
+7. Conclusions. In this work, we introduced an abstract neural flow framework that provides a unified continuous-depth formulation for both neural networks and neural operators. A key feature of the framework is that it is formulated at the level of abstract Hilbert spaces, and is therefore not restricted to function spaces: the results apply equally to any pair of Hilbert spaces, whether or not they arise as spaces of functions on a domain. This generality allows finite-dimensional function approximation and infinite-dimensional operator approximation to be treated within a common mathematical setting, and enables both composition- and separation-based flow models to be analyzed in a unified manner. Within this framework, we established well-posedness for the associated neural flow models and proved universal approximation properties for the corresponding flow maps. To the best of our knowledge, this is the first universal approximation result for flow-based models acting between infinite-dimensional spaces; all existing results of this type are restricted to finite-dimensional settings. By further restricting the admissible linear transformations to convolutional operators, we also obtained uni-versal approximation results for convolutional neural flow models. Moreover, through suitable time discretizations, the same framework yields approximation results for finite-depth architectures, including both fully connected and convolutional neural networks and neural operators, under both plain and ResNet-type structures. From the perspective of numerical analysis, this framework offers a principled way to re-late continuous neural flows to their discrete realizations, and thus provides a unified interpretation of several classes of learning models that are often studied separately. Several directions remain for future study. The present analysis is carried out for the parameterized Leaky ReLU family, and it would be of interest to extend the framework to more general activation functions. It is also natural to seek quantitative versions of the approximation theory, including explicit error bounds and approxima-tion rates. Since finite-depth architectures arise through time discretization of the underlying flow, ideas from the numerical analysis of ODEs and PDEs may provide useful guidance for designing architectures with improved interpretability, stability, 22 S. CHEN, J. HE , AND X.-C. TAI 
+
+or efficiency. Another natural direction is whether the present framework can be ex-tended to broader model classes, such as Transformer-type architectures, along the lines studied in [75, 77]. 
+
+References. 
+
+[1] A. ´Alvarez-L´ opez, A. Hadj Slimane, and E. Zuazua , Interplay be-tween depth and width for interpolation in neural ODEs , Neural Networks, 180 (2024), p. 106640, https://doi.org/10.1016/j.neunet.2024.106640, https:// doi.org/10.1016/j.neunet.2024.106640. [2] F. Bach , Breaking the curse of dimensionality with convex neural networks ,Journal of Machine Learning Research, 18 (2017), pp. 1–53, http://jmlr.org/ papers/v18/14-546.html. [3] C. Bao, Q. Li, Z. Shen, C. Tai, L. Wu, and X. Xiang , Approximation analysis of convolutional neural networks , East Asian Journal on Applied Math-ematics, 13 (2023), pp. 524–549. [4] A. R. Barron , Universal approximation bounds for superpositions of a sigmoidal function , IEEE Transactions on Information Theory, 39 (1993), pp. 930–945. [5] P. Bartlett, V. Maiorov, and R. Meir , Almost linear vc dimension bounds for piecewise polynomial networks , Advances in neural information processing systems, 11 (1998). [6] P. L. Bartlett, N. Harvey, C. Liaw, and A. Mehrabian , Nearly-tight vc-dimension and pseudodimension bounds for piecewise linear neural networks ,The Journal of Machine Learning Research, 20 (2019), pp. 2285–2301. [7] Y. Bengio, I. Goodfellow, and A. Courville , Deep Learning , MIT Press, Cambridge, MA, 2017. [8] Y. Cai , Achieve the minimum width of neural networks for universal approxi-mation , in The Eleventh International Conference on Learning Representations, 2023, https://openreview.net/forum?id=hfUJ4ShyDEU. [9] Y. Cai and Y. Duan , Achieving universal approximation and universal interpo-lation via nonlinearity of control families , arXiv, (2025), https://doi.org/https: //arxiv.org/abs/2510.03676. [10] S. Cao , Choose a transformer: Fourier or galerkin , Advances in neural informa-tion processing systems, 34 (2021), pp. 24924–24940. [11] B. Chang, L. Meng, E. Haber, F. Tung, and D. Begert , Multi-level residual networks from dynamical systems view , in International Conference on Learning Representations, 2018, https://openreview.net/forum?id=SyJS-OgR-. [12] R. T. Q. Chen, Y. Rubanova, J. Bettencourt, and D. Duvenaud , Neural ordinary differential equations , in Advances in Neural Information Processing Systems, vol. 31, 2018. [13] T. Chen and H. Chen , Universal approximation to nonlinear operators by neural networks with arbitrary activation functions and its application to dynam-ical systems , IEEE Transactions on Neural Networks, 6 (1995), pp. 911–917, https://doi.org/10.1109/72.392253. [14] J. Cheng, Q. Li, T. Lin, and Z. Shen , Interpolation, approximation, and con-trollability of deep neural networks , SIAM Journal on Control and Optimization, 63 (2025), pp. 625–649, https://doi.org/10.1137/23M1599744. [15] C. Cuchiero, M. Larsson, and J. Teichmann , Deep neural networks, generic universal interpolation, and controlled odes , SIAM Journal on Mathematics of Data Science, 2 (2020), pp. 901–919, https://doi.org/10.1137/19M1284117. [16] G. Cybenko , Approximation by superpositions of a sigmoidal function , Mathe-NEURAL FLOW OPERATORS 23 matics of Control, Signals and Systems, 2 (1989), pp. 303–314. [17] Y. Duan and Y. Cai , A minimal control family of dynamical systems for universal approximation , IEEE Transactions on Automatic Control, 70 (2025), pp. 7233–7244, https://doi.org/10.1109/TAC.2025.3569123. [18] W. E , A proposal on machine learning via dynamical systems , Communications in Mathematics and Statistics, 5 (2017), pp. 1–11. [19] W. E, C. Ma, and L. Wu , Barron spaces and the compositional function spaces for neural network models , arXiv preprint arXiv:1906.08039, (2019). [20] W. E, C. Ma, and L. Wu , A priori estimates of the population risk for two-layer neural networks , Communications in Mathematical Sciences, 17 (2019), pp. 1407–1425. [21] Q. Fang, L. Shi, M. Xu, and D.-X. Zhou , Two-dimensional deep relu cnn approximation for korobov functions: A constructive approach , arXiv preprint arXiv:2503.07976, (2025). [22] Z. Gao, L. Yan, and T. Zhou , Adaptive operator learning for infinite-dimensional bayesian inverse problems , SIAM/ASA Journal on Uncertainty Quantification, 12 (2024), pp. 1389–1423. [23] Z. Geng, M. Deng, X. Bai, J. Z. Kolter, and K. He , Mean flows for one-step generative modeling , in The Thirty-ninth Annual Conference on Neu-ral Information Processing Systems, 2025, https://openreview.net/forum?id= uWj4s7rMnR. [24] L. Guo, H. Wu, and T. Zhou , Normalizing field flows: Solving forward and inverse stochastic differential equations using physics-informed flow models , Jour-nal of Computational Physics, 461 (2022), p. 111202. [25] E. Haber, L. Ruthotto, E. Holtham, and S.-H. Jun , Learning across scales—multiscale methods for convolution neural networks , in Proceedings of the AAAI conference on artificial intelligence, vol. 32, 2018. [26] J. He, L. Li, and J. Xu , Approximation properties of deep relu cnns , Research in the mathematical sciences, 9 (2022), p. 38. [27] J. He, L. Li, and J. Xu , Relu deep neural networks from the hierarchical basis perspective , Computers & Mathematics with Applications, 120 (2022), pp. 105– 114. [28] J. He, L. Li, J. Xu, and C. Zheng , Relu deep neural networks and linear finite elements , Journal of Computational Mathematics, 38 (2020), pp. 502–527. [29] J. He, X. Liu, and J. Xu , MgNO: Efficient parameterization of linear operators via multigrid , in The Twelfth International Conference on Learning Representa-tions, 2024, https://openreview.net/forum?id=8OxL034uEr. [30] J. He, X. Liu, and J. Xu , Self-composing neural operators with depth and accuracy scaling via adaptive train-and-unroll approach , arXiv preprint arXiv:2508.20650, (2025). [31] J. He, T. Mao, and J. Xu , Expressivity and approximation properties of deep neural networks with relu k activation , arXiv preprint arXiv:2312.16483, (2023). [32] J. He and J. Xu , Deep neural networks and finite elements of any order on arbitrary dimensions , arXiv preprint arXiv:2312.14276, (2023). [33] K. He, X. Zhang, S. Ren, and J. Sun , Deep residual learning for image recog-nition , in Proceedings of the IEEE conference on computer vision and pattern recognition, 2016, pp. 770–778. [34] K. Hornik, M. Stinchcombe, and H. White , Multilayer feedforward net-works are universal approximators , Neural Networks, 2 (1989), pp. 359–366. [35] F. Jia, J. Liu, and X. C. Tai , A regularized convolutional neural network 24 S. CHEN, J. HE , AND X.-C. TAI 
+
+for semantic image segmentation , Analysis and Applications, (2020), pp. 1–19, https://doi.org/10.1142/S0219530519410148, https://arxiv.org/abs/1907.05287. [36] M. Kimura, K. Matsui, and Y. Mizuno , Universal approximation property of odenet and resnet with a single activation function , Journal of Computational Mathematics and Data Science, 15 (2025), p. 100116. [37] J. M. Klusowski and A. R. Barron , Approximation by combinations of relu and squared relu ridge functions with ℓ1 and ℓ0 controls , IEEE Transactions on Information Theory, 64 (2018), pp. 7649–7656. [38] N. Kovachki, S. Lanthaler, and S. Mishra , On universal approximation and error bounds for fourier neural operators , Journal of Machine Learning Re-search, 22 (2021), pp. 1–76. [39] N. Kovachki, Z. Li, B. Liu, K. Azizzadenesheli, K. Bhattacharya, A. Stuart, and A. Anandkumar , Neural operator: Learning maps between function spaces with applications to pdes , Journal of Machine Learning Research, 24 (2023), pp. 1–97. [40] A. Krizhevsky, I. Sutskever, and G. E. Hinton , Imagenet classification with deep convolutional neural networks , Advances in neural information process-ing systems, 25 (2012). [41] S. Lanthaler, S. Mishra, and G. E. Karniadakis , Error estimates for deeponets: A deep learning framework in infinite dimensions , Transactions of Mathematics and its Applications, 6 (2022), p. tnac001. [42] Y. LeCun, Y. Bengio, and G. Hinton , Deep learning , nature, 521 (2015), pp. 436–444. [43] Y. Lecun, L. Bottou, Y. Bengio, and P. Haffner , Gradient-based learning applied to document recognition , Proceedings of the IEEE, 86 (1998), pp. 2278– 2324. [44] M. Leshno, V. Y. Lin, A. Pinkus, and S. Schocken , Multilayer feedforward networks with a nonpolynomial activation function can approximate any function ,Neural networks, 6 (1993), pp. 861–867. [45] J. Li, H. Feng, and D.-X. Zhou , Approximation analysis of cnns from a feature extraction view , Analysis and Applications, 22 (2024), pp. 635–654. [46] L. Li, Y. Duan, G. Ji, and Y. Cai , Minimum width of leaky-relu neural networks for uniform universal approximation , in International Conference on Machine Learning, PMLR, 2023, pp. 19460–19470. [47] Q. Li, T. Lin, and Z. Shen , Deep learning via dynamical systems: An approximation perspective. , J. Eur. Math. Soc. 25, 5 (2023), p. 1671–1709, https://doi.org/10.4171/JEMS/1221. [48] Z. Li, N. B. Kovachki, K. Azizzadenesheli, B. liu, K. Bhattacharya, A. Stuart, and A. Anandkumar , Fourier neural operator for parametric partial differential equations , in International Conference on Learning Represen-tations, 2021, https://openreview.net/forum?id=c8P9NQVtmnO. [49] Z. Li, K. Liu, Y. Song, H. Yue, and E. Zuazua , Deep neural ode opera-tor networks for pdes , Mathematical Models and Methods in Applied Sciences, (2026). [50] Z. Li and Z. Shi , A flow model of neural networks , arXiv preprint arXiv:1708.06257, (2017). [51] H. Lin and S. Jegelka , Resnet with one-neuron hidden layers is a universal approximator , Advances in neural information processing systems, 31 (2018). [52] Y. Lipman, R. T. Q. Chen, H. Ben-Hamu, M. Nickel, and M. Le ,
+
+Flow matching for generative modeling , in The Eleventh International Con-NEURAL FLOW OPERATORS 25 ference on Learning Representations, 2023, https://openreview.net/forum?id= PqvMRDCJT9t. [53] C. Liu, E. Liang, and M. Chen , Characterizing resnet’s universal approxi-mation capability , in Forty-first International Conference on Machine Learning, 2024, https://openreview.net/forum?id=z7zHsNFXHc. [54] X. Liu, T. Mao, and J. Xu , Integral representations of sobolev spaces via relu k
+
+activation function and optimal error estimates for linearized networks , arXiv preprint arXiv:2505.00351, (2025). [55] X. Liu, B. Xu, S. Cao, and L. Zhang , Mitigating spectral bias for the multi-scale operator learning , Journal of Computational Physics, 506 (2024), p. 112944. [56] L. Lu, P. Jin, G. Pang, Z. Zhang, and G. E. Karniadakis , Learning nonlinear operators via deeponet based on the universal approximation theorem of operators , Nature machine intelligence, 3 (2021), pp. 218–229. [57] Y. Lu, A. Zhong, Q. Li, and B. Dong , Beyond finite layer neural networks: Bridging deep architectures and numerical differential equations , in International conference on machine learning, PMLR, 2018, pp. 3276–3285. [58] Z. Lu, H. Pu, F. Wang, Z. Hu, and L. Wang , The expressive power of neural networks: A view from the width , Advances in neural information processing systems, 30 (2017). [59] P. Markowich and S. Portaro , Pde models for deep neural networks: Learning theory, calculus of variations and optimal control , arXiv preprint arXiv:2411.06290, (2024), https://arxiv.org/abs/2411.06290. [60] H. N. Mhaskar , Approximation properties of a multilayered feedforward artifi-cial neural network , Advances in Computational Mathematics, 1 (1993), pp. 61– 80. [61] H. N. Mhaskar and C. A. Micchelli , Degree of approximation by neural and translation networks with a single hidden layer , Advances in applied mathematics, 16 (1995), pp. 151–183. [62] H. N. Mhaskar and T. Poggio , Deep vs. shallow networks: An approximation theory perspective , Analysis and Applications, 14 (2016), pp. 829–848. [63] R. Molinaro, Y. Yang, B. Engquist, and S. Mishra , Neural inverse oper-ators for solving pde inverse problems , in Proceedings of the 40th International Conference on Machine Learning, vol. 202 of Proceedings of Machine Learning Research, PMLR, 2023, pp. 25105–25139. [64] G. Mont´ ufar, R. Pascanu, K. Cho, and Y. Bengio , On the number of linear regions of deep neural networks , Advances in neural information processing systems, 27 (2014). [65] K. Oono and T. Suzuki , Approximation and non-parametric estimation of ResNet-type convolutional neural networks , in International Conference on Ma-chine Learning, PMLR, 2019, pp. 4922–4931. [66] J. A. Opschoor, P. C. Petersen, and C. Schwab , Deep relu networks and high-order finite element methods , Analysis and Applications, 18 (2020), pp. 715– 770. [67] P. Petersen and F. Voigtlaender , Equivalence of approximation by convolu-tional neural networks and fully-connected networks , Proceedings of the American Mathematical Society, 148 (2020), pp. 1689–1704. [68] B. Raonic, R. Molinaro, T. Rohner, S. Mishra, and E. de Bezenac ,
+
+Convolutional neural operators , in ICLR 2023 workshop on physics for machine learning, 2023. [69] D. Ruiz-Balet and E. Zuazua , Neural ODE control for classification, approx-26 S. CHEN, J. HE , AND X.-C. TAI 
+
+imation and transport , SIAM Review, 65 (2023), pp. 735–773, https://doi.org/ 10.1137/21M1411433, https://doi.org/10.1137/21M1411433. [70] Z. Shen, H. Yang, and S. Zhang , Deep network approximation characterized by number of neurons , arXiv preprint arXiv:1906.05497, (2019). [71] Z. Shen, H. Yang, and S. Zhang , Optimal approximation rate of ReLU net-works in terms of width and depth , Journal de Math´ ematiques Pures et Ap-pliqu´ ees, 157 (2022), pp. 101–135. [72] J. W. Siegel , Optimal approximation rates for deep relu neural networks on sobolev and besov spaces , Journal of Machine Learning Research, 24 (2023), pp. 1– 52. [73] J. W. Siegel and J. Xu , Sharp bounds on the approximation rates, metric entropy, and n-widths of shallow neural networks , Foundations of Computational Mathematics, 24 (2024), pp. 481–537. [74] P. Tabuada and B. Gharesifard , Universal approximation power of deep neural networks via nonlinear control theory , arXiv preprint arXiv:2007.06007, (2024), https://arxiv.org/abs/2007.06007. [75] X.-C. Tai, H. Liu, and R. Chan , Pottsmgnet: A mathematical explanation of encoder-decoder based neural networks , SIAM Journal on Imaging Sciences, 17 (2024), pp. 540–594. [76] X.-C. TAI, H. LIU, R. H. CHAN, and L. LI , A mathematical explanation of unet , Mathematical Foundations of Computing, 8 (2025), pp. 874–889. [77] X.-C. Tai, H. Liu, L. Li, and R. H. Chan , A mathematical expla-nation of transformers for large language models and gpts , arXiv preprint arXiv:2510.03989, (2025). [78] M. Telgarsky , Benefits of depth in neural networks , in Proceedings of the 29th Annual Conference on Learning Theory, PMLR, 2016, pp. 1517–1539. [79] H. Wu, H. Luo, H. Wang, J. Wang, and M. Long , Transolver: A fast transformer solver for pdes on general geometries , in International Conference on Machine Learning, PMLR, 2024, pp. 53681–53705. [80] Y. Yang and J. He , Deep neural networks with general activations: Super-convergence in sobolev norms , arXiv preprint arXiv:2508.05141, (2025). [81] Y. Yang, H. Yang, and Y. Xiang , Nearly optimal vc-dimension and pseudo-dimension bounds for deep neural network derivatives , Advances in Neural Infor-mation Processing Systems, 36 (2023), pp. 21721–21756. [82] D. Yarotsky , Error bounds for approximations with deep relu networks , Neural Networks, 94 (2017), pp. 103–114. [83] D.-X. Zhou , Universality of deep convolutional neural networks , Applied and Computational Harmonic Analysis, 48 (2020), pp. 787–794. 
+
+Appendix A. Proof of Lemma 4.5. 
+
+Proof. The universal approximation property for the separation scheme follows directly from known results, while the composition structured flow requires a more elaborate construction. Let d = max(2 dx + 1 , d y ). 
+
+1. Separation structured flow. [17] shows that flows of piecewise-constant vector fields taking values in F(σ) = {z 7 → Az + b} ∪ { σ} are universal approximators, with suitable linear maps P, R , provided the dimension D ≥ d. By choosing the coefficient Wt, b t, α t alternate between zero and non-zero, the separation-structured flow Wtz + bt + αtσa(z) can include the above class of vector fields. Hence, it inherits the universal approximation property. NEURAL FLOW OPERATORS 27 
+
+2. Composition structure. [17, 47] prove that the flow of (A.1) dz dt = Dtσa(Atz + bt),
+
+with piecewise-constant diagonal Dt (entries ±1), is universal approximator when 
+
+D ≥ d. We construct a double-width system on R2d that simulates (A.1). Write 
+
+Dt = diag( D1 
+
+> t
+
+, . . . , D dt ), At = [ α1 
+
+> t
+
+; . . . ; αdt ], bt = [ b1 
+
+> t
+
+; . . . ; bdt ]. For each i, define 
+
+M(Dit, α it) = 
+
+( αit −αit 
+
+> 00
+
+, Dit = 1 ,
+
+ 0 0 
+
+> αit−αit
+
+, Dit = −1, N (Dit, b it) = 
+
+( bit
+
+> 0
+
+, Dit = 1 ,
+
+ 0
+
+> bit
+
+, Dit = −1.
+
+Set ˜At = [ M(D1 
+
+> t
+
+, α 1 
+
+> t
+
+); . . . ; M(Ddt , α dt )], ˜bt = [ N (D1 
+
+> t
+
+, b 1 
+
+> t
+
+); . . . ; N (Ddt , b dt )] and consider (A.2) 
+
+ 
+
+> dˆzdt
+
+= σa( ˜At ˆz + ˜bt),
+
+ˆz(0) = 11+ a
+
+ σa(z(0)) , σ a(−z(0)) ⊤.
+
+A direct calculation (using σa(z)−σa(−z) = (1+ a)z) shows that ˜ z(t) := ( Id, −Id)ˆ z(t)satisfies (A.1) with ˜ z(0) = z(0). Therefore, the flow GTθt of (A.2) reproduces the universal approximator (A.1). That is, there exist two linear maps P1 : Rdx →
+
+Rd, R 1 : Rd → Rdy such that 
+
+∥R1 ◦ S⊤ ◦ GTθt ◦ σa
+
+1 + a ◦ S ◦ P1 − F ∥L∞(Ω) ≤ ε. 
+
+where S = ( Id, −Id)⊤. Since the leaky-ReLU σa can actually be represented as the flow Hτ of a system with σa at the right-hand side: dz(t)dt = σa (z(t)) , 0 < t ≤ τ, 
+
+where τ = ln (a) 
+
+> a−1
+
+. Let R = R1 ◦ S⊤, P = e−τ 
+
+> 1+ a
+
+S ◦ P1, T ′ = T + τ and F T ′
+
+> θ′
+> t
+
+= GTθt ◦ Hτ ,then 
+
+∥R ◦ F T ′ 
+
+> θ′
+> t
+
+◦ P − F ∥L∞(Ω) ≤ ε. 
+
+This completes the proof for both architectures.

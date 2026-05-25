@@ -1,58 +1,17 @@
 {
   "mode": "standard",
-  "generated_at": "2026-05-25T13:12:14.073472+00:00",
+  "generated_at": "2026-05-25T13:35:37.707561+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 33,
+    "deep_divecandidates": 37,
     "deep_cap": 6,
     "deep_selected": 11,
-    "quick_candidates": 78,
+    "quick_candidates": 81,
     "quick_skim_target": 11,
     "quick_selected": 11
   },
   "deep_dive": [
-    {
-      "id": "2605.17653v1",
-      "source": "arxiv",
-      "title": "LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models",
-      "abstract": "Sub-billion-parameter Transformer language models are increasingly deployed on edge devices, where the privacy, latency, and operating-cost advantages of on-device inference are constrained by tight memory-bandwidth, energy, and thermal budgets that make architectural choice and accelerator-specific cost central to efficient inference. We present LLMForge, a hardware-aware neural architecture search (NAS) framework whose three composable contributions together make edge-LM architecture search hardware-conditioned, since different substrates impose different hardware cost bottlenecks. Infinite-Head Attention (IHA) decouples the number of query heads, KV groups, and per-head query/key and value dimensions, expanding the feasible per-layer attention configuration space by approximately 400x over grouped-query attention within our search-space ranges. Forge-Former, an encoder-based surrogate for ranking architectural candidates, outperforms MLP and random-forest baselines. Forge-DSE, an NSGA-II-based design-space-exploration engine, pairs Forge-Former with a multi-backend hardware cost model spanning GPUs, systolic accelerators, and ring-dataflow edge accelerators. Across four different hardware substrates, the searches converge to visibly different architectures whose shapes track each substrate's cost bottleneck. On the multi-chip ring substrate, our co-search returns three 300M-scale deployment-aware variants on the Pareto front. Each is re-trained on FineWeb-Edu-10BT under matched recipe against SmolLM2-360M and Qwen-0.5B architecture baselines. The accurate variant has the lowest validation loss 2.798 and competitive benchmark performance with fewer parameters, the energy-optimized variant lowers energy per token by 40%, and the latency-optimized variant lowers TTFT and TPOT by 43%.",
-      "authors": [
-        "Xinting Jiang",
-        "Junyi Luo",
-        "Ruichen Qi",
-        "Kauna Lei",
-        "Ben Laurie",
-        "Gregory Kielian",
-        "Mehdi Saligane"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-05-17T21:10:54+00:00",
-      "link": "https://arxiv.org/pdf/2605.17653v1",
-      "tags": [
-        "keyword:ai",
-        "query:ai"
-      ],
-      "llm_score": 10.0,
-      "llm_evidence_en": "Hardware-aware neural architecture search for edge language models with novel attention mechanism",
-      "llm_evidence_cn": "针对边缘语言模型的硬件感知神经架构搜索与新型注意力机制",
-      "llm_evidence": "针对边缘语言模型的硬件感知神经架构搜索与新型注意力机制",
-      "canonical_evidence": "针对边缘语言模型的硬件感知神经架构搜索与新型注意力机制",
-      "llm_tldr_en": "LLMForge performs hardware-aware neural architecture search for sub-billion-parameter language models, introducing Infinite-Head Attention to decouple query heads, KV groups, and dimensions, enabling efficient edge inference.",
-      "llm_tldr_cn": "针对边缘设备上语言模型推理受限于内存带宽和能耗的问题，LLMForge提出了硬件感知神经架构搜索框架，并设计了无限头注意力（IHA）机制解耦查询头、键值组和维度。该框架可根据不同加速器成本瓶颈自动搜索高效架构，显著提升边缘语言模型的推理效率，实现了硬件条件化的模型设计。",
-      "llm_tldr": "针对边缘设备上语言模型推理受限于内存带宽和能耗的问题，LLMForge提出了硬件感知神经架构搜索框架，并设计了无限头注意力（IHA）机制解耦查询头、键值组和维度。该框架可根据不同加速器成本瓶颈自动搜索高效架构，显著提升边缘语言模型的推理效率，实现了硬件条件化的模型设计。",
-      "llm_tags": [
-        "query:ai"
-      ],
-      "matched_query_tag": "query:ai",
-      "matched_query_text": "neural network architectures",
-      "matched_requirement_id": "req-4",
-      "selection_source": "fresh_fetch"
-    },
     {
       "id": "2605.16844v1",
       "source": "arxiv",
@@ -72,55 +31,19 @@
         "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Proposes Artificial Adaptive Intelligence as a missing stage, integrating meta-learning, NAS, AutoML, etc.",
-      "llm_evidence_cn": "提出人工自适应智能这一缺失阶段，整合元学习、神经架构搜索、AutoML等方向",
-      "llm_evidence": "提出人工自适应智能这一缺失阶段，整合元学习、神经架构搜索、AutoML等方向",
-      "canonical_evidence": "提出人工自适应智能这一缺失阶段，整合元学习、神经架构搜索、AutoML等方向",
-      "llm_tldr_en": "Argues that meta-learning, NAS, AutoML, continual learning converge on a common principle of removing human-specified hyperparameters, termed Artificial Adaptive Intelligence (AAI), filling the gap between narrow and general AI.",
-      "llm_tldr_cn": "现有AI分类只包括狭义和通用智能，忽略了大量中间系统。本文提出人工自适应智能（AAI），指代无需人工设定超参数且能在多样分布上保持竞争力的系统。该工作整合了元学习、神经架构搜索、AutoML、持续学习、进化计算等领域的共同原则，为AI系统的发展提供了新的概念框架和分类。",
-      "llm_tldr": "现有AI分类只包括狭义和通用智能，忽略了大量中间系统。本文提出人工自适应智能（AAI），指代无需人工设定超参数且能在多样分布上保持竞争力的系统。该工作整合了元学习、神经架构搜索、AutoML、持续学习、进化计算等领域的共同原则，为AI系统的发展提供了新的概念框架和分类。",
-      "llm_tags": [
-        "query:ai:composite"
-      ],
-      "matched_query_tag": "query:ai:composite",
-      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing.",
-      "matched_requirement_id": "req-composite-ai",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2605.17072v1",
-      "source": "arxiv",
-      "title": "RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation",
-      "abstract": "Existing LLM-driven knowledge graph (KG) construction methods predominantly employ stateless batch processing pipelines, exhibiting structural deficiencies in cross-chunk semantic relation capture, entity disambiguation, and construction process interpretability. These limitations undermine KG quality, retrieval precision, and deployment trust in high-stakes domains.   We propose RAGA (Reading And Graph-building Agent), an LLM-based autonomous KG construction and retrieval fusion framework. RAGA provides an atomic toolset supporting full KG lifecycle CRUD operations and embeds a Read-Search-Verify-Construct cognitive constraint into a ReAct tool loop. A KG-vector synchronization mechanism enables hybrid symbolic-vector retrieval, while evidence-anchored verification links every knowledge entry to its source text for auditable provenance.   Preliminary experiments on a subset of the QASPER scientific QA dataset indicate that RAGA's fusion retrieval outperforms zero-shot baselines, with KG integration providing measurable gains in both answer and evidence quality. The framework design and experimental baseline serve as a reference for agent-driven autonomous KG construction.",
-      "authors": [
-        "Chengrui Han",
-        "Zesheng Cheng"
-      ],
-      "primary_category": "cs.AI",
-      "categories": [
-        "cs.AI",
-        "cs.CL"
-      ],
-      "published": "2026-05-16T16:42:50+00:00",
-      "link": "https://arxiv.org/pdf/2605.17072v1",
-      "tags": [
-        "keyword:ai",
-        "query:ai"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "LLM-based knowledge graph construction and RAG for NLP",
-      "llm_evidence_cn": "基于LLM的知识图谱构建与检索增强生成，属于NLP",
-      "llm_evidence": "基于LLM的知识图谱构建与检索增强生成，属于NLP",
-      "canonical_evidence": "基于LLM的知识图谱构建与检索增强生成，属于NLP",
-      "llm_tldr_en": "Proposes RAGA, an LLM-based autonomous agent for knowledge graph construction and retrieval-augmented generation, with Read-Search-Verify-Construct cognitive loop.",
-      "llm_tldr_cn": "基于LLM的知识图谱构建存在跨块语义捕获和可解释性不足。本文提出RAGA（读写图构建智能体），将LLM与ReAct工具循环结合，嵌入阅读-搜索-验证-构建的认知约束，支持知识图谱全生命周期CRUD操作，并通过图谱-向量同步实现混合检索生成。该方法提升了构建质量和检索精度。",
-      "llm_tldr": "基于LLM的知识图谱构建存在跨块语义捕获和可解释性不足。本文提出RAGA（读写图构建智能体），将LLM与ReAct工具循环结合，嵌入阅读-搜索-验证-构建的认知约束，支持知识图谱全生命周期CRUD操作，并通过图谱-向量同步实现混合检索生成。该方法提升了构建质量和检索精度。",
+      "llm_evidence_en": "artificial adaptive intelligence concept covering meta-learning, NAS, AutoML",
+      "llm_evidence_cn": "涵盖元学习、神经架构搜索、AutoML的人工自适应智能概念",
+      "llm_evidence": "涵盖元学习、神经架构搜索、AutoML的人工自适应智能概念",
+      "canonical_evidence": "涵盖元学习、神经架构搜索、AutoML的人工自适应智能概念",
+      "llm_tldr_en": "Defines Artificial Adaptive Intelligence (AAI) as a regime between narrow and general AI, characterized by human-free hyperparameter tuning, unifying meta-learning, NAS, AutoML, etc.",
+      "llm_tldr_cn": "当前人工智能在狭义系统和通用智能之间存在一个未被命名的阶段。本文提出人工自适应智能（AAI），其特征为无需人工指定可调超参数即可在多样分布上保持竞争性能。AAI统一了元学习、神经架构搜索、AutoML、持续学习等方法。该观点为AI发展提供了新的理论框架。",
+      "llm_tldr": "当前人工智能在狭义系统和通用智能之间存在一个未被命名的阶段。本文提出人工自适应智能（AAI），其特征为无需人工指定可调超参数即可在多样分布上保持竞争性能。AAI统一了元学习、神经架构搜索、AutoML、持续学习等方法。该观点为AI发展提供了新的理论框架。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "natural language processing techniques",
-      "matched_requirement_id": "req-5",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch"
     },
     {
@@ -146,92 +69,131 @@
         "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "systematic survey on deep learning architectures for point cloud",
+      "llm_evidence_en": "systematic survey of deep learning architectures for point cloud",
       "llm_evidence_cn": "点云深度学习架构的系统综述",
       "llm_evidence": "点云深度学习架构的系统综述",
       "canonical_evidence": "点云深度学习架构的系统综述",
-      "llm_tldr_en": "A systematic survey covering deep learning models for point cloud classification, part segmentation, and semantic segmentation.",
-      "llm_tldr_cn": "点云表示3D形状直观但无序不规则性带来挑战。本文系统综述了应对这些挑战的深度学习模型，涵盖点云分类、部件分割和语义分割三大任务。讨论了多种策略如格式转换、局部几何提取和置换不变处理，为该领域提供了全面的方法总结。",
-      "llm_tldr": "点云表示3D形状直观但无序不规则性带来挑战。本文系统综述了应对这些挑战的深度学习模型，涵盖点云分类、部件分割和语义分割三大任务。讨论了多种策略如格式转换、局部几何提取和置换不变处理，为该领域提供了全面的方法总结。",
+      "llm_tldr_en": "This systematic survey reviews deep learning architectures for point cloud classification, part segmentation, and semantic segmentation.",
+      "llm_tldr_cn": "本文系统综述了用于点云分类、部分分割和语义分割的深度学习架构。点云因其无序不规则性对机器学习构成独特挑战，已有多种策略如格式转换、局部几何提取、置换不变处理等。本文正式定义了任务，回顾了各种深度学习方法，并进行了分类比较。该综述为该领域研究者提供了全面的参考。",
+      "llm_tldr": "本文系统综述了用于点云分类、部分分割和语义分割的深度学习架构。点云因其无序不规则性对机器学习构成独特挑战，已有多种策略如格式转换、局部几何提取、置换不变处理等。本文正式定义了任务，回顾了各种深度学习方法，并进行了分类比较。该综述为该领域研究者提供了全面的参考。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "machine learning paper survey",
-      "matched_requirement_id": "req-2",
+      "matched_query_text": "search for deep learning and neural network surveys",
+      "matched_requirement_id": "req-8",
       "selection_source": "fresh_fetch"
     },
     {
-      "id": "2605.18618v1",
+      "id": "2605.17458v1",
       "source": "arxiv",
-      "title": "Stochastic Penalty-Barrier Methods for Constrained Machine Learning",
-      "abstract": "Constrained machine learning enables fairness-aware training, physics-informed neural networks, and integration of symbolic domain knowledge into statistical models. Despite its practical importance, no general method exists for the non-convex, non-smooth, stochastic setting that arises naturally in deep learning. We propose the Stochastic Penalty-Barrier Method (SPBM), which extends classical penalty and barrier methods to this setting via exponential dual averaging, a~stabilized penalty schedule, and the Moreau envelope to handle non-smoothness. Experiments across multiple settings show that SPBM matches or outperforms existing constrained optimization baselines while incurring only linear runtime overhead compared to unconstrained Adam for up to 10,000 constraints.",
+      "title": "ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks",
+      "abstract": "Text classification models are typically trained via supervised fine-tuning (SFT). However, SFT essentially performs behavior cloning from instance-wise labels and thus fails to adequately capture relative preference relations among samples, which limits the model's ability to shape decision boundaries and calibrate predictive confidence. In this paper, we propose ClaHF, a human feedback-inspired reinforcement learning (RL) framework for text classification that integrates preference modeling and RL optimization into the classification pipeline without requiring additional human annotations. Unlike prior work that relies solely on instance-wise supervision, ClaHF constructs multiple candidate predictions together with their relative ranking relations, and jointly models the Top-1 preference and the ordering among non-optimal candidates within a reward model (RM). This design converts conventional label supervision into preference signals that are directly applicable to policy optimization. We conduct systematic evaluations on eight classification tasks spanning three categories of scenarios. Results demonstrate that ClaHF consistently improves both classification performance and confidence calibration across diverse language models (LMs). The data and code are available at https://anonymous.4open.science/r/ClaHF.",
       "authors": [
-        "Adam Bosák",
-        "Andrii Kliachkin",
-        "Jana Lepšová",
-        "Gilles Bareilles",
-        "Jakub Mareček"
+        "Tianxiang Xu",
+        "Xiaoyan Zhu",
+        "Xin Lai",
+        "Jiayin Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-17T14:00:01+00:00",
+      "link": "https://arxiv.org/pdf/2605.17458v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reinforcement learning framework inspired by human feedback for text classification",
+      "llm_evidence_cn": "受人类反馈启发的强化学习框架用于文本分类",
+      "llm_evidence": "受人类反馈启发的强化学习框架用于文本分类",
+      "canonical_evidence": "受人类反馈启发的强化学习框架用于文本分类",
+      "llm_tldr_en": "ClaHF integrates preference modeling and RL optimization into text classification without extra annotations, improving decision boundaries and confidence calibration.",
+      "llm_tldr_cn": "传统文本分类使用监督微调进行行为克隆，无法捕捉样本间的相对偏好。本文提出ClaHF，一种受人类反馈启发的强化学习框架，将偏好建模和RL优化融入分类流程，无需额外人工标注。通过构造多个候选预测并利用偏好信号优化，ClaHF改善决策边界和置信度校准。",
+      "llm_tldr": "传统文本分类使用监督微调进行行为克隆，无法捕捉样本间的相对偏好。本文提出ClaHF，一种受人类反馈启发的强化学习框架，将偏好建模和RL优化融入分类流程，无需额外人工标注。通过构造多个候选预测并利用偏好信号优化，ClaHF改善决策边界和置信度校准。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "reinforcement learning algorithms",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.19469v1",
+      "source": "arxiv",
+      "title": "Sampling-Based Safe Reinforcement Learning",
+      "abstract": "Safe exploration remains a fundamental challenge in reinforcement learning (RL), limiting the deployment of RL agents in the real world. We propose Sampling-Based Safe Reinforcement Learning (SBSRL), a model-based RL algorithm that maintains safety throughout the learning process by enforcing constraints jointly across a finite set of dynamics samples. This formulation approximates an intractable worst-case optimization over uncertain dynamics and enables practical safety guarantees in continuous domains. We further introduce an exploration strategy based on constraining epistemic uncertainty, eliminating the need for explicit exploration bonuses. Under regularity conditions, we derive high-probability guarantees of safety throughout learning and a finite-time sample complexity bound for recovering a near-optimal policy. Empirically, SBSRL achieves safe and efficient exploration both in simulation and in real robotic hardware, and readily extends to practical deep-ensemble implementations that scale to high-dimensional continuous control problems.",
+      "authors": [
+        "Luca Vignola",
+        "Bruce D. Lee",
+        "Manish Prajapat",
+        "Manuel Wendl",
+        "Melanie Zeilinger",
+        "Andreas Krause",
+        "Yarden As"
       ],
       "primary_category": "cs.LG",
       "categories": [
         "cs.LG",
-        "cs.AI"
+        "cs.AI",
+        "cs.RO"
       ],
-      "published": "2026-05-18T16:26:26+00:00",
-      "link": "https://arxiv.org/pdf/2605.18618v1",
+      "published": "2026-05-19T07:21:53+00:00",
+      "link": "https://arxiv.org/pdf/2605.19469v1",
       "tags": [
-        "keyword:ai",
-        "query:ai"
+        "keyword:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "stochastic penalty-barrier method for constrained deep learning",
-      "llm_evidence_cn": "用于约束深度学习的随机罚-障碍方法",
-      "llm_evidence": "用于约束深度学习的随机罚-障碍方法",
-      "canonical_evidence": "用于约束深度学习的随机罚-障碍方法",
-      "llm_tldr_en": "Proposes SPBM, a stochastic penalty-barrier method extending classical methods to non-convex, non-smooth deep learning settings.",
-      "llm_tldr_cn": "约束机器学习在公平性训练和物理信息网络中关键，但缺少适用于深度学习非凸非平滑设置的一般方法。本文提出随机罚-障碍法（SPBM），通过指数对偶平均、稳定罚计划及Moreau包络处理非平滑性。实验表明SPBM在多种设置下匹配或超越基线，且计算开销仅线性增长。",
-      "llm_tldr": "约束机器学习在公平性训练和物理信息网络中关键，但缺少适用于深度学习非凸非平滑设置的一般方法。本文提出随机罚-障碍法（SPBM），通过指数对偶平均、稳定罚计划及Moreau包络处理非平滑性。实验表明SPBM在多种设置下匹配或超越基线，且计算开销仅线性增长。",
+      "llm_evidence_en": "sampling-based safe reinforcement learning",
+      "llm_evidence_cn": "基于采样的安全强化学习",
+      "llm_evidence": "基于采样的安全强化学习",
+      "canonical_evidence": "基于采样的安全强化学习",
+      "llm_tldr_en": "Proposes a model-based safe RL algorithm using sampling to enforce safety constraints, with theoretical guarantees on safety and sample complexity.",
+      "llm_tldr_cn": "强化学习的安全探索是现实应用的关键挑战。本文提出基于采样的安全强化学习（SBSRL），一种基于模型的算法，通过在一组动力学样本上联合约束来保证学习过程的安全性。该方法近似最坏情况优化，并设计了基于认知不确定性的探索策略。理论分析提供了高概率安全保证和有限时间样本复杂度。",
+      "llm_tldr": "强化学习的安全探索是现实应用的关键挑战。本文提出基于采样的安全强化学习（SBSRL），一种基于模型的算法，通过在一组动力学样本上联合约束来保证学习过程的安全性。该方法近似最坏情况优化，并设计了基于认知不确定性的探索策略。理论分析提供了高概率安全保证和有限时间样本复杂度。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "deep learning recent advances",
-      "matched_requirement_id": "req-3",
+      "matched_query_text": "reinforcement learning algorithms",
+      "matched_requirement_id": "req-6",
       "selection_source": "fresh_fetch"
     },
     {
-      "id": "2605.19568v1",
+      "id": "2605.20254v1",
       "source": "arxiv",
-      "title": "m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder",
-      "abstract": "Embedding models are pivotal in industrial information retrieval systems like search and advertising. However, existing pretrained models often exhibit fixed architectures and embedding dimensionalities, posing significant challenges when adapting them to diverse deployment scenarios with varying business-driven constraints. A common practice involves fine-tuning with partial parameter initialization from larger pretrained models for resource-constrained tasks. This method is often suboptimal as the misalignment between pretraining and downstream usage prevents full realization of pretraining benefits. To address this limitation, we introduce m3BERT: a Modern, Multi-lingual, Matryoshka Bidirectional Encoder, which features a novel pretraining strategy that jointly optimizes representations across both transformer layers and multiple embedding dimensions. This enables a single model to be tailored to varied resource and accuracy targets while maintaining consistency with pretraining. Incorporating recent architectural improvements, m3BERT uses a three-stage pretraining: monolingual pretraining, multilingual adaptation to serve diverse user bases, and crucial continual pretraining on a massive web domain corpus to enhance utility in commercial retrieval. m3BERT significantly outperforms state-of-the-art embedding models in Bing-Click, a large-scale industrial retrieval dataset, showcasing its practical versatility as an efficient foundation for resource-aware industrial retrieval systems. Further experiments on public datasets also confirm the general effectiveness of our multigranular Matryoshka pretraining strategy.",
+      "title": "Efficient Table QA via TableGrid Navigation and Progressive Inference Prompting",
+      "abstract": "Large Language Models (LLMs) have shown promising results on NLP tasks, however, their performance on tabular data still needs research attention, because Table Question-Answering (TQA) requires precise cell retrieval and multi-step structured reasoning. Existing work improves TQA either by fine-tuning or training LLMs on task-specific tabular data, but often lacks verifiable control over how the model navigates tables and derives answers. In this work, we propose a training-free TQA approach with two structured prompting frameworks: TableGrid Navigation (TGN), which iteratively navigates rows and columns via a three-module loop to locate evidence and refine answers, and Progressive Inference Prompting (PIP), which enforces columns identification for explicit progressive row selection constraint according to the query. We evaluate 17 LLMs against 6 baselines on TableBench and FeTaQa dataset. On TableBench, TGN improves over the strongest baseline by 3.8 points, and on FeTaQa, PIP achieves SOTA performance over ReAct and Chain-of-Thought. Beyond inference-time gains, PIP and TGN can also serve as supervision templates to fine-tune small models, narrowing the performance gap to much larger architectures in resource-constrained settings, offering versatile and cost-efficient solution for TQA.",
       "authors": [
-        "Yaoxiang Wang",
-        "Simiao Zuo",
-        "Qingguo Hu",
-        "Yucheng Ding",
-        "Yeyun Gong",
-        "Jian Jiao",
-        "Jinsong Su"
+        "Amritansh Maurya",
+        "Navjot Singh",
+        "Mohammed Javed",
+        "Omar Moured"
       ],
-      "primary_category": "cs.CL",
+      "primary_category": "cs.IR",
       "categories": [
-        "cs.CL"
+        "cs.IR",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
       ],
-      "published": "2026-05-19T09:13:49+00:00",
-      "link": "https://arxiv.org/pdf/2605.19568v1",
+      "published": "2026-05-18T12:00:24+00:00",
+      "link": "https://arxiv.org/pdf/2605.20254v1",
       "tags": [
         "keyword:ai",
         "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Multilingual BERT with Matryoshka representation learning",
-      "llm_evidence_cn": "具有套娃表示学习的多语言BERT",
-      "llm_evidence": "具有套娃表示学习的多语言BERT",
-      "canonical_evidence": "具有套娃表示学习的多语言BERT",
-      "llm_tldr_en": "Introduces m3BERT, a modern multilingual bidirectional encoder with a novel pretraining strategy that enables flexible embedding dimensionality for downstream deployment.",
-      "llm_tldr_cn": "本文提出m3BERT，一种现代多语言双向编码器。其创新预训练策略采用Matryoshka表示学习，使得单个模型能够输出可变维度的嵌入，适应不同部署场景的计算约束。通过在多种NLP基准任务上的评估，m3BERT在保持高精度的同时，显著提升了模型在不同资源条件下的适用性，解决了传统固定维度嵌入的适配问题。",
-      "llm_tldr": "本文提出m3BERT，一种现代多语言双向编码器。其创新预训练策略采用Matryoshka表示学习，使得单个模型能够输出可变维度的嵌入，适应不同部署场景的计算约束。通过在多种NLP基准任务上的评估，m3BERT在保持高精度的同时，显著提升了模型在不同资源条件下的适用性，解决了传统固定维度嵌入的适配问题。",
+      "llm_evidence_en": "Table QA with NLP prompting techniques",
+      "llm_evidence_cn": "基于NLP提示的表格问答技术",
+      "llm_evidence": "基于NLP提示的表格问答技术",
+      "canonical_evidence": "基于NLP提示的表格问答技术",
+      "llm_tldr_en": "Training-free table QA with TableGrid Navigation and Progressive Inference Prompting for structured reasoning.",
+      "llm_tldr_cn": "LLM在表格问答上需精确单元格检索和结构化推理。本文提出无训练方法TGN和PIP，TGN通过迭代导航行/列定位证据，PIP强制列识别和逐步推理。该方法不微调模型，可验证地控制推导过程，提升TQA准确性。",
+      "llm_tldr": "LLM在表格问答上需精确单元格检索和结构化推理。本文提出无训练方法TGN和PIP，TGN通过迭代导航行/列定位证据，PIP强制列识别和逐步推理。该方法不微调模型，可验证地控制推导过程，提升TQA准确性。",
       "llm_tags": [
         "query:ai"
       ],
@@ -277,56 +239,58 @@
         "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "AI-generated text detection for NLP",
-      "llm_evidence_cn": "AI生成文本检测属于NLP任务",
-      "llm_evidence": "AI生成文本检测属于NLP任务",
-      "canonical_evidence": "AI生成文本检测属于NLP任务",
-      "llm_tldr_en": "Comprehensively analyzes state-of-the-art AI-generated text detection techniques through the Counter Turing Test shared tasks, addressing binary classification and adversarial settings.",
-      "llm_tldr_cn": "AI生成文本难以与人类书写区分，带来虚假信息等风险。本文通过反图灵测试（CT2）共享任务，系统评估了当前最先进的AI文本检测技术，涵盖二分类和对抗攻击等场景。结果揭示了现有检测方法的优势与局限，为NLP安全研究提供了重要参考。",
-      "llm_tldr": "AI生成文本难以与人类书写区分，带来虚假信息等风险。本文通过反图灵测试（CT2）共享任务，系统评估了当前最先进的AI文本检测技术，涵盖二分类和对抗攻击等场景。结果揭示了现有检测方法的优势与局限，为NLP安全研究提供了重要参考。",
-      "llm_tags": [
-        "query:ai"
-      ],
-      "matched_query_tag": "query:ai",
-      "matched_query_text": "natural language processing techniques",
-      "matched_requirement_id": "req-5",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2605.21114v1",
-      "source": "arxiv",
-      "title": "A Unified Framework for Uncertainty-Aware Explainable Artificial Intelligence: A Case Study in Power Quality Disturbance Classification",
-      "abstract": "Post-hoc explainable AI (XAI) methods typically produce deterministic attribution maps, whereas Bayesian neural networks (BNNs) induce a distribution over explanations. Capturing the variability of this distribution is important for uncertainty-aware decision-making. This paper formalises the \\emph{explanation distribution} as the push-forward measure of the BNN posterior through any Lipschitz-continuous attribution operator. It further proposes the uncertainty-aware relevance attribution operator (UA-RAO), a general family of operators that summarises the explanation distribution using the mean, variance, coefficient of variation, quantiles, and set-theoretic aggregation measures. Theoretical support is provided through Monte Carlo accessibility and Wasserstein approximation bounds. The framework is evaluated on a 15-class power quality disturbance (PQD) classification benchmark, comparing three BNN approximations paired with three attribution operators using relevance mass accuracy and intersection-over-union as localisation metrics. Results show that deep ensembles with the mean UA-RAO improve localisation over the deterministic baseline, while other UA-RAO summaries reveal uncertainty patterns absent from point-estimate attributions. Qualitative results on measured signals further suggest that these patterns generalise beyond the synthetic training distribution. The framework is domain-agnostic and can be applied to any BNN paired with a Lipschitz-continuous attribution operator.",
-      "authors": [
-        "Yinsong Chen",
-        "Samson S. Yu",
-        "Zhong Li",
-        "Chee Peng Lim"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-05-20T12:46:30+00:00",
-      "link": "https://arxiv.org/pdf/2605.21114v1",
-      "tags": [
-        "keyword:ai",
-        "query:ai"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Uncertainty-aware explainable AI framework using Bayesian neural networks",
-      "llm_evidence_cn": "利用贝叶斯神经网络的不确定性可解释人工智能框架",
-      "llm_evidence": "利用贝叶斯神经网络的不确定性可解释人工智能框架",
-      "canonical_evidence": "利用贝叶斯神经网络的不确定性可解释人工智能框架",
-      "llm_tldr_en": "Formalizes explanation distribution for Bayesian neural networks, proposes the uncertainty-aware relevance attribution operator (UA-RAO) to summarize mean, variance, and quantiles, demonstrated on power quality classification, enabling robust decision-making.",
-      "llm_tldr_cn": "本文针对后验可解释AI方法输出确定性归因图而忽略不确定性的问题，形式化了贝叶斯神经网络中的解释分布，并提出了不确定性感知相关性归因算子（UA-RAO），通过均值、方差等统计量总结解释分布。理论证明了算子的数学性质，并在电能质量扰动分类任务中验证了其能够量化归因不确定性，为高可靠性决策提供了支撑。",
-      "llm_tldr": "本文针对后验可解释AI方法输出确定性归因图而忽略不确定性的问题，形式化了贝叶斯神经网络中的解释分布，并提出了不确定性感知相关性归因算子（UA-RAO），通过均值、方差等统计量总结解释分布。理论证明了算子的数学性质，并在电能质量扰动分类任务中验证了其能够量化归因不确定性，为高可靠性决策提供了支撑。",
+      "llm_evidence_en": "Comprehensive analysis of AI-generated text detection techniques and shared tasks",
+      "llm_evidence_cn": "对AI生成文本检测技术的综合分析及共享任务",
+      "llm_evidence": "对AI生成文本检测技术的综合分析及共享任务",
+      "canonical_evidence": "对AI生成文本检测技术的综合分析及共享任务",
+      "llm_tldr_en": "Provides comprehensive analysis and evaluation of state-of-the-art AI-generated text detection methods through the Counter Turing Test shared tasks.",
+      "llm_tldr_cn": "AI生成文本的泛滥威胁内容真实性。本文对现有检测技术进行全面分析，并通过反图灵测试（CT2）共享任务评估其效果。任务包括二进制分类和细粒度区分，参与系统在检测GPT-4、Claude等模型生成文本上的表现被系统比较，揭示了当前检测方法的优势与局限。",
+      "llm_tldr": "AI生成文本的泛滥威胁内容真实性。本文对现有检测技术进行全面分析，并通过反图灵测试（CT2）共享任务评估其效果。任务包括二进制分类和细粒度区分，参与系统在检测GPT-4、Claude等模型生成文本上的表现被系统比较，揭示了当前检测方法的优势与局限。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
       "matched_query_text": "artificial intelligence research papers",
       "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.21435v1",
+      "source": "arxiv",
+      "title": "Gaussian Sheaf Neural Networks",
+      "abstract": "Graph Neural Networks (GNNs) have become the de facto standard for learning on relational data. While traditional GNNs' message passing is well suited for vector-valued node features, there are cases in which node features are better represented by probability distributions than real vectors. Concretely, when node features are Gaussians, characterized by a mean and a covariance matrix, naively concatenating their parameters into a single vector and applying standard message passing discards the geometric and algebraic structure that governs means and covariances. We propose Gaussian Sheaf Neural Networks (GSNNs), a principled framework that incorporates these inductive biases into graph-based learning. Building on the theory of cellular sheaves, we derive a new Laplacian operator that generalizes the sheaf Laplacian to this setting and preserves its key properties. We complement our theoretical contributions with experiments on synthetic and real-world data that illustrate the practical relevance of GSNNs.",
+      "authors": [
+        "André Ribeiro",
+        "Ana Luiza Tenório",
+        "Tiago da Silva",
+        "Diego Mesquita"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.AT",
+        "math.CT"
+      ],
+      "published": "2026-05-20T17:26:32+00:00",
+      "link": "https://arxiv.org/pdf/2605.21435v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "neural network architecture for graph data with Gaussian features",
+      "llm_evidence_cn": "面向高斯特征图数据的神经网络架构",
+      "llm_evidence": "面向高斯特征图数据的神经网络架构",
+      "canonical_evidence": "面向高斯特征图数据的神经网络架构",
+      "llm_tldr_en": "Gaussian Sheaf Neural Networks (GSNNs) extend GNNs to handle node features as Gaussian distributions, preserving geometric structure via cellular sheaf theory and a new Laplacian operator.",
+      "llm_tldr_cn": "传统图神经网络难以处理节点特征为高斯概率分布的情况，直接拼接均值和协方差会丢失几何结构。本文提出高斯层图神经网络（GSNN），基于细胞层理论结合归纳偏置，推导出新的拉普拉斯算子，在多个图学习任务上优于现有方法。该工作为图神经网络架构设计提供了新视角。",
+      "llm_tldr": "传统图神经网络难以处理节点特征为高斯概率分布的情况，直接拼接均值和协方差会丢失几何结构。本文提出高斯层图神经网络（GSNN），基于细胞层理论结合归纳偏置，推导出新的拉普拉斯算子，在多个图学习任务上优于现有方法。该工作为图神经网络架构设计提供了新视角。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
       "selection_source": "fresh_fetch"
     },
     {
@@ -350,13 +314,13 @@
         "keyword:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Safe exploration in deep reinforcement learning using kernel methods for barrier functions",
-      "llm_evidence_cn": "基于核方法的深度强化学习安全探索",
-      "llm_evidence": "基于核方法的深度强化学习安全探索",
-      "canonical_evidence": "基于核方法的深度强化学习安全探索",
-      "llm_tldr_en": "Proposes kernel-based learning of barrier functions for safe exploration in deep RL, enabling data-efficient safety guarantees without strong assumptions on dynamics.",
-      "llm_tldr_cn": "针对深度强化学习中安全探索需要大量数据或限制动态的难题，本文提出利用核嵌入学习屏障函数，在训练过程中约束策略不进入不安全区域。该方法通过核方法的函数逼近能力，降低了数据需求，同时在多个基准任务中有效限制了不安全状态概率，为RL安全部署提供了实用方案。",
-      "llm_tldr": "针对深度强化学习中安全探索需要大量数据或限制动态的难题，本文提出利用核嵌入学习屏障函数，在训练过程中约束策略不进入不安全区域。该方法通过核方法的函数逼近能力，降低了数据需求，同时在多个基准任务中有效限制了不安全状态概率，为RL安全部署提供了实用方案。",
+      "llm_evidence_en": "safe exploration in deep reinforcement learning",
+      "llm_evidence_cn": "深度强化学习中的安全探索",
+      "llm_evidence": "深度强化学习中的安全探索",
+      "canonical_evidence": "深度强化学习中的安全探索",
+      "llm_tldr_en": "Proposes kernel-based barrier function learning for safe deep RL, achieving safety guarantees during exploration.",
+      "llm_tldr_cn": "深度强化学习在现实世界部署中面临安全挑战。本文提出一种基于核嵌入的屏障函数学习方法，在探索过程中学习障碍函数以保证安全。通过将核方法融入深度RL框架，该方法降低了数据需求并放宽了系统动力学限制，为安全强化学习提供了新途径。",
+      "llm_tldr": "深度强化学习在现实世界部署中面临安全挑战。本文提出一种基于核嵌入的屏障函数学习方法，在探索过程中学习障碍函数以保证安全。通过将核方法融入深度RL框架，该方法降低了数据需求并放宽了系统动力学限制，为安全强化学习提供了新途径。",
       "llm_tags": [
         "query:ai"
       ],
@@ -366,84 +330,119 @@
       "selection_source": "fresh_fetch"
     },
     {
-      "id": "2605.23146v1",
+      "id": "2605.22557v1",
       "source": "arxiv",
-      "title": "Infra-Bayesian Reinforcement Learning Agents Outperform Classical RL For Worst-Case Robustness",
-      "abstract": "Classical reinforcement learning assumes the agent interacts with a fixed environment whose behavior does not depend on the agent's policy. This assumption breaks down in non-realizable settings where other actors might anticipate the agent's behavior, including environments crucial to AI safety, where the agent interacts with predictors, humans, other AI agents, and institutions. In such settings, the agent's model class fails to capture the world in which it operates. Under such misspecification, classical Bayesian methods can produce confidently wrong posteriors, unreliable decisions, and unbounded regret, as realizability fails to obtain. Infra-Bayesianism is a decision-theoretic framework that addresses these failures by distinguishing ordinary probabilistic uncertainty, where priors can be reasonably chosen, from Knightian uncertainty, where no grounds exist for the construction of such a prior. It does so by evaluating actions on their worst-case outcomes, rather than from posterior expectations or weighted averaging. We present the first proof-of-concept implementation of an infra-Bayesian reinforcement learning architecture for finite-outcome stateless decision problems. Our agent maintains a set of imprecise hypotheses, updates them using infra-Bayesian conditioning, and selects actions by maximizing worst-case expected value. We apply this implementation of the infra-Bayesian maximin decision process to an environment with Knightian uncertainty, and demonstrate a lower worst-case regret as compared to classical reinforcement learning agents. We also investigate Newcomb's problem and show that the infra-Bayesian agent picks the optimal strategy, outperforming classical decision theory agents. Our results provide a step towards reinforcement learning agents that remain robust under model misspecification and policy-dependent uncertainty.",
+      "title": "Neural Flow Operators can Approximate any Operator: Abstract Frameworks and Universal Approcimations",
+      "abstract": "We introduce an abstract neural flow framework for neural networks and neural operators. The framework contains two continuous-depth models, namely neural flows with composition and separation structures, and covers both finite-dimensional function approximation and infinite-dimensional operator approximation. We prove well-posedness and universal approximation properties for the corresponding neural flows, including, to the best of our knowledge, the first universal approximation result for flow-based models between infinite-dimensional spaces. We also obtain universal approximation results for convolutional neural flow models. Through suitable time discretizations, the composition structure recovers ResNet-type architectures, while the separation structure, via a splitting-based discretization, yields plain architectures. This gives a unified flow-based route to both residual and plain architectures for neural networks and neural operators with fully connected or convolutional linear layers.",
       "authors": [
-        "Manish Aryal",
-        "Faiyaz Azam",
-        "Agnivo Banerjee",
-        "Sai Sidhanth Manoharan Jayanthi",
-        "Allegra Laro",
-        "Clément Legentilhomme",
-        "Andrew Lin",
-        "Florian Lorkowski",
-        "Radman Rakhshandehroo",
-        "Patric Rommel",
-        "Emanuel Ruzak",
-        "Nathan Theng",
-        "Paul Yushin Rapoport"
+        "Shuang Chen",
+        "Juncai He",
+        "Xue-Cheng Tai"
       ],
       "primary_category": "cs.LG",
       "categories": [
         "cs.LG",
-        "cs.AI"
+        "math.NA"
       ],
-      "published": "2026-05-22T01:51:41+00:00",
-      "link": "https://arxiv.org/pdf/2605.23146v1",
+      "published": "2026-05-21T14:39:43+00:00",
+      "link": "https://arxiv.org/pdf/2605.22557v1",
       "tags": [
-        "keyword:ai"
+        "keyword:ai",
+        "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "new RL algorithm for robustness",
-      "llm_evidence_cn": "用于鲁棒性的新RL算法",
-      "llm_evidence": "用于鲁棒性的新RL算法",
-      "canonical_evidence": "用于鲁棒性的新RL算法",
-      "llm_tldr_en": "Shows that Infra-Bayesian RL agents outperform classical RL in non-realizable environments, providing theoretical and empirical guarantees for worst-case robustness.",
-      "llm_tldr_cn": "经典强化学习假设环境不依赖智能体策略，但在AI安全相关场景中这一假设不成立。本文提出Infra-Bayesian强化学习，通过决策理论框架处理模型误匹配。实验表明，Infra-Bayesian智能体在最坏情况下显著优于经典RL方法，具有更强的鲁棒性和可靠性。",
-      "llm_tldr": "经典强化学习假设环境不依赖智能体策略，但在AI安全相关场景中这一假设不成立。本文提出Infra-Bayesian强化学习，通过决策理论框架处理模型误匹配。实验表明，Infra-Bayesian智能体在最坏情况下显著优于经典RL方法，具有更强的鲁棒性和可靠性。",
+      "llm_evidence_en": "introduces abstract neural flow framework for networks and operators",
+      "llm_evidence_cn": "引入抽象神经流框架用于网络和算子",
+      "llm_evidence": "引入抽象神经流框架用于网络和算子",
+      "canonical_evidence": "引入抽象神经流框架用于网络和算子",
+      "llm_tldr_en": "This paper establishes an abstract neural flow framework with universal approximation guarantees for neural networks and operators, including infinite-dimensional spaces.",
+      "llm_tldr_cn": "神经算子学习在无限维空间逼近方面缺乏理论保证。本文提出抽象神经流框架，包含组合和分离两种连续深度模型，覆盖有限维函数和无限维算子逼近。证明了解的存在唯一性和通用逼近性质，包括首个流模型在无限维空间的通用逼近结果。时间离散化可恢复ResNet等架构。该工作为神经算子设计提供了理论基础。",
+      "llm_tldr": "神经算子学习在无限维空间逼近方面缺乏理论保证。本文提出抽象神经流框架，包含组合和分离两种连续深度模型，覆盖有限维函数和无限维算子逼近。证明了解的存在唯一性和通用逼近性质，包括首个流模型在无限维空间的通用逼近结果。时间离散化可恢复ResNet等架构。该工作为神经算子设计提供了理论基础。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "reinforcement learning algorithms",
-      "matched_requirement_id": "req-6",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
       "selection_source": "fresh_fetch"
     },
     {
-      "id": "2605.23562v1",
+      "id": "2605.22681v1",
       "source": "arxiv",
-      "title": "ARMS: Automatic Reward Shaping for Sparse-Reward Multi-Agent Reinforcement Learning",
-      "abstract": "Sparse rewards are a major bottleneck in multi-agent reinforcement learning (MARL), where simultaneous learning induces non-stationarity and makes reward design especially delicate. Reward shaping can accelerate learning, but in the multi-agent setting it must preserve the strategic structure of the problem rather than merely improve short-term optimization. We propose Automatic Reward-shaping in Multi-agent Systems (ARMS), a self-supervised reward shaping framework for MARL that learns dense shaping signals from sparse environmental rewards through trajectory ranking. Since single-agent trajectory-ranking guarantees do not directly transfer to MARL, we reformulate policy invariance through conditional best-response reasoning, and show that if certain conditions hold, then using shaping rewards preserves each agent's best-response set under fixed opponent policies, and consequently preserve the set of Nash equilibria. Guided by this perspective, ARMS alternates between policy learning and reward learning while sharing shaping parameters across agents for efficiency. Experiments in a partially observable multi-agent pathfinding domain show that ARMS improves sampling efficiency under increasing reward sparsity and agent count, generalizes to unseen environments, and reveals a MARL-specific failure mode in which limited exploration and coupled policy--reward dynamics induce oscillatory behavior. Increasing exploration mitigates this effect and stabilizes learning. To the best of our knowledge, ARMS is the first automatic reward shaping framework for MARL whose design is motivated by a game-theoretic equilibrium-preservation result.",
+      "title": "Forecasting Scientific Progress with Artificial Intelligence",
+      "abstract": "Artificial intelligence (AI) is increasingly embedded in scientific discovery, yet whether it can anticipate scientific progress remains unclear. To study this question, we introduce a temporally grounded evaluation framework for forecasting scientific progress under controlled knowledge constraints. We present CUSP (Cutoff-conditioned Unseen Scientific Progress), a multi-disciplinary and event-level benchmark that evaluates scientific forecasting in AI systems through feasibility assessment, mechanistic reasoning, generative solution design, and temporal prediction. Across 4,760 scientific events, we observe systematic and domain-dependent limitations in current frontier models. While models can identify plausible research directions from competing candidates, they fail to reliably predict whether scientific advances will be realized and systematically misestimate when they will occur. Performance is highly heterogeneous across domains, with the timing of AI progress more predictable than advances in biology, chemistry, and physics. Performance is largely insensitive to whether events occur before or after the training cutoff, suggesting these limitations cannot be explained solely by knowledge exposure in training data. Under controlled information access, additional pre-cutoff knowledge improves performance but does not close the gap to full-information settings, which becomes more pronounced for high-citation advances. Models also exhibit systematic overconfidence and strong response biases, indicating unreliable uncertainty estimation. Taken together, current AI systems fall short as predictive tools for scientific progress. Access to prior knowledge does not translate into reliable forecasting, and performance benefits more from post-event information than from forward-looking prediction.",
       "authors": [
-        "Elie Abboud",
-        "Oren Gal"
+        "Sean Wu",
+        "Pan Lu",
+        "Yupeng Chen",
+        "Jonathan Bragg",
+        "Yutaro Yamada",
+        "Peter Clark",
+        "David Clifton",
+        "Philip Torr",
+        "James Zou",
+        "Junchi Yu"
       ],
-      "primary_category": "cs.MA",
+      "primary_category": "cs.AI",
       "categories": [
-        "cs.MA",
         "cs.AI"
       ],
-      "published": "2026-05-22T12:29:29+00:00",
-      "link": "https://arxiv.org/pdf/2605.23562v1",
+      "published": "2026-05-21T16:23:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.22681v1",
       "tags": [
-        "keyword:ai"
+        "keyword:ai",
+        "query:ai"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "automatic reward shaping for sparse-reward multi-agent RL",
-      "llm_evidence_cn": "稀疏奖励多智能体强化学习中的自动奖励塑造",
-      "llm_evidence": "稀疏奖励多智能体强化学习中的自动奖励塑造",
-      "canonical_evidence": "稀疏奖励多智能体强化学习中的自动奖励塑造",
-      "llm_tldr_en": "ARMS introduces a self-supervised reward shaping framework for multi-agent RL that learns dense rewards from sparse signals via trajectory ranking, addressing non-stationarity while preserving strategic structure.",
-      "llm_tldr_cn": "针对多智能体强化学习中的稀疏奖励问题，本文提出了ARMS框架，通过自监督学习从稀疏环境奖励中学习稠密奖励信号。ARMS利用轨迹排序方法，并重新通过条件最佳响应推理保证策略不变性，避免了传统单智能体奖励塑造方法在多智能体中的失效。实验证明，ARMS在多个稀疏奖励MARL任务中显著加速学习过程，并保持了博弈的均衡性质。",
-      "llm_tldr": "针对多智能体强化学习中的稀疏奖励问题，本文提出了ARMS框架，通过自监督学习从稀疏环境奖励中学习稠密奖励信号。ARMS利用轨迹排序方法，并重新通过条件最佳响应推理保证策略不变性，避免了传统单智能体奖励塑造方法在多智能体中的失效。实验证明，ARMS在多个稀疏奖励MARL任务中显著加速学习过程，并保持了博弈的均衡性质。",
+      "llm_evidence_en": "AI research paper on forecasting scientific progress",
+      "llm_evidence_cn": "人工智能研究论文，预测科学进展",
+      "llm_evidence": "人工智能研究论文，预测科学进展",
+      "canonical_evidence": "人工智能研究论文，预测科学进展",
+      "llm_tldr_en": "Introduces CUSP benchmark to evaluate AI's ability to forecast scientific progress across 4760 events, revealing domain-dependent limitations.",
+      "llm_tldr_cn": "当前AI系统能否预测科学进展尚不明确。本文提出CUSP基准，在多学科事件上评估AI的可行性推理、机制推理等能力。实验表明前沿模型存在领域依赖的局限性，但能识别合理研究方向。该工作为AI在科学发现中的前瞻性应用提供了评估框架。",
+      "llm_tldr": "当前AI系统能否预测科学进展尚不明确。本文提出CUSP基准，在多学科事件上评估AI的可行性推理、机制推理等能力。实验表明前沿模型存在领域依赖的局限性，但能识别合理研究方向。该工作为AI在科学发现中的前瞻性应用提供了评估框架。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "reinforcement learning algorithms",
-      "matched_requirement_id": "req-6",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22971v1",
+      "source": "arxiv",
+      "title": "Can AI Guess What You Know? Performance Comparison of Large Language Models for Human Domain Knowledge Estimation From Communication Logs",
+      "abstract": "Employees often struggle to identify ``who knows what,'' leading to organizational productivity losses. We investigate whether Large Language Models (LLMs) can infer individual domain knowledge directly from long-term Slack logs. Analyzing 27,188 messages from 43 users, we evaluated seven models (including Gemini, Claude, and GPT families) by comparing their zero-shot estimates against self-reported skill ratings from 27 participants. Gemini 2.5 Flash achieved the lowest error (MAE 21.13%), while GPT models showed significantly larger discrepancies. Notably, estimation accuracy depended only weakly on message volume, indicating that more text alone does not guarantee better inference. These findings demonstrate the feasibility and current limits of automated expertise mapping, highlighting the need for privacy-preserving deployments and richer, structure-aware representations of human knowledge.",
+      "authors": [
+        "Ko Watanabe",
+        "Shoya Ishimaru"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.HC"
+      ],
+      "published": "2026-05-21T19:01:16+00:00",
+      "link": "https://arxiv.org/pdf/2605.22971v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Uses LLMs to infer human domain knowledge from communication logs",
+      "llm_evidence_cn": "利用大语言模型从通讯日志推断人类领域知识",
+      "llm_evidence": "利用大语言模型从通讯日志推断人类领域知识",
+      "canonical_evidence": "利用大语言模型从通讯日志推断人类领域知识",
+      "llm_tldr_en": "Compares seven LLMs for zero-shot estimation of employee expertise from Slack logs; Gemini 2.5 Flash achieves lowest error, showing LLMs can infer knowledge but accuracy weakly depends on message volume.",
+      "llm_tldr_cn": "本文研究大语言模型是否能够从长期Slack通讯日志中推断个体的领域知识。通过对27位用户的27,188条消息进行分析，比较了包括Gemini、Claude和GPT系列在内的七种模型，发现Gemini 2.5 Flash的平均绝对误差最低（21.13%），而GPT模型的误差显著更高。进一步分析表明，推理准确率与消息量的相关性较弱，即更多文本并不必然带来更好的推理效果。",
+      "llm_tldr": "本文研究大语言模型是否能够从长期Slack通讯日志中推断个体的领域知识。通过对27位用户的27,188条消息进行分析，比较了包括Gemini、Claude和GPT系列在内的七种模型，发现Gemini 2.5 Flash的平均绝对误差最低（21.13%），而GPT模型的误差显著更高。进一步分析表明，推理准确率与消息量的相关性较弱，即更多文本并不必然带来更好的推理效果。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch"
     }
   ],
@@ -476,19 +475,19 @@
         "query:ai"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "efficient sparse attention conversion for LLMs",
-      "llm_evidence_cn": "将LLM的全注意力高效转换为稀疏注意力",
-      "llm_evidence": "将LLM的全注意力高效转换为稀疏注意力",
-      "canonical_evidence": "将LLM的全注意力高效转换为稀疏注意力",
-      "llm_tldr_en": "Shows full-attention LLMs are intrinsically sparse and can be transformed into sparse models with minimal adaptation, achieving long-context efficiency.",
-      "llm_tldr_cn": "本文发现全注意力大语言模型本质上是稀疏的，并提出一种方法在极少量训练步骤内将其转换为高度稀疏的模型。基于三个关键观察，该方法仅需微调即可大幅降低长上下文推理的复杂度。实验证明转换后的模型在保持精度的同时显著提升效率。",
-      "llm_tldr": "本文发现全注意力大语言模型本质上是稀疏的，并提出一种方法在极少量训练步骤内将其转换为高度稀疏的模型。基于三个关键观察，该方法仅需微调即可大幅降低长上下文推理的复杂度。实验证明转换后的模型在保持精度的同时显著提升效率。",
+      "llm_evidence_en": "transforming full-attention LLMs into highly sparse models with minimal adaptation",
+      "llm_evidence_cn": "将全注意力大语言模型转化为高稀疏模型仅需极少训练",
+      "llm_evidence": "将全注意力大语言模型转化为高稀疏模型仅需极少训练",
+      "canonical_evidence": "将全注意力大语言模型转化为高稀疏模型仅需极少训练",
+      "llm_tldr_en": "Shows full-attention LLMs are intrinsically sparse and can be transformed into sparse models within 100 training steps using low-dimensional retrieval, balancing efficiency and accuracy.",
+      "llm_tldr_cn": "针对大语言模型全注意力二次成本问题，发现全注意力模型本质上是稀疏的，提出方法在百步训练内将其转化为高稀疏模型，通过低维子空间检索相关令牌，实现高效长上下文推理，实验表明仅需少量训练即可获得高稀疏且保持精度的模型。",
+      "llm_tldr": "针对大语言模型全注意力二次成本问题，发现全注意力模型本质上是稀疏的，提出方法在百步训练内将其转化为高稀疏模型，通过低维子空间检索相关令牌，实现高效长上下文推理，实验表明仅需少量训练即可获得高稀疏且保持精度的模型。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "deep learning recent advances",
-      "matched_requirement_id": "req-3",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
       "selection_source": "fresh_fetch",
       "quick_tier": "8plus"
     },
@@ -514,19 +513,19 @@
         "query:ai"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "training-free memory module for large language models",
-      "llm_evidence_cn": "为大型语言模型提供的免训练记忆模块",
-      "llm_evidence": "为大型语言模型提供的免训练记忆模块",
-      "canonical_evidence": "为大型语言模型提供的免训练记忆模块",
-      "llm_tldr_en": "NGM is a plug-and-play memory module for LLMs that requires no training, using N-gram averaging and cosine gating to enhance knowledge storage.",
-      "llm_tldr_cn": "针对现有LLM记忆模块需要额外训练的问题，本文提出NGM，一种即插即用、免训练的记忆模块。NGM通过因果N元编码器直接对预训练词嵌入进行平均构建N元表示，并由余弦门控记忆注入器整合。实验表明，NGM能有效提升知识检索效率，且无需额外训练成本。",
-      "llm_tldr": "针对现有LLM记忆模块需要额外训练的问题，本文提出NGM，一种即插即用、免训练的记忆模块。NGM通过因果N元编码器直接对预训练词嵌入进行平均构建N元表示，并由余弦门控记忆注入器整合。实验表明，NGM能有效提升知识检索效率，且无需额外训练成本。",
+      "llm_evidence_en": "proposes N-gram Memory as a plug-and-play module for LLMs, a neural network architecture innovation",
+      "llm_evidence_cn": "提出N-gram内存模块，是神经网络架构创新",
+      "llm_evidence": "提出N-gram内存模块，是神经网络架构创新",
+      "canonical_evidence": "提出N-gram内存模块，是神经网络架构创新",
+      "llm_tldr_en": "NGM is a training-free, plug-and-play memory module for LLMs that uses a Causal N-Gram Encoder and Cosine-Gated Injector to directly leverage pretrained embeddings for efficient knowledge retrieval.",
+      "llm_tldr_cn": "现有条件记忆模块需要额外训练，灵活性受限。本文提出N-gram内存（NGM），一种免训练即插即用模块。它由因果N-gram编码器和余弦门控注入器组成，直接对预训练token嵌入求平均构建表示，无需单独训练。在多个LLM上实验显示，NGM在不增加训练成本前提下提升知识检索效率，增强了模型的事实准确性和泛化能力。",
+      "llm_tldr": "现有条件记忆模块需要额外训练，灵活性受限。本文提出N-gram内存（NGM），一种免训练即插即用模块。它由因果N-gram编码器和余弦门控注入器组成，直接对预训练token嵌入求平均构建表示，无需单独训练。在多个LLM上实验显示，NGM在不增加训练成本前提下提升知识检索效率，增强了模型的事实准确性和泛化能力。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "natural language processing techniques",
-      "matched_requirement_id": "req-5",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
       "selection_source": "fresh_fetch",
       "quick_tier": "7"
     },
@@ -552,13 +551,13 @@
         "query:ai"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "query clustering for capability-aware LLM evaluation",
-      "llm_evidence_cn": "用于能力感知LLM评估的查询聚类",
-      "llm_evidence": "用于能力感知LLM评估的查询聚类",
-      "canonical_evidence": "用于能力感知LLM评估的查询聚类",
-      "llm_tldr_en": "ECC is an algorithm that calibrates semantic embeddings with limited model comparisons to cluster queries by latent capability demands, improving LLM evaluation accuracy.",
-      "llm_tldr_cn": "针对现有查询聚类方法无法捕获潜在能力需求的问题，本文提出ECC算法。该算法利用少量模型比较结果校准先验语义嵌入，并通过Bradley-Terry模型参数化每个簇的能力轮廓，同时使用可训练混合权重处理混合能力查询。ECC有效弥合了表面语义与潜在能力需求之间的差距，提升了能力感知的LLM评估准确性。",
-      "llm_tldr": "针对现有查询聚类方法无法捕获潜在能力需求的问题，本文提出ECC算法。该算法利用少量模型比较结果校准先验语义嵌入，并通过Bradley-Terry模型参数化每个簇的能力轮廓，同时使用可训练混合权重处理混合能力查询。ECC有效弥合了表面语义与潜在能力需求之间的差距，提升了能力感知的LLM评估准确性。",
+      "llm_evidence_en": "LLM evaluation via query clustering, NLP technique",
+      "llm_evidence_cn": "通过查询聚类进行LLM评估，属于NLP技术",
+      "llm_evidence": "通过查询聚类进行LLM评估，属于NLP技术",
+      "canonical_evidence": "通过查询聚类进行LLM评估，属于NLP技术",
+      "llm_tldr_en": "Proposes ECC algorithm for query clustering that captures latent capability demands using posterior model comparisons, improving LLM evaluation.",
+      "llm_tldr_cn": "现有查询聚类方法依赖语义分类或嵌入，无法捕捉潜在能力需求。本文提出ECC算法，通过少量后验模型比较校准先验语义嵌入，使用Bradley-Terry模型刻画能力特征，并利用可训练混合权重处理混合需求。实验表明ECC能更好地反映LLM实际能力，提升评估可靠性。",
+      "llm_tldr": "现有查询聚类方法依赖语义分类或嵌入，无法捕捉潜在能力需求。本文提出ECC算法，通过少量后验模型比较校准先验语义嵌入，使用Bradley-Terry模型刻画能力特征，并利用可训练混合权重处理混合需求。实验表明ECC能更好地反映LLM实际能力，提升评估可靠性。",
       "llm_tags": [
         "query:ai"
       ],
@@ -569,40 +568,42 @@
       "quick_tier": "6"
     },
     {
-      "id": "2605.17458v1",
+      "id": "2605.17382v1",
       "source": "arxiv",
-      "title": "ClaHF: A Human Feedback-inspired Reinforcement Learning Framework for Improving Classification Tasks",
-      "abstract": "Text classification models are typically trained via supervised fine-tuning (SFT). However, SFT essentially performs behavior cloning from instance-wise labels and thus fails to adequately capture relative preference relations among samples, which limits the model's ability to shape decision boundaries and calibrate predictive confidence. In this paper, we propose ClaHF, a human feedback-inspired reinforcement learning (RL) framework for text classification that integrates preference modeling and RL optimization into the classification pipeline without requiring additional human annotations. Unlike prior work that relies solely on instance-wise supervision, ClaHF constructs multiple candidate predictions together with their relative ranking relations, and jointly models the Top-1 preference and the ordering among non-optimal candidates within a reward model (RM). This design converts conventional label supervision into preference signals that are directly applicable to policy optimization. We conduct systematic evaluations on eight classification tasks spanning three categories of scenarios. Results demonstrate that ClaHF consistently improves both classification performance and confidence calibration across diverse language models (LMs). The data and code are available at https://anonymous.4open.science/r/ClaHF.",
+      "title": "QQJ: Quantifying Qualitative Judgment for Scalable and Human-Aligned Evaluation of Generative AI",
+      "abstract": "The rapid progress of generative artificial intelligence has exposed fundamental limitations in existing evaluation methodologies, particularly for open-ended, creative, and human-facing tasks. Traditional automatic metrics rely on surface-level statistical similarity and often fail to reflect human perceptions of quality, while purely human evaluation, although reliable, is costly, subjective, and difficult to scale. Recent approaches using large language models as evaluators offer improved scalability but frequently lack explicit grounding in human-defined evaluation principles, leading to bias and inconsistency. In this paper, we introduce Quantifying Qualitative Judgment (QQJ), a scalable and human-centric evaluation framework that explicitly bridges the gap between human judgment and automated assessment. QQJ separates the definition of quality from its execution by anchoring evaluation in expert-designed, multi-dimensional rubrics and calibrating large language model evaluators to align with expert reasoning using a small, high-quality annotation set. This design enables consistent, interpretable, and scalable evaluation across diverse generative tasks and modalities. Extensive experiments on text and image generation demonstrate that QQJ achieves substantially stronger alignment with human judgment than traditional automatic metrics and unconstrained LLM-based evaluators. Moreover, QQJ exhibits improved stability across repeated evaluations and superior diagnostic capability in identifying critical failure modes such as hallucination and intent mismatch. These results indicate that structured qualitative judgment can be operationalized at scale without sacrificing interpretability or human alignment, positioning QQJ as a practical foundation for reliable evaluation of modern generative AI systems.",
       "authors": [
-        "Tianxiang Xu",
-        "Xiaoyan Zhu",
-        "Xin Lai",
-        "Jiayin Wang"
+        "Marjan Veysi",
+        "Pirooz Shamsinejadbabaki",
+        "Mohammad Zare",
+        "Mohammad Sabouri"
       ],
-      "primary_category": "cs.LG",
+      "primary_category": "cs.AI",
       "categories": [
-        "cs.LG"
+        "cs.AI",
+        "cs.CL",
+        "cs.GR"
       ],
-      "published": "2026-05-17T14:00:01+00:00",
-      "link": "https://arxiv.org/pdf/2605.17458v1",
+      "published": "2026-05-17T10:53:43+00:00",
+      "link": "https://arxiv.org/pdf/2605.17382v1",
       "tags": [
         "keyword:ai",
         "query:ai"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "uses reinforcement learning from human feedback for classification",
-      "llm_evidence_cn": "使用基于人类反馈的强化学习优化分类",
-      "llm_evidence": "使用基于人类反馈的强化学习优化分类",
-      "canonical_evidence": "使用基于人类反馈的强化学习优化分类",
-      "llm_tldr_en": "Proposes ClaHF, an RL framework for text classification that integrates preference modeling and RL optimization without extra human annotations, improving decision boundaries.",
-      "llm_tldr_cn": "文本分类的监督微调仅模仿实例标签，无法捕捉样本间的相对偏好。本文提出ClaHF，一种受人类反馈启发的强化学习框架，将偏好建模和RL优化融入分类流程，无需额外人工标注。通过构建多个候选预测并利用偏好比较进行优化，ClaHF能更好地塑造决策边界并校准置信度。在多个文本分类基准上，ClaHF显著优于传统微调方法。该工作展示了RL在分类任务中的有效应用。",
-      "llm_tldr": "文本分类的监督微调仅模仿实例标签，无法捕捉样本间的相对偏好。本文提出ClaHF，一种受人类反馈启发的强化学习框架，将偏好建模和RL优化融入分类流程，无需额外人工标注。通过构建多个候选预测并利用偏好比较进行优化，ClaHF能更好地塑造决策边界并校准置信度。在多个文本分类基准上，ClaHF显著优于传统微调方法。该工作展示了RL在分类任务中的有效应用。",
+      "llm_evidence_en": "Proposes scalable human-aligned evaluation framework for generative AI",
+      "llm_evidence_cn": "提出可扩展的人类对齐生成AI评估框架",
+      "llm_evidence": "提出可扩展的人类对齐生成AI评估框架",
+      "canonical_evidence": "提出可扩展的人类对齐生成AI评估框架",
+      "llm_tldr_en": "QQJ is a scalable evaluation framework for generative AI that integrates human-designed principles with automatic metrics to align with human perception.",
+      "llm_tldr_cn": "生成式AI的评估面临自动指标与人类感知不一致、人工评估昂贵难扩展的问题。本文提出量化定性判断（QQJ）框架，将人类定义的评估原则嵌入可扩展的自动评估流程，在兼顾规模的同时保持与人类判断的对齐。",
+      "llm_tldr": "生成式AI的评估面临自动指标与人类感知不一致、人工评估昂贵难扩展的问题。本文提出量化定性判断（QQJ）框架，将人类定义的评估原则嵌入可扩展的自动评估流程，在兼顾规模的同时保持与人类判断的对齐。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "reinforcement learning algorithms",
-      "matched_requirement_id": "req-6",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch",
       "quick_tier": "8plus"
     },
@@ -631,13 +632,13 @@
         "query:ai"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "Fourier analysis of neural network learning dynamics",
-      "llm_evidence_cn": "神经网络学习动力学的傅里叶分析",
-      "llm_evidence": "神经网络学习动力学的傅里叶分析",
-      "canonical_evidence": "神经网络学习动力学的傅里叶分析",
-      "llm_tldr_en": "Analyzes neural network simplicity bias from a Fourier perspective incorporating translation invariance and power-law spectra, revealing that networks first learn amplitude then phase information.",
-      "llm_tldr_cn": "神经网络在训练中表现出简单性偏好，但现有分析多基于各向同性输入。本文从傅里叶视角出发，将自然图像的近似平移不变性和幂律谱纳入分析。实验表明，简单神经网络在图像分类中首先依赖幅度信息（像素间配对相关性），然后才利用相位信息。该研究为神经网络的表示学习机制提供了新的理论理解，并有助于设计更好的训练策略和架构。",
-      "llm_tldr": "神经网络在训练中表现出简单性偏好，但现有分析多基于各向同性输入。本文从傅里叶视角出发，将自然图像的近似平移不变性和幂律谱纳入分析。实验表明，简单神经网络在图像分类中首先依赖幅度信息（像素间配对相关性），然后才利用相位信息。该研究为神经网络的表示学习机制提供了新的理论理解，并有助于设计更好的训练策略和架构。",
+      "llm_evidence_en": "studies learning dynamics of neural networks from a Fourier perspective",
+      "llm_evidence_cn": "从傅里叶视角研究神经网络学习动态",
+      "llm_evidence": "从傅里叶视角研究神经网络学习动态",
+      "canonical_evidence": "从傅里叶视角研究神经网络学习动态",
+      "llm_tldr_en": "This paper analyzes the simplicity bias in neural networks using Fourier decomposition, revealing how translation invariance and power-law spectra affect learning of amplitude vs phase features.",
+      "llm_tldr_cn": "神经网络存在简单性偏差：先学习简单统计特征再学习复杂特征。以往分析大多假设输入各向同性。本文从傅里叶角度出发，引入自然图像的平移近似不变性和幂律谱特性。实验发现，简单网络先依赖幅度信息（像素间相关性），然后才利用相位信息。该工作为理解神经网络学习机制提供了新视角，有助于改进训练策略。",
+      "llm_tldr": "神经网络存在简单性偏差：先学习简单统计特征再学习复杂特征。以往分析大多假设输入各向同性。本文从傅里叶角度出发，引入自然图像的平移近似不变性和幂律谱特性。实验发现，简单网络先依赖幅度信息（像素间相关性），然后才利用相位信息。该工作为理解神经网络学习机制提供了新视角，有助于改进训练策略。",
       "llm_tags": [
         "query:ai"
       ],
@@ -648,30 +649,32 @@
       "quick_tier": "7"
     },
     {
-      "id": "2605.17391v1",
+      "id": "2605.17273v1",
       "source": "arxiv",
-      "title": "Pegs, Floats, and Forests: A Machine Learning Revisit of Exchange Rate Regimes and Growth in Transition Economies",
-      "abstract": "This paper combines traditional panel econometrics with random forest machine learning to revisit the relationship between exchange rate regimes and economic growth for 27 transition economies over 1991-2019. Exploiting the Couharde-Grekou (2024) probabilistic synthesis classification, the random forest approach non-parametrically confirms and sharpens what fixed-effects and system GMM estimation establish parametrically intermediate exchange rate regimes consistently underperform fixed arrangements, with growth penalties ranging from -1.0 to -10.4 percentage points, while floating regimes show negative but largely insignificant differentials. Beyond regime effects, the machine learning analysis reveals that the intermediate regime penalty is sharpest precisely where institutions are weakest - non-parametric validation that institutional capacity, not regime label alone, determines whether exchange rate anchoring pays off. The regime-growth relationship is further concentrated in the pre-2003 stabilization era and is absent among EU member economies, suggesting the growth dividend from exchange rate anchoring eroded as institutional convergence advanced. Together, these findings demonstrate how machine learning variable importance metrics can corroborate and enrich causal inference from panel methods, while supporting the view that exchange rate anchoring carried a meaningful credibility dividend during the formative phase of transition.",
+      "title": "State-of-the-Art Claims Require State-of-the-Art Evidence",
+      "abstract": "State-of-the-Art (SOTA) claims pervade Artificial Intelligence (AI) and Machine Learning (ML) research. These claims rest on benchmark evaluations, where models are ranked by aggregate scores across tasks. Public benchmarks or leaderboards are the most visible instance, but the same structure appears in paper tables throughout the literature. However, such minimal evidence often cannot support these strong claims. We identify a widespread claim-evidence gap in AI benchmarking. Claiming SOTA carries implicit assumptions beyond mean score superiority, suggesting that a model meaningfully outperforms alternatives across most tasks. However, a marginal improvement in the mean score merely indicates a top average rank rather than true superiority. Analyzing ten cross-domain benchmarks from public leaderboards, we found that in more than half of top-model comparisons, at least one commonly assumed property of superiority does not hold. These properties include meaningful effect size, consistency across tasks, or robustness to dataset removal. Instead, aggregate gains are frequently driven by outlier datasets. This fragility persists even in benchmarks with many tasks. We argue that claim language should reflect the strength of the underlying evidence. This requires no additional experiments, only honest reporting of what results actually show, enabling more precise and interpretable comparisons across models.",
       "authors": [
-        "Marjan Petreski"
+        "YongKyung Oh"
       ],
-      "primary_category": "econ.GN",
+      "primary_category": "cs.LG",
       "categories": [
-        "econ.GN"
+        "cs.LG",
+        "cs.AI"
       ],
-      "published": "2026-05-17T11:19:29+00:00",
-      "link": "https://arxiv.org/pdf/2605.17391v1",
+      "published": "2026-05-17T05:48:10+00:00",
+      "link": "https://arxiv.org/pdf/2605.17273v1",
       "tags": [
-        "keyword:ai"
+        "keyword:ai",
+        "query:ai"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "machine learning applied to economic growth analysis",
-      "llm_evidence_cn": "机器学习应用于经济增长分析",
-      "llm_evidence": "机器学习应用于经济增长分析",
-      "canonical_evidence": "机器学习应用于经济增长分析",
-      "llm_tldr_en": "Uses random forest to revisit exchange rate regime effects on economic growth in transition economies, confirming parametric findings non-parametrically.",
-      "llm_tldr_cn": "汇率制度与经济增长的关系传统上用参数模型分析。本文结合随机森林机器学习方法重新审视27个转型经济体1991-2019年的数据，非参数地确认了中间汇率制表现差于固定汇率制。机器学习方法增强了结论的稳健性。",
-      "llm_tldr": "汇率制度与经济增长的关系传统上用参数模型分析。本文结合随机森林机器学习方法重新审视27个转型经济体1991-2019年的数据，非参数地确认了中间汇率制表现差于固定汇率制。机器学习方法增强了结论的稳健性。",
+      "llm_evidence_en": "Critical analysis of SOTA claims in AI/ML research",
+      "llm_evidence_cn": "对AI/ML研究中SOTA声明的批判性分析",
+      "llm_evidence": "对AI/ML研究中SOTA声明的批判性分析",
+      "canonical_evidence": "对AI/ML研究中SOTA声明的批判性分析",
+      "llm_tldr_en": "Identifies a claim-evidence gap in AI benchmarking where marginal mean improvements do not support true superiority.",
+      "llm_tldr_cn": "AI和ML研究中SOTA声明泛滥，但仅有均值分数优势不足以证明真正优越性。本文识别出基准评估中的声明-证据差距，通过分析十个跨领域基准，指出边际改进仅代表平均排名领先。该研究呼吁更严格的证据标准。",
+      "llm_tldr": "AI和ML研究中SOTA声明泛滥，但仅有均值分数优势不足以证明真正优越性。本文识别出基准评估中的声明-证据差距，通过分析十个跨领域基准，指出边际改进仅代表平均排名领先。该研究呼吁更严格的证据标准。",
       "llm_tags": [
         "query:ai"
       ],
@@ -682,32 +685,75 @@
       "quick_tier": "6"
     },
     {
-      "id": "2605.17482v1",
+      "id": "2605.17653v1",
       "source": "arxiv",
-      "title": "Residual Semantic Decomposition of Word Embeddings",
-      "abstract": "We introduce Residual Semantic Decomposition (RSD), a neural additive decomposition of word embeddings that balances embedding reconstruction with relational structure preservation. RSD supports recursive binary decomposition: each $K=2$ fit extracts a local semantic axis, while residuals expose information not absorbed by that axis. In manually specified paired-context diagnostics over ambiguous words, RSD separates supplied context anchors above shuffled-label controls, but entropy diagnostics show that ambiguous targets are not uniformly high-entropy boundary points in static GloVe. We therefore treat residual neighborhoods as qualitative diagnostics rather than benchmark sense predictions.",
+      "title": "LLMForge: Multi-Backend Hardware-Aware Neural Architecture Search with Infinite-Head Attention for Edge Language Models",
+      "abstract": "Sub-billion-parameter Transformer language models are increasingly deployed on edge devices, where the privacy, latency, and operating-cost advantages of on-device inference are constrained by tight memory-bandwidth, energy, and thermal budgets that make architectural choice and accelerator-specific cost central to efficient inference. We present LLMForge, a hardware-aware neural architecture search (NAS) framework whose three composable contributions together make edge-LM architecture search hardware-conditioned, since different substrates impose different hardware cost bottlenecks. Infinite-Head Attention (IHA) decouples the number of query heads, KV groups, and per-head query/key and value dimensions, expanding the feasible per-layer attention configuration space by approximately 400x over grouped-query attention within our search-space ranges. Forge-Former, an encoder-based surrogate for ranking architectural candidates, outperforms MLP and random-forest baselines. Forge-DSE, an NSGA-II-based design-space-exploration engine, pairs Forge-Former with a multi-backend hardware cost model spanning GPUs, systolic accelerators, and ring-dataflow edge accelerators. Across four different hardware substrates, the searches converge to visibly different architectures whose shapes track each substrate's cost bottleneck. On the multi-chip ring substrate, our co-search returns three 300M-scale deployment-aware variants on the Pareto front. Each is re-trained on FineWeb-Edu-10BT under matched recipe against SmolLM2-360M and Qwen-0.5B architecture baselines. The accurate variant has the lowest validation loss 2.798 and competitive benchmark performance with fewer parameters, the energy-optimized variant lowers energy per token by 40%, and the latency-optimized variant lowers TTFT and TPOT by 43%.",
       "authors": [
-        "Seungmin Jin"
+        "Xinting Jiang",
+        "Junyi Luo",
+        "Ruichen Qi",
+        "Kauna Lei",
+        "Ben Laurie",
+        "Gregory Kielian",
+        "Mehdi Saligane"
       ],
-      "primary_category": "cs.CL",
+      "primary_category": "cs.LG",
       "categories": [
-        "cs.CL",
-        "cs.LG"
+        "cs.LG",
+        "cs.AI"
       ],
-      "published": "2026-05-17T14:44:13+00:00",
-      "link": "https://arxiv.org/pdf/2605.17482v1",
+      "published": "2026-05-17T21:10:54+00:00",
+      "link": "https://arxiv.org/pdf/2605.17653v1",
       "tags": [
         "keyword:ai",
         "query:ai"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "word embedding semantic decomposition for NLP",
-      "llm_evidence_cn": "词嵌入的语义分解方法",
-      "llm_evidence": "词嵌入的语义分解方法",
-      "canonical_evidence": "词嵌入的语义分解方法",
-      "llm_tldr_en": "Introduces Residual Semantic Decomposition (RSD), a neural additive decomposition of word embeddings that extracts semantic axes while preserving relational structure.",
-      "llm_tldr_cn": "词嵌入的语义解释性不足。本文提出残差语义分解（RSD），一种神经加性分解方法，在保持嵌入重建和关系结构的同时提取局部语义轴。通过递归二分分解，RSD能分离上下文锚点，揭示词嵌入中的语义成分，为分析词义提供新工具。",
-      "llm_tldr": "词嵌入的语义解释性不足。本文提出残差语义分解（RSD），一种神经加性分解方法，在保持嵌入重建和关系结构的同时提取局部语义轴。通过递归二分分解，RSD能分离上下文锚点，揭示词嵌入中的语义成分，为分析词义提供新工具。",
+      "llm_evidence_en": "hardware-aware neural architecture search for edge language models",
+      "llm_evidence_cn": "面向边缘语言模型的硬件感知神经架构搜索",
+      "llm_evidence": "面向边缘语言模型的硬件感知神经架构搜索",
+      "canonical_evidence": "面向边缘语言模型的硬件感知神经架构搜索",
+      "llm_tldr_en": "Proposes LLMForge framework for hardware-aware NAS with infinite-head attention, enabling efficient Transformer language models on edge devices.",
+      "llm_tldr_cn": "现有子十亿参数Transformer语言模型在边缘设备部署时面临内存带宽和能耗限制。本文提出LLMForge硬件感知神经架构搜索框架，通过无限头注意力机制解耦查询头、KV组和维度，实现架构搜索的硬件条件化。实验表明该框架能有效生成适应不同加速器成本瓶颈的高效边缘语言模型，推动端侧AI推理的实用化。",
+      "llm_tldr": "现有子十亿参数Transformer语言模型在边缘设备部署时面临内存带宽和能耗限制。本文提出LLMForge硬件感知神经架构搜索框架，通过无限头注意力机制解耦查询头、KV组和维度，实现架构搜索的硬件条件化。实验表明该框架能有效生成适应不同加速器成本瓶颈的高效边缘语言模型，推动端侧AI推理的实用化。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.17072v1",
+      "source": "arxiv",
+      "title": "RAGA: Reading-And-Graph-building-Agent for Autonomous Knowledge Graph Construction and Retrieval-Augmented Generation",
+      "abstract": "Existing LLM-driven knowledge graph (KG) construction methods predominantly employ stateless batch processing pipelines, exhibiting structural deficiencies in cross-chunk semantic relation capture, entity disambiguation, and construction process interpretability. These limitations undermine KG quality, retrieval precision, and deployment trust in high-stakes domains.   We propose RAGA (Reading And Graph-building Agent), an LLM-based autonomous KG construction and retrieval fusion framework. RAGA provides an atomic toolset supporting full KG lifecycle CRUD operations and embeds a Read-Search-Verify-Construct cognitive constraint into a ReAct tool loop. A KG-vector synchronization mechanism enables hybrid symbolic-vector retrieval, while evidence-anchored verification links every knowledge entry to its source text for auditable provenance.   Preliminary experiments on a subset of the QASPER scientific QA dataset indicate that RAGA's fusion retrieval outperforms zero-shot baselines, with KG integration providing measurable gains in both answer and evidence quality. The framework design and experimental baseline serve as a reference for agent-driven autonomous KG construction.",
+      "authors": [
+        "Chengrui Han",
+        "Zesheng Cheng"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-05-16T16:42:50+00:00",
+      "link": "https://arxiv.org/pdf/2605.17072v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "autonomous KG construction and RAG using LLM agents",
+      "llm_evidence_cn": "基于LLM代理的自主知识图谱构建与检索增强生成",
+      "llm_evidence": "基于LLM代理的自主知识图谱构建与检索增强生成",
+      "canonical_evidence": "基于LLM代理的自主知识图谱构建与检索增强生成",
+      "llm_tldr_en": "This paper presents RAGA, an LLM-based autonomous KG construction and retrieval fusion framework with cognitive constraints.",
+      "llm_tldr_cn": "本文提出RAGA（阅读与图构建代理），一种基于LLM的自主知识图谱（KG）构建与检索增强生成（RAG）融合框架。现有LLM驱动的KG构建存在跨块语义捕获和可解释性缺陷。RAGA提供原子工具集支持KG完整生命周期操作，并嵌入Read-Search-Verify-Construct认知循环。通过KG-向量同步机制实现混合检索，提升了KG质量和检索精度，适用于高风险领域。",
+      "llm_tldr": "本文提出RAGA（阅读与图构建代理），一种基于LLM的自主知识图谱（KG）构建与检索增强生成（RAG）融合框架。现有LLM驱动的KG构建存在跨块语义捕获和可解释性缺陷。RAGA提供原子工具集支持KG完整生命周期操作，并嵌入Read-Search-Verify-Construct认知循环。通过KG-向量同步机制实现混合检索，提升了KG质量和检索精度，适用于高风险领域。",
       "llm_tags": [
         "query:ai"
       ],
@@ -715,83 +761,43 @@
       "matched_query_text": "natural language processing techniques",
       "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch",
-      "quick_tier": "8plus"
-    },
-    {
-      "id": "2605.17219v1",
-      "source": "arxiv",
-      "title": "Integration of AI in Cybersecurity: Current Trends with a Focused Look at Intrusion Detection Applications",
-      "abstract": "Artificial Intelligence (AI) is widely adopted today for its ability to detect patterns, automate tasks, and reduce time and cost across various applications. Its integration into Cybersecurity has garnered significant attention, particularly in areas such as intrusion detection, malware analysis, and phishing or spam detection. As AI and cybersecurity evolve, new methods and approaches emerge regularly. Current trends include the use of Generative AI, Natural Language Processing, Federated Learning for privacy-preserving collaborative training, and eXplainable AI to ensure interpretability and trust, which are vital in cybersecurity. This paper presents an interesting review of current AI-based cybersecurity trends, focusing on intrusion detection approaches and aiming to uncover meaningful insights through comparative analysis based on the employed AI techniques and reported performance.",
-      "authors": [
-        "S. Tazili",
-        "A. Mansour",
-        "M. Y. Chkouri"
-      ],
-      "primary_category": "cs.CR",
-      "categories": [
-        "cs.CR",
-        "cs.AI",
-        "cs.LG",
-        "cs.NI",
-        "eess.SP"
-      ],
-      "published": "2026-05-17T01:44:23+00:00",
-      "link": "https://arxiv.org/pdf/2605.17219v1",
-      "tags": [
-        "keyword:ai",
-        "query:ai"
-      ],
-      "llm_score": 7.0,
-      "llm_evidence_en": "AI survey in cybersecurity",
-      "llm_evidence_cn": "网络安全中的AI综述",
-      "llm_evidence": "网络安全中的AI综述",
-      "canonical_evidence": "网络安全中的AI综述",
-      "llm_tldr_en": "Presents a review of current AI trends in cybersecurity, including generative AI, NLP, federated learning, and XAI, with a focus on intrusion detection.",
-      "llm_tldr_cn": "人工智能在网络安全中广泛应用，本文综述了当前趋势，包括生成式AI、自然语言处理、联邦学习和可解释AI在入侵检测、恶意软件分析等领域的应用。特别深入分析了入侵检测应用，总结了现有方法、挑战和未来方向。",
-      "llm_tldr": "人工智能在网络安全中广泛应用，本文综述了当前趋势，包括生成式AI、自然语言处理、联邦学习和可解释AI在入侵检测、恶意软件分析等领域的应用。特别深入分析了入侵检测应用，总结了现有方法、挑战和未来方向。",
-      "llm_tags": [
-        "query:ai"
-      ],
-      "matched_query_tag": "query:ai",
-      "matched_query_text": "artificial intelligence research papers",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch",
       "quick_tier": "7"
     },
     {
-      "id": "2605.17596v1",
+      "id": "2605.17860v1",
       "source": "arxiv",
-      "title": "NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents",
-      "abstract": "We present NeuSymMS, an adaptive memory system that enables large language model (LLM) agents to learn, remember, and reason about users across sessions via a hybrid neuro-symbolic architecture. NeuSymMS couples neural fact extraction from unstructured dialogue with a CLIPS-based expert system that classifies, deduplicates, and reconciles facts under explicit lifecycle rules. The system represents knowledge as subject-relation-value triples stored in relational database management system, supports user/agents/agent-to-agents scoping, and implements a dual-horizon short-term/long-term memory model with access-based promotion and time-based pruning. NeuSymMS maintains continuity of memory while avoiding context-window bloat and cross-entity contamination. We argue that this architecture offers a practical path to trustworthy, auditable memory for production agentic systems and discuss its novelty relative to log retrieval, summarization, and key-value approaches.",
+      "title": "PAREDA: A Multi-Accent Speech Dataset of Natural Language Processing Research Discussions",
+      "abstract": "While modern Automatic Speech Recognition (ASR) systems achieve high accuracy on benchmark corpora, their performance often degrades when there is real-world variability. This work focuses on variability arising due to accented, spontaneous, and domain-specific speech. In particular, we introduce PAper REading DAtaset (PAREDA), a first-of-its-kind multi-accent speech dataset consisting of discussions on academic Natural Language Processing (NLP) papers between speakers with Australian, Indian-English, and Chinese English accents. Each session elicits a spontaneous monologue (a summary of a paper's abstract) and a non-monologue (a question-and-answer session between participants), resulting in a corpus rich with technical jargon and conversational phenomena. We evaluate the performance of SOTA ASR models on PAREDA, analysing the impact of accent mixing and increased speech rate. Our results show that, in the zero-shot setting, models perform worse, confirming the dataset's challenging nature. However, fine-tuning on PAREDA significantly reduces the Word Error Rate (WER), demonstrating that our dataset captures linguistic characteristics often missing from existing corpora. PAREDA serves as a valuable new resource for building and evaluating more robust and inclusive ASR systems for specialised, real-world applications.",
       "authors": [
-        "Mujahid Sultan",
-        "Sri Thuraisamy",
-        "Daya Rajaratnam"
+        "Sicheng Jin",
+        "Dipankar Srirag",
+        "Aditya Joshi"
       ],
-      "primary_category": "cs.AI",
+      "primary_category": "cs.CL",
       "categories": [
+        "cs.CL",
         "cs.AI"
       ],
-      "published": "2026-05-17T18:48:19+00:00",
-      "link": "https://arxiv.org/pdf/2605.17596v1",
+      "published": "2026-05-18T05:10:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.17860v1",
       "tags": [
         "keyword:ai",
         "query:ai"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "hybrid memory system for LLM agents combining neural and symbolic methods",
-      "llm_evidence_cn": "结合神经与符号方法的LLM智能体混合记忆系统",
-      "llm_evidence": "结合神经与符号方法的LLM智能体混合记忆系统",
-      "canonical_evidence": "结合神经与符号方法的LLM智能体混合记忆系统",
-      "llm_tldr_en": "NeuSymMS is a hybrid neuro-symbolic memory system for LLM agents that enables persistent, self-curating memory across sessions using neural fact extraction and a CLIPS expert system.",
-      "llm_tldr_cn": "本文提出了NeuSymMS，一个面向大语言模型智能体的混合神经符号记忆系统。该系统通过神经模块从非结构化对话中提取事实，并借助基于CLIPS的专家系统对事实进行分类、去重和协调。记忆采用主体-关系-值三元组形式存储在关系型数据库中，并实现了短期和长期双视野管理。该系统使智能体能够跨会话持续学习和记忆用户信息，同时避免了上下文窗口膨胀和交叉会话遗忘问题。",
-      "llm_tldr": "本文提出了NeuSymMS，一个面向大语言模型智能体的混合神经符号记忆系统。该系统通过神经模块从非结构化对话中提取事实，并借助基于CLIPS的专家系统对事实进行分类、去重和协调。记忆采用主体-关系-值三元组形式存储在关系型数据库中，并实现了短期和长期双视野管理。该系统使智能体能够跨会话持续学习和记忆用户信息，同时避免了上下文窗口膨胀和交叉会话遗忘问题。",
+      "llm_evidence_en": "multi-accent speech dataset for NLP research discussions",
+      "llm_evidence_cn": "面向NLP研究讨论的多口音语音数据集",
+      "llm_evidence": "面向NLP研究讨论的多口音语音数据集",
+      "canonical_evidence": "面向NLP研究讨论的多口音语音数据集",
+      "llm_tldr_en": "Introduces PAREDA, a multi-accent speech dataset of NLP paper discussions, supporting ASR and spoken language understanding research.",
+      "llm_tldr_cn": "当前自动语音识别系统在真实世界口音变化下性能下降。本文提出PAREDA数据集，包含澳大利亚、印度和中文英语口音说话人对NLP论文的讨论录音，包括总结和问答环节。该语料库富含技术术语，为口音和领域适应性研究提供了宝贵资源。",
+      "llm_tldr": "当前自动语音识别系统在真实世界口音变化下性能下降。本文提出PAREDA数据集，包含澳大利亚、印度和中文英语口音说话人对NLP论文的讨论录音，包括总结和问答环节。该语料库富含技术术语，为口音和领域适应性研究提供了宝贵资源。",
       "llm_tags": [
-        "query:ai:composite"
+        "query:ai"
       ],
-      "matched_query_tag": "query:ai:composite",
-      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing.",
-      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     },
@@ -819,13 +825,13 @@
         "query:ai"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "regularization in wide feature-learning neural networks",
-      "llm_evidence_cn": "宽特征学习神经网络的规范化",
-      "llm_evidence": "宽特征学习神经网络的规范化",
-      "canonical_evidence": "宽特征学习神经网络的规范化",
-      "llm_tldr_en": "This paper studies regularization in wide neural networks during feature learning, proving that ridge regularization biases gradient flow even in the infinitesimal limit, which advances understanding of NN training dynamics.",
-      "llm_tldr_cn": "该论文研究了宽神经网络在特征学习阶段的正则化性质，证明了在山脊正则化下，即使在正则化趋近于零的极限情况下，梯度流仍会偏向于山脊解。这一发现揭示了特征学习与核机制在正则化方面的关键差异，为理解深度神经网络的训练动态提供了新的理论视角，对设计更有效的训练算法有重要意义。",
-      "llm_tldr": "该论文研究了宽神经网络在特征学习阶段的正则化性质，证明了在山脊正则化下，即使在正则化趋近于零的极限情况下，梯度流仍会偏向于山脊解。这一发现揭示了特征学习与核机制在正则化方面的关键差异，为理解深度神经网络的训练动态提供了新的理论视角，对设计更有效的训练算法有重要意义。",
+      "llm_evidence_en": "Regularisation analysis in wide feature-learning neural networks",
+      "llm_evidence_cn": "宽特征学习神经网络的规范化分析",
+      "llm_evidence": "宽特征学习神经网络的规范化分析",
+      "canonical_evidence": "宽特征学习神经网络的规范化分析",
+      "llm_tldr_en": "Proves that ridge regularization biases gradient flow in feature-learning neural networks, revealing a key difference from kernel-regime networks.",
+      "llm_tldr_cn": "宽神经网络在特征学习机制下的正则化行为尚未被充分理解。本文证明，即使在正则化消失的极限下，岭正则化仍会偏置特征学习网络中梯度流的演化方向。这一发现揭示了特征学习与核机制网络之间的本质差异，为理解现代深度学习的泛化特性提供了新视角，也对网络架构设计具有指导意义。",
+      "llm_tldr": "宽神经网络在特征学习机制下的正则化行为尚未被充分理解。本文证明，即使在正则化消失的极限下，岭正则化仍会偏置特征学习网络中梯度流的演化方向。这一发现揭示了特征学习与核机制网络之间的本质差异，为理解现代深度学习的泛化特性提供了新视角，也对网络架构设计具有指导意义。",
       "llm_tags": [
         "query:ai"
       ],
@@ -836,39 +842,38 @@
       "quick_tier": "8plus"
     },
     {
-      "id": "2605.17692v1",
+      "id": "2605.17482v1",
       "source": "arxiv",
-      "title": "Exact Convex Reformulations of Linear Neural Networks via Completely Positive Lifting",
-      "abstract": "We show that the training problem of a deep linear neural network under the squared loss admits an exact convex reformulation in a lifted space over a generalized completely positive cone. The reformulation has the same optimal value as the original nonconvex problem and is linear in the lifted variables, with all nonconvexity encoded in the cone constraint. Its ambient lifted dimension depends only on the input and output dimensions, independent of the network depth and the number of data points, and the bottleneck width enters only through scalar constraints. The construction proceeds by reducing the multilayer parameterization to a bilinear factorization, lifting it to a rank-constrained semidefinite program, expressing the rank constraint via a complementarity condition, and applying a completely positive lifting. While the resulting formulation is computationally intractable in general, it gives an exact conic representation of the nonconvexity induced by linear factorization and connects linear neural network training with copositive programming.",
+      "title": "Residual Semantic Decomposition of Word Embeddings",
+      "abstract": "We introduce Residual Semantic Decomposition (RSD), a neural additive decomposition of word embeddings that balances embedding reconstruction with relational structure preservation. RSD supports recursive binary decomposition: each $K=2$ fit extracts a local semantic axis, while residuals expose information not absorbed by that axis. In manually specified paired-context diagnostics over ambiguous words, RSD separates supplied context anchors above shuffled-label controls, but entropy diagnostics show that ambiguous targets are not uniformly high-entropy boundary points in static GloVe. We therefore treat residual neighborhoods as qualitative diagnostics rather than benchmark sense predictions.",
       "authors": [
-        "Karthik Prakhya",
-        "Alp Yurtsever"
+        "Seungmin Jin"
       ],
-      "primary_category": "cs.LG",
+      "primary_category": "cs.CL",
       "categories": [
-        "cs.LG",
-        "math.OC"
+        "cs.CL",
+        "cs.LG"
       ],
-      "published": "2026-05-17T23:20:50+00:00",
-      "link": "https://arxiv.org/pdf/2605.17692v1",
+      "published": "2026-05-17T14:44:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.17482v1",
       "tags": [
         "keyword:ai",
         "query:ai"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "Convex reformulation of linear neural networks via lifting",
-      "llm_evidence_cn": "通过提升实现线性神经网络的凸松弛",
-      "llm_evidence": "通过提升实现线性神经网络的凸松弛",
-      "canonical_evidence": "通过提升实现线性神经网络的凸松弛",
-      "llm_tldr_en": "Shows that deep linear neural network training admits an exact convex reformulation via completely positive lifting, independent of depth and dataset size.",
-      "llm_tldr_cn": "本文证明深层线性神经网络的训练问题可通过完全正提升精确转化为凸问题。该凸松弛具有与原问题相同的最优值，且提升维度仅依赖于输入输出维度，与网络深度和数据量无关。瓶颈宽度仅以标量约束形式出现。该结果揭示了深度线性网络非凸优化的本质结构，为神经网络理论分析提供了新工具。",
-      "llm_tldr": "本文证明深层线性神经网络的训练问题可通过完全正提升精确转化为凸问题。该凸松弛具有与原问题相同的最优值，且提升维度仅依赖于输入输出维度，与网络深度和数据量无关。瓶颈宽度仅以标量约束形式出现。该结果揭示了深度线性网络非凸优化的本质结构，为神经网络理论分析提供了新工具。",
+      "llm_evidence_en": "Residual decomposition of word embeddings for semantic interpretation",
+      "llm_evidence_cn": "词嵌入的残差分解用于语义解释",
+      "llm_evidence": "词嵌入的残差分解用于语义解释",
+      "canonical_evidence": "词嵌入的残差分解用于语义解释",
+      "llm_tldr_en": "Introduces Residual Semantic Decomposition (RSD) to decompose word embeddings into semantic axes, revealing local structure for ambiguity analysis.",
+      "llm_tldr_cn": "静态词嵌入如GloVe难以处理一词多义。本文提出残差语义分解（RSD），通过神经加性分解将嵌入递归地分离成语义轴和残差。在人为设计的诊断任务中，RSD能分离上下文锚点，但熵分析表明歧义词并非均匀高熵。因此残差邻域更适合作为定性诊断而非绝对预测。该工作为理解词嵌入的语义结构提供了新工具。",
+      "llm_tldr": "静态词嵌入如GloVe难以处理一词多义。本文提出残差语义分解（RSD），通过神经加性分解将嵌入递归地分离成语义轴和残差。在人为设计的诊断任务中，RSD能分离上下文锚点，但熵分析表明歧义词并非均匀高熵。因此残差邻域更适合作为定性诊断而非绝对预测。该工作为理解词嵌入的语义结构提供了新工具。",
       "llm_tags": [
         "query:ai"
       ],
       "matched_query_tag": "query:ai",
-      "matched_query_text": "neural network architectures",
-      "matched_requirement_id": "req-4",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch",
       "quick_tier": "7"
     }
