@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-001.webp",
+      "caption": "Table 1: Final-epoch Metrics of FCNs on MNIST. Column descriptions are as follows: 1) Width−2⋆ denotes a hidden width of h = 2⋆; 2) Train: training error; 3) Gen: generalization gap, defined as test error minus training error; 4) Spectral Norm: the spectrally normalized margin bound of [Bartlett et al., 2017], a tightness norm–based bound in the literature to our knowledge; we computed it with margin normalization; 5) # Parameters: parameter counts of the network; 6) VC dimension: we adopt a nearly tight VC–dimension bound from [Bartlett et al., 2019] and report PL logP for brevity (see Section 4.3); 7) R-D: the proposed Riemannian Dimension.",
+      "page": 25,
+      "index": 1,
+      "width": 944,
+      "height": 254
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-002.webp",
+      "caption": "Table 3: Final-epoch Effective Ranks for FCNs on MNIST, where Width−2⋆ means h = 2⋆, and where for the form A/B, A represents the effective rank and B represents the original dimension, and where Layer-1 means the input layer.",
+      "page": 26,
+      "index": 2,
+      "width": 1005,
+      "height": 370
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-003.webp",
+      "caption": "Table 2: Final-Epoch Metrics of ResNets on CIFAR-10",
+      "page": 26,
+      "index": 3,
+      "width": 864,
+      "height": 226
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-004.webp",
+      "caption": "Figure 3: Riemannian Dimension evolutions of FCNs on MNIST (left) and ResNets on CIFAR-10 (right) across the training",
+      "page": 28,
+      "index": 4,
+      "width": 910,
+      "height": 265
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-005.webp",
+      "caption": "Figure 1: Hierarchical construction of the data-independent prior π and its role in the pointwisedimension bound (one single-layer case).",
+      "page": 17,
+      "index": 5,
+      "width": 853,
+      "height": 579
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-006.webp",
+      "caption": "Table 4: Final-epoch Effective Ranks for ResNets on CIFAR-10, where for the form A/B, A represents the effective rank and B represents the original dimension, and where Layer-0% means the input layer.",
+      "page": 27,
+      "index": 6,
+      "width": 940,
+      "height": 224
+    },
+    {
+      "url": "assets/figures/arxiv/2605.18598v1/fig-007.webp",
+      "caption": "Figure 2: Effective Rank evolutions of FCNs on MNIST (left) and ResNets on CIFAR-10 (right) across the training",
+      "page": 27,
+      "index": 7,
+      "width": 910,
+      "height": 264
+    }
+  ]
+}

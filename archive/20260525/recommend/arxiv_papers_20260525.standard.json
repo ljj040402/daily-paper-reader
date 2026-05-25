@@ -1,0 +1,750 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-25T20:53:32.872980+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 38,
+    "deep_cap": 6,
+    "deep_selected": 8,
+    "quick_candidates": 69,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2605.17660v1",
+      "source": "arxiv",
+      "title": "Training Infinitely Deep and Wide Transformers",
+      "abstract": "Transformers have become the dominant architecture in modern machine learning, yet the theoretical understanding of their training dynamics remains limited. This paper develops a rigorous mathematical framework for analyzing gradient-based training of transformers in the mean-field regime, where both the depth (number of layers) and width (number of attention heads) tend to infinity. While ResNet training can be understood as controlling a neural ODE, transformer training corresponds to controlling a neural PDE, due to the coupling of multiple token distributions through the attention mechanism. Our mean-field model features two types of measure representations: token distributions evolving through layers and attention parameters at each layer. We establish well-posedness of the forward pass through infinitely deep transformers, characterizing token evolution via flow maps that satisfy ODEs in function spaces. Using adjoint sensitivity analysis, we derive an explicit formula for the conditional Wasserstein gradient of the training risk, involving adjoint variables governed by backward ODEs. We prove the existence and uniqueness of gradient flow curves in the conditional Wasserstein metric space, establishing a rigorous foundation for gradient-based transformer training. A key technical contribution is providing necessary and sufficient conditions for injectivity of the Neural Tangent Kernel (NTK) for attention mechanisms: we show that NTK injectivity is equivalent to linear independence of log-sum-exp functions modulo affine functions, a condition satisfied by diverse token distributions, including discrete distributions, uniform distributions, and Gaussian mixtures. Under this NTK injectivity assumption, we prove that gradient flow converges to global minima when the initial loss is sufficiently small, eliminating spurious local minima from the optimization landscape.",
+      "authors": [
+        "Raphaël Barboni",
+        "Maarten V. de Hoop",
+        "Takashi Furuya",
+        "Gabriel Peyré"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC",
+        "cs.AI",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-05-17T21:30:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.17660v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "theoretical analysis of transformer architectures at infinite depth and width, directly relevant to neural network architectures",
+      "llm_evidence_cn": "无限深宽Transformer的理论分析，直接匹配神经网络架构需求",
+      "llm_evidence": "无限深宽Transformer的理论分析，直接匹配神经网络架构需求",
+      "canonical_evidence": "无限深宽Transformer的理论分析，直接匹配神经网络架构需求",
+      "llm_tldr_en": "Develops a rigorous mean-field framework for infinitely deep and wide transformers, showing training corresponds to a neural PDE instead of ODE, and establishing well-posedness.",
+      "llm_tldr_cn": "尽管Transformer已成为现代机器学习主导架构，但其训练动力学的理论理解仍不充分。本文在均场机制下建立了无限深度和宽度Transformer的严格数学框架，将ResNet对应的神经ODE推广到Transformer对应的神经PDE，通过两种度量表示（逐层token分布和每层注意力参数）完成了适定性证明，为理解Transformer训练提供了新视角。",
+      "llm_tldr": "尽管Transformer已成为现代机器学习主导架构，但其训练动力学的理论理解仍不充分。本文在均场机制下建立了无限深度和宽度Transformer的严格数学框架，将ResNet对应的神经ODE推广到Transformer对应的神经PDE，通过两种度量表示（逐层token分布和每层注意力参数）完成了适定性证明，为理解Transformer训练提供了新视角。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.17885v1",
+      "source": "arxiv",
+      "title": "Multi-agent AI systems outperform human teams in creativity",
+      "abstract": "Although artificial intelligence (AI) now matches or exceeds human performance across numerous cognitive tasks, creativity remains a highly contested frontier. As AI systems based on large language models (LLMs) are increasingly adopted in research and innovation, it is essential to understand and augment their creativity. Here we demonstrate that multi-agent LLM teams not only surpass single agents, but also substantially outperform human teams in creativity (Cohen's d=1.50) across 4,541 multi-agent LLM ideas and 341 human-team ideas on six diverse problem-solving tasks. This advantage is driven by novelty while maintaining comparable usefulness. To investigate the generative processes in both groups, we represent conversations as paths through semantic space using neural language model representations. Both LLM and human teams produce more creative ideas when conversations range widely rather than staying centered on a single theme (low global coherence). However, the additional patterns that predict creativity differ: LLM teams benefit from efficient exploration (high semantic spread, shorter paths), while human teams benefit from maintaining smooth conversational flow (high local coherence, frequent pivots). Additionally, we identify model choice and discussion structure as orthogonal design levers that together explain 26.8% of variance in LLM conversational dynamics, paving the way for systematic approaches to developing multi-agent systems with augmented creative capabilities.",
+      "authors": [
+        "Tiancheng Hu",
+        "Yixuan Jiang",
+        "Haotian Li",
+        "José Hernández-Orallo",
+        "Xing Xie",
+        "Nigel Collier",
+        "David Stillwell",
+        "Luning Sun"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-05-18T05:52:11+00:00",
+      "link": "https://arxiv.org/pdf/2605.17885v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent AI creativity study",
+      "llm_evidence_cn": "多智能体AI创造力研究",
+      "llm_evidence": "多智能体AI创造力研究",
+      "canonical_evidence": "多智能体AI创造力研究",
+      "llm_tldr_en": "Demonstrates that multi-agent LLM teams outperform humans in creativity, driven by novelty while maintaining usefulness.",
+      "llm_tldr_cn": "针对AI创造力这一争议前沿，通过大规模实验证明多智能体LLM团队在创造力上显著超越人类（Cohen's d=1.50），优势来源于新颖性且保持有用性，并将对话表示为语义路径以分析生成过程。",
+      "llm_tldr": "针对AI创造力这一争议前沿，通过大规模实验证明多智能体LLM团队在创造力上显著超越人类（Cohen's d=1.50），优势来源于新颖性且保持有用性，并将对话表示为语义路径以分析生成过程。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.18598v1",
+      "source": "arxiv",
+      "title": "Pointwise Generalization in Deep Neural Networks",
+      "abstract": "We address the fundamental question of why deep neural networks generalize by establishing a pointwise generalization theory for fully connected networks. This framework resolves long-standing barriers to characterizing the rich nonlinear feature-learning regime and builds a new statistical foundation for representation learning. For each trained model, we characterize the hypothesis via a pointwise Riemannian Dimension, derived from the eigenvalues of the learned feature representations across layers. This establishes a principled framework for deriving hypothesis-dependent, representation-aware generalization bounds. These bounds offer a systematic upgrade over approaches based on model size, products of norms, and infinite-width linearizations, yielding guarantees that are orders of magnitude tighter in both theory and experiment. Analytically, we identify the structural properties and mathematical principles that explain the tractability of deep networks. Empirically, the pointwise Riemannian Dimension exhibits substantial feature compression, decreases with increased over-parameterization, and captures the implicit bias of optimizers. Taken together, our results indicate that deep networks are mathematically tractable in practical regimes and that their generalization is sharply explained by pointwise, feature-spectrum-aware complexity.",
+      "authors": [
+        "Shaojie Li",
+        "Yunbei Xu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cond-mat.stat-mech",
+        "math.FA",
+        "math.PR",
+        "math.ST"
+      ],
+      "published": "2026-05-18T16:09:06+00:00",
+      "link": "https://arxiv.org/pdf/2605.18598v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "theoretical framework for pointwise generalization in deep neural networks, contributing to deep learning advances",
+      "llm_evidence_cn": "深度神经网络的点态泛化理论，属于深度学习近期进展",
+      "llm_evidence": "深度神经网络的点态泛化理论，属于深度学习近期进展",
+      "canonical_evidence": "深度神经网络的点态泛化理论，属于深度学习近期进展",
+      "llm_tldr_en": "Develops a pointwise generalization theory for DNNs, introducing a pointwise Riemannian dimension from learned feature eigenvalues to obtain representation-aware bounds, outperforming traditional approaches.",
+      "llm_tldr_cn": "该论文针对深度神经网络泛化理论的核心问题，提出了点态泛化理论。通过为每个训练模型定义点态黎曼维度，并利用跨层特征表示的特征值，建立了依赖假设且感知表示的泛化界。该框架解决了非线性特征学习区域的表征难题，为表示学习提供了更优的统计基础，显著超越了基于模型大小和范数的方法。",
+      "llm_tldr": "该论文针对深度神经网络泛化理论的核心问题，提出了点态泛化理论。通过为每个训练模型定义点态黎曼维度，并利用跨层特征表示的特征值，建立了依赖假设且感知表示的泛化界。该框架解决了非线性特征学习区域的表征难题，为表示学习提供了更优的统计基础，显著超越了基于模型大小和范数的方法。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.19066v1",
+      "source": "arxiv",
+      "title": "The Annotation Scarcity Paradox in Low-Resource NLP Evaluation: A Decade of Acceleration and Emerging Constraints",
+      "abstract": "Over the past decade, low-resource natural language processing (NLP) has experienced explosive growth, propelled by cross-lingual transfer, massively multilingual models, and the rapid proliferation of benchmarks. Yet this apparent progress masks a critical, insufficiently examined tension: the deep sociolinguistic expertise required to evaluate increasingly complex generative systems is severely strained, inequitably distributed, and structurally marginalised. We present a critical narrative survey of low-resource NLP evaluation (2014--present), tracing its evolution across three phases: early heuristic optimism, the illusions of top-down benchmark scaling, and the current era of generative bottlenecks. We conceptualise the \\emph{Annotation Scarcity Paradox}, the structural friction arising when the technical capacity to scale models vastly outpaces the sovereign human infrastructure required to authentically evaluate them. By examining extractive data pipelines, undercompensated ``ghost work'', and language data flaring, we argue that this paradox threatens the epistemic validity of reported progress. We survey emerging responses -- including data augmentation, model-based evaluation, participatory curation, and annotation-efficient approaches via item response theory and active learning -- and assess their equity and validity trade-offs. We close with a practitioner call to action, arguing that overcoming this bottleneck requires a paradigm shift from transactional data extraction to relational, community-embedded evaluation rooted in epistemic governance, data sovereignty, and shared ownership.",
+      "authors": [
+        "Vukosi Marivate"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-18T19:48:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.19066v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Provides a survey of low-resource NLP evaluation techniques",
+      "llm_evidence_cn": "提供了低资源自然语言处理评估技术的综述",
+      "llm_evidence": "提供了低资源自然语言处理评估技术的综述",
+      "canonical_evidence": "提供了低资源自然语言处理评估技术的综述",
+      "llm_tldr_en": "Presents a critical narrative survey of low-resource NLP evaluation from 2014 to present, identifying bottlenecks and constraints.",
+      "llm_tldr_cn": "该论文综述了低资源自然语言处理评估的发展历程，划分出早期启发式乐观、基准扩展幻觉和当前生成瓶颈三个阶段。揭示了评估所需的社会语言学专业知识短缺且分布不均的问题，为未来NLP评估研究提供了重要反思。",
+      "llm_tldr": "该论文综述了低资源自然语言处理评估的发展历程，划分出早期启发式乐观、基准扩展幻觉和当前生成瓶颈三个阶段。揭示了评估所需的社会语言学专业知识短缺且分布不均的问题，为未来NLP评估研究提供了重要反思。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20256v1",
+      "source": "arxiv",
+      "title": "FBOS-RL: Feedback-Driven Bi-Objective Synergistic Reinforcement Learning",
+      "abstract": "Reinforcement learning has become a cornerstone for aligning and unlocking the reasoning capabilities of large-scale models. At its core, the training loop of GRPO and its variants alternates between rollout sampling and policy update. Unlike supervised learning, where each gradient step is anchored to an explicit ground-truth target, the optimal gradient direction for updating model parameters in this setting is not known a priori; the high-quality rollouts drawn during the sampling stage therefore act as the implicit \"teacher\" that guides every parameter update. However, GRPO adopt a simple sampling scheme that conditions all rollouts on the same original prompt. When a task lies beyond the policy model's current capability, this sampling scheme rarely yields a high-quality rollout, leaving the policy model without a meaningful gradient direction when updating its parameters, which causes training to stall. To address this issue, we propose FBOS-RL, a Feedback-Driven Bi-Objective Synergistic reinforcement learning framework. Specifically, we let the model perform Feedback-Guided Exploration Enhancement based on the feedback provided by the environment, and on top of this we design two mutually reinforcing training objectives: Exploitation-oriented Policy Alignment(EPA) and Exploration-oriented Capability Cultivation(ECC). Extensive experiments demonstrate that EPA and ECC can mutually reinforce each other, forming a positive flywheel effect that significantly improves both the training efficiency and the final performance ceiling of reinforcement learning. Specifically, under an identical number of rollouts, FBOS-RL learns substantially faster than GRPO and feedback-based baselines and ultimately attains a higher performance ceiling, while exhibiting higher policy entropy and lower gradient norms throughout training.",
+      "authors": [
+        "Xikai Zhang",
+        "Yongzhi Li",
+        "Likang Xiao",
+        "Yingze Zhang",
+        "Yanhua Cheng",
+        "Quan Chen",
+        "Peng Jiang",
+        "Wenjun Wu",
+        "Liu Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-18T12:48:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.20256v1",
+      "tags": [
+        "keyword:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes a feedback-driven bi-objective reinforcement learning algorithm",
+      "llm_evidence_cn": "提出基于反馈的双目标协同强化学习算法",
+      "llm_evidence": "提出基于反馈的双目标协同强化学习算法",
+      "canonical_evidence": "提出基于反馈的双目标协同强化学习算法",
+      "llm_tldr_en": "Introduces FBOS-RL, a reinforcement learning algorithm with feedback-driven bi-objective optimization for aligning large-scale models.",
+      "llm_tldr_cn": "该论文提出FBOS-RL算法，针对GRPO等方法的采样单一性问题，引入反馈驱动的双目标协同机制。通过动态调整采样策略和优化目标，有效提升了模型在困难任务上的学习能力。实验表明该方法在推理和生成任务上优于现有强化学习方法。",
+      "llm_tldr": "该论文提出FBOS-RL算法，针对GRPO等方法的采样单一性问题，引入反馈驱动的双目标协同机制。通过动态调整采样策略和优化目标，有效提升了模型在困难任务上的学习能力。实验表明该方法在推理和生成任务上优于现有强化学习方法。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "reinforcement learning algorithms",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20693v1",
+      "source": "arxiv",
+      "title": "Interpretable Discriminative Text Representations via Agreement and Label Disentanglement",
+      "abstract": "Interpretable text representations should expose coordinates that are not only predictive, but also meaningful enough for independent auditors to apply. Existing discriminative representations often use anonymous embedding directions, while concept-bottleneck and LLM-assisted methods attach natural-language names to features without ensuring that those definitions are reproducible or distinct from the target label. We propose an operational criterion for interpretable discriminative text representations: each coordinate should satisfy conceptual clarity, measured by chance-adjusted agreement between independent annotators applying the feature definition, and label disentanglement, meaning the feature should not merely paraphrase the prediction target. We instantiate this criterion in LLM-assisted Feature Discovery (LFD), an iterative method that proposes lexical and semantic features from contrastive outcome-opposed text pairs, screens candidates using cross-LLM Cohen's $κ$, and selects features by residual held-out predictive gain. A stylized analysis connects the $κ$ screen to a per-feature annotation-noise bound, formalizing agreement as a reliability check. Across ten text-classification tasks spanning seven corpora, LFD matches the predictive performance of a strong text bottleneck baseline while producing substantially clearer and less label-entangled features. Human audits with 232 raters show that LFD features achieve higher human--human and human--LLM agreement than baseline concepts, and raters consistently judge them as less label-leaking. These results suggest that agreement-tested, label-disentangled coordinates provide a practical auditability standard for interpretable text classification.",
+      "authors": [
+        "Tong Wang",
+        "Yiqing Xu",
+        "Leo Yang Yang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "stat.ML"
+      ],
+      "published": "2026-05-20T04:41:44+00:00",
+      "link": "https://arxiv.org/pdf/2605.20693v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "NLP text representation with interpretability",
+      "llm_evidence_cn": "NLP可解释文本表示方法",
+      "llm_evidence": "NLP可解释文本表示方法",
+      "canonical_evidence": "NLP可解释文本表示方法",
+      "llm_tldr_en": "Proposes operational criterion for interpretable text representations using agreement and label disentanglement, addressing limitations of existing methods.",
+      "llm_tldr_cn": "针对现有可解释文本表示方法中特征定义不可重复或与标签混淆的问题,本文提出了一种基于标注者一致性协议和标签解耦的判别性文本表示方法,确保每个坐标具有概念清晰性和标签独立性,为可解释NLP提供了新的评价基准和建模方向。",
+      "llm_tldr": "针对现有可解释文本表示方法中特征定义不可重复或与标签混淆的问题,本文提出了一种基于标注者一致性协议和标签解耦的判别性文本表示方法,确保每个坐标具有概念清晰性和标签独立性,为可解释NLP提供了新的评价基准和建模方向。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20922v1",
+      "source": "arxiv",
+      "title": "Winfree Oscillatory Neural Network",
+      "abstract": "Oscillations and synchronization are widely believed to play a fundamental role in representation and computation. However, existing machine learning approaches based on synchronization dynamics have largely been confined to specialized settings such as object discovery, with limited evidence of scalability to standard vision benchmarks or logic reasoning tasks. We propose the Winfree Oscillatory Neural Network (WONN), a dynamical neural architecture based on generalized Winfree dynamics. WONN evolves representations on the torus $(S^1)^d$ through structured oscillatory interactions, combining phase-based inductive biases with flexible and hierarchical interaction mechanisms instantiated as either fixed trigonometric mappings or learnable neural networks. We evaluate WONN on image recognition and complex reasoning tasks, including CIFAR, ImageNet, Maze-hard, and Sudoku. Across these domains, WONN achieves competitive or superior performance with strong parameter efficiency. In particular, WONN is, to our knowledge, the first synchronization-based oscillatory architecture to scale competitively to ImageNet-1K. Furthermore, on Maze-hard, WONN achieves 80.1% accuracy using only 1% of the parameters of prior state-of-the-art models. These results suggest that structured oscillatory dynamics provide a scalable and parameter-efficient alternative to conventional neural architectures.",
+      "authors": [
+        "Jiawen Dai",
+        "Yue Song"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-05-20T09:08:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.20922v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes a novel oscillatory neural network architecture",
+      "llm_evidence_cn": "提出一种新颖的振荡神经网络架构",
+      "llm_evidence": "提出一种新颖的振荡神经网络架构",
+      "canonical_evidence": "提出一种新颖的振荡神经网络架构",
+      "llm_tldr_en": "Proposes Winfree Oscillatory Neural Network (WONN), a dynamical neural architecture based on generalized Winfree dynamics, evaluated on image recognition.",
+      "llm_tldr_cn": "该论文提出Winfree振荡神经网络（WONN），基于广义Winfree动力学在环面（S1）^d上演化表示。结合基于相位的归纳偏置与可学习或固定的层级交互机制，在图像识别任务上验证了有效性，为神经形态计算提供了新架构。",
+      "llm_tldr": "该论文提出Winfree振荡神经网络（WONN），基于广义Winfree动力学在环面（S1）^d上演化表示。结合基于相位的归纳偏置与可学习或固定的层级交互机制，在图像识别任务上验证了有效性，为神经形态计算提供了新架构。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.21451v1",
+      "source": "arxiv",
+      "title": "Approximation Theory for Neural Networks: Old and New",
+      "abstract": "Universal approximation theorems provide a mathematical explanation for the expressive power of neural networks. They assert that, under mild conditions on the activation function, feedforward neural networks are dense in broad function classes, such as continuous functions on compact subsets of $\\mathbb{R}^d$, $L^p$ spaces, or Sobolev spaces. Over the past four decades, these qualitative universality results have evolved into a rich quantitative theory addressing approximation rates, parameter efficiency, and the role of architectural features such as depth and width. This survey presents several glimpses into this theory. We review classical density results for single-hidden-layer networks, as well as quantitative bounds that relate approximation error to network size and smoothness assumptions on target functions. Particular emphasis is placed on depth--width trade-offs and on results demonstrating that deeper architectures can achieve superior parameter efficiency for structured function classes. In addition to standard feedforward neural networks, we also review recent developments on Kolmogorov--Arnold Networks (KANs), which offer an alternative architectural paradigm and whose approximation-theoretic properties have begun to attract significant theoretical attention.",
+      "authors": [
+        "Soumendu Sundar Mukherjee",
+        "Himasish Talukdar"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cond-mat.dis-nn",
+        "cs.AI",
+        "cs.NE"
+      ],
+      "published": "2026-05-20T17:42:34+00:00",
+      "link": "https://arxiv.org/pdf/2605.21451v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "survey on neural network approximation theory",
+      "llm_evidence_cn": "神经网络逼近理论综述",
+      "llm_evidence": "神经网络逼近理论综述",
+      "canonical_evidence": "神经网络逼近理论综述",
+      "llm_tldr_en": "A comprehensive survey of neural network approximation theory, from classical universal approximation to modern quantitative bounds and architectural effects.",
+      "llm_tldr_cn": "神经网络逼近理论从经典的普遍逼近定理发展到定量分析。本文综述了单隐层网络的密度结果，以及逼近误差与网络大小、深度、宽度之间关系的定量界，并探讨了架构特征的作用。该调查为理解神经网络的表达能力提供了数学基础。",
+      "llm_tldr": "神经网络逼近理论从经典的普遍逼近定理发展到定量分析。本文综述了单隐层网络的密度结果，以及逼近误差与网络大小、深度、宽度之间关系的定量界，并探讨了架构特征的作用。该调查为理解神经网络的表达能力提供了数学基础。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "search for deep learning and neural network surveys",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.17219v1",
+      "source": "arxiv",
+      "title": "Integration of AI in Cybersecurity: Current Trends with a Focused Look at Intrusion Detection Applications",
+      "abstract": "Artificial Intelligence (AI) is widely adopted today for its ability to detect patterns, automate tasks, and reduce time and cost across various applications. Its integration into Cybersecurity has garnered significant attention, particularly in areas such as intrusion detection, malware analysis, and phishing or spam detection. As AI and cybersecurity evolve, new methods and approaches emerge regularly. Current trends include the use of Generative AI, Natural Language Processing, Federated Learning for privacy-preserving collaborative training, and eXplainable AI to ensure interpretability and trust, which are vital in cybersecurity. This paper presents an interesting review of current AI-based cybersecurity trends, focusing on intrusion detection approaches and aiming to uncover meaningful insights through comparative analysis based on the employed AI techniques and reported performance.",
+      "authors": [
+        "S. Tazili",
+        "A. Mansour",
+        "M. Y. Chkouri"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG",
+        "cs.NI",
+        "eess.SP"
+      ],
+      "published": "2026-05-17T01:44:23+00:00",
+      "link": "https://arxiv.org/pdf/2605.17219v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "review of AI trends in cybersecurity, directly relevant to artificial intelligence research papers",
+      "llm_evidence_cn": "关于AI在网络安全中的趋势综述，直接符合人工智能研究论文需求",
+      "llm_evidence": "关于AI在网络安全中的趋势综述，直接符合人工智能研究论文需求",
+      "canonical_evidence": "关于AI在网络安全中的趋势综述，直接符合人工智能研究论文需求",
+      "llm_tldr_en": "A comprehensive review of AI trends in cybersecurity, covering generative AI, NLP, federated learning, and XAI for intrusion detection, malware analysis, and phishing detection.",
+      "llm_tldr_cn": "该综述论文系统梳理了人工智能在网络安全中的当前趋势，包括生成式AI、自然语言处理、联邦学习和可解释AI等技术在入侵检测、恶意软件分析等领域的应用。文章重点分析了入侵检测场景，指出AI技术正在提升网络安全防御能力，并讨论了未来挑战。",
+      "llm_tldr": "该综述论文系统梳理了人工智能在网络安全中的当前趋势，包括生成式AI、自然语言处理、联邦学习和可解释AI等技术在入侵检测、恶意软件分析等领域的应用。文章重点分析了入侵检测场景，指出AI技术正在提升网络安全防御能力，并讨论了未来挑战。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.17596v2",
+      "source": "arxiv",
+      "title": "NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents",
+      "abstract": "We present NeuSymMS, an adaptive memory system that enables large language model (LLM) agents to learn, remember, and reason about users across sessions via a hybrid neuro-symbolic architecture. NeuSymMS couples neural fact extraction from unstructured dialogue using LLMs and a CLIPS-based expert system that classifies, deduplicates, and reconciles facts under explicit lifecycle rules. The system represents knowledge as subject-relation-value triples stored in relational database management system. It supports user/agents/agent-to-agent scoping, and implements a dual-horizon (short-term and long-term) memory model. IT leverages access-based promotion and time-based pruning of the memory on both horizpons. NeuSymMS maintains continuity of memory while avoiding context-window bloat and cross-entity contamination. We argue that this architecture offers a practical path to trustworthy, auditable memory for production agentic systems and discuss its novelty relative to log retrieval, summarization, and key-value approaches.",
+      "authors": [
+        "Mujahid Sultan",
+        "Sri Thuraisamy",
+        "Daya Rajaratnam"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-17T18:48:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.17596v2",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "hybrid neuro-symbolic memory for LLM agents",
+      "llm_evidence_cn": "面向LLM代理的混合神经符号记忆系统",
+      "llm_evidence": "面向LLM代理的混合神经符号记忆系统",
+      "canonical_evidence": "面向LLM代理的混合神经符号记忆系统",
+      "llm_tldr_en": "Presents NeuSymMS, a hybrid neuro-symbolic memory system for LLM agents that combines neural extraction with symbolic rules for persistent, self-curating memory.",
+      "llm_tldr_cn": "大型语言模型代理在跨会话记忆中缺乏持久性与自管理能力。本文提出NeuSymMS，一种混合神经符号记忆系统，结合LLM的神经事实提取与CLIPS专家系统的符号规则，实现事实分类、去重和协调。知识以三元组形式存储在关系数据库中，支持双视野记忆模型（短期与长期），并通过访问促进和时间裁剪维护记忆连续性。",
+      "llm_tldr": "大型语言模型代理在跨会话记忆中缺乏持久性与自管理能力。本文提出NeuSymMS，一种混合神经符号记忆系统，结合LLM的神经事实提取与CLIPS专家系统的符号规则，实现事实分类、去重和协调。知识以三元组形式存储在关系数据库中，支持双视野记忆模型（短期与长期），并通过访问促进和时间裁剪维护记忆连续性。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.17596v1",
+      "source": "arxiv",
+      "title": "NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents",
+      "abstract": "We present NeuSymMS, an adaptive memory system that enables large language model (LLM) agents to learn, remember, and reason about users across sessions via a hybrid neuro-symbolic architecture. NeuSymMS couples neural fact extraction from unstructured dialogue with a CLIPS-based expert system that classifies, deduplicates, and reconciles facts under explicit lifecycle rules. The system represents knowledge as subject-relation-value triples stored in relational database management system, supports user/agents/agent-to-agents scoping, and implements a dual-horizon short-term/long-term memory model with access-based promotion and time-based pruning. NeuSymMS maintains continuity of memory while avoiding context-window bloat and cross-entity contamination. We argue that this architecture offers a practical path to trustworthy, auditable memory for production agentic systems and discuss its novelty relative to log retrieval, summarization, and key-value approaches.",
+      "authors": [
+        "Mujahid Sultan",
+        "Sri Thuraisamy",
+        "Daya Rajaratnam"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-17T18:48:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.17596v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "hybrid neuro-symbolic memory system for LLM agents",
+      "llm_evidence_cn": "LLM智能体混合神经符号记忆系统",
+      "llm_evidence": "LLM智能体混合神经符号记忆系统",
+      "canonical_evidence": "LLM智能体混合神经符号记忆系统",
+      "llm_tldr_en": "Proposes NeuSymMS, an adaptive memory system for LLM agents using neural fact extraction and CLIPS expert system for persistent memory.",
+      "llm_tldr_cn": "针对大语言模型（LLM）智能体在跨会话中学习、记忆和推理用户信息的挑战，提出NeuSymMS混合神经符号记忆系统。该系统将神经事实提取与基于CLIPS的专家系统耦合，实现事实分类、去重和生命周期管理，并采用双视野短期/长期记忆模型。避免了上下文窗口膨胀，同时保持记忆连续性。为构建持久性LLM智能体提供了可行的记忆架构。",
+      "llm_tldr": "针对大语言模型（LLM）智能体在跨会话中学习、记忆和推理用户信息的挑战，提出NeuSymMS混合神经符号记忆系统。该系统将神经事实提取与基于CLIPS的专家系统耦合，实现事实分类、去重和生命周期管理，并采用双视野短期/长期记忆模型。避免了上下文窗口膨胀，同时保持记忆连续性。为构建持久性LLM智能体提供了可行的记忆架构。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.17301v1",
+      "source": "arxiv",
+      "title": "ConflictRAG: Detecting and Resolving Knowledge Conflicts in Retrieval Augmented Generation",
+      "abstract": "Retrieval-Augmented Generation (RAG) systems implicitly assume mutual consistency among retrieved documents -- an assumption that frequently fails in practice. We present ConflictRAG, a conflict-aware RAG framework that detects, classifies, and resolves knowledge conflicts prior to answer generation. The framework introduces three contributions: (1) a two-stage conflict detection module combining a lightweight embedding-based MLP classifier with selective LLM refinement, reducing API costs by 62% while maintaining 90.8% detection accuracy; (2) an Entropy-TOPSIS framework for data-driven source credibility assessment, improving selection accuracy by 7.1% over manual heuristics; and (3) a Conflict-Aware RAG Score (CARS) for diagnostic evaluation of conflict-handling capabilities. Experiments on three benchmarks against six baselines demonstrate 88.7% conflict-detection F1 and consistent 5.3--6.1% correctness gains over the strongest conflict-aware baseline, with the pipeline transferring effectively across backbone LLMs.",
+      "authors": [
+        "Chenyu Wang",
+        "Yingmin Liu",
+        "Yang Shu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-05-17T07:25:29+00:00",
+      "link": "https://arxiv.org/pdf/2605.17301v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Conflict-aware RAG framework",
+      "llm_evidence_cn": "冲突感知的检索增强生成框架",
+      "llm_evidence": "冲突感知的检索增强生成框架",
+      "canonical_evidence": "冲突感知的检索增强生成框架",
+      "llm_tldr_en": "ConflictRAG detects and resolves knowledge conflicts in RAG using embedding-based MLP and LLM refinement, reducing API costs by 62%.",
+      "llm_tldr_cn": "针对检索增强生成中假设文档一致性的问题，提出ConflictRAG框架，包含两阶段冲突检测（轻量嵌入MLP+选择性LLM优化）将API成本降低62%且保持90.8%检测准确率，以及熵-TOPSIS信源评估。",
+      "llm_tldr": "针对检索增强生成中假设文档一致性的问题，提出ConflictRAG框架，包含两阶段冲突检测（轻量嵌入MLP+选择性LLM优化）将API成本降低62%且保持90.8%检测准确率，以及熵-TOPSIS信源评估。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.17692v1",
+      "source": "arxiv",
+      "title": "Exact Convex Reformulations of Linear Neural Networks via Completely Positive Lifting",
+      "abstract": "We show that the training problem of a deep linear neural network under the squared loss admits an exact convex reformulation in a lifted space over a generalized completely positive cone. The reformulation has the same optimal value as the original nonconvex problem and is linear in the lifted variables, with all nonconvexity encoded in the cone constraint. Its ambient lifted dimension depends only on the input and output dimensions, independent of the network depth and the number of data points, and the bottleneck width enters only through scalar constraints. The construction proceeds by reducing the multilayer parameterization to a bilinear factorization, lifting it to a rank-constrained semidefinite program, expressing the rank constraint via a complementarity condition, and applying a completely positive lifting. While the resulting formulation is computationally intractable in general, it gives an exact conic representation of the nonconvexity induced by linear factorization and connects linear neural network training with copositive programming.",
+      "authors": [
+        "Karthik Prakhya",
+        "Alp Yurtsever"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "math.OC"
+      ],
+      "published": "2026-05-17T23:20:50+00:00",
+      "link": "https://arxiv.org/pdf/2605.17692v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Provides exact convex reformulation for linear neural network training",
+      "llm_evidence_cn": "为线性神经网络训练提供精确凸重构方法",
+      "llm_evidence": "为线性神经网络训练提供精确凸重构方法",
+      "canonical_evidence": "为线性神经网络训练提供精确凸重构方法",
+      "llm_tldr_en": "Shows training of deep linear neural networks has an exact convex reformulation over a completely positive cone, independent of depth.",
+      "llm_tldr_cn": "该论文证明深度线性神经网络的训练问题可以精确凸重构到完全正锥上，重构维度仅与输入输出维相关而与深度无关。该重构为线性神经网络提供了理论分析新工具，并揭示了非凸优化与凸优化的深层联系。",
+      "llm_tldr": "该论文证明深度线性神经网络的训练问题可以精确凸重构到完全正锥上，重构维度仅与输入输出维相关而与深度无关。该重构为线性神经网络提供了理论分析新工具，并揭示了非凸优化与凸优化的深层联系。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.18618v1",
+      "source": "arxiv",
+      "title": "Stochastic Penalty-Barrier Methods for Constrained Machine Learning",
+      "abstract": "Constrained machine learning enables fairness-aware training, physics-informed neural networks, and integration of symbolic domain knowledge into statistical models. Despite its practical importance, no general method exists for the non-convex, non-smooth, stochastic setting that arises naturally in deep learning. We propose the Stochastic Penalty-Barrier Method (SPBM), which extends classical penalty and barrier methods to this setting via exponential dual averaging, a~stabilized penalty schedule, and the Moreau envelope to handle non-smoothness. Experiments across multiple settings show that SPBM matches or outperforms existing constrained optimization baselines while incurring only linear runtime overhead compared to unconstrained Adam for up to 10,000 constraints.",
+      "authors": [
+        "Adam Bosák",
+        "Andrii Kliachkin",
+        "Jana Lepšová",
+        "Gilles Bareilles",
+        "Jakub Mareček"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-18T16:26:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.18618v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Novel optimization method for constrained machine learning",
+      "llm_evidence_cn": "约束机器学习的新型优化方法",
+      "llm_evidence": "约束机器学习的新型优化方法",
+      "canonical_evidence": "约束机器学习的新型优化方法",
+      "llm_tldr_en": "Proposes SPBM, a stochastic penalty-barrier method for non-convex non-smooth constrained optimization in deep learning, achieving linear overhead.",
+      "llm_tldr_cn": "针对深度学习中的非凸非平滑约束优化问题，提出随机惩罚-障碍方法（SPBM），结合指数对偶平均和Moreau包络，在保持线性时间开销的同时，在公平性训练、物理信息网络等多个场景中达到或超越现有基线。",
+      "llm_tldr": "针对深度学习中的非凸非平滑约束优化问题，提出随机惩罚-障碍方法（SPBM），结合指数对偶平均和Moreau包络，在保持线性时间开销的同时，在公平性训练、物理信息网络等多个场景中达到或超越现有基线。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.18410v1",
+      "source": "arxiv",
+      "title": "From Node2Vec to GPT-based GraphRAG: scientific impact prediction across graph and language models",
+      "abstract": "Identifying which newly published scientific papers are likely to become highly cited is important for prioritizing research attention, supporting editorial decisions, and guiding the allocation of scientific resources, particularly under cold-start conditions where little direct evidence is available at publication time. In this work, we formulate impact prediction as a cohort-normalized top-P% classification task and compare graph-based and LLM-based approaches under a unified framework. We construct citation and textual-similarity graphs under temporal constraints and generate Node2Vec representations, either alone or combined with OpenAI text embeddings. The best supervised configuration combines directed citation graphs with textual embeddings, reaching approximately 0.84-0.85 AUC. We also evaluate a GPT-based GraphRAG setup, using GPT 5.5 and 5.4 Nano, in which graph neighborhoods are used as contextual evidence for prediction. Although the LLM-based approach achieves high performance, retrieved context does not consistently improve results; target-only prompts often perform as well as or better than GraphRAG prompts achieving the 0.87 mark. These findings indicate that structural and textual signals are complementary for supervised prediction, while retrieval augmentation must be carefully evaluated against simpler LLM baselines.",
+      "authors": [
+        "Adilson Vital",
+        "Filipi N. Silva",
+        "Diego R. Amancio"
+      ],
+      "primary_category": "cs.DL",
+      "categories": [
+        "cs.DL"
+      ],
+      "published": "2026-05-18T13:48:58+00:00",
+      "link": "https://arxiv.org/pdf/2605.18410v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Graph and language models for impact prediction",
+      "llm_evidence_cn": "图模型和语言模型用于影响预测",
+      "llm_evidence": "图模型和语言模型用于影响预测",
+      "canonical_evidence": "图模型和语言模型用于影响预测",
+      "llm_tldr_en": "Compares Node2Vec and GPT-based GraphRAG for scientific impact prediction, finding best supervised configuration uses directed citation graphs.",
+      "llm_tldr_cn": "针对新论文引用预测的冷启动问题，统一框架下比较了基于图和基于语言模型的方法，构建引文和文本相似图并生成Node2Vec表示结合文本嵌入，结果表明有向引文图监督配置效果最佳。",
+      "llm_tldr": "针对新论文引用预测的冷启动问题，统一框架下比较了基于图和基于语言模型的方法，构建引文和文本相似图并生成Node2Vec表示结合文本嵌入，结果表明有向引文图监督配置效果最佳。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.17745v1",
+      "source": "arxiv",
+      "title": "StatQAT: Statistical Quantizer Optimization for Deep Networks",
+      "abstract": "Quantization is essential for reducing the computational cost and memory usage of deep neural networks, enabling efficient inference on low-precision hardware. Despite the growing adoption of uniform and floating-point quantization schemes, selecting optimal quantization parameters remains a key challenge, particularly for diverse data distributions encountered during training and inference. This work presents a novel statistical error analysis framework for uniform and floating-point quantization, providing theoretical insight into error behavior across quantization configurations. Building on this analysis, we propose iterative quantizers designed for arbitrary data distributions and analytic quantizers tailored for Gaussian-like weight distributions. These methods enable efficient, low-error quantization suitable for both activations and weights. We incorporate our quantizers into quantization-aware training and evaluate them across integer and floating-point formats. Experiments demonstrate improved accuracy and stability, highlighting the effectiveness of our approach for training low-precision neural networks.",
+      "authors": [
+        "Mehmet Aktukmak",
+        "Daniel Huang",
+        "Ke Ding"
+      ],
+      "primary_category": "stat.ML",
+      "categories": [
+        "stat.ML",
+        "cs.LG"
+      ],
+      "published": "2026-05-18T01:56:12+00:00",
+      "link": "https://arxiv.org/pdf/2605.17745v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "quantization optimization for deep networks",
+      "llm_evidence_cn": "深度网络量化优化",
+      "llm_evidence": "深度网络量化优化",
+      "canonical_evidence": "深度网络量化优化",
+      "llm_tldr_en": "StatQAT provides a statistical error analysis framework for uniform and floating-point quantization, proposing iterative and analytic quantizers that outperform existing methods.",
+      "llm_tldr_cn": "StatQAT提出了统一的统计误差分析框架，用于均匀量化和浮点量化。基于该分析设计了适用于任意数据分布的迭代量化器和针对高斯分布的解析量化器。实验表明，该方法在不同网络和数据集上优于现有量化方案，提升了低精度推理的效率与准确性。",
+      "llm_tldr": "StatQAT提出了统一的统计误差分析框架，用于均匀量化和浮点量化。基于该分析设计了适用于任意数据分布的迭代量化器和针对高斯分布的解析量化器。实验表明，该方法在不同网络和数据集上优于现有量化方案，提升了低精度推理的效率与准确性。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.18681v1",
+      "source": "arxiv",
+      "title": "Learning Quantifiable Visual Explanations Without Ground-Truth",
+      "abstract": "Explainable AI (XAI) techniques are increasingly important for the validation and responsible use of modern deep learning models, but are difficult to evaluate due to the lack of good ground-truth to compare against. We propose a framework that serves as a quantifiable metric for the quality of XAI methods, based on continuous input perturbation. Our metric formally considers the sufficiency and necessity of the attributed information to the model's decision-making, and we illustrate a range of cases where it aligns better with human intuitions of explanation quality than do existing metrics.   To exploit the properties of this metric, we also propose a novel XAI method, considering the case where we fine-tune a model using a differentiable approximation of the metric as a supervision signal. The result is an adapter module that can be trained on top of any black-box model to output causal explanations of the model's decision process, without degrading model performance. We show that the explanations generated by this method outperform those of competing XAI techniques according to a number of quantifiable metrics.",
+      "authors": [
+        "Amritpal Singh",
+        "Andrey Barsky",
+        "Mohamed Ali Souibgui",
+        "Ernest Valveny",
+        "Dimosthenis Karatzas"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-18T17:21:48+00:00",
+      "link": "https://arxiv.org/pdf/2605.18681v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Deep learning explainability metric and method without ground truth",
+      "llm_evidence_cn": "深度学习可解释性量化指标与无需真实标注的新方法",
+      "llm_evidence": "深度学习可解释性量化指标与无需真实标注的新方法",
+      "canonical_evidence": "深度学习可解释性量化指标与无需真实标注的新方法",
+      "llm_tldr_en": "Proposes a quantifiable XAI metric based on continuous input perturbation, and a novel XAI method fine-tuning models to optimize the metric.",
+      "llm_tldr_cn": "针对可解释AI缺乏客观评估标准的问题,本文提出基于连续输入扰动的量化可解释性度量,综合考虑充分性和必要性,并进一步提出利用该度量的可微近似来微调模型的可解释性方法,实验表明该度量比现有指标更符合人类直觉,为深度学习模型验证提供了新工具。",
+      "llm_tldr": "针对可解释AI缺乏客观评估标准的问题,本文提出基于连续输入扰动的量化可解释性度量,综合考虑充分性和必要性,并进一步提出利用该度量的可微近似来微调模型的可解释性方法,实验表明该度量比现有指标更符合人类直觉,为深度学习模型验证提供了新工具。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.18454v1",
+      "source": "arxiv",
+      "title": "Scheduling That Speaks: An Interpretable Programmatic Reinforcement Learning Framework",
+      "abstract": "Deep reinforcement learning (DRL) has recently emerged as a promising approach to solve combinatorial optimization problems such as job shop scheduling. However, the policies learned by DRL are typically represented by deep neural networks (DNNs), whose opaque neural architectures and non-interpretable policy decisions can lead to critical trust and usability concerns for human decision makers. In addition, the computational requirements of DNNs can further hinder practical deployment in resource constrained environments. In this work, we propose ProRL, a novel interpretable programmatic reinforcement learning framework that achieves high-performance scheduling with human-readable and editable programmatic policies (i.e., programs). We first introduce a domain-specific language for scheduling (DSL-S) to represent scheduling strategies as structured programs. ProRL then explores the program space defined by DSL-S using local search to identify incomplete programs, which are subsequently completed by learning their parameters via Bayesian optimization. ProRL learns which scheduling heuristic rules to select, and hence, it naturally incorporates existing heuristics already used in industrial scenarios. Experiments on widely used benchmark instances demonstrate the strong performance of ProRL against existing heuristics and DRL baselines. Furthermore, ProRL performs well under strongly constrained computational resources, such as training with only 100 episodes. Our code is available at https://github.com/HcPlu/ProRL.",
+      "authors": [
+        "Chengpeng Hu",
+        "Yingqian Zhang",
+        "Hendrik Baier"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.SC"
+      ],
+      "published": "2026-05-18T14:19:59+00:00",
+      "link": "https://arxiv.org/pdf/2605.18454v1",
+      "tags": [
+        "keyword:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Develops interpretable programmatic reinforcement learning for scheduling",
+      "llm_evidence_cn": "开发可解释的程序化强化学习框架用于调度问题",
+      "llm_evidence": "开发可解释的程序化强化学习框架用于调度问题",
+      "canonical_evidence": "开发可解释的程序化强化学习框架用于调度问题",
+      "llm_tldr_en": "Proposes ProRL, an interpretable programmatic RL framework that achieves high-performance scheduling with human-readable policies.",
+      "llm_tldr_cn": "该论文提出ProRL框架，利用程序化策略替代深度神经网络，在保持高调度性能的同时提供人类可读、可编辑的策略。在作业车间调度问题上，ProRL不仅性能优于传统DRL方法，还大幅提升了可解释性和资源效率。",
+      "llm_tldr": "该论文提出ProRL框架，利用程序化策略替代深度神经网络，在保持高调度性能的同时提供人类可读、可编辑的策略。在作业车间调度问题上，ProRL不仅性能优于传统DRL方法，还大幅提升了可解释性和资源效率。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "reinforcement learning algorithms",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.18199v1",
+      "source": "arxiv",
+      "title": "PIPER: Content-Based Table Search via profiling and LLM-Generated Pseudoqueries",
+      "abstract": "The rapid growth of tabular datasets in data lakes, data spaces, and open data portals makes effective dataset search essential for reuse and analysis. Existing search systems rely mainly on metadata, which is often incomplete or low quality, especially for tables whose meaning depends on both schema and cell values. Recent advances in Large Language Models (LLMs) enable richer, content-based representations of tables. However, prior LLM-based retrieval methods have focused on Table Question Answering, where the goal is to select a single table to answer a question, rather than retrieve and rank relevant datasets. We propose PIPER, a content-driven retrieval method for tabular datasets that uses table profiles and LLM-generated queries embedded for dense retrieval. Designed for dataset search in poor-metadata settings, PIPER outperforms both classical metadata-based baselines and strong TableQA retrieval methods, demonstrating the value of LLM-based content modeling for tabular dataset search.",
+      "authors": [
+        "Riccardo Terrenzi",
+        "Matteo Falconi",
+        "Serkan Ayvaz",
+        "Pierluigi Plebani"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-05-18T10:39:42+00:00",
+      "link": "https://arxiv.org/pdf/2605.18199v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM-based content-driven table retrieval for NLP",
+      "llm_evidence_cn": "基于LLM的内容驱动表格检索方法",
+      "llm_evidence": "基于LLM的内容驱动表格检索方法",
+      "canonical_evidence": "基于LLM的内容驱动表格检索方法",
+      "llm_tldr_en": "Proposes PIPER, a content-driven table search method using table profiles and LLM-generated pseudo-queries, outperforming metadata-based baselines.",
+      "llm_tldr_cn": "本文提出PIPER方法,针对表格数据集中元数据不完整的问题,利用表格概要和大语言模型生成伪查询实现内容驱动的表格检索,在多个数据湖场景中性能显著优于依赖元数据的传统方法,为开放数据门户中的数据集发现提供了新方案。",
+      "llm_tldr": "本文提出PIPER方法,针对表格数据集中元数据不完整的问题,利用表格概要和大语言模型生成伪查询实现内容驱动的表格检索,在多个数据湖场景中性能显著优于依赖元数据的传统方法,为开放数据门户中的数据集发现提供了新方案。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

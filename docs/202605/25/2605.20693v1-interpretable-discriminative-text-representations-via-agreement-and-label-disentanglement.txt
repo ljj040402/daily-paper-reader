@@ -1,0 +1,258 @@
+Title: Interpretable Discriminative Text Representations via Agreement and Label Disentanglement
+
+URL Source: https://arxiv.org/pdf/2605.20693v1
+
+Published Time: Thu, 21 May 2026 00:53:15 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Interpretable Discriminative Text Representations via Agreement and Label Disentanglement 
+
+Tong Wang 
+
+School of Management Yale University New Haven, CT, US, 06511 
+
+tong.wang.tw687@yale.edu 
+
+Yiqing Xu 
+
+Department of Political Science Stanford University Stanford, CA, US, 92093 
+
+yiqingxu@stanford.edu 
+
+Leo Yang 
+
+Department of Accountancy, Economics and Finance Hong Kong Baptist University Kowloon, Hong Kong SAR 
+
+leoyang@hkbu.edu.hk 
+
+# Abstract 
+
+Interpretable text representations should expose coordinates that are not only predictive, but also meaningful enough for independent auditors to apply. Existing discriminative representations often use anonymous embedding directions, while concept-bottleneck and LLM-assisted methods attach natural-language names to features without ensuring that those definitions are reproducible or distinct from the target label. We propose an operational criterion for interpretable discriminative text representations: each coordinate should satisfy conceptual clarity, measured by chance-adjusted agreement between independent annotators applying the feature definition, and label disentanglement, meaning the feature should not merely paraphrase the prediction target. We instantiate this criterion in LLM-assisted Feature Discovery (LFD), an iterative method that proposes lexical and semantic features from contrastive outcome-opposed text pairs, screens candidates using cross-LLM Cohen’s κ, and selects features by residual held-out predictive gain. A stylized analysis connects the κ screen to a per-feature annotation-noise bound, formalizing agreement as a reliability check. Across ten text-classification tasks spanning seven corpora, LFD matches the predictive performance of a strong text bottleneck baseline while producing substantially clearer and less label-entangled features. Human audits with 232 raters show that LFD features achieve higher human–human and human–LLM agreement than baseline concepts, and raters consistently judge them as less label-leaking. These results suggest that agreement-tested, label-disentangled coordinates provide a practical auditability standard for interpretable text classification. 
+
+> Preprint.
+> arXiv:2605.20693v1 [cs.CL] 20 May 2026
+
+# 1 Introduction 
+
+What does it mean for a learned representation of text to be interpretable ? Existing coordinate-level methods often make one of two compromises. Anonymous discriminative bases — principal component analysis (PCA), sparse probes, and task-aligned embeddings — can predict well, but their coordinates are not named constructs an analyst can read or apply. Conversely, concept-bottleneck and large-language-model (LLM)-assisted pipelines attach natural-language names to features, but often validate interpretability only post hoc: the resulting definitions may sound plausible while remaining too abstract, ambiguous, or label-entangled to support auditing or intervention [ 13 , 17 , 2 ]. A feature name is not enough. To audit a model’s reliance on a coordinate, or to intervene on that coordinate, an analyst must know what the feature reliably picks out in new texts. Social science offers a stricter standard. Researchers coding documents for latent constructs (e.g. 
+
+aggressive language , content deemed sensitive by authorities , deceptive review ) write an operational codebook, ask independent coders to apply it, and report chance-adjusted inter-rater agreement (Cohen’s κ [ 5] or Krippendorff’s α [14 ]) as evidence that the construct is reproducibly measurable; substantial agreement [ 15 ], as known as “construct validity” in social science [ 6], is a precondition for scientific use. We import this standard into representation learning: a coordinate is conceptually clear only if its natural-language definition transfers across independent annotators with substantial chance-adjusted agreement. We call this requirement conceptual clarity , but it is not sufficient. A feature whose definition simply restates the target — e.g. “mention of sports terminology” for an is-this-about-sports classifier — is easy to apply but explains nothing; the bottleneck collapses to a renamed classifier. We therefore require a second property: label disentanglement , meaning the feature’s information content is distinct from the target itself. Interpretability admits other readings (faithfulness, mechanistic causality, sparsity, . . . ); we propose one falsifiable kernel on top of whatever else a representation is asked to satisfy — each coordinate must be both conceptually clear and label-disentangled — as an auditability standard, not the final definition. We instantiate the two-property definition in LFD (LLM-assisted Feature Discovery). At each round, a proposer LLM is shown a small minibatch of contrastive, outcome-opposed text pairs and asked to abduce (in Peirce’s sense of inference to the best explanation [ 4]) named predicates that explain the contrast. Proposals come through two lanes: a lexical lane producing surface-form features (e.g., “contains a final game score” ), and a semantic lane producing reading-comprehension rules (e.g., “invokes a statute without giving a personal narrative” ).A labeler applies the feature to annotate the instances, and then a separate, independent examiner LLM applies the same feature definition and codebook to annotate the instances independently. Only candidates whose label vectors from two independent LLMs achieve a large enough cross-LLM κ are kept for further selection. Conceptual clarity is enforced by this cross-LLM agreement screen: a candidate definition that does not transfer to an independent examiner is rejected before predictive gain is considered, ruling out the single-LLM definer-applier closed loop of Gilardi et al. [9] , Törnberg [33] in which one LLM both defines and applies a feature. The same screen also has a statistical consequence: Proposition 1 (a stylized, coordinate-wise result) ties cross-rater κ to a per-feature noise-rate bound, formalising the intuition that unreproducible features are unreliable supervision. Label disentanglement is encouraged structurally: contrastive minibatches ask what distinguishes outcome-opposed texts, pushing proposals toward local cues rather than label paraphrases, and residual-gain selection admits a feature only if it explains held-out signal not already captured by previous features. 
+
+Contribution. The main contribution of this paper is an operational definition of interpretability for learned text representations. We argue that an interpretable coordinate should satisfy two testable properties: conceptual clarity and label disentanglement. LFD is an instantiation of this definition: it uses cross-LLM agreement to screen for clarity and contrastive residual selection to discourage label paraphrases. Our theoretical result is a stylized noise-rate bound that justifies the κ-screen as a per-feature reliability check rather than a multivariate generalization guarantee. Empirically, we run extensive experiments across ten text-classification tasks spanning seven corpora and complement the automated evaluation with a human audit in which independent raters score every LFD and Text Bottleneck Model (TBM) feature for definitional clarity and label-disentanglement, validating that the proposed properties hold in practice. 22 Related Work 
+
+For text classification, two desiderata pull on a learned representation: coordinates should carry the discriminative signal of the outcome ( useful ) and each should carry a definition an analyst can read and apply ( auditable ). Existing methods occupy a 2 ×2 grid (Table 1); most achieve at most one. Table 1: The 2 ×2 organization of text representation methods.       
+
+> Anonymous coordinates Named (interpretable) Discriminative PCA-on-Σy, sparse probe, fine-tuned BERT LFD (this paper) , TBM, CBM, LaBo
+> Non-discriminative full embedding, vanilla PCA LDA, BERTopic, keyword dictionaries
+
+Anonymous or non-discriminative coordinates. PCA on outcome-weighted moments, linear and sparse probes [ 2, 7 ], fine-tuned encoders, and task-vector arithmetic [ 11 , 27 , 1 , 21 ] recover task-aligned directions in pretrained representations. The coordinates are linear combinations of embedding dimensions and carry no human-readable label: strong predictors, weak audit surfaces. They are discriminative but anonymous. On the other hand, bag-of-words with sparse linear models [ 32 ], keyword dictionaries [ 16 , 29 ], and topic models [ 3, 31 , 10 ] yield coordinates with human-readable descriptions, but each is unsupervised at the coordinate-construction stage — the features index language structure rather than outcome variation, and align with outcomes only incidentally. 
+
+Interpretable discriminative coordinates: concept-bottleneck models. Concept-bottleneck mod-els (CBM) [ 13 ] predict through a layer of named concepts. Recent work generates the concept set with an LLM: in vision, LaBo [ 34 ], label-free CBMs [ 24 ], and post-hoc CBMs [ 35 ]; the closest text-side analogue is TBM [ 17 ], where a single LLM iteratively proposes concepts on misclassified examples, measures them, and a linear head predicts. We differ structurally: proposer and measurer must be distinct LLMs, and a candidate is retained only if cross-LLM κ ≥ 0.70 . The CBM literature flags information leakage and unfaithful concept measurement as central threats [ 18 , 30 ]; the single-model closed loop is their structural source. Our screen breaks that specific loop, with two consequences: (i) the head can be any ϕ-measurable function, since the audit surface is the concept layer; (ii) inter-pretability becomes testable per-feature during training, not post-hoc. A second structural distinction is when the LLM is queried. TBM, LaBo, and label-free CBMs operate in an LLM-as-classifier 
+
+regime: each concept value at inference requires re-querying the LLM, so the bottleneck contains K
+
+sub-classifications, each as opaque as the original label. LFD’s two-lane design (regex deterministic + cross-LLM-validated labeling spec) shifts to an LLM-as-interpreter regime: the LLM contributes at design time, and inference is a pure function of the text. The cross-LLM κ-screen is the operational test that distinguishes the two regimes — a feature whose value is the proposer’s holistic judgment cannot be reproduced by an independent rater at high κ without re-running the same LLM. 
+
+# 3 Problem Setup and Method 
+
+3.1 Interpretable Discriminative Representations 
+
+Let {(xi, y i)}Ni=1 be labeled text with yi ∈ { 0, 1}. A named feature is a pair f = ( ϕf , ρ f ) where 
+
+ϕf : X → { 0, 1} is a labeling function and ρf is a natural-language operational definition sufficient for an independent annotator to apply ϕf consistently. Each accepted feature carries a structured codebook record. 
+
+Definition 1 (An operational interpretability criterion) . Interpretability admits many readings (faith-fulness, mechanistic causality, sparsity, simulatability, . . . ). We propose one falsifiable, pre-hoc standard that any interpretable text-classification feature should arguably meet, leaving the broader question open. Given thresholds κ∗ ∈ [0 , 1] and τ ∈ [0 , 1] , we say a named feature f = ( ϕf , ρ f )
+
+satisfies our operational interpretability criterion iff: (i) Conceptual clarity. κ(f ) ≥ κ∗, where κ(f ) is Cohen’s κ between two independent annotators given only ρf .(ii) Label disentanglement. |ρ(f, y )| ≤ τ on a held-out sample, where ρ(f, y ) is the centered cosine (Pearson correlation) between the feature’s labeling vector and the label vector. 
+
+3§4.2 reports two complementary diagnostics beyond (ii) — definition-level cosine to the label question and a human disentanglement rubric — which probe label-entanglement at the definition level rather than the labeling-vector level. 
+
+Definition 2 (Interpretable discriminative representation) . A set F = {f1, . . . , f K } of named features is an interpretable discriminative representation iff every fk is interpretable in the sense of Definition 1, and F is discriminative : its selection is supervised by {yi} and each fk contributes positively to held-out predictive accuracy of y given the rest of the basis. 
+
+In this paper we choose κ∗ = 0 .70 to match the substantial-agreement bar of Landis and Koch [15] . We intentionally set τ = 1 — i.e., disable the disentanglement gate — to test whether LFD’s structural design alone (matched contrastive minibatches, contrastive abductive reasoning, residual-gain selection) produces label-disentangled features without a post-hoc filter. Empirically the answer is yes: max realized |ρ| = 0 .59 across all admitted features (§4.2, Loan Application’s standard-template regex), naturally below the substantial-agreement bar τ = 0 .60 . In practice τ
+
+acts as a per-feature granularity dial : a tighter τ pushes the basis toward narrow, decompositional sub-features that combine multiplicatively; a looser τ admits broader, label-correlated concepts (in the limit, TBM-style coordinates that approximate the label directly). 
+
+Auditability. A representation satisfying Definition 2 is auditable in the operational sense an analyst or regulator needs: each coordinate carries a fixed natural-language rule that any subsequent rater can apply to new documents, without access to model state, training code, or pipeline internals. This is the precondition for downstream review, contestability, and transfer. 
+
+3.2 LFD 
+
+LFD discovers an interpretable discriminative representation iteratively. Each round draws a con-trastive minibatch of outcome-opposed text pairs, prompts a proposer LLM to abduce a named candidate that distinguishes them, has an independent examiner LLM relabel the dataset to compute Cohen’s κ on the candidate, and admits the candidate if it passes the κ-gate and improves held-out predictive gain. The rest of this subsection walks through each step in order, noting how each design choice connects to the two interpretability properties of Definition 2. 
+
+Pair sampling. The pipeline runs in two phases. The brief bootstrap phase presents the proposer with two random groups, one drawn from each label class, and asks for features that distinguish Group A from Group B; the first 1–3 accepted features typically capture the dominant predictive signal. Once there’s no improvement from the bootstrap phase, the iteration enters the residual phase, where each call shows a contrastive pair of outcome-opposed texts that are similarity-matched in a mid-range band (TF-IDF for the lexical lane; embedding for the semantic lane). 1 The two texts are surface-similar but differ in outcome — analogous to a matched control–treatment pair where holding context fixed isolates the effect of the remaining variable. The proposer’s contrastive question (an instantiation of Mill’s method of difference [ 20 ]) can only be answered by the local cue that flipped the label, structurally pushing proposals away from broad label-correlated patterns toward fine-grained sub-cues. A diversity prompt complements the matching by asking the proposer to target positive-class subgroups not yet covered by admitted features. Together, matched-pair sampling and the diversity prompt constitute the first structural mechanism driving the basis toward label disentanglement. 
+
+Proposal. The proposer LLM is invoked through two lanes per call. The lexical lane asks for surface-form rules; each candidate carries a regex implementing the rule, applied deterministically by any rater ( κ = 1 by construction). The semantic lane asks for a step-wise reading-comprehension procedure that an examiner can apply mechanically. Both formats commit proposals to a rule that any rater can run; holistic “is the text X?” framings whose application depends on the rater’s interpretive prior are ruled out structurally. Without this constraint the κ-test below would be ill-defined — the two-lane requirement is what makes conceptual clarity testable at all. 
+
+Examination. A second, independent LLM (the examiner ) receives each candidate definition ρf
+
+and relabels the dataset without access to either the proposer’s labels or the labeler’s labels. We 
+
+> 1Top-tail similarity yields near-duplicates whose contrast is a surface artifact; bottom-tail similarity shares too little context.
+
+4compute Cohen’s κ [ 5] between the labeler and examiner label vectors — both LLMs that apply the same definition to the same texts — and discard any candidate with κ < κ ∗ = 0 .70 , the substantial-agreement bar of Landis and Koch [15] . This is the literal test of conceptual clarity: a definition that does not transfer between independent annotators fails. The screen also helps disentanglement as a side effect — abstract definitions that paraphrase the label (“is the tone ironic?”, “is this text aggressive?”) tend to fail cross-LLM agreement on borderline cases, so what survives is concrete enough to be applied mechanically and harder to make extensionally equivalent to y. The cross-LLM split additionally rules out the single-LLM definer-applier closed loop of LLM-as-annotator methods [ 9, 33 ] and single-LLM concept-bottleneck pipelines, where the same model defines and applies the feature; it does not rule out the broader failure mode of two LLMs sharing residual blind spots from overlapping training data, which we audit empirically in §4.3. We note one structural asymmetry between the lanes: deterministic-regex features achieve κ = 1 by construction (any two raters running the same regex produce identical labels), so the cross-LLM screen does its empirical work on the semantic-lane subset. 
+
+Selection. Survivors of the κ-gate are scored on incremental held-out balanced accuracy under a downstream classifier (LightGBM [ 12 ] by default). In the residual phase, gain is computed against the residual of y after prior accepted features, not raw y-correlation. A candidate near-equivalent to the label scores high on raw y-correlation but, once one such candidate has been admitted, has near-zero residual gain; subsequent restatements are rejected, and the basis grows into orthogonal sub-features that each explain a local signal previous features missed. Together with matched-pair sampling, this is the second structural mechanism that drives the basis toward label disentanglement. A candidate is admitted only if it additionally satisfies the disentanglement gate |ρ(f, y )| ≤ τ on the held-out subset, ruling out near-paraphrase features whose firing pattern alone is extensionally close to y even when their definition is clear. The procedure terminates when no candidate clears the gain threshold δ; a final pruning step removes any f whose exclusion leaves validation BA unchanged. 
+
+3.3 Theoretical motivation: a stylized noise-rate bound for the κ-screen 
+
+Beyond filtering unreproducible candidates, the κ-screen has a statistical consequence: under a stylized noise model, κ ≥ κ∗ corresponds to a per-feature noise-rate cap that, applied coordinate-wise, bounds the noise-induced inflation of the downstream generalization gap. A candidate feature with definition ρf is associated with a latent target labeling ϕ∗ 
+
+> f
+
+: X → { 0, 1} — the labels a perfect rater applying ρf would produce. Each LLM annotator A ∈ {P , E, L} returns a noisy version 
+
+A(x) = ϕ∗ 
+
+> f
+
+(x) ⊕ ϵA(x), where ϵA(x) is the rater’s per-instance error. 
+
+Assumption 1 (Annotation noise model) . For a fixed feature definition ρf and two annotators A, B :(i) (Symmetric and equal noise.) P(ϵA(x) = 1 | ϕ∗ 
+
+> f
+
+(x) = 0) = P(ϵA(x) = 1 | ϕ∗ 
+
+> f
+
+(x) = 1) = ηA,and ηA = ηB = η. The equal-rate condition is what lets cross-rater κ bound the per-rater η;under unequal rates κ only constrains a joint reliability quantity. (ii) (Conditional independence.) ϵA(x) ⊥⊥ ϵB (x) | ϕ∗ 
+
+> f
+
+(x).
+
+Proposition 1 (Cross-rater κ bounds per-feature annotation noise) . Let H be a hypothesis class with VC dimension d and let F ∈ { 0, 1}N ×K be the labeler’s matrix of K LFD-admitted features. Suppose every fk passes the cross-LLM screen at threshold κ∗, and Assumption 1 holds. Then the empirical risk minimizer ˆh ∈ H trained on (F, y) satisfies, with probability ≥ 1 − δ,
+
+R(ˆh) − R(h⋆) ≤ 11 − 2¯ η · O 
+
+r d + log(1 /δ )
+
+N
+
+!
+
+, ¯η ≤ 1 − √κ∗
+
+2 ,
+
+where h⋆ is the risk minimizer on the noise-free latent matrix F⋆, and (1 − 2¯ η)−1 is the noise-tolerance penalty of Natarajan et al. [23] . For κ∗ = 0 .70 , the inflation factor ≈ 1.20 . The ¯η bound holds uniformly in feature prevalence π = P(ϕ∗ 
+
+> f
+
+= 1) . The result is a single-feature reliability statement lifted to the matrix setting by union bound over the K coordinates [ 28 ]; it is not a tight covariate-noise generalization bound for the joint K-feature classifier, where dependencies between feature errors and the head’s effective complexity would require strictly more careful treatment. 
+
+5Scope. The bound is stylized; its value is the chain κ → ¯η → (1 − 2¯ η)−1 and the operating point 
+
+κ∗ = 0 .70 ⇒ inflation ≤ 1.20 . Three caveats. (a) Coordinate-wise + union bound, not a tight multivariate covariate-noise bound. (b) Symmetric and equal noise; under asymmetric noise the weighted Cohen’s κ replaces the symmetric form. (c) Conditional independence is the most delicate assumption; we audit it empirically in §4.3, where κll − κhh ≈ +0 .36 on AG-Sci/Tech semantic features implies an empirical inflation factor ≈ 1.30 –1.45 rather than the idealized 1.20 .
+
+# 4 Experiments 
+
+The experiments answer three questions. First, how does LFD’s predictive performance compare across these representation families, especially within the named/discriminative setting (§4.1)? Second, are LFD features less label-entangled than concepts produced by a single-LLM concept-bottleneck pipeline (§4.2)? Third, are LFD feature definitions conceptually clearer and more aligned with human understanding (§4.3)? 
+
+Datasets. We evaluate on ten tasks across seven corpora: five domain / social-science corpora (AdParaphrase [ 22 ], Loan Application, CFPB Complaints, Dec. Reviews [ 26 ], Gaslighting) and two standard NLP benchmarks (iSarcasm [ 25 ] and AG News [ 36 ] as four 1-vs-rest tasks). The Loan Application corpus is proprietary; CFPB and Gaslighting are crawled from public internet sources (CFPB from the U.S. Consumer Financial Protection Bureau’s public complaints database, Gaslighting from a public social-media platform). All runs use balanced 1,000-sample subsets. The set deliberately spans rule-articulable (topical) to compositionally distributed (sarcasm, deceptive-review style) signals. 
+
+Baselines. We organize baselines by the cells of Table 1. Anonymous discriminative: PCA on the embedding (matched to LFD’s K per task); Sparse Probe [ 7 ]: ℓ1-logistic on the full 3,072 -d embedding; Full Embedding ( 3,072 -d) : LightGBM on the full embedding; Fine-tuned BERT [8]: non-linear upper bound. Interpretable, non-discriminative: LDA [3], classical probabilistic topic model, and BERTopic [10 ], neural topic model; both forced to K = KLFD topics per task. Inter-pretable, discriminative (LFD’s cell): TF-IDF + ℓ1-logistic (top-K chi-squared tokens); TBM [ 17 ], iteratively-generated single-LLM concept-bottleneck with a linear head; and LFD (ours) .
+
+LLM stack. LFD uses three LLM roles, all called at temperature = 0 : proposer = Grok-4-fast-reasoning; labeler (applies admitted features to the training set) = gpt-4o-mini ;examiner =DeepSeek-chat (independent vendor from the proposer to avoid same-family blind spots). TBM uses gpt-4o-mini as both generator and measurer per the published reference implementation. Cross-vendor κ on TBM’s admitted concepts ( gpt-4o-mini labeler vs. DeepSeek examiner — the same probe we apply to LFD features) is reported in §4.3. Embeddings: text-embedding-3-large 
+
+(3,072 -d). 
+
+4.1 RQ1: Does LFD Preserve Predictive Utility? 
+
+Table 2 reports balanced accuracy (BA) across the ten-task benchmark. The anonymous discrim-inative baselines remain stronger raw predictors on average. This is expected because they do not need to expose named, independently applicable coordinates. Their role is to show the predictive signal available when auditability is not imposed at the coordinate level. The interpretable non-discriminative baselines, LDA and BERTopic, are weaker on average because their coordinates are named but not constructed to explain outcome variation. Within the interpretable group, LFD and TBM are effectively tied, with a 5–5 split in task-level wins. This is the intended accuracy result: LFD is not trading away TBM-level predictive performance to obtain clearer features. Rather, they differ in how they reach that peformance. 
+
+Inspecting LFD and TBM. On several TBM-win tasks, much of the predictive signal is con-centrated in a small number of broad LLM-judgment concepts: on AG News Sports, the single concept “mention of athlete or sports team” alone scores BA 0.972 (versus TBM’s joint 0.980 ); analogous near-saturation single-concept patterns hold on iSarcasm ( “mock sincerity” , 0.713 vs. joint 0.705 ) and AG News World ( “Global political and social issues” , 0.790 vs. joint 0.830 ). These concepts are predictive but illustrate why accuracy alone cannot evaluate named bases: a concept can 6Table 2: Held-out balanced accuracy across 10 tasks. K = KLFD per task; LDA, BERTopic, TF-IDF, PCA are all forced to this K for matched-rank comparison. We report TBM’s BA at its own admitted 
+
+K with K in parentheses (e.g. “ 0.540 (9)” means TBM achieved BA = 0 .540 at KTBM = 9 on AdParaphrase). For each row, cells with a light-gray background mark baselines that are weaker than LFD. Reported BA values are point estimates from a single split per task; classifier retraining on the fixed admitted basis varies by < 0.005 BA across five seeds. This variance does not include rerunning the LFD proposal pipeline, which is a more expensive sensitivity question we do not estimate at this scale. † marks TBM cells whose admitted basis contains a near-paraphrase concept (max |ρ(f, y )| > 0.60 ); on these tasks TBM’s BA largely reflects the labeler LLM’s zero-shot accuracy on a label-proximal concept rather than a genuine feature decomposition. Italicized TBM cells are both best in the LFD-vs.-TBM head-to-head and †-flagged.                                                                                                              
+
+> Int. non-disc. Interpretable disc. Anonymous disc.
+> Dataset KLDA BERTopic TF-IDF TBM LFD PCA Sp. Probe Full Emb. AdParaphrase 22 0.510 0.515 0.485 0.540 (9) 0.665 0.535 0.585 0.630 Loan Application 30.745 0.615 0.695 0.700 (6) 0.775 0.670 0.715 0.790 AG News S/T 26 0.515 0.775 0.705 0.835 (9) †0.855 0.885 0.915 0.895 Gaslighting 17 0.555 0.550 0.550 0.530 (6) 0.605 0.610 0.620 0.630 AG News Spt. 33 0.630 0.865 0.820 0.980 (2) †0.885 0.985 0.990 0.980 AG News World 23 0.585 0.770 0.740 0.830 (4) †0.810 0.905 0.915 0.905 AG News Bus. 20 0.615 0.745 0.680 0.795 (6) †0.750 0.855 0.895 0.855 CFPB 21 0.595 0.560 0.595 0.550 (5) 0.565 0.590 0.630 0.600 iSarcasm 15 0.520 0.545 0.570 0.705 (6) 0.575 0.635 0.750 0.680 Dec. Reviews 22 0.530 0.550 0.740 0.605 (9) 0.600 0.855 0.870 0.860
+> Mean (10 tasks) 0.580 0.658 0.658 0.707 0.708 0.763 0.790 0.782
+
+work as a classifier input while being close to the label question. We †-flag TBM cells in Table 2 where the admitted basis contains a near-paraphrase concept (max |ρ(f, y )| > 0.60 on the test set) — AG-News S/T, Sports, World, and Business — precisely the rows where the predictive win is mostly the labeler LLM’s zero-shot accuracy on a label-proximal concept. The basis-size asymmetry (median KLFD = 21 .5 vs. KTBM = 6 ) is a deliberate consequence of LFD’s residual-gain selector: each admitted feature must explain held-out residual signal without paraphrasing the label, so the basis grows by narrow sub-cues rather than collapsing onto a few broad ones. The next two sections test whether the larger basis pays off in clarity and disentanglement. In the cross-LLM clarity audit, LFD’s features have mean κ = 0 .97 (93% clear at κ ≥ 0.70 ) versus TBM’s at mean κ ≈ 0.20 (0% 
+
+clear); applying LFD’s κ-screen to TBM concepts post hoc retains none. Overall, LFD is most favorable on tasks that are rule-articulable but not reducible to a single topic; on compositional tasks (sarcasm, deceptive review) where the signal lives in context, tone, and interaction effects, a small named basis is intentionally lossy and anonymous baselines retain an advantage. 
+
+4.2 RQ2: Are LFD features less label-entangled? 
+
+We next assess whether named features carry information distinct from the target label itself. A feature whose definition simply restates the prediction target may be highly predictive (e.g., “ mention of sports terminologies ” for classifying sports news), but it collapses the bottleneck into a renamed classifier and provides little explanatory value. Existing concept-bottleneck pipelines do not enforce a disentanglement screen, so their concept sets can contain a mixture of contentful explanatory cues and concepts that overlap strongly with the label question. We therefore use three complementary diagnostics: definition-level similarity to the label question, labeling-vector similarity to the ground-truth label, and a human rubric for perceived label leakage. This sharpens the concept-leakage critique of Mahinpei et al. [18] , Margeloiu et al. [19] : where prior work flagged concepts that leak extra-label 
+
+information beyond their definition, we identify the dual failure where concepts leak the label itself .
+
+Does our method design naturally produce disentangled features? For the experiments in this paper we set τ = 1 , effectively disabling the disentanglement gate. The goal is to test whether LFD’s structural design — matched contrastive minibatches, contrastive abductive reasoning over outcome-opposed pairs, and residual-gain selection — is by itself sufficient to produce features 7that are decoupled from the label, without relying on a post-hoc filter. Primary metric: |ρ(f, y )|
+
+(Def. 1). For each feature/concept we compute the absolute centered cosine between its labeling vector f and the ground-truth label vector y — the same quantity the gate τ would test against. Pooled max-per-task, TBM has median 0.395 and LFD has median 0.304 ; LFD’s largest realized |ρ|
+
+on any admitted feature is 0.59 (Loan Application, “Standard bio template” ), below the τ = 0 .60 
+
+threshold the gate would have used. By contrast, TBM admits a near-paraphrase concept (max 
+
+Figure 1: Two disentanglement measures of LFD features vs. TBM concepts, pooled across the 10 tasks ( lower the better ). 
+
+|ρ(f, y )| > 0.60 on the test set) on 4 of the 
+
+10 tasks — the †-flagged cells in Table 2 (AG-News Sci/Tech, Sports, World, and Business). The worst offender is AG-News-Sports’ “men-tion of athlete or sports team” at |ρ| = 0 .94 ,extensionally close to y by construction; on the three †-flagged rows where TBM beats LFD, the reported BA is largely the labeler LLM’s zero-shot accuracy on this label-proximal con-cept rather than a genuine feature decomposi-tion. Secondary metric: definition similar-ity. We embed each feature’s natural-language description and the task’s label question with 
+
+text-embedding-3-large and compute co-sine similarity (higher = more entangled at the 
+
+definition level, complementary to |ρ| which measures entanglement at the labeling level). Both metrics agree: LFD’s design alone produces a materially less label-entangled basis than TBM’s, even without the τ gate active. 
+
+Do human raters find the features label-disentangled? We complement the automated metrics with a human rubric: 38 Prolific raters (English-fluency + ≥ 95% approval) across all 10 tasks (at least 3 raters per task who passed an attention check and spent ≥ 5 minutes) rate each LFD feature and TBM concept on a 5-point Likert scale from 1=heavy leakage; feature ≈ task answer to 5= no leakage; feature independent of answer , with two calibrated reference examples shown in the survey introduction. LFD features score higher than TBM on all 10 tasks (Figure 2). The largest gaps are AG-World ( +2 .17 ) and iSarcasm ( +1 .93 ), the two tasks where TBM had a predictive edge over LFD; on iSarcasm, four of TBM’s six concepts (“mock sincerity”, “subtle irony”, “exaggerated emotional tone”, “emotional inconsistency”) receive the minimum rating. AdPara          
+
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> disentanglement
+> CFPB Loan App. Gaslit. iSarcasm Dec.Rev. AG-Spt. AG-Wld. AG-Bus. AG-S/T
+> LFD (ours) TBM
+
+Figure 2: Human disentanglement rubric: mean rating per task. Higher is better. The bar is the across-feature mean of per-feature means; the error bar is the across-feature SD. 
+
+4.3 RQ3: Are LFD features conceptually clearer? 
+
+We then assess conceptual clarity by measuring agreement among raters applying the same feature definition. The cross-LLM κ screen used during LFD selection (§3.2) operationalizes this property with two LLM annotators, but the operational target is whether independent humans can apply the definition reproducibly. We therefore measure κ at two rater-pair levels: human–human, the target audit; and human–LLM, a mixed audit of whether pipeline labels align with human-majority labels. We collect human ratings on two tasks chosen for opposite predictive profiles: iSarcasm (TBM beats LFD by +0 .130 BA) and AG-News-Sci/Tech (LFD beats TBM by +0 .020 ). The contrast tests whether the clarity advantage is a property of the method or an artifact of where TBM happens to 8lose. We recruited 194 Prolific raters (English-fluency + ≥ 95% approval) and obtained ≥ 3 raters per feature after filtering on attention check + 5-min minimum. 
+
+Do human raters find the features conceptually clear? For each feature or concept, at least three independent human raters apply the natural-language definition to the same 25 instances. We compute Cohen’s κ between every pair of raters and average across pairs to obtain the per-feature human–human agreement for each method, reported in Table 3. LFD features are near the substantial-agreement bar of Landis and Koch [15] on both tasks: ¯κ = 0 .69 on iSarcasm and 0.68 on AG-News-Sci/Tech. TBM concepts are lower on both tasks: 0.27 and 0.45 , respectively. The gap is significant on each task ( p < 0.05 ). 
+
+Do LLM labels align with human labels? The pipeline’s labeled feature matrix is pro-duced by an LLM labeler applying each feature’s codebook to every training instance, so the named coordinates correspond to what humans see only insofar as human and LLM applica-tions of the same definition coincide. Human–LLM κ measures this directly: LLM labels Table 3: Cohen’s κ on the human audit.                        
+
+> Task Rater pair LFD ¯κTBM ¯κ
+> iSarcasm human–human 0.69 ±0.26 0.27 ±0.23
+> human–LLM 0.99 ±0.03 0.26 ±0.12
+> AG-S/T human–human 0.68 ±0.28 0.45 ±0.19
+> human–LLM 0.84 ±0.26 0.43 ±0.36
+
+align closely with human-majority labels for LFD features ( 0.99 on iSarcasm and 0.84 on AG-News-Sci/Tech), but much less so for TBM concepts (0.26 and 0.43 ). Low human–LLM agreement does not imply the bottleneck cannot predict the label — TBM’s classifier does — but it does mean the named feature the model trained on differs system-atically from the named feature an independent human auditor would derive by applying the same description. The codebook becomes a rename of an opaque LLM judgment, and contestability fails: a human reviewer applying the codebook to a contested decision will not in general reproduce the labels the model used. A named coordinate can be predictive without being conceptually clear; the latter is what auditability requires. 
+
+Empirical anchor for the conditional-independence assumption. Assumption 1(ii) predicts that if the two LLMs (labeler and examiner) share residual blind spots, κll should exceed κhh on the same features. We test this on AG-News-Sci/Tech, where both methods admit features whose application is non-trivial. On LFD’s 5 semantic-lane features with sufficient human ratings, κll exceeds κhh on 
+
+4/5 (mean 0.75 vs. 0.39 , gap +0 .36 ) — the shared-bias direction. On TBM’s 9 concepts the gap is essentially zero ( ≈ 0.42 vs. ≈ 0.45 ); the iSarcasm cross-check ( κll = 0 .18 < κ hh = 0 .27 ) is also flat. Treating the LFD +0 .36 gap as a residual co-error rate ζ via the §3.3 relaxation implies an empirical inflation factor of ≈ 1.30 –1.45 rather than the idealized 1.20 ; κll is an upper-bound proxy for κhh on semantic-lane features. The qualitative chain (cross-rater κ → bounded per-feature noise → bounded generalization inflation) holds across this plausible ζ range; only the headline 1.20 
+
+constant is optimistic, and κ∗ = 0 .70 remains a defensible operating point. 
+
+# 5 Discussion and Conclusion 
+
+We propose LFD, a feature-discovery procedure designed to satisfy two operational interpretability criteria: conceptual clarity (the feature definition is independently applicable, measured by cross-rater Cohen’s κ) and label disentanglement (the feature does not paraphrase the target). We show that imposing these criteria does not substantially reduce predictive utility relative to interpretable competitors. And despite similar accuracy, LFD features are substantially clearer to independent human raters and less likely to restate the target label. 
+
+Limitations. Three caveats bound our claims. (i) LFD targets rule-articulable tasks; on composi-tional signals (iSarcasm, Dec. Reviews) the small named basis is intentionally lossy and anonymous embeddings predict better. (ii) Two transformer LLMs trained on overlapping corpora may share residual biases that survive conditioning on the latent feature value; the ζ-relaxation table bounds the worst case, and the empirical κll vs. κhh audit on AG-News Sci/Tech (§4.3, Table 3) anchors the gap size on semantic-lane features ( +0 .36 , implying inflation ≈ 1.30 –1.45 rather than the idealized 
+
+1.20 ). On semantic-lane features κLLM is an upper-bound proxy for κhuman ; on simpler features and on iSarcasm the empirical gap is flat or reversed. (iii) LFD is materially more expensive than its 9baselines ($5–15, 3–10 hours per 1,000-sample dataset versus ∼$1–2 for TBM and cents-and-seconds for anonymous baselines); LFD is meant for settings where auditability is a binding constraint. 
+
+Broader impacts. LFD targets high-stakes text-classification settings (complaint triage, credit underwriting, content moderation) where decisions must be inspectable. The same auditability brings two risks: explicit named bases are easier to evade by adversarial paraphrase than anonymous embeddings; and passing κ/disentanglement gates is not itself a guarantee of fairness or calibration. 
+
+# References 
+
+[1] Armen Aghajanyan, Luke Zettlemoyer, and Sonal Gupta. Intrinsic dimensionality explains the effectiveness of language model fine-tuning. arXiv preprint arXiv:2012.13255 , 2020. [2] Yonatan Belinkov. Probing classifiers: Promises, shortcomings, and advances. Computational Linguistics ,48(1):207–219, 2022. [3] David M Blei, Andrew Y Ng, and Michael I Jordan. Latent Dirichlet allocation. Journal of Machine Learning Research , 3:993–1022, 2003. [4] Arthur W Burks. Peirce’s theory of abduction. Philosophy of science , 13(4):301–306, 1946. [5] Jacob Cohen. A coefficient of agreement for nominal scales. Educational and Psychological Measurement ,20(1):37–46, 1960. [6] Lee J Cronbach and Paul E Meehl. Construct validity in psychological tests. Psychological bulletin , 52(4): 281, 1955. [7] Fahim Dalvi, Hassan Sajjad, Nadir Durrani, and Yonatan Belinkov. Analyzing redundancy in pretrained transformer models. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 4908–4926, 2020. [8] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. BERT: Pre-training of deep bidirectional transformers for language understanding. In Proceedings of NAACL-HLT , pages 4171–4186, 2019. [9] Fabrizio Gilardi, Meysam Alizadeh, and Maël Kubli. ChatGPT outperforms crowd workers for text-annotation tasks. Proceedings of the National Academy of Sciences , 120(30):e2305016120, 2023. [10] Maarten Grootendorst. BERTopic: Neural topic modeling with a class-based TF-IDF procedure. arXiv preprint arXiv:2203.05794 , 2022. [11] Gabriel Ilharco, Marco Tulio Ribeiro, Mitchell Wortsman, Suchin Gururangan, Ludwig Schmidt, Hannaneh Hajishirzi, and Ali Farhadi. Editing models with task arithmetic. In International Conference on Learning Representations (ICLR) , 2023. arXiv:2212.04089. [12] Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei Ye, and Tie-Yan Liu. LightGBM: A highly efficient gradient boosting decision tree. In Advances in Neural Information Processing Systems , volume 30, pages 3146–3154, 2017. [13] Pang Wei Koh, Thao Nguyen, Yew Siang Tang, Stephen Mussmann, Emma Pierson, Been Kim, and Percy Liang. Concept bottleneck models. In International Conference on Machine Learning , pages 5338–5348. PMLR, 2020. [14] Klaus Krippendorff. Content Analysis: An Introduction to Its Methodology . Sage Publications, 4 edition, 2018. [15] J Richard Landis and Gary G Koch. The measurement of observer agreement for categorical data. 
+
+Biometrics , 33(1):159–174, 1977. [16] Tim Loughran and Bill McDonald. When is a liability not a liability? Textual analysis, dictionaries, and 10-Ks. The Journal of Finance , 66(1):35–65, 2011. [17] Josh Magnus Ludan, Qing Lyu, Yue Yang, Liam Dugan, Mark Yatskar, and Chris Callison-Burch. Interpretable-by-design text understanding with iteratively generated concept bottleneck. arXiv preprint arXiv:2310.19660 , 2024. [18] Anita Mahinpei, Justin Clark, Isaac Lage, Finale Doshi-Velez, and Weiwei Pan. Promises and pitfalls of black-box concept learning models. arXiv preprint arXiv:2106.13314 , 2021. 
+
+10 [19] Andrei Margeloiu, Matthew Ashman, Umang Bhatt, Yanzhi Chen, Mateja Jamnik, and Adrian Weller. Do concept bottleneck models learn as intended? In ICLR 2021 Workshop on Responsible AI , 2021. [20] John Stuart Mill. A System of Logic, Ratiocinative and Inductive . John W. Parker, London, 1843. [21] Jiaqi Mu and Pramod Viswanath. All-but-the-top: Simple and effective postprocessing for word represen-tations. In International Conference on Learning Representations (ICLR) , 2018. [22] Soichiro Murakami, Peinan Zhang, Hidetaka Kamigaito, Hiroya Takamura, and Manabu Okumura. Ad-Paraphrase: Paraphrase dataset for analyzing linguistic features toward generating attractive ad texts. In 
+
+Findings of the Association for Computational Linguistics: NAACL 2025 , pages 1426–1439, 2025. [23] Nagarajan Natarajan, Inderjit S. Dhillon, Pradeep K. Ravikumar, and Ambuj Tewari. Learning with noisy labels. In Advances in Neural Information Processing Systems , 2013. [24] Tuomas Oikarinen, Subhro Das, Lam M Nguyen, and Tsui-Wei Weng. Label-free concept bottleneck models. In International Conference on Learning Representations , 2023. [25] Silviu Oprea and Walid Magdy. iSarcasm: A dataset of intended sarcasm. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics , pages 1279–1289, 2020. [26] Myle Ott, Yejin Choi, Claire Cardie, and Jeffrey T Hancock. Finding deceptive opinion spam by any stretch of the imagination. In Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics , pages 309–319, 2011. [27] Kiho Park, Yo Joong Choe, and Victor Veitch. The linear representation hypothesis and the geometry of large language models. arXiv preprint arXiv:2311.03658 , 2023. [28] Giorgio Patrini, Alessandro Rozza, Aditya Krishna Menon, Richard Nock, and Lizhen Qu. Making deep neural networks robust to label noise: A loss correction approach. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , pages 1944–1952, 2017. [29] James W Pennebaker, Martha E Francis, Roger J Booth, et al. Linguistic inquiry and word count: Liwc 2001. Mahway: Lawrence Erlbaum Associates , 71(2001):2001, 2001. [30] Vikram V. Ramaswamy, Sunnie S. Y. Kim, Ruth Fong, and Olga Russakovsky. Overlooked factors in concept-based explanations: Dataset choice, concept learnability, and human capability. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023. [31] Margaret E Roberts, Brandon M Stewart, Dustin Tingley, Christopher Lucas, Jetson Leder-Luis, Shana Kushner Gadarian, Bethany Albertson, and David G Rand. Structural topic models for open-ended survey responses. American Journal of Political Science , 58(4):1064–1082, 2014. [32] Robert Tibshirani. Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological) , 58(1):267–288, 1996. [33] Petter Törnberg. ChatGPT-4 outperforms experts and crowd workers for annotating political Twitter messages with zero-shot learning. arXiv preprint arXiv:2304.06588 , 2023. [34] Yue Yang, Artemis Panagopoulou, Shenghao Zhou, Daniel Jin, Chris Callison-Burch, and Mark Yatskar. Language in a bottle: Language model guided concept bottlenecks for interpretable image classification. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 19187– 19197, 2023. [35] Mert Yuksekgonul, Maggie Wang, and James Zou. Post-hoc concept bottleneck models. In International Conference on Learning Representations , 2023. [36] Xiang Zhang, Junbo Zhao, and Yann LeCun. Character-level convolutional networks for text classification. In Advances in Neural Information Processing Systems , volume 28, pages 649–657, 2015. 
+
+11

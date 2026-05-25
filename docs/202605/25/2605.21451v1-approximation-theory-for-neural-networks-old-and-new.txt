@@ -1,0 +1,879 @@
+Title: Approximation Theory for Neural Networks: Old and New
+
+URL Source: https://arxiv.org/pdf/2605.21451v1
+
+Published Time: Thu, 21 May 2026 01:28:43 GMT
+
+Number of Pages: 31
+
+Markdown Content:
+# Approximation Theory for Neural Networks: Old and New 
+
+# Soumendu Sundar Mukherjee 1 and Himasish Talukdar 11Statistics and Mathematics Unit, Indian Statistical Institute, Kolkata 
+
+# ssmukherjee@isical.ac.in, talukdar.himasish@gmail.com 
+
+Abstract 
+
+Universal approximation theorems provide a mathematical explanation for the expressive power of neural networks. They assert that, under mild conditions on the activation function, feedforward neural networks are dense in broad function classes, such as continuous functions on compact subsets of Rd, Lp spaces, or Sobolev spaces. Over the past four decades, these qualitative universality results have evolved into a rich quantitative theory addressing approximation rates, parameter efficiency, and the role of architectural features such as depth and width. This survey presents several glimpses into this theory. We review classical density results for single-hidden-layer networks, as well as quantitative bounds that relate approximation error to network size and smoothness assumptions on target functions. Particular emphasis is placed on depth– width trade-offs and on results demonstrating that deeper architectures can achieve superior parameter efficiency for structured function classes. In addition to standard feedforward neural networks, we also review recent developments on Kolmogorov– Arnold Networks (KANs), which offer an alternative architectural paradigm and whose approximation-theoretic properties have begun to attract significant theoretical attention. 
+
+Keywords: Universal approximation, feedforward neural networks, depth–width trade-off, Kolmogorov–Arnold networks 1
+
+> arXiv:2605.21451v1 [cs.LG] 20 May 2026
+
+# 1 Introduction 
+
+Neural networks are the dominant function approximation paradigm in modern machine learning and artificial intelligence. In essence, neural networks are classes of parameterised nonlinear functions, constructed by composing affine transformations with nonlinear activa-tion functions. In their simplest feedforward form, a neural network maps an input x ∈ Rd
+
+to an output through successive layers 
+
+zk = σ(Wkzk−1 + bk), z0 = x,
+
+where Wk and bk are learnable weight matrices and bias vectors, and σ is a fixed nonlinear activation function applied componentwise. The final layer is often taken to be linear, producing an output such as α⊤zK (see Figure 3 for a schematic representation of this architecture). By varying the network width, depth, and parameters, neural networks define rich families of functions. A natural question then is: Given a target class of functions, are a given class of neural networks dense in it? How efficient and parsimonious can the representation be? Universal Approximation Theorems (UATs) answer the above questions by making the expressivity of neural nets mathematically precise. They show that, under mild assumptions on the activation function σ, neural networks are dense in suitable function spaces, typically continuous functions on compact subsets of Rd with respect to the uniform norm, Lp spaces, or Sobolev spaces. In this sense, neural networks can approximate most reasonable target functions on compact domains to arbitrary accuracy. It is important to distinguish between qualitative and quantitative forms of universality. Classical UATs established density, guaranteeing the existence of approximating networks. Subsequent works have refined these results by providing approximation rates and by analysing how architectural features such as depth and width influence representational efficiency. In particular, while 1-layer networks (i.e., networks with a single hidden layer) are already universal under mild conditions, deeper architectures can in many cases achieve the same approximation accuracy with substantially fewer parameters. This survey focuses on these approximation-theoretic aspects of neural networks, rather than on questions of optimization or statistical generalization. While the latter two topics are of paramount importance for deep learning practice, approximation-theoretic results inform neural network 2design by revealing what is achievable and what is not. While our primary focus will be on feedforward neural networks (FNNs) ∗, we will also discuss the recently popularised Kolmogorov–Arnold Networks (KANs), whose design is inspired by the Kolmogorov–Arnold representation theorem. In contrast to standard FNNs, where nonlinearities are fixed and applied at the nodes, KANs place learnable univariate functions on the edges, thereby replacing fixed activations with adaptive functional transformations. From the perspective of universal approximation, it is therefore natural to ask how KANs compare to classical FNNs in terms of approximation rates and parameter efficiency. A definitive answer is yet to be found! 
+
+Note for readers. For this survey, although we shall define everything, some basic familiarity with neural network vocabulary will be helpful. We shall also assume that the reader has basic knowledge of the Fourier transform and a few fundamental results from functional analysis (e.g., the Riesz representation theorem, the Hahn–Banach theorem, etc.). Even if the reader chooses to skip the parts where these are used, a certain level of mathematical maturity is desirable for smooth sailing. 
+
+# 1.1 Early neural networks and the role of depth 
+
+Early mathematical models of neural networks date back to the work of McCulloch and Pitts (1943), who proposed simple threshold units as models of biological neurons. Building on this idea, Rosenblatt (1958) introduced the perceptron, a mapping of the form 
+
+x 7 → 1(w⊤x + b ≥ 0) ,
+
+which is essentially a linear classifier †. Geometrically, a perceptron partitions the input space by a single affine hyperplane. Therefore, while perceptrons can successfully represent linearly separable outputs, they fail on simple linearly non-separable problems. A classical example is the XOR gate, which outputs 1 if exactly one of the two binary inputs is 1, and 0 otherwise. As illustrated in Figure 1, no single affine hyperplane in R2 can separate the two classes (represented by the outputs), and hence a single perceptron cannot represent XOR.          
+
+> ∗We shall use the terms feedforward neural networks and multilayer perceptrons interchangeably.
+> †We denote by 1(E) the indicator of a condition E. We also use 1Ato denote the indicator function of a set A.
+
+3x1
+
+x2
+
+(0 , 0) 
+
+(1 , 1) 
+
+(1 , 0) 
+
+(0 , 1) 
+
+Figure 1: Linear non-separability of XOR is visually evident in R2,where no single line can isolate the classes. Here, circles represent out-put 0, crosses 1. 
+
+x1
+
+x2
+
+h11 
+
+h12 
+
+y
+
+1.5
+
+−0.5
+
+−1.5
+
+−11
+
+−1111NAND OR AND Figure 2: A multilayer perceptron representing XOR. The numbers beside the edges denote the correspond-ing weights and the number below nodes denote the biases. The hidden layer transforms the input space into a feature space where the classes become linearly separable. The two hidden units/neurons represent-ing the NAND and OR gates. The outputs of these are then passed though another neuron that imple-ments the AND gate. This limitation motivates the introduction of multilayer architectures. By adding a hidden layer with several perceptron units (also called neurons), the input is first mapped into a feature space in which the classes become linearly separable. In this way, even a simple network with one hidden layer (see Figure 2 for an example) can represent the XOR gate exactly ‡. This example illustrates a fundamental principle: depth allows neural networks to construct intermediate representations, enabling them to model functions that are inaccessible to purely linear threshold units. 
+
+# 1.2 A selective review of the history of UATs for FNNs 
+
+One of the first general UATs was due to Cybenko (1989), who proved that 1-layer networks with continuous sigmoidal activations are dense in the space of continuous functions on compact subsets of Rd. Funahashi (1989) arrived at the same conclusion for continuous and       
+
+> ‡In fact, Baum (1988) showed that one can separate Narbitrary points in Rdinto two classes by a perceptron network with one hidden layer consisting of ⌈N/d ⌉neurons. This result is optimal, in that there are examples of dichotomies not realizable with fewer neurons.
+
+4monotone sigmoidal activations. Hornik et al. (1989) also proved the same density result using monotone sigmoidal activations. Remarkably, these three almost concurrent works use quite different techniques. Later, Hornik (1991) showed that taking bounded, non-constant, continuous activations suffices for approximating continuous functions on compact sets. He also obtained density results with respect to Lp norms for bounded non-constant activations. The precise characterisation of which activations suffice for universal approximation of continuous functions on compact sets, namely, any continuous, non-polynomial function, was subsequently given by Leshno et al. (1993). These works collectively establish that shallow networks with a single hidden layer possess remarkable expressive power in principle. For a more detailed commentary on these early works, and further references, we refer the reader to the survey Pinkus (1999). While density ensures the existence of approximating networks, it does not quantify the number of neurons required. Barron (1993) addressed this gap by identifying a natural function class, characterised by a certain bounded Fourier norm condition, for approximation by 1-layer networks and showing that such functions can be approximated in L2 over any closed ball at a rate O(m−1/2), where m is the number of neurons. Makovoz (1996) sharpened this analysis by proving an improved rate of O(m−1/2−1/(2 d)) in L2, with matching lower bounds, and extended the approximation results to Lp norms. Mhaskar (1996) established optimal-order approximation rates on Sobolev classes, showing that 1-layer networks achieve the best possible approximation error for functions with a prescribed number of derivatives. More recently, De Ryck et al. (2021) derived UATs for 1-layer networks with tanh activation in Sobolev norms; these results are particularly relevant to scientific computing applications such as Physics-Informed Neural Networks (PINNs) for solving PDEs. Due to the dramatic empirical success of deep learning (LeCun et al., 2015), a central question in modern neural network approximation theory is to understand what expressivity advantages deeper architectures bring over shallower ones. Mont´ ufar et al. (2014) gave an early quantification of this for ReLU networks by showing that the number of linear regions induced in the input space grows exponentially with depth under mild width assumptions. Bianchini and Scarselli (2014) compared deep and shallow networks with the same number of hidden neurons in terms of certain topological complexity measures of the functions they represent, establishing that deeper architectures can realise functions of higher complexity. Telgarsky (2016) gave a striking illustration: there are explicit functions efficiently representable by deep networks of bounded width that require exponentially many neurons in shallower architectures. Eldan and Shamir (2016) constructed functions 5representable as 2-layer networks of polynomial width in the input dimension that cannot be approximated by 1-layer networks unless their width is exponential in the input dimension. Poole et al. (2016); Raghu et al. (2017) further studied the geometric complexity of network mappings, demonstrating that depth exponentially amplifies the trajectory length and curvature of input signals. On the quantitative side, various authors have established explicit error bounds for approximation by deep ReLU networks, demonstrating that depth can substantially reduce the number of neurons needed to achieve a specified accuracy (Yarotsky, 2017, 2018; Petersen and Voigtlaender, 2018; Kohler and Langer, 2021; Daubechies et al., 2022; Siegel, 2023). Another important line of work concerns characterising the minimum width required for approximation by deep networks, beginning with Lu et al. (2017). These results collectively give ample mathematical support to the view that depth fundamentally increases the representational capacity of neural networks. 
+
+# 1.3 Other surveys 
+
+Universal approximation has been studied extensively over the past four decades, and several works provide broad overviews of the classical theory. The already-mentioned survey Pinkus (1999) offers a comprehensive account of the approximation theory for multilayer perceptrons developed up to the late 1990s. This work remains a foundational reference for the approximation-theoretic perspective on neural networks. A slightly earlier survey covering some of the same topics is Scarselli and Chung Tsoi (1998). Since these early surveys, the literature has expanded significantly, particularly in the direction of quantitative approximation rates, expressivity and separation results, and depth– width trade-offs. However, many of these developments are dispersed across specialised research articles rather than consolidated expository treatments. One aim of the present survey is therefore to present a short and readable gateway to modern results. Due to the vastness of the literature, we had to be selective. The readers can find further relevant works by consulting the bibliographies of the papers cited here. Recommended is also the modern and much more expansive survey of DeVore et al. (2021), which focuses on comparing neural network approximation with other traditional methods such as approximation by polynomials, wavelets or splines. 61.4 Organisation 
+
+The rest of this survey is organised as follows. In Section 2 we look at UATs for FNNs, beginning with basic density results and then moving on to quantitative approximation bounds; also discussed are modern quantitative results highlighting the role of depth and width. In Section 3, we discuss KANs and their approximation theory. We end the survey with some concluding remarks in Section 4. 
+
+# 2 Feedforward Neural Networks 
+
+# 2.1 Formal definitions 
+
+We begin with some basic definitions. We are interested in mappings from Rd to R of the form 
+
+x 7 →
+
+> m
+
+X
+
+> j=1
+
+aj σ(w⊤ 
+
+> j
+
+x + bj ), (1) where wj ∈ Rd and aj , b j ∈ R for j = 1 , . . . , m . The function σ : R → R is called the 
+
+activation function . Typical examples include the ReLU function z 7 → max {0, z } and the sigmoid function z 7 → 11+ e−z . The map x 7 → σ(w⊤ 
+
+> j
+
+x + bj ) defines a neuron .In this setting, x denotes the input data, and the collection (( aj , wj , b j )) mj=1 forms the set of trainable parameters, which are optimised using observed data. The integer m is called the width of the network. It is convenient to express (1) in matrix–vector form. Let W be the m × d matrix whose 
+
+j-th row is w⊤ 
+
+> j
+
+. For y = ( y1, . . . , y m)⊤ ∈ Rm, define 
+
+σ(y) := ( σ(y1), . . . , σ (ym)) ⊤,
+
+so that σ acts coordinatewise. Writing a = ( a1, . . . , a m)⊤ and b = ( b1, . . . , b m)⊤, the mapping in (1) can be written compactly as 
+
+x 7 → a⊤σ(W x + b).
+
+7x1
+
+x2
+
+...
+
+xn
+
+Input 
+
+...
+
+Layer 1 
+
+...
+
+Layer 2 
+
+. . . 
+
+. . . 
+
+. . . 
+
+...
+
+Layer L
+
+y
+
+Output 
+
+W1
+
+W2 W3 WL aL
+
+σ(W1x + b1) σ(W2h1 + b2) σ(WLhL−1 + bL)
+
+y = aTL σ(WLhL−1 + bL)
+
+Figure 3: Schematic of a feedforward neural network with L (hidden) layers. Under our convention, a network of the form (1) is called a 1 -layer neural network . It consists of a single nonlinear hidden layer followed by a linear combination of its outputs §.A multilayer feedforward neural network is obtained by composing several such hidden layers. More precisely, let L ≥ 1. An L-layer neural network is a mapping F : Rd → R
+
+defined recursively by 
+
+h0 := x, hℓ := σ(Wℓhℓ−1 + bℓ), ℓ = 1 , . . . , L, 
+
+and 
+
+F (x) := a⊤ 
+
+> L
+
+hL,
+
+where for each ℓ, Wℓ is a linear transformation matrix of appropriate dimension and bℓ is a bias vector. The activation function σ is applied coordinatewise. The integer L is called the depth of the network (i.e., the number of hidden layers ), while the widths of the intermediate layers are determined by the dimensions of the matrices Wℓ.The case L = 1 coincides with the shallow architecture in (1) , whereas larger values of L
+
+correspond to deeper networks obtained through repeated composition of affine maps and nonlinear activations. The total number of hidden neurons in a network is referred to as its 
+
+> §Many authors call this architecture a 2-layer network, accounting for the output layer which also involves learnable parameters. However, we shall only count the hidden layers, as they are what give neural networks their expressivity. Under this convention, the perceptron would be a 0-layer neural network.
+
+8size .
+
+Remark 2.1 . While we have used a single activation function σ for the whole architecture, it is of course possible to allow different activations for different neurons. Thus, with such a modified definition, the map 
+
+x 7 →
+
+> m
+
+X
+
+> j=1
+
+aj σj (w⊤ 
+
+> j
+
+x + bj )would define a single-layer network. 
+
+# 2.2 Some basic UATs 
+
+In this subsection, we look at several basic UATs and prove some of them. We then state a result that provides a necessary and sufficient condition on the activation function for UATs to hold. For functions f : Rd → R and a measurable set D ⊂ Rd, define 
+
+∥f ∥∞, D := sup 
+
+> x∈D
+
+|f (x)|.
+
+We denote by C(K) the set of continuous functions on a compact set K. Then ∥f ∥∞, K is the uniform norm on C(K). 
+
+2.2.1 Two UATs for continuous functions 
+
+We begin with one of the easiest (but somewhat inefficient) UATs one can prove. 
+
+Theorem 2.1. Let f : [0 , 1] → R be a function with Lipschitz (with respect to the Euclidean norm) constant Cf . For any ϵ > 0, there exists a 1-layer neural network F with width Cf
+
+> ϵ
+
+
+
+and the Heaviside activation function σ(x) := 1[0 ,∞)(x), such that 
+
+∥F − f ∥∞, [0 ,1] ≤ ϵ. 
+
+Proof. Fix ϵ > 0 and set m := Cf
+
+> ϵ
+
+. Define the partition points 
+
+tj := jm, for j = 0 , 1, . . . , m − 1.
+
+9Introduce the coefficients 
+
+w0 := f (t0),wj := f (tj ) − f (tj−1), for j = 1 , . . . , m − 1,
+
+and define for x ∈ [0 , 1], 
+
+F (x) := 
+
+> m−1
+
+X
+
+> j=0
+
+wj 1[tj ,∞)(x) = 
+
+> m−1
+
+X
+
+> j=0
+
+wj σ(x − tj ).
+
+Fix x ∈ [0 , 1] and let ℓ be the largest index 0 ≤ j ≤ m − 1 such that tj ≤ x. By construction, the function F is constant on the interval [ tℓ, t ℓ+1 ) which contains x, and thus 
+
+F (x) = F (tℓ) = f (tℓ). Therefore 
+
+|F (x) − f (x)| = |f (tℓ) − f (x)|≤ Cf |x − tℓ|≤ Cf |tℓ+1 − tℓ|
+
+= Cf
+
+m
+
+≤ ϵ, 
+
+where the first inequality follows from the fact that f is Cf -Lipschitz. This completes the proof. An obvious higher-dimensional analogue would involve functions for the form ¶ x 7 →
+
+Qdj=1 1[tj ,∞)(xj ), which are not activation functions per se, but it turns out they can be approximated in L1 norm by 2-layer neural nets with ReLU activation. This gives the following result (a proof can be found in the lecture notes Telgarsky (2021)). 
+
+Theorem 2.2. For any continuous function f : Rd → R and ϵ > 0, there exists a 2-layer ReLU network F such that 
+
+Z
+
+> [0 ,1] d
+
+|F (x) − f (x)| dx ≤ ϵ. 
+
+Remark 2.2 . In the proof of Theorem 2.2, one first chooses a δ > 0 such that if any 
+
+x, x′ ∈ [0 , 1] d are coordinatewise δ-apart, then |f (x) − f (x′)| ≤ ϵ/ 2, and then partitions 
+
+> ¶This provides an example of a so-called ΣΠ network, allowing sums and products of activation functions, for which universal approximation results can be found in Hornik et al. (1989).
+
+10 [0 , 1] d into cells of side length δ. The final ReLU network has of the order of (1 /δ )d neurons. 
+
+2.2.2 Cybenko’s theorems 
+
+We now present a few results from Cybenko (1989). His results are amongst the the first rigorous UATs for feedforward neural networks with general sigmoidal activation functions. The first result we shall look at shows that networks with a single hidden layer and a continuous sigmoidal activation function are dense in C(K), where K is any compact subset of Rd. The proof employs a functional analytic argument using the Hahn–Banach theorem and the Riesz representation theorem. 
+
+Definition 2.1 (Sigmoidal function) . A bounded measurable function σ : R → R is called 
+
+sigmoidal if lim  
+
+> t→−∞
+
+σ(t) = 0 and lim  
+
+> t→+∞
+
+σ(t) = 1 .
+
+Theorem 2.3 (Cybenko (1989), Theorem 2) . Let σ : R → R be a continuous sigmoidal function and f : [0 , 1] d → R be continuous. Then given any ϵ > 0, there exists a 1-layer neural network F such that 
+
+∥F − f ∥∞, [0 ,1] d ≤ ϵ. 
+
+Proof. Let H denote the collection of all functions on [0 , 1] d of the form 
+
+F (x) = 
+
+> m
+
+X
+
+> k=1
+
+ak σ(w⊤ 
+
+> k
+
+x + bk),
+
+where m ∈ N, ak, b k ∈ R, and wk ∈ Rd. We show that H is dense in C([0 , 1] d) with respect to the uniform norm, which would prove the theorem. Assume, for contradiction, that H is not dense in C([0 , 1] d). Then its closure H is a proper closed linear subspace of C([0 , 1] d). By the Hahn–Banach separation theorem, there exists a non-zero bounded linear functional Λ : C([0 , 1] d) → R such that Λ( F ) = 0 for all F ∈ H.
+
+By the Riesz representation theorem, there exists a finite signed Borel measure μ on [0 , 1] d,11 not identically zero, such that Λ( g) = 
+
+Z
+
+> [0 ,1] d
+
+g(x) dμ (x) for all g ∈ C([0 , 1] d).
+
+Therefore, 
+
+Z
+
+> [0 ,1] d
+
+σ(w⊤x + b) dμ (x) = 0 for all w ∈ Rd and b ∈ R. (2) Since σ is sigmoidal, for each fixed w ∈ Rd, and b, c ∈ R, the function x 7 → σ(λ(w⊤x + b) + c)converges pointwise, as λ → ∞ , to the function 
+
+1Hw,b (x) + σ(c)1∂H w,b (x),
+
+where Hw,b := {x : w⊤x + b > 0} is the open half-space determined by w and b, the half-plane ∂H w,b = {x : w⊤x + b = 0 } being its boundary . By the dominated convergence theorem, (2) implies that 
+
+μ(Hw,b ) + σ(c)μ(∂H w,b ) = 0 for all w ∈ Rd, and b, c ∈ R. (3) Sending c → ±∞ , we see that μ assigns zero measure to every open half-space Hw,b and every closed half-space Hw,b := Hw,b ∪ ∂H w,b = {x : w⊤x + b ≥ 0}. We will show that this implies μ = 0. (This is not immediate since μ is a signed measure.) For a fixed w ∈ Rd, define a bounded linear functional eΛ on L∞(R) as follows: 
+
+eΛ( h) := 
+
+Z
+
+h(w⊤x)dμ (x).
+
+Taking h = 1[b, ∞) or 1(b, ∞), we see that 
+
+eΛ( 1[b, ∞)) = μ(Hw,−b) = 0 ,
+
+eΛ( 1(b, ∞)) = μ(Hw,−b) = 0 .
+
+It follows that eΛ (1A) = 0 for any interval A, and a fortiori, eΛ (h) = 0 whenever h is a finite linear combination of indicator functions of intervals. As such functions are dense in L∞(R), we may conclude that eΛ = 0. In particular, this gives that 
+
+Z
+
+eιw⊤xdμ (x) = eΛ(cos) + ι · eΛ(sin) = 0 , ι := √−1,
+
+12 so that the Fourier transform of μ is 0, implying that μ = 0, which is the desired contradiction. This completes the proof. Cybenko (1989) also proves a similar result for simple functions (i.e., measurable functions with finite range), which model decision functions. 
+
+Theorem 2.4 (Cybenko (1989), Theorem 3) . Suppose σ : R → R is a continuous sigmoidal function and f : [0 , 1] d → R is a simple function. Then for any ϵ > 0, there exists a measurable set D ⊂ [0 , 1] d with Vol (D) ≥ 1 − ϵ and a 1-layer neural network F : [0 , 1] d → R
+
+such that 
+
+∥F − f ∥∞,D ≤ ϵ. 
+
+The proof is easy, since by Lusin’s theorem, one can find a continuous function h and a measurable set D, with Vol (D) ≥ 1 − ϵ, such that f = h on D. Then one may apply Theorem 2.3. 
+
+Remark 2.3 . Cybenko (1989) proves an analogue of Theorem 2.3 for L1([0 , 1] d), where it suffices to take σ to be any sigmoidal function. 
+
+2.2.3 Necessary and sufficient condition on σ for UAT 
+
+We end this subsection with a theorem from Leshno et al. (1993) that provides a necessary and sufficient condition on the activation function σ for universal approximation. 
+
+Theorem 2.5 (Leshno et al. (1993), Theorem 1) . Let σ : R → R be continuous. Then the set of 1-layer feedforward networks is dense in C([0 , 1] d) with respect to the uniform norm if and only if σ is not a polynomial. 
+
+We refer the reader to the survey Pinkus (1999) for an exposition of the proof. In fact, Pinkus (1999) attributes this result to Schwartz (1944). 13 2.3 Quantitative universal approximation: An early result of Barron 
+
+What class of functions do single-layer neural networks approximate well? Barron (1993) identified the right class of functions which is defined in terms of the decay of their Fourier transforms. Barron showed that such functions admit approximation by 1-layer feedforward networks with error rates that decay at least as fast as one over the square-root of the number of neurons. Here we mention one of the simplest results from Barron (1993). 
+
+Definition 2.2 (Barron norm) . Let f : Rd → R be a function admitting a Fourier representation 
+
+f (x) = 
+
+Z
+
+> Rd
+
+eιw⊤x ef (w) dw,
+
+where ef : Rd → C is a complex-valued function. Define the Barron norm of f by 
+
+∥f ∥B := 
+
+Z
+
+> Rd
+
+∥w∥ | ef (w)| dw,
+
+where ∥w∥ = ( w⊤w)1/2 is the Euclidean norm. For r > 0 we denote by 
+
+Br := {x ∈ Rd : ∥x∥ ≤ r}
+
+the closed Euclidean ball of radius r centered at the origin. 
+
+Theorem 2.6 (Barron (1993), Proposition 1) . Let f : Rd → R be a function with finite Barron norm, and let μ be any probability measure supported on Br for some r > 0. Let σ
+
+be a sigmoidal activation. Then for any integer m ≥ 1, there exists a 1-layer feedforward neural network Fm, with m + 1 neurons, such that 
+
+Z
+
+> Br
+
+ Fm(x) − f (x)2 μ(dx) ≤ 4 r2 ∥f ∥2
+
+> B
+
+m .
+
+Barron’s work was later generalised significantly by Makovoz (1996), who obtained the sharper rate of O(m− d+1  
+
+> d
+
+), which is essentially optimal. See Pinkus (1999) for a discussion. Modern works studying approximation by neural networks in Barron-type function classes include Klusowski and Barron (2016); E et al. (2021); Siegel and Xu (2022). 14 2.4 The benefit of depth 
+
+While early results such as those of Cybenko and Barron focused primarily on shallow 1-layer networks, a growing body of work has highlighted the expressivity advantages of depth in neural architectures. Deeper networks can represent certain classes of functions exponentially more efficiently than shallow ones, requiring far fewer neurons to achieve the same approximation accuracy. For example, Telgarsky (2015) gave a family of classification problems indexed by a positive integer k such that any shallow ReLU network with fewer than exponentially many nodes in k incurs a constant classification error, whereas a deep feedforward ReLU network with at most 2 nodes in each of 2 k layers achieves zero error. Telgarsky (2016) proved a more general result of this kind, which we shall look at shortly. The almost concurrent work of Eldan and Shamir (2016) exhibited functions expressible by 2-layer networks of polynomial width in the input dimension, that are not approximable by 1-layer ReLU networks unless their widths are exponential in the input dimension, thus establishing explicit separation. In a similar vein, the slightly earlier work of Mont´ ufar et al. (2014) analyzed the number of linear regions induced by piecewise-linear activations such as ReLU, demonstrating that deeper networks partition the input space more finely into convex polytopes and thus can express more complex functions with a fixed total number of neurons. Another notable work of this type is Bianchini and Scarselli (2014), which compares deep and shallow networks in terms of a certain topological complexity measure of the functions they represent. These results, together with follow-up works such as Poole et al. (2016); Raghu et al. (2017), provide solid theoretical justification for the use of deep architectures, showing that depth alone is a powerful mechanism for increasing representational capacity without necessarily increasing width. 
+
+2.4.1 Telgarsky’s construction 
+
+Telgarsky (2016) demonstrated a quantitative separation between deep and shallow neural networks by constructing functions that can be computed by relatively small deep ReLU networks but cannot be approximated by any shallow network unless it has exponentially many nodes. Telgarsky’s result applies to a broad class of activation functions called semi-algebraic 
+
+15 gates .
+
+Definition 2.3 (Semi-algebraic gates) . A function σ : Rd → R is called ( t, α, β )-semi-algebraic if there exist polynomials qi : Rd → R, i = 1 , . . . , t , each of degree at most α, and triplets ( pi, U i, V i)mi=1 , where each pi : Rd → R is a polynomial of degree at most β, and each 
+
+Ui, V i ⊂ { 1, . . . , t } with Ui ∩ Vi = ∅, such that 
+
+σ(x) = 
+
+> m
+
+X
+
+> j=1
+
+pj (x)
+
+ Y
+
+> i∈Uj
+
+1 qi(x) ≥ 0 Y
+
+> i∈Vj
+
+1 qi(x) < 0
+
+.
+
+In simpler terms, a semi-algebraic gate partitions the input space into finitely many regions using polynomial inequalities, and on each region behaves like a polynomial of bounded degree. It is a piecewise polynomial function with controlled algebraic complexity. Examples of semi-algebraic gates include many nonlinearities used in practice, such as ReLU, Leaky-ReLU, max gates, indicator functions of half-spaces, piecewise polynomial activations, etc. Telgarsky’s construction is explicit as well as elementary. It essentially builds highly oscillatory functions through repeated composition of a simple tent function . The oscillations of a function f : R → R are formally counted by its crossing number , the smallest number of intervals in a partition of R into intervals on which the function x 7 → 1(f (x) ≥ 1/2) is constant. 
+
+Definition 2.4 (Tent function ). Define τ : R → [0 , 1] by 
+
+τ (x) := 
+
+
+
+2x, if x ∈ [0 , 1/2] ,
+
+2(1 − x), if x ∈ (1 /2, 1] ,
+
+0, otherwise. For k ≥ 1, let τ [k] denote the k-fold composition of τ with itself, i.e., 
+
+τ [k] := τ ◦ τ ◦ · · · ◦ τ| {z } 
+
+> ktimes
+
+.
+
+The function τ increases linearly from 0 to 1 and then decreases linearly back to 0, forming one peak (and has crossing number 3). Each composition of τ with itself doubles the number of peaks; so, τ [k] has exactly 2 k peaks (and crossing number 2 k + 1). This exponential growth under composition is at the heart of Telgarsky’s depth separation argument. We 16 now present Telgarsky’s result in a simplified form. 
+
+Theorem 2.7 (Telgarsky (2016), Theorem 1.1) . Fix integers k ≥ 1 and d ≥ 1. Let C be the collection of all feedforward neural networks F : Rd → R with (t, α, β )-semi-algebraic activations, at most k layers and at most 2k/(tαβ ) nodes. Then, there exists a ReLU neural network f : Rd → R with 2k3 + 8 layers, 3k3 + 12 total nodes, d + 4 distinct parameters, such that 
+
+inf  
+
+> F∈C
+
+Z
+
+> [0 ,1] d
+
+|F (x) − f (x)| dx ≥ 164 .
+
+The separating function f in Theorem 2.7 is essentially the function ‖ τ [k3+4] . The function 
+
+τ can be implemented exactly by a shallow ReLU network (indeed, one may check that if 
+
+σR(x) denotes the ReLU function, then τ (x) = σR(2 σR(x) − σR(x − 1/2))). By stacking (composing) this network k3 + 4 times, one obtains a deep ReLU network computing the function τ [k3+4] (and hence f ) exactly, which has 2 k3+4 + 1 oscillations. On the other hand, a key result in Telgarsky (2016) (see Lemma 3.2 therein) implies that any function computed by a ( t, α, β )-semi-algebraic network with at most k layers and size at most 2 k/(tαβ ) has strictly fewer oscillations. This then leads to the stated L1-inapproximability result. 
+
+Remark 2.4 . In fact, Telgarsky’s lower bound is much more general, in that it holds even when one includes certain convolutional networks or boosted decision trees in the class C.Telgarsky’s theorem mirrors classical depth hierarchy results in circuit complexity: shallow circuits cannot simulate deeper circuits without exponential blow-up in size. Likewise, shallow neural networks cannot efficiently simulate certain deep networks. A particularly striking aspect is parameter efficiency: the deep network uses only O(k3)nodes and d + 4 distinct parameters, yet any shallow competitor requires exponential size. An intuitive explanation of this expressivity of deep networks would be as follows. Many real-world learning problems (e.g., vision, language, speech) exhibit hierarchical structure. Deep networks naturally mirror such structure by building increasingly abstract representations layer by layer. A shallow network must flatten this hierarchy into a single transformation, leading to massive parameter growth. Another important aspect of this result is that the separation between deep and shallow          
+
+> ‖An observant reader might complain that τ[k3+4] is univariate! Telgarsky’s fin fact only depends on a single coordinate of x∈[0 ,1] d.
+
+17 networks already appears in one dimension. Thus the expressivity advantage does not arise from high-dimensional geometry but from hierarchical composition. Depth enables repeated functional iteration; repeated iteration yields exponential oscillatory complexity; shallow architectures cannot simulate this phenomenon without exponential resources. 
+
+2.4.2 Minimum width for universal approximation 
+
+We have seen that depth increases the expressive power of neural networks. Suppose we limit the width but allow unlimited depth. How small can the depth be for universal approximation to still hold? There have been a number of important works that essentially characterise the minimum width required for universal approximation (Lu et al., 2017; Hanin and Sellke, 2017; Johnson, 2019; Kidger and Lyons, 2020; Park et al., 2021; Cai, 2023; Li et al., 2023; Kim et al., 2024; Rochau et al., 2024; Hwang, 2025). The minimum width required depends on the input and the output dimensions, as well as the function class considered and the type of activation function used. We now present a sample result from Li et al. (2023), that establishes a sharp characteri-sation of the minimum width required for fully connected feedforward neural networks with Leaky-ReLU activation to achieve uniform universal approximation on compact subsets of 
+
+Rd. The Leaky-ReLU activation is defined as 
+
+σα(x) := 
+
+
+
+x if x > 0,αx if x ≤ 0,
+
+where α ∈ (0 , ∞) \ { 1} is a fixed parameter. Fix α ∈ (0 , ∞) \ { 1}. Let Nm denote the class of neural networks mapping Rdx to Rdy ,with activation σα, and having arbitrary depth and fixed width m.
+
+Theorem 2.8 (Li et al. (2023), Theorem 2.2) . Let K ⊂ Rdx be a compact set with nonempty interior. Then the class Nm is dense in C(K; Rdy ) with respect to the uniform norm if and only if 
+
+m ≥ max {dx + 1 , d y} + 1(dy = dx + 1) .
+
+Thus d + 1 is the minimal width guaranteeing uniform universal approximation by scalar-18 valued Leaky-ReLU networks on Rd. Incidentally, Hanin and Sellke (2017) showed that this is also the case for ReLU networks. 
+
+2.4.3 A quantitative UAT featuring the role of width and depth 
+
+Many recent works have studied quantitative approximation properties of deep ReLU networks. Some notable ones are Yarotsky (2017, 2018); Petersen and Voigtlaender (2018); Kohler and Langer (2021); Daubechies et al. (2022); Siegel (2023). We now consider a quantitative UAT from Kohler and Langer (2021) that quantifies how approximation accuracy depends on network depth and width, and makes explicit the trade-off between these architectural parameters. We need some notation first. 
+
+Definition 2.5 (Multi-index notation) . Let k = ( k1, . . . , k d) ∈ (N ∪ { 0})d. Its order |k| is defined as 
+
+|k| := k1 + · · · + kd.
+
+For a sufficiently smooth function f : Rd → R, the notation ∂kf denotes the mixed partial derivative of order k, defined as 
+
+∂kf (x) := ∂|k|f∂x 1k1 . . . ∂x dkd
+
+(x),
+
+where x := ( x1, . . . , x d). 
+
+Definition 2.6 (( p, C )-smooth functions) . Let C > 0, and p = q + s with q ∈ N ∪ { 0} and 
+
+s ∈ (0 , 1]. A function f : Rd → R is called ( p, C )-smooth if (i) all partial derivatives ∂kf with |k| = q exist, and (ii) for every multi-index k with |k| = q, the derivative ∂kf is s-H¨ older continuous with constant C, i.e., 
+
+∂kf (x) − ∂kf (y) ≤ C∥x − y∥s for all x, y ∈ Rd.
+
+Definition 2.7 (Cq-norm) . Let D ⊂ Rd be an open set and f : D → R be q times continuously differentiable. Then for any compact K ⊂ D, define 
+
+∥f ∥Cq (K) := max  
+
+> |k|≤ q
+
+∥∂kf ∥∞,K .
+
+19 Definition 2.8 (Network class F(L, m )) . For L, m ∈ N, we denote by F(L, m ) the class of all feedforward ReLU neural networks of depth L such that each hidden layer contains at most m neurons. 
+
+Theorem 2.9 (Kohler and Langer (2021), Theorem 2) . Let d ∈ N and f : Rd → R be 
+
+(p, C )-smooth as in Definition 2.6. Let a ≥ 1 and M ≥ 2 be a sufficiently large integer satisfying 
+
+M 2p ≥ c · max a, ∥f ∥Cq ([ −a,a ]d)
+
+> 4( q+1)
+
+for some sufficiently large universal constant c ≥ 1.
+
+(a) Wide-network approximation. Suppose L, m ∈ N satisfy (i) L ≥ 5 + ⌈log 4(M 2p)⌉ (⌈log 2(max {q, d } + 1) ⌉ + 1) ,(ii) m ≥ 2d · 64 ·  d+qd
+
+ · d2 · (q + 1) · M d.Then there exists a neural network Fwide ∈ F(L, m ) such that 
+
+∥f − Fwide ∥∞,[−a,a ]d ≤ c′ · max a, ∥f ∥Cq ([ −a,a ]d) 
+
+> 4( q+1)
+
+· M −2p. (4) 
+
+(b) Deep-network approximation. Suppose L, m ∈ N satisfy (i) L ≥ 5M d +
+
+l
+
+log 4
+
+
+
+M 2p+4 d(q+1) e4( q+1)( M d−1) 
+
+m 
+
+⌈log 2(max {q, d } + 1) ⌉ + ⌈log 4(M 2p)⌉,(ii) m ≥ 132 · 2d · ⌈ ed⌉ ·  d+qd
+
+ · max {q + 1 , d 2}.Then there exists a neural network Fdeep ∈ F(L, m ) such that inequality (4) holds with Fwide 
+
+replaced by Fdeep .
+
+Theorem 2.9 shows that smooth functions can be approximated with the same accuracy either by wide networks of moderate depth or by deep networks with controlled width. It provides a nice quantitative description of the depth–width trade-off in neural network approximation. 20 3 Kolmogorov–Arnold Networks 
+
+Kolmogorov–Arnold Networks (KANs) are a recently proposed (Liu et al., 2025) neural network architecture explicitly inspired by the remarkable Kolmogorov–Arnold representation theorem , which states that any multivariate continuous function can be written as a finite superposition of continuous univariate functions and addition operations (Kolmogorov, 1957). Unlike feedforward neural networks that employ fixed activation functions at neurons, KANs replace each linear weight parameter with a learnable univariate activation function, often modelled using basis functions such as B-splines. In this way, KANs directly parameterise the functional components suggested by the Kolmogorov–Arnold theorem within a trainable architecture (Liu et al., 2025). This structural innovation has consequences for approximation theory. Compared with classical UATs for FNNs, which guarantee existence of approximating networks in principle, the Kolmogorov–Arnold approach embeds the representation theorem directly into the architecture and yields constructive approximation guarantees that reflect both function smoothness and architectural design. This makes KANs an intriguing bridge between classical approximation theory and modern deep learning practice. We shall now review the Kolmogorov–Arnold representation theorem and the basic architecture of a KAN. We shall also look at a basic approximation theorem for KANs due to Liu et al. (2025). 
+
+# 3.1 Hilbert’s 13-th problem and the Kolmogorov–Arnold repre-sentation theorem 
+
+The Kolmogorov–Arnold representation theorem originates in the series of works Kolmogorov (1956); Arnol’d (1957, 1959); Kolmogorov (1957), and resolves a variant of Hilbert’s 13-th Problem (one of the twenty three problems posed at the turn of the twentieth century by the great mathematician David Hilbert (Hilbert, 1902)). Hilbert had conjectured that solutions of general seventh-degree algebraic equations require genuinely multivariate functions in the coefficients, which implies that there exist continuous functions of three variables that can not be expressed in terms of composition and addition of functions of two variables. Building on Kolmogorov’s work (Kolmogorov, 1956), Arnol’d (1957) disproved this conjecture. Kolmogorov followed up (Kolmogorov, 1957) by establishing the remarkable result that every continuous function f : [0 , 1] d → R can be represented as a 21 finite superposition of continuous univariate functions and addition. In the literature, this result is also often called Kolmogorov’s superposition theorem (see Morris (2021) for an historical account). 
+
+Theorem 3.1 (Kolmogorov–Arnold Representation Theorem) . Let f ∈ C([0 , 1] d). Then there exist continuous univariate functions 
+
+φq,p : R → R, ψq : R → R,
+
+for q = 1 , . . . , 2d + 1 and p = 1 , . . . , d , such that for all x = ( x1, . . . , x d) ∈ [0 , 1] d,
+
+f (x) = 
+
+> 2d+1
+
+X
+
+> q=1
+
+ψq
+
+> d
+
+X
+
+> p=1
+
+φq,p (xp)
+
+!
+
+. (5) 
+
+Moreover, the inner functions φq,p can be chosen independently of f , while the outer functions 
+
+ψq depend on f .
+
+This theorem is rather surprising at first sight because it demonstrates that multivariate continuous functions do not require intrinsically multivariate building blocks: composition and addition of one-dimensional functions suffice. Although the representation is highly non-unique and the inner functions are not smooth in general, the theorem remains a foundational result in nonlinear approximation theory and provides the conceptual underpinning for architectures inspired by superposition principles, such as KANs. Notably, long before the advent of KANs, the Kolmogorov–Arnold theorem was widely cited in the neural networks literature, in regards to both approximation theory and neural network design (Hecht-Nielsen, 1987; Girosi and Poggio, 1989; K˚ urkov´ a, 1991, 1992; Pinkus, 1999; Igelnik and Parikh, 2003). 
+
+# 3.2 The KAN architecture 
+
+We begin by defining the basic building block of a KAN, namely, a KAN layer. 
+
+Definition 3.1 (KAN layers) . Let din , d out ∈ N. A Kolmogorov–Arnold Network (KAN) layer Φ is a collection of univariate functions Φ = {φq,p : R → R | p = 1 , . . . , d in , q = 1 , . . . , d out }.
+
+22 x1
+
+x2
+
+...
+
+xd0
+
+Input 
+
++
+
++
+
+...
+
++
+
+Layer 1 
+
++
+
++
+
+...
+
++
+
+Layer 2 
+
+· · · 
+
+· · · 
+
+. . .
+
+· · · 
+
++
+
++
+
+...
+
++
+
+Layer L
+
+y1
+
+y2
+
+...
+
+ydL
+
+Output 
+
+φ(0) 1,1
+
+φ(0) 2,2
+
+φ(0) 
+
+> d1,d 0
+
+φ(1) 1,1
+
+φ(1) 2,2
+
+φ(1) 
+
+> d2,d 1
+
+φ(2) 1,1
+
+φ(2) 2,2
+
+φ(2) 
+
+> d3,d 2
+
+φ(L−1) 1,1
+
+φ(L−1) 2,2
+
+φ(L−1) 
+
+> dL−1,d L
+
+Figure 4: Schematic of a KAN with L layers: each edge here represents a learnable (typically nonlinear) univariate function φ(l) 
+
+> j,i
+
+, and each blue node aggregates by summation. Thus, unlike FNNs, nonlinearities are associated with edges rather than nodes. 
+
+Definition 3.2 (The action of a KAN layer) . Given an input vector x = ( x1, . . . , x din ) ∈ Rdin ,
+
+a KAN layer Φ applied to x produces an output y = ( y1, . . . , y dout ) ∈ Rdout defined componentwise by 
+
+yq =
+
+> din
+
+X
+
+> p=1
+
+φq,p (xp), q = 1 , . . . , d out . (6) We write this succinctly as y = Φ( x), identifying the KAN layer Φ (a collection of univariate functions) with the map Φ : Rdin → Rdout defined by (6). 
+
+Definition 3.3 (The KAN architecture) . A KAN of depth L and shape [ d0, d 1, . . . , d L]consists of a sequence of KAN layers Φl : Rdl → Rdl+1 , l = 0 , . . . , L − 1.
+
+Let x(0) = x and x(L) = y. The forward propagation through the network is defined recursively by 
+
+x(l+1) := Φ l(x(l)), l = 0 , . . . , L − 1.
+
+The function realised by the network is 
+
+y = KAN( x) := (Φ L−1 ◦ ΦL−2 ◦ · · · ◦ Φ0)( x). (7) 23 A schematic of a KAN of depth L and shape [ d0, d 1, . . . , d L] is given in Figure 4. Each univariate function φ(l) 
+
+> q,p
+
+of a KAN layer Φ l is associated with the directed edge connecting input coordinate p to output coordinate q. The blue nodes perform addition. 
+
+Remark 3.1 (Connection to Kolmogorov–Arnold representation) . Note that the Kolmogorov– Arnold representation (5) of the function f : [0 , 1] d → R is exactly a KAN with depth 
+
+L = 2 and shape [ d, 2d + 1 , 1]. Thus, the Kolmogorov–Arnold representation theorem can be equivalently interpreted as the statement that any continuous function on a compact domain can be realised by a KAN of appropriate finite width and depth. A key innovation in the KAN architecture is depth. Although the Kolmogorov–Arnold theorem allows a depth-2 representation, the involved functions may be rather non-smooth. By allowing a deeper architecture, one may find representations with smooth components. Liu et al. (2025) highlight this point with the following example function: 
+
+f (x1, x 2, x 3, x 4) = exp(sin( x21 + x22) + sin( x23 + x24)) .
+
+This function can be represented as a depth-3 KAN with shape [4 , 2, 1, 1] and smooth components. However, there may not exist a depth-2 KAN representing it with smooth activations. In contrast to standard multilayer perceptrons, where scalar weights are followed by a fixed activation function, KANs replace scalar weights with learnable univariate functions, thereby applying nonlinearities prior to aggregation and yielding a functionally expressive architecture. Typically, each univariate function is parameterised using B-spline functions ∗∗ 
+
+defined on a finite grid, which enables controlled approximation properties. The orders of these B-spline functions control the smoothness of the resulting KAN, and the coeffi-cients of the B-spline basis expansions are the trainable parameters. The grid sizes are hyperparameters that act as regularisers. 
+
+# 3.3 A basic approximation theorem for KANs 
+
+We consider functions that admit exact representations as compositions of KAN layers, where each univariate function is sufficiently smooth. The following theorem provides an error bound on the approximation of such functions by spline-based KANs. 
+
+> ∗∗ We will not define B-splines here and refer the readers to the books De Boor (1978); Schumaker (2007) for their definition and properties.
+
+24 Theorem 3.2 (An approximation theorem for KANs, Theorem 2.1 of Liu et al. (2025)) .
+
+Suppose that f : Rd → R admits a representation as a KAN of depth L:
+
+f (x) = (Φ L−1 ◦ ΦL−2 ◦ · · · ◦ Φ1 ◦ Φ0)( x), (8) 
+
+where every edge function φ(l) 
+
+> q,p
+
+is (k + 1) -times continuously differentiable. Then there exists a constant Cf > 0, depending only on f and the representation (8) ,such that for any G ∈ N, there exist spline-based KAN layers ΦGl , 0 ≤ l ≤ L − 1, made of 
+
+B-spline functions of order k + 1 , satisfying, for every integer q with 0 ≤ q ≤ k,
+
+f − ΦGL−1 ◦ ΦGL−2 ◦ · · · ◦ ΦG 
+
+> 1
+
+◦ ΦG  
+
+> 0Cq
+
+≤ Cf · G−k−1+ q. (9) 
+
+Proof. The proof is simple. Standard results in the theory of spline approximation (see, e.g., Section 6.4 of Schumaker (2007)) tell us that there exist B-spline functions Φ (l),G i,j of order k + 1, constructed on a grid †† of mesh size G−1, such that for any 0 ≤ q ≤ k,
+
+(Φ (l) 
+
+> i,j
+
+◦ Φl−1 ◦ · · · ◦ Φ1 ◦ Φ0)( x) − (Φ (l),G i,j ◦ Φl−1 ◦ · · · ◦ Φ1 ◦ Φ0)( x) Cq ≤ Cl,i,j · G−k−1+ q,
+
+with a constant Cl,i,j independent of G. We choose and fix these B-spline approximations in order of growing l. Then, for each 0 ≤ l ≤ L − 1, one has that 
+
+Rl := (Φ GL−1 ◦ · · · ◦ ΦGl+1 ◦ Φl ◦ Φl−1 ◦ · · · ◦ Φ0)( x) − (Φ GL−1 ◦ · · · ◦ ΦGl+1 ◦ ΦGl ◦ Φl−1 ◦ · · · ◦ Φ0)( x)satisfies 
+
+∥Rl∥Cq ≤ Cl · G−k−1+ q,
+
+with a constant Cl that does not depend on G. Finally, one obtains (9) by using the triangle inequality on the telescopic decomposition 
+
+f − (Φ GL−1 ◦ ΦGL−2 ◦ · · · ◦ ΦG 
+
+> 1
+
+◦ ΦG 
+
+> 0
+
+)( x) = RL−1 + RL−2 + · · · + R1 + R0.
+
+Theorem 3.2 shows that spline-based KANs with a sufficiently large grid size G can approximate any function representable as a deep and smooth KAN quite well with a rate that is independent of the dimension (which is natural since splines are being used       
+
+> †† Naturally, this grid has to be a partition of an interval covering the range of (Φ l−1◦Φl−2◦· · ·◦ Φ1◦Φ0)( x)as xvaries over [0 ,1] d.
+
+25 to approximate univariate functions). Of course, the constant Cf is dependent on the representation (8); hence it potentially depends on the dimension d.
+
+Remark 3.2 . The recent work Kratsios and Furuya (2025) shows that residual KAN models can optimally approximate functions in Besov spaces Bsp,q (X) on bounded domains (or even fractal domains) X ⊂ Rd, with respect to weaker Besov norms Bαp,q (X), α < s .
+
+# 4 Concluding remarks 
+
+Despite significant progress in understanding the expressivity of neural networks, many important questions remain open. We highlight a few broad directions. While specific separation results demonstrate exponential benefits of depth for carefully constructed function classes, a comprehensive theory for general function classes, particularly in high dimensions, is still lacking. Precise quantification of depth–width trade-offs for smooth, compositional, or structured function classes remains an open challenge, and it is unclear to what extent existing results reflect fundamental phenomena versus artefacts of the particular constructions used. Most theoretical results reviewed here focus on the feedforward architecture with ReLU or sigmoidal activations. The approximation-theoretic properties of convolutional networks (CNNs) and more modern architectures, such as transformers with attention mechanisms, normalisation layers, and graph neural networks, are far less well understood, and developing a comparably mature theory for these architectures is an important open problem. The approximation theory of KANs is also in its early stages. While KANs offer an appealing alternative architectural paradigm grounded in the Kolmogorov–Arnold represen-tation theorem, a rigorous and comprehensive comparison with classical FNNs in terms of approximation rates and parameter efficiency remains to be carried out. Addressing these questions will not only deepen our theoretical understanding of neu-ral networks but also inform the design of architectures that are both expressive and computationally efficient in practice. 26 References 
+
+Arnol’d, V. I. (1957). On functions of three variables. In Doklady Akademii Nauk , volume 114, pages 679–681. Russian Academy of Sciences. 21 Arnol’d, V. I. (1959). On the representation of continuous functions of three variables by superpositions of continuous functions of two variables. Matematicheskii Sbornik ,90(1):3–74. 21 Barron, A. (1993). Universal approximation bounds for superpositions of a sigmoidal function. IEEE Transactions on Information Theory , 39(3):930–945. 5, 14 Baum, E. B. (1988). On the capabilities of multilayer perceptrons. Journal of Complexity ,4(3):193–215. 4 Bianchini, M. and Scarselli, F. (2014). On the complexity of neural network classifiers: A comparison between shallow and deep architectures. IEEE Transactions on Neural Networks and Learning Systems , 25(8):1553–1565. 5, 15 Cai, Y. (2023). Achieve the Minimum Width of Neural Networks for Universal Approxima-tion. In The Eleventh International Conference on Learning Representations . 18 Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. Mathematics of Control, Signals, and Systems , 2(4):303–314. 4, 11, 13 Daubechies, I., DeVore, R., Foucart, S., Hanin, B., and Petrova, G. (2022). Nonlinear approximation and (deep) ReLU networks. Constructive Approximation , 55(1):127–172. 6, 19 De Boor, C. (1978). A practical guide to splines , volume 27. Springer-Verlag New York. 24 De Ryck, T., Lanthaler, S., and Mishra, S. (2021). On the approximation of functions by tanh neural networks. Neural Networks , 143:732–750. 5 DeVore, R., Hanin, B., and Petrova, G. (2021). Neural network approximation. Acta Numerica , 30:327–444. 6 E, W., Ma, C., and Wu, L. (2021). The Barron Space and the Flow-Induced Function Spaces for Neural Network Models. Constructive Approximation , 55(1):369–406. 14 27 Eldan, R. and Shamir, O. (2016). The Power of Depth for Feedforward Neural Networks. In Feldman, V., Rakhlin, A., and Shamir, O., editors, 29th Annual Conference on Learning Theory , volume 49 of Proceedings of Machine Learning Research , pages 907–940, Columbia University, New York, New York, USA. PMLR. 5, 15 Funahashi, K.-I. (1989). On the approximate realization of continuous mappings by neural networks. Neural Networks , 2(3):183–192. 4 Girosi, F. and Poggio, T. (1989). Representation properties of networks: Kolmogorov’s theorem is irrelevant. Neural Computation , 1(4):465–469. 22 Hanin, B. and Sellke, M. (2017). Approximating continuous functions by relu nets of minimal width. arXiv preprint arXiv:1710.11278 . 18, 19 Hecht-Nielsen, R. (1987). Kolmogorov’s mapping neural network existence theorem. In 
+
+Proceedings of the international conference on Neural Networks , volume 3, pages 11–14. IEEE press New York, NY, USA. 22 Hilbert, D. (1902). Mathematical problems. Bulletin of the American Mathematical Society ,8(10):437–479. 21 Hornik, K. (1991). Approximation capabilities of multilayer feedforward networks. Neural Networks , 4(2):251–257. 5 Hornik, K., Stinchcombe, M., and White, H. (1989). Multilayer feedforward networks are universal approximators. Neural Networks , 2(5):359–366. 5, 10 Hwang, G. (2025). Optimal Minimum Width for the Universal Approximation of Contin-uously Differentiable Functions by Deep Narrow MLPs. In The Thirty-ninth Annual Conference on Neural Information Processing Systems . 18 Igelnik, B. and Parikh, N. (2003). Kolmogorov’s spline network. IEEE Transactions on Neural Networks , 14(4):725–733. 22 Johnson, J. (2019). Deep, Skinny Neural Networks are not Universal Approximators. In 
+
+International Conference on Learning Representations . 18 Kidger, P. and Lyons, T. (2020). Universal approximation with deep narrow networks. In 
+
+Conference on Learning Theory , pages 2306–2327. PMLR. 18 28 Kim, N., Min, C., and Park, S. (2024). Minimum width for universal approximation using ReLU networks on compact domain. In The Twelfth International Conference on Learning Representations . 18 Klusowski, J. M. and Barron, A. R. (2016). Risk bounds for high-dimensional ridge function combinations including neural networks. arXiv preprint arXiv:1607.01434 . 14 Kohler, M. and Langer, S. (2021). On the rate of convergence of fully connected deep neural network regression estimates. The Annals of Statistics , 49(4):2231–2249. 6, 19, 20 Kolmogorov, A. N. (1956). On the representation of continuous functions of several variables by superpositions of continuous functions of a smaller number of variables. In Dokl. Akad. Nauk USSR , volume 108, pages 179–192. 21 Kolmogorov, A. N. (1957). On the representations of continuous functions of many variables by superposition of continuous functions of one variable and addition. In Dokl. Akad. Nauk USSR , volume 114, pages 953–956. 21 Kratsios, A. and Furuya, T. (2025). Kolmogorov-Arnold Networks: Approximation and learning guarantees for functions and their derivatives. arXiv preprint . 26 K˚ urkov´ a, V. (1991). Kolmogorov’s theorem is relevant. Neural Computation , 3(4):617–622. 22 K˚ urkov´ a, V. (1992). Kolmogorov’s theorem and multilayer neural networks. Neural Networks ,5(3):501–506. 22 LeCun, Y., Bengio, Y., and Hinton, G. (2015). Deep learning. Nature , 521(7553):436–444. 5 Leshno, M., Lin, V. Y., Pinkus, A., and Schocken, S. (1993). Multilayer feedforward networks with a nonpolynomial activation function can approximate any function. Neural Networks , 6(6):861–867. 5, 13 Li, L., Duan, Y., Ji, G., and Cai, Y. (2023). Minimum Width of Leaky-ReLU Neural Networks for Uniform Universal Approximation. In Proceedings of the 40th International Conference on Machine Learning , pages 19460–19470. PMLR. 18 Liu, Z., Wang, Y., Vaidya, S., Ruehle, F., Halverson, J., Soljacic, M., Hou, T. Y., and Tegmark, M. (2025). KAN: Kolmogorov–Arnold Networks. In The Thirteenth International Conference on Learning Representations . 21, 24, 25 29 Lu, Z., Pu, H., Wang, F., Hu, Z., and Wang, L. (2017). The expressive power of neural networks: A view from the width. Advances in Neural Information Processing Systems ,30. 6, 18 Makovoz, Y. (1996). Random Approximants and Neural Networks. Journal of Approximation Theory , 85(1):98–109. 5, 14 McCulloch, W. S. and Pitts, W. (1943). A logical calculus of the ideas immanent in nervous activity. The Bulletin of Mathematical Biophysics , 5(4):115–133. 3 Mhaskar, H. N. (1996). Neural networks for optimal approximation of smooth and analytic functions. Neural Computation , 8(1):164–177. 5 Mont´ ufar, G., Pascanu, R., Cho, K., and Bengio, Y. (2014). On the number of linear regions of deep neural networks. Advances in Neural Information Processing Systems , 27. 5, 15 Morris, S. (2021). Hilbert 13: Are there any genuine continuous multivariate real-valued functions? Bulletin of the American Mathematical Society , 58(1):107–118. 22 Park, S., Yun, C., Lee, J., and Shin, J. (2021). Minimum Width for Universal Approximation. In International Conference on Learning Representations . 18 Petersen, P. and Voigtlaender, F. (2018). Optimal approximation of piecewise smooth functions using deep ReLU neural networks. Neural Networks , 108:296–330. 6, 19 Pinkus, A. (1999). Approximation theory of the MLP model in neural networks. Acta Numerica , 8:143–195. 5, 6, 13, 14, 22 Poole, B., Lahiri, S., Raghu, M., Sohl-Dickstein, J., and Ganguli, S. (2016). Exponential expressivity in deep neural networks through transient chaos. Advances in Neural Information Processing Systems , 29. 6, 15 Raghu, M., Poole, B., Kleinberg, J., Ganguli, S., and Sohl-Dickstein, J. (2017). On the Expressive Power of Deep Neural Networks. In Precup, D. and Teh, Y. W., editors, 
+
+Proceedings of the 34th International Conference on Machine Learning , volume 70 of 
+
+Proceedings of Machine Learning Research , pages 2847–2854. PMLR. 6, 15 Rochau, D., Chan, R., and Gottschalk, H. (2024). New advances in universal approximation with neural networks of minimal width. arXiv preprint arXiv:2411.08735 . 18 Rosenblatt, F. (1958). The perceptron: a probabilistic model for information storage and organization in the brain. Psychological Review , 65(6):386. 3 30 Scarselli, F. and Chung Tsoi, A. (1998). Universal Approximation Using Feedforward Neural Networks: A Survey of Some Existing Methods, and Some New Results. Neural Networks ,11(1):15–37. 6 Schumaker, L. (2007). Spline functions: basic theory . Cambridge University Press. 24, 25 Schwartz, L. (1944). Sur certaines familles non fondamentales de fonctions continues. 
+
+Bulletin de la Soci´ et´ e Math´ ematique de France , 72:141–145. 13 Siegel, J. W. (2023). Optimal approximation rates for deep ReLU neural networks on Sobolev and Besov spaces. Journal of Machine Learning Research , 24(357):1–52. 6, 19 Siegel, J. W. and Xu, J. (2022). High-order approximation rates for shallow neural networks with cosine and ReLUk activation functions. Applied and Computational Harmonic Analysis , 58:1–26. 14 Telgarsky, M. (2015). Representation benefits of deep feedforward networks. arXiv preprint arXiv:1509.08101 . 15 Telgarsky, M. (2016). Benefits of depth in neural networks. In Conference on Learning Theory , pages 1517–1539. PMLR. 5, 15, 17 Telgarsky, M. (2021). Deep learning theory lecture notes. https://mjt.cs.illinois.edu/ dlt/ . Version: 2021-10-27 v0.0-e7150f2d (alpha). 10 Yarotsky, D. (2017). Error bounds for approximations with deep ReLU networks. Neural Networks , 94:103–114. 6, 19 Yarotsky, D. (2018). Optimal approximation of continuous functions by very deep ReLU networks. In Conference on Learning Theory , pages 639–649. PMLR. 6, 19 31

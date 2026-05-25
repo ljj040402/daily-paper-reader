@@ -1,0 +1,915 @@
+Title: Winfree Oscillatory Neural Network
+
+URL Source: https://arxiv.org/pdf/2605.20922v1
+
+Published Time: Thu, 21 May 2026 01:00:28 GMT
+
+Number of Pages: 31
+
+Markdown Content:
+# Winfree Oscillatory Neural Network 
+
+Jiawen Dai 3 and Yue Song †1,2 1Shanghai Qi Zhi Institute 
+
+> 2
+
+College of AI, Tsinghua University 
+
+> 3
+
+Shanghai Jiao Tong University 
+
+## Abstract 
+
+Oscillations and synchronization are widely believed to play a fundamental role in representation and computation. However, existing machine learning approaches based on synchronization dynamics have largely been confined to specialized set-tings such as object discovery, with limited evidence of scalability to standard vision benchmarks or logic reasoning tasks. We propose the Winfree Oscillatory Neural Network (WONN ), a dynamical neural architecture based on generalized Winfree dynamics. WONN evolves representations on the torus (S1)d through structured oscillatory interactions, combining phase-based inductive biases with flexible and hierarchical interaction mechanisms instantiated as either fixed trigonometric map-pings or learnable neural networks. We evaluate WONN on image recognition and complex reasoning tasks, including CIFAR, ImageNet, Maze-hard, and Sudoku. Across these domains, WONN achieves competitive or superior performance with strong parameter efficiency. In particular, WONN is, to our knowledge, the first synchronization-based oscillatory architecture to scale competitively to ImageNet-1K. Furthermore, on Maze-hard, WONN achieves 80.1% accuracy using only 1% of the parameters of prior state-of-the-art models . These results suggest that structured oscillatory dynamics provide a scalable and parameter-efficient alternative to conventional neural architectures. The project page is available at https://jiawen-dai.github.io/WONN_Project_Page/ .
+
+## 1 Introduction Synchronize   
+
+> Dynamics
+> W inf ree
+> Sudoku Image Recognition M aze -hard Image Recognition M aze -hard Sudoku
+
+Figure 1: Illustration of the proposed WONN . The network evolves on the toroidal phase space (S1)d,where neurons are represented as phase oscillators. Through generalized Winfree synchronization dy-namics, oscillators self-organize into structured collective states, enabling effective computation for both image recognition and reasoning tasks. Oscillations and synchronization are ubiquitous mechanisms for organizing collective dynamics in biological and physical systems [ 2, 46 , 20 ]. In neuroscience, oscillatory activity has long been associated with temporal coordination, inter-area communication, and structured informa-tion processing [ 2, 8 , 27 ], while synchroniza-tion and temporal correlation have been pro-posed as mechanisms for perceptual binding and coherent representation formation [ 42 , 43 , 34 ]. In physics, coupled oscillator systems provide canonical examples of how simple local inter-actions can self-organize into coherent macro-scopic behavior [ 46 , 20 ]. Together, these ob-servations suggest an alternative perspective on neural computation: rather than viewing representation learning purely as a sequence of static feature 
+
+> †
+> Correspondence to: yue-song@mail.tsinghua.edu.cn Preprint.
+> arXiv:2605.20922v1 [cs.LG] 20 May 2026
+
+transformations, computation may instead emerge from the collective evolution and synchronization of interacting dynamical states. Despite their conceptual appeal, synchronization-based principles have so far had limited impact on mainstream machine learning. Existing synchronization-inspired approaches are primarily re-stricted to specialized settings such as object-centric representation learning or unsupervised object discovery [ 24 , 39 , 10 , 23 ]. More recent architectures such as AKOrN [ 26 ] introduce Kuramoto-type oscillatory neurons into neural networks, but the empirical scalability of oscillatory architectures remains largely unclear. In particular, it is unknown whether synchronization-based computation can scale to large-scale image recognition benchmarks such as ImageNet-1k [ 4], or whether oscil-latory dynamics can provide effective inductive biases for difficult combinatorial reasoning tasks such as maze pathfinding [ 21 , 44 ]. This raises a fundamental question: Can synchronization-driven dynamics serve as a scalable and parameter-efficient alternative to conventional feed-forward or transformer-style neural architectures? 
+
+In this work, we introduce the Winfree Oscillatory Neural Network (WONN ), a neural architecture built upon generalized Winfree synchronization dynamics [ 46 , 25 ]. As illustrated in Fig. 1, WONN 
+
+evolves neural representations on a high-dimensional toroidal phase space (S1)d, where each neuron is represented as a phase oscillator. Unlike Kuramoto-type models based primarily on pairwise phase differences, Winfree dynamics decompose interactions into separable sensitivity and influence functions, enabling more flexible synchronization behaviors and interaction structures. 
+
+WONN combines geometric inductive biases with flexible synchronization dynamics. The interaction functions can either be instantiated as fixed trigonometric mappings or parameterized by learnable neural networks, while grouped dynamics introduce hierarchical interactions that support both local coordination and global information flow. Under trigonometric interactions, the oscillatory core further admits an interaction energy that provides a useful stability perspective and diagnostic signal for reasoning tasks. Moreover, the dual phase–frequency state design separates fast synchronization dynamics from slower frequency evolution, enabling stable iterative refinement of representations. We evaluate WONN on both visual perception and structured reasoning tasks. Across CIFAR and ImageNet benchmarks, WONN achieves competitive or superior accuracy compared with convolu-tional, transformer-based, and synchronization-inspired baselines while using substantially fewer parameters. Importantly, WONN is, to our knowledge, the first synchronization-based oscillatory architecture to scale to ImageNet-1K with competitive performance against modern architec-tures such as ResNet and ViT. The learned representations further exhibit characteristic bimodal phase organization, where distinct synchronized phase groups specialize to complementary coarse and fine image structures. On complex reasoning tasks, WONN achieves competitive Maze-hard performance using only 1% of the parameters of the state-of-the-art HRM [44 ], while also reach-ing perfect test accuracy on Sudoku with strong parameter efficiency. Taken together, these results suggest that generalized Winfree synchronization dynamics provide a scalable, high-performance, and parameter-efficient computational principle for both visual perception and logical reasoning. 
+
+## 2 Winfree Oscillatory Neural Networks 
+
+This section develops WONN by connecting classical Winfree dynamics with learnable neural architectures. We first review the underlying Winfree model and its generalizations (Sec. 2.1), then introduce the WONN architecture with structured interactions (Sec. 2.2), and finally discuss its key dynamical and representational properties (Sec. 2.3). 
+
+2.1 From Winfree Dynamics to Learnable Oscillatory Systems Winfree Dynamics. We consider a population of coupled phase oscillators that are governed by the Winfree model [46]: 
+
+˙θi = ωi + κN S(θi)
+
+> N
+
+X
+
+> j=1
+
+I(θj ), i = 1 , . . . , N, (1) where θi ∈ T := R/(2 πZ) is the phase of the i-th oscillator, ωi ∈ R is its natural frequency and 
+
+κ ∈ R+ is the coupling strength. The interaction is mediated through a mean-field aggregation of the influence function I(·), modulated by the sensitivity function S(·).2Θ(l, 1) Θ(l,T ) Θ(l+1 ,1)   
+
+> Ω(l)Ω(l+1)
+> Winfree Dynamics Steps Layer Transition
+> 1st Winfree Dynamics Layer
+> L-th Winfree Dynamics Layer
+> l-th Winfree Dynamics Layer
+> ×T
+> Ωinit
+> Θinit
+
+Figure 2: Overview of the WONN architecture. The input is encoded into an initial frequency state 
+
+Ωinit , while the phase state Θinit is initialized randomly. Computation proceeds through stacked Winfree dynamics layers, each consisting of multiple parameter-shared recurrent dynamics steps followed by layer-transition updates of both phase and frequency states. Through this iterative synchronization process, WONN evolves structured oscillatory representations across layers on the toroidal phase space before producing the final prediction. 
+
+Structured Interactions Beyond Kuramoto. A widely studied special case of oscillator synchro-nization is the Kuramoto model, whose dynamics are governed by pairwise phase differences: 
+
+˙θi = ωi + γ
+
+> N
+
+X
+
+> j=1
+
+Kij sin( θj − θi), t > 0, (2) where γ ∈ R+ denotes the coupling strength. These dynamics preserve global phase-shift symmetry under θi 7 → θi + α, since the interaction depends only on relative phase differences. While this symmetry simplifies analysis, it may also limit the diversity of attainable collective dynamics. By contrast, the Winfree formulation allows more general interaction structures and naturally extends beyond this symmetric regime. In particular, introducing additional coupling terms yields 
+
+˙θi = ωi + γ
+
+> N
+
+X
+
+> j=1
+
+Kij 
+
+ sin( θj − θi) + q sin( θj + θi), (3) where q controls the degree of symmetry breaking. This formulation recovers the Kuramoto model when q = 0 , and produces asymmetric interactions for q̸ = 0 , enabling richer synchronization patterns. When q = 1 , the dynamics can be rewritten as ˙θi = ωi + 2 γ cos θi
+
+PNj=1 Kij sin( θj ),which corresponds to a separable Winfree form with S(θ) = cos( θ) and I(θ) = sin( θ), arising from the first-order Fourier components of the interaction functions [25]. These formulations highlight a key perspective: collective dynamics are determined by the structure of interactions rather than pairwise phase differences alone . This flexibility makes Winfree-type systems a natural candidate for learnable neural architectures. 
+
+Geometric structure. Each oscillator evolves on the circle T := R/(2 πZ) ∼= S1, and the full system resides on the torus 
+
+Θ = ( θ1, . . . , θ d) ∈ M := Td ∼= ( S1)d. (4) The dynamics define a vector field on M, while updates can be locally represented in the tangent space TΘM ∼= Rd. In practice, this suggests performing computations in a Euclidean embedding while enforcing periodic structure in the phase variables. 
+
+2.2 Winfree Oscillatory Neural Network 
+
+Fig. 2 illustrates the overall architecture of WONN , where representations are computed through iterative synchronization dynamics between coupled oscillatory neurons. 
+
+State and initialization. Each layer maintains a dual state consisting of a phase variable Θ ∈ (S1)d
+
+and a frequency variable Ω ∈ Rd. The phase captures oscillatory structure, while the frequency carries input-dependent information. Given an input x, we initialize Ω(0) = Ωinit = finit (x) and 
+
+Θ(0) = Θinit ∼ N (0 , σ 2), where finit is a learnable embedding. 3Discrete Winfree dynamics. At the core of WONN is a discretized Winfree evolution. For each layer 
+
+l, we perform T recurrent updates: 
+
+θ(l,t +1)  
+
+> i
+
+= θ(l,t ) 
+
+> i
+
++ γ
+
+h
+
+ω(l) 
+
+> i
+
++ S(θ(l,t ) 
+
+> i
+
+) X
+
+> j
+
+cij I(θ(l,t ) 
+
+> j
+
+)
+
+i
+
+, t = 1 , . . . , T. (5) with parameters shared across time steps. Here cij denotes the coupling coefficient between oscillators 
+
+i and j. The above ODE defines a controlled dynamical system over phases. 
+
+Interaction mechanisms. The behavior of the system is governed by the parameterization of the sensitivity and influence functions S and I. In the simplest case, these are defined point-wise as S(θi)
+
+and I(θi), implemented either using fixed trigonometric functions or learnable neural mappings. ...
+
+# · · · 
+
+# . . .
+
+# · · · 
+
+# ...
+
+> I(2 ,2) I(2 ,1)
+> I(1 ,2)
+> I(1 ,1)
+> N
+> Coupling
+
+Ip,q  
+
+> S(θi,j )
+
+Figure 3: Illustration of S and I.To capture structured interactions, we introduce a grouped for-mulation . As shown in Fig. 3, oscillators are partitioned into spatial patches Gp,q , where each patch aggregates local states into a shared influence signal: 
+
+Ipatch  
+
+> p,q
+
+= Ipatch ({θi,j }(i,j )∈G p,q ). (6) Here Gp,q denotes an N × N region, where N is the group size. This induces a hierarchical interaction pattern, combining intra-group synchronization with inter-group coordination. More generally, the coupling coefficients P cij can be imple-mented through local or global components. Local interactions are implemented via convolutional operators with bounded recep-tive fields, while global interactions are realized through attention mechanisms. This results in a heterogeneous, state-dependent mean field, extending the homogeneous coupling in classical Winfree dynamics. We use global attentive coupling for all WONN models throughout the paper, and discuss local convolutional coupling as an alternative in Appendix C.2. 
+
+Algorithm 1 Forward pass of WONN  
+
+> 1:
+
+Input: input x, layers L, steps {Tl}Ll=1 , step size γ, group size N 
+
+> 2:
+
+Output: model output y 
+
+> 3:
+
+Ω(1) ← finit (x), Θ(1 ,1) ∼ N (0 , σ 2I) 
+
+> 4:
+
+for l = 1 , . . . , L do  
+
+> 5:
+
+for t = 1 , . . . , T l do  
+
+> 6:
+
+(1) Point-wise Sensitivity Function  
+
+> 7:
+
+S(l,t ) ← Sl(Θ (l,t )) 
+
+> 8:
+
+(2) Patch-wise Influence Function  
+
+> 9:
+
+partition Θ(l,t ) into non-overlapping N × N groups {G p,q } 
+
+> 10:
+
+I(l,t ) 
+
+> p,q
+
+← Il
+
+> patch
+
+
+
+{θ(l,t ) 
+
+> i,j
+
+}(i,j )∈G p,q 
+
+ 
+
+> 11:
+
+(3) Winfree Dynamics Step  
+
+> 12:
+
+∆Θ (l,t ) ← Ω(l) + S(l,t ) ⊙ (P 
+
+> j
+
+cij I(l,t ) 
+
+> p,q
+
+), Θ(l,t +1) ← wrap [−π,π )
+
+ Θ(l,t ) + γ∆Θ (l,t ) 
+
+> 13:
+
+end for  
+
+> 14:
+
+(4) Layer Transition  
+
+> 15:
+
+Θ(l+1 ,1) ← ThetaUpdate l(Θ (l,T l)), Ω(l+1) ← OmegaUpdate l(Ω (l), Θ(l,T l)) 
+
+> 16:
+
+end for  
+
+> 17:
+
+(5) Output  
+
+> 18:
+
+y ← OutputHead(Θ (L,T L)) 
+
+> 19:
+
+return y
+
+Layer transitions. After T steps, the phase and frequency are jointly updated as 
+
+Θ(l+1) = Theta-Update (Θ(l,T )), Ω(l+1) = Omega-Update (Ω(l), Θ(l,T )). (7) This design separates fast phase evolution within each layer from slower updates of the frequency state across layers, allowing oscillatory patterns to be progressively refined. Since phases lie on the circle, computations are performed via Euclidean embeddings while preserving periodic structure. Each phase is represented as (sin θ, cos θ), and the phase update Theta-Update 
+
+4first applies weight-tied convolutional operators in this embedding space (which can be interpreted as linear operators acting on complex representation eiΘ) and maps the result back to the torus via 
+
+Θnew = atan2  Conv (sin Θ), Conv (cos Θ) (8) For frequency updates, we similarly construct a tangent-space representation of Θ and combine it with the current frequency state to produce Ω(l+1) through a learnable mapping. The final model representation is obtained from the phase variables Θ(L) using a task-specific neural network head. Alg. 1 summarizes a single forward pass of our WONN .
+
+2.3 Dynamical and Structural Properties of WONN 
+
+WONN exhibits several distinctive properties that emerge from its oscillatory dynamics and structured interaction design. We highlight the key properties below. 
+
+Oscillatory inductive bias. WONN imposes a geometric inductive bias by evolving representations on the torus (S1)d, enforcing periodic structure in the representation space. This encourages phase-based organization of features, where information can be encoded through relative phase configurations. Empirically, we observe that oscillators tend to form structured phase distributions, often exhibiting multi-modal patterns ( e.g., phase bifurcation with modes separated by π). Such phase organization may correlate with meaningful feature extraction. For instance in vision tasks, we observe that different phase modes align with distinct components such as object edges (see Sec. 3.2). 
+
+Hierarchical interaction structure. The grouped Winfree formulation introduces a two-level interaction hierarchy. Within each group, oscillators synchronize through shared local aggregation, while interactions across groups enable global coordination. This structure interpolates between purely local and fully global coupling, controlled by the group size N . In the limiting case N =1 ,the model reduces to point-wise interactions, whereas larger groups introduce shared contextual influence. This hierarchical design allows WONN to adapt its interaction scale to different tasks, balancing locality and global coherence. 
+
+Flexible interaction parameterization. WONN allows flexible choices of the sensitivity and influ-ence functions S and I. In particular, these functions can be instantiated either as fixed trigonometric mappings ( e.g., S(θ)= cos θ, I(θ)= sin θ) or as learnable neural networks ( e.g., MLPs). The trigono-metric parameterization provides a structured and stable interaction form aligned with classical oscillator models, while the parameterization of learnable neural networks increases expressivity. This flexibility allows to trade off inductive bias and representational capacity across different tasks. 
+
+Energy structure and stability. The phase dynamics of WONN inherit stability properties from the underlying Winfree system. Due to the periodic geometry of (S1)d, the natural frequency term cannot, in general, be associated with a globally defined potential (see Appendix D). However, when the natural frequency is excluded and the interaction functions take separable trigonometric forms, the dynamics admit a Lyapunov function that decreases along trajectories, leading to stable synchronization patterns and attractors in phase space. In this regime, the interaction energy can be written as Eint = − P 
+
+> i
+
+sin θi
+
+P 
+
+> j
+
+cij sin( θj ), capturing phase alignment under the coupling coefficients. This energy also serves as a practical diagnostic: in Maze reasoning tasks (Sec. 3.3), we use it as a proxy for solution quality and perform voting to improve performance. 
+
+Separation of timescales. WONN separates fast oscillatory dynamics from slower feature evolution through its dual-state design. Within each layer, the phase state Θ undergoes multiple recurrent updates, enabling rapid synchronization and local reorganization on (S1)d. In contrast, the frequency state Ω is updated once per layer, acting as a slower carrier of information across layers. This separa-tion of timescales decouples transient oscillatory computation from cross-layer feature transformation, which is reminiscent of hierarchical processing in biological systems [13, 15, 9, 44]. 
+
+## 3 Experiments 
+
+3.1 Experimental Setup 
+
+We evaluate WONN on a diverse set of benchmarks spanning visual perception and logical reasoning. The visual tasks include CIFAR-10/100 [ 19 ] and ImageNet-100/1K [ 4], while the reasoning tasks consist of Maze-hard pathfinding [21, 44] and Sudoku solving [45]. 5Table 1: Image classification results on CIFAR-10/100 . † ViT models are trained with additional regularization (e.g., CutMix and label smoothing), while other models follow a plain training protocol. 
+
+Models CIFAR-10 CIFAR-100 Accuracy (%) # Parameters Accuracy (%) # Parameters ResNet-18 93.48 ±0.16 11.17M 70.53 ±0.10 11.22M 
+
+ResNet-50 94.22 ±0.14 23.52M 73.54 ±0.41 23.71M 
+
+ViT-T † 90.34 ±0.18 5.36M 67.59 ±0.44 5.38M 
+
+ViT-S † 93.43 ±0.29 21.34M 71.18 ±0.62 21.38M 
+
+ViT-B † 92.04 ±0.25 85.15M 71.05 ±0.40 85.22M 
+
+AKOrN attn 93.66 ± 0.17 4.60M 72.03 ± 0.34 4.62M 
+
+S(θi)& I(θi) as MLPs 
+
+WONN (Ch = 128 → 128 ) 94.55 ± 0.09 3.08M 73.77 ± 0.40 3.09M 
+
+WONN (Ch = 64 → 256 ) 95.12 ± 0.04 7.54M 75.12 ± 0.49 7.56M 
+
+WONN (Ch = 256 → 256 ) 95.24 ± 0.12 12.02M 76.20 ± 0.45 12.04M 
+
+S(θi)& I(θi) as trigonometric functions 
+
+WONN (Ch = 128 → 128 ) 94.50 ±0.15 2.98M 74.48 ±0.16 3.00M 
+
+WONN (Ch = 64 → 256 ) 95.08 ±0.07 7.40M 75.81 ±0.33 7.43M 
+
+WONN (Ch = 256 → 256 ) 95.26 ±0.05 11.84M 76.17 ±0.52 11.86M 
+
+Visual Perception. For image classification, we benchmark WONN against representative con-volutional and transformer-based architectures, including ResNet-18 and ResNet-50 [ 14 ], as well as Vision Transformers ( ViT-Tiny/Small/Base ) [ 5 , 41 ]. We also include AKOrN [ 26 ], a recent synchrony-based model, as a closely related baseline. All methods are trained under standard, architecture-appropriate protocols, and no additional training techniques are introduced to favor WONN, ensuring a fair comparison. 
+
+Logical Reasoning. For reasoning tasks, we evaluate WONN on Maze-hard and Sudoku. On Maze-hard, we mainly compare against both general-purpose LLMs ( e.g., DeepSeek-R1 [ 11 ]) and specialized recurrent reasoning architectures, including HRM [ 44 ] and TRM [ 16 ]. On Sudoku, we compare with AKOrN [26] and several other neural reasoning baselines [45, 30, 48]. Other implementation details and extended experimental results are referred to in Appendix C. 
+
+3.2 Image Classification on CIFAR and ImageNet 
+
+We evaluate WONN on standard image classification benchmarks, including CIFAR-10/100 and ImageNet-100/1K. We consider two parameterizations of the interaction functions S and I: (i) learnable MLP-based mappings and (ii) fixed trigonometric mappings. All models use grouped Winfree dynamics in Eq. (6) with group size N = 2 . To assess the scalability of model size, we study three model sizes with approximately 3M, 7.5M, and 12M parameters. 
+
+Results on CIFAR-10/100. Table 1 compares WONN with ResNet , ViT , and AKOrN , with results averaged over three random seeds. WONN consistently outperforms all baselines on both CIFAR-10 and CIFAR-100 while using substantially fewer parameters. Notably, WONN , trained with a plain protocol, surpasses transformer-based baselines that rely on additional regularization. These results demonstrate the effectiveness and parameter efficiency of oscillatory dynamics. 
+
+Results on ImageNet-100/1K. Table 2 shows that the trends observed on CIFAR persist at larger scale: WONN achieves competitive accuracy with substantially fewer parameters than standard base-lines. In particular, WONN successfully scales to ImageNet-1K, surpassing or matching ViT /ResNet 
+
+performance using roughly half or fewer parameters. To the best of our knowledge, this is the first synchrony-based architecture that scales effectively to large-scale image classification. 
+
+Two-peak phase distributions. To better understand the internal phase organization of WONN , we analyze the final θ distribution in Fig. 4 left. Interestingly, the phase variables consistently bifurcate into two dominant modes, producing a characteristic bimodal distribution with peaks approximately separated by π. To visualize the functional role of these modes, we construct weighted activation maps by measuring the proximity of each oscillator phase to the corresponding peak. 6π(−π) π 
+
+> 2
+> −π
+> 2
+> 0
+
+Figure 4: Visualization of the final phase distribution in WONN on image recognition tasks. Left: the phase variables θ exhibit a characteristic bimodal distribution, with two dominant peaks approximately separated by π. Right: heatmaps constructed by weighting oscillators according to their proximity to each phase peak. The two modes capture complementary object structures: one emphasizes coarse global regions, while the other focuses on finer local details and boundaries. Together, the synchronized phase organization produces structured object-aware representations. Table 2: Image classification results on ImageNet-100 and ImageNet-1K . †ViT models are trained with additional regularization techniques compared to other models.                                                                        
+
+> Models ImageNet-100 ImageNet-1k Accuracy(%) #Parameters Accuracy(%) #Parameters ResNet-18 78.20 11.23M 69.73 11.69M
+> ResNet-50 81.18 23.71M 76.89 25.56M
+> ViT-S-16 †77.96 21.70M 75.54 22.05M
+> ViT-B-16 †76.36 85.87M 75.85 86.57M
+> AKOrN attn 80.08 4.62M 67.45 4.85M
+> S(θi)& I(θi)as MLPs
+> WONN (Ch = 128 →128 )81.50 3.09M ––
+> WONN (Ch = 64 →256 )82.04 7.56M 74.84 7.79M
+> WONN (Ch = 256 →256 )82.88 12.05M 76.78 12.28M
+> S(θi)& I(θi)as trigonometric functions
+> WONN (Ch = 128 →128 )81.76 3.00M ––
+> WONN (Ch = 64 →256 )82.56 7.43M ––
+> WONN (Ch = 256 →256 )82.22 11.87M ––
+
+Fig. 4 right reveals that the two synchronized phase modes capture complementary aspects of the object structure. One phase mode primarily responds to coarse, global object regions, while the other emphasizes finer local structures and boundaries. Despite different spatial characteristics, both modes remain highly aligned with semantically relevant object regions. This suggests that the oscillatory synchronization dynamics naturally induce a structured phase decomposition of representations, where different synchronized phase groups specialize to distinct levels of spatial abstraction. 
+
+Notably, the emergence of such bimodal phase organization is not explicitly imposed by any architecture or supervision objective, but instead arises spontaneously from the collective synchro-nization dynamics. We hypothesize that this self-organized phase separation contributes to the strong recognition performance and parameter efficiency of WONN by enabling coordinated yet diverse feature representations across oscillators. Additional visualizations are provided in Appendix E.1. 
+
+3.3 Maze-hard Pathfinding 
+
+We evaluate the reasoning capability of WONN on the Maze-hard benchmark, which requires finding optimal paths in 30 × 30 mazes and tests long-horizon search and algorithmic reasoning. 7Figure 5: Synchronous path formation on Maze-hard. Each panel shows the predicted per-cell path probability. WONN initially produces multiple diffuse path fragments. As the dynamics evolve, these fragments progressively synchronize and merge, forming a coherent path from start to goal. Following [ 44 ], we construct 1, 000 training and 1, 000 test instances whose difficulty levels exceed 
+
+110 . For this task, WONN uses point-wise interactions ( N = 1 ). Table 3: Maze-hard pathfinding results. Energy Voting denotes selecting the solution with the lowest energy among 32 independently sampled trajectories.                            
+
+> Models Accuracy (%) #Parameters
+> LLMs
+> Deepseek R1 0.0 671B
+> Claude 3.7 8K 0.0 ?
+> O3-mini-high 0.0 ?
+> Recurrent models
+> HRM 74.5 27M
+> TRM-Att (dihedral augmented) 85.3 7M
+> TRM-MLP (dihedral augmented) 0.0 19M
+> Other synchrony-based model
+> AKOrN attn 36.2 1M
+> S(θi)&I(θi)as trigonometric functions
+> WONN 76.2 0.396M
+> WONN (Energy Voting) 80.1 0.396M
+
+Results on Maze-hard. Table 3 shows that WONN significantly outperforms LLM-based baselines and the synchrony-based model AKOrN , and surpasses the strong recurrent model HRM . Despite using only 0.396M parameters ( 1.47% of HRM ), WONN achieves 76.2% accuracy. Importantly, leveraging the energy structure of the dynamics, we further improve performance via energy voting :by sampling 32 trajectories and selecting the solution with the lowest final energy, accuracy increases to 80.1% . This highlights the practical usage of the energy formulation as a test-time selection criterion . Taken together, these results demonstrate that structured oscillatory dynamics provide an effective and highly parameter-efficient inductive bias for long-horizon reasoning. 
+
+Synchronous Pathfinding on Maze-hard. To better understand the role of oscillatory dynamics, we visualize the intermediate states of WONN on Maze-hard (Fig. 5). We plot heatmaps of the predicted per-cell path probability, revealing how solutions emerge over time. Unlike conventional methods that construct paths incrementally or greedily, WONN exhibits a distinct synchronization-driven process. In the early stage, the model generates multiple diffuse path fragments across the maze that correspond to candidate solution trajectories. These fragments are not locally consistent and may include invalid transitions. As the dynamics evolve, these candidate fragments begin to interact and synchronize. Inconsistent paths are suppressed, while compatible segments reinforce each other and progressively merge. This collective refinement process leads 8to the emergence of a single coherent path connecting the start and goal. In later stages, the model further refines the solution by removing redundant segments and improving path optimality. Additional examples (Appendix E.2) show that this multi-fragment-to-single-path behavior is con-sistent across hard instances. These observations suggest that synchronization dynamics provide a powerful inductive bias for combinatorial search: instead of committing to a single trajectory early, the model explores multiple candidates in parallel and resolves them through collective alignment. 
+
+3.4 Sudoku Reasoning 
+
+We further evaluate WONN on Sudoku, a standard benchmark for combinatorial reasoning. We use the dataset from [ 45 ], where training instances contain 31–42 given digits, and evaluation is performed on 1,000 test boards drawn from the same distribution. For this task, WONN adopts point-wise interactions ( N = 1 ) and follows the same training protocol as AKOrN .
+
+Results on Sudoku. Table 4 reports results averaged over five runs. WONN achieves perfect accuracy on the test set, matching the best-performing methods. It improves upon AKOrN and HRM while using significantly fewer parameters, and achieves comparable performance to both recurrent and transformer-based baselines [ 30 , 48 ]. Consistent with the Maze-hard results, these findings suggest that oscillatory dynamics provide an effective inductive bias for structured reasoning tasks. Table 4: Sudoku solving results.                          
+
+> Models Accuracy (%) #Parameters SAT-Net 98.3 0.618M
+> RRN 99.8 0.201M
+> R-Transformer 100.0 0.211M
+> Transformer 98.6 ±0.3 16.87M
+> HRM 99.7 ±0.2 27.28M
+> AKOrN attn (T= 16 )99.8 ±0.1 2.98M
+> S(θi)& I(θi)as trigonometric functions
+> WONN (T= 16 )100.0 ±0.0 1.58M
+
+## 4 Conclusion 
+
+We introduced the Winfree Oscillatory Neural Network (WONN ), a neural architecture built upon generalized Winfree synchronization dynamics. Unlike conventional architectures that primarily rely on static feature transformations, WONN performs computation through the collective evolution and synchronization of phase oscillators on a toroidal state space (S1)d. By combining flexible interaction parameterizations, hierarchical grouped synchronization dynamics, and a dual phase–frequency state design, WONN provides a scalable framework for oscillatory neural computation. Empirically, we show that synchronization-based architectures can scale far beyond the limited settings previously explored in oscillatory or synchronization-inspired models. On visual perception tasks, WONN achieves competitive or superior performance on CIFAR and ImageNet benchmarks while maintaining strong parameter efficiency. In particular, WONN successfully scales to ImageNet-1K, which, to the best of our knowledge, makes it the first synchronization-based oscillatory ar-chitecture to achieve competitive large-scale image recognition performance. The learned phase representations further exhibit characteristic bimodal phase organization, where distinct synchronized phase groups specialize to complementary coarse and fine image structures. Beyond perception, 
+
+WONN also demonstrates strong capability on structured reasoning tasks. On Maze-hard, WONN 
+
+achieves competitive performance using only a tiny fraction of the parameters of state-of-the-art recurrent reasoning models. Visualization of the temporal evolution further reveals that the network progressively assembles local candidate path fragments into coherent global solutions, suggesting that synchronization provides an effective inductive bias for complex search and reasoning problems. On Sudoku, WONN further achieves perfect test accuracy with strong parameter efficiency. More broadly, our results suggest that synchronization dynamics may provide a promising alternative computational paradigm for modern machine learning. We hope this work encourages further exploration of oscillatory neural computation, synchronization-driven representation learning, and dynamical systems perspectives on large-scale neural architectures. 9References 
+
+[1] Michael Breakspear, Stewart Heitmann, and Andreas Daffertshofer. Generative models of cortical oscillations: Neurobiological implications of the kuramoto model. Frontiers in Human Neuroscience , 4:190, 2010. [2] György Buzsáki. Rhythms of the Brain . Oxford University Press, New York, 2006. [3] Luke Darlow, Ciaran Regan, Sebastian Risi, Jeffrey Seely, and Llion Jones. Continuous thought machines. arXiv preprint arXiv:2505.05522 , 2025. [4] Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , pages 248–255, 2009. [5] Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby. An image is worth 16x16 words: Transformers for image recognition at scale. In International Conference on Learning Representations , 2021. [6] Katharina Duecker, Marco Idiart, Marcel van Gerven, and Ole Jensen. Oscillations in an artificial neural network convert competing inputs into a temporal code. PLOS Computational Biology , 20(9):e1012429, 2024. [7] Felix Effenberger, Pedro Carvalho, Igor Dubinin, and Wolf Singer. The functional role of oscillatory dynamics in neocortical circuits: A computational perspective. Proceedings of the National Academy of Sciences , 122(4):e2412830122, 2025. [8] Pascal Fries. A mechanism for cognitive dynamics: Neuronal communication through neuronal coherence. Trends in Cognitive Sciences , 9(10):474–480, 2005. [9] Mehrshad Golesorkhi, Javier Gomez-Pilar, Shankar Tumati, Maia Fraser, and Georg Northoff. Temporal hierarchy of intrinsic neural timescales converges with spatial core-periphery organi-zation. Communications Biology , 4(1):277, 2021. [10] Anand Gopalakrishnan, Aleksandar Stani´ c, Jürgen Schmidhuber, and Michael Curtis Mozer. Recurrent complex-weighted autoencoders for unsupervised object discovery. In Advances in Neural Information Processing Systems , volume 37, 2024. [11] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Peiyi Wang, Qihao Zhu, Runxin Xu, Ruoyu Zhang, Shirong Ma, Xiao Bi, et al. Deepseek-r1 incentivizes reasoning in llms through reinforcement learning. Nature , 645:633–638, 2025. [12] Seung-Yeal Ha, Dongnam Ko, Jinyeong Park, and Sang Woo Ryoo. Emergent dynamics of winfree oscillators on locally coupled networks. Journal of Differential Equations , 260(5):4203– 4236, 2016. [13] Uri Hasson, Eunice Yang, Ignacio Vallines, David J. Heeger, and Nava Rubin. A hierarchy of temporal receptive windows in human cortex. Journal of Neuroscience , 28(10):2539–2550, 2008. [14] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for im-age recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , pages 770–778, 2016. [15] Christopher J. Honey, Thomas Thesen, Tobias H. Donner, Lauren J. Silbert, Chad E. Carlson, Orrin Devinsky, Werner K. Doyle, Nava Rubin, David J. Heeger, and Uri Hasson. Slow cortical dynamics and the accumulation of information over long timescales. Neuron , 76(2):423–434, 2012. [16] Alexia Jolicoeur-Martineau. Less is more: Recursive reasoning with tiny networks. arXiv preprint arXiv:2510.04871 , 2025. 10 [17] T. Anderson Keller, Lyle Muller, Terrence J. Sejnowski, and Max Welling. Traveling waves encode the recent past and enhance sequence learning. In International Conference on Learning Representations , 2024. [18] T. Anderson Keller and Max Welling. Neural wave machines: Learning spatiotemporally struc-tured representations with locally coupled oscillatory recurrent neural networks. In Proceedings of the 40th International Conference on Machine Learning , volume 202 of Proceedings of Machine Learning Research , pages 16168–16189. PMLR, 2023. [19] Alex Krizhevsky. Learning multiple layers of features from tiny images. Technical report, University of Toronto, 2009. [20] Yoshiki Kuramoto. Chemical Oscillations, Waves, and Turbulence , volume 19 of Springer Series in Synergetics . Springer, Berlin, Heidelberg, 1984. [21] Lucas Lehnert, Sainbayar Sukhbaatar, DiJia Su, Qinqing Zheng, Paul McVay, Michael Rabbat, and Yuandong Tian. Beyond a*: Better planning with transformers via search dynamics bootstrapping. In First Conference on Language Modeling , 2024. [22] Jingkun Liu, Yisong Yue, Max Welling, and Yue Song. Krause synchronization transformers. 
+
+arXiv preprint arXiv:2602.11534 , 2026. [23] Sindy Löwe, Phillip Lippe, Francesco Locatello, and Max Welling. Rotating features for object discovery. In Advances in Neural Information Processing Systems , volume 36, 2023. [24] Sindy Löwe, Phillip Lippe, Maja Rudolph, and Max Welling. Complex-valued autoencoders for object discovery. Transactions on Machine Learning Research , 2022. [25] M. Manoranjani, Shamik Gupta, D. V. Senthilkumar, and V. K. Chandrasekar. Generalization of the kuramoto model to the winfree model by a symmetry breaking coupling. The European Physical Journal Plus , 138(2):144, 2023. [26] Takeru Miyato, Sindy Löwe, Andreas Geiger, and Max Welling. Artificial kuramoto oscillatory neurons. In International Conference on Learning Representations , 2025. [27] Lyle Muller, Frédéric Chavane, John Reynolds, and Terrence J. Sejnowski. Cortical travelling waves: Mechanisms and computational principles. Nature Reviews Neuroscience , 19(5):255– 268, 2018. [28] Daniel Neil, Michael Pfeiffer, and Shih-Chii Liu. Phased LSTM: Accelerating recurrent network training for long or event-based sequences. In Advances in Neural Information Processing Systems , volume 29, 2016. [29] Tuan Nguyen, Hirotada Honda, Takashi Sano, Vinh Nguyen, Shugo Nakamura, and Tan M. Nguyen. From coupled oscillators to graph neural networks: Reducing over-smoothing via a kuramoto model-based approach. In Proceedings of The 27th International Conference on Artificial Intelligence and Statistics , volume 238 of Proceedings of Machine Learning Research ,pages 2710–2718. PMLR, 2024. [30] Rasmus Berg Palm, Ulrich Paquet, and Ole Winther. Recurrent relational networks. In Advances in Neural Information Processing Systems , volume 31, 2018. [31] Matthew Ricci, Minju Jung, Yuwei Zhang, Mathieu Chalvidal, Aneri Soni, and Thomas Serre. Kuranet: Systems of coupled oscillators that learn to synchronize. arXiv preprint arXiv:2105.02838 , 2021. [32] T. Konstantin Rusch, Benjamin P. Chamberlain, James Rowbottom, Siddhartha Mishra, and Michael M. Bronstein. Graph-coupled oscillator networks. In Proceedings of the 39th Inter-national Conference on Machine Learning , volume 162 of Proceedings of Machine Learning Research , pages 18888–18909. PMLR, 2022. [33] T. Konstantin Rusch and Siddhartha Mishra. Coupled oscillatory recurrent neural network (coRNN): An accurate and (gradient) stable architecture for learning long time dependencies. In International Conference on Learning Representations , 2021. 11 [34] Wolf Singer and Charles M. Gray. Visual feature integration and the temporal correlation hypothesis. Annual Review of Neuroscience , 18:555–586, 1995. [35] Yue Song, Andy Keller, Nicu Sebe, and Max Welling. Flow factorized representation learning. In Advances in Neural Information Processing Systems , volume 36, 2023. [36] Yue Song, Andy Keller, Nicu Sebe, and Max Welling. Latent traversals in generative models as potential flows. In International Conference on Machine Learning . PMLR, 2023. [37] Yue Song, T. Anderson Keller, Sevan Brodjian, Takeru Miyato, Yisong Yue, Pietro Perona, and Max Welling. Kuramoto orientation diffusion models. In Advances in Neural Information Processing Systems , 2025. [38] Yue Song, Thomas Anderson Keller, Nicu Sebe, and Max Welling. Structured representation learning: from homomorphisms and disentanglement to equivariance and topography . Springer Nature, 2025. [39] Aleksandar Stani´ c, Anand Gopalakrishnan, Kazuki Irie, and Jürgen Schmidhuber. Contrastive training of complex-valued autoencoders for object discovery. In Advances in Neural Informa-tion Processing Systems , volume 36, 2023. [40] Yuchen Tian, Samuel Tensingh, Jason K. Eshraghian, Nhan Duy Truong, and Omid Kavehei. Synchrony-gated plasticity with dopamine modulation for spiking neural networks. Transactions on Machine Learning Research , 2025. [41] Hugo Touvron, Matthieu Cord, Matthijs Douze, Francisco Massa, Alexandre Sablayrolles, and Hervé Jégou. Training data-efficient image transformers and distillation through attention. In 
+
+International Conference on Machine Learning , pages 10347–10357, 2021. [42] Anne M. Treisman and Garry Gelade. A feature-integration theory of attention. Cognitive Psychology , 12(1):97–136, 1980. [43] Christoph von der Malsburg. The correlation theory of brain function. Technical Report Internal Report 81-2, Max-Planck-Institute for Biophysical Chemistry, 1981. [44] Guan Wang, Jin Li, Yuhao Sun, Xing Chen, Changling Liu, Yue Wu, Meng Lu, Sen Song, and Yasin Abbasi Yadkori. Hierarchical reasoning model. arXiv preprint arXiv:2506.21734 , 2025. [45] Po-Wei Wang, Priya Donti, Bryan Wilder, and Zico Kolter. SATNet: Bridging deep learning and logical reasoning using a differentiable satisfiability solver. In Proceedings of the 36th International Conference on Machine Learning , pages 6545–6554, 2019. [46] A. T. Winfree. Biological rhythms and the behavior of populations of coupled oscillators. 
+
+Journal of Theoretical Biology , 16(1):15–42, 1967. [47] Mingqing Xiao, Yansen Wang, Dongqi Han, Caihua Shan, and Dongsheng Li. Kuramoto oscillatory phase encoding: Neuro-inspired synchronization for improved learning efficiency. 
+
+arXiv preprint arXiv:2604.07904 , 2026. [48] Zhun Yang, Adam Ishay, and Joohyung Lee. Learning to solve constraint satisfaction problems with recurrent transformer. In International Conference on Learning Representations , 2023. 12 Appendix Contents 
+
+A Related Work 14 B Discussions 14 
+
+B.1 Limitation and Future Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 B.2 Difference against AKOrN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 
+
+C Additional Implementation Details and Extended Experiment Results 15 
+
+C.1 Implementation Details . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 C.1.1 Image Recognition . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 C.1.2 Solving Maze-hard . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 C.1.3 Solving Sudoku . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 C.2 Additional Results and Ablations on Image Recognition . . . . . . . . . . . . . . . 18 C.3 Solving Maze-hard . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20 
+
+D Energy Structure and Topological Obstruction 20 E Additional Visualization 22 
+
+E.1 Additional Visualization on Image Recognition . . . . . . . . . . . . . . . . . . . 22 E.2 Additional Visualization on Maze-hard . . . . . . . . . . . . . . . . . . . . . . . . 23 E.3 Additional Visualization on Sudoku . . . . . . . . . . . . . . . . . . . . . . . . . 24 13 A Related Work 
+
+Oscillatory neural computation. Oscillatory activity is widely regarded as a fundamental organiz-ing principle in biological neural systems, supporting temporal coordination, communication, and structured information processing [ 2 , 8 , 27 ]. This perspective has motivated the use of oscillatory dynamics as inductive biases in artificial neural networks, where oscillations provide a temporal scaf-fold for computation. Early work introduced rhythmic gating mechanisms for sparse and event-based processing [ 28 ], while more recent approaches have explored dynamical systems-based architectures, including stable recurrent networks and graph-based models, where oscillatory or wave-like dynamics enable long-range interactions and memory [ 33 , 32 , 18 , 36 , 35 , 17 ]. More broadly, oscillatory mech-anisms have been shown to improve learning dynamics, robustness, and representational organization by structuring computation through phase and temporal evolution [6, 7, 38]. 
+
+Synchronization-inspired models in machine learning. While oscillations structure computation in time, synchronization governs how multiple oscillators interact through collective phase align-ment. Building on this principle, a growing body of work has incorporated synchronization into neural architectures. Prior approaches have leveraged phase or complex-valued representations to organize object-centric features and latent structure [ 24 , 39 , 23 , 10 ], introduced synchronization mechanisms into modern architectures through bounded-confidence interactions [ 22 ], and explored neural synchronization as a latent representation in recurrent dynamical architectures such as the Continuous Thought Machine [ 3]. Synchrony-based signals have also been used as training-time plasticity mechanisms in spiking neural networks, for example through dopamine-modulated spike-synchrony-dependent plasticity [ 40 ]. Closely related to our work are oscillator-based neural systems such as AKOrN [26 ]. At a more fundamental level, these approaches are closely related to classical coupled-oscillator systems, particularly the Kuramoto and Winfree models [ 20 , 46 ]. Kuramoto-type dynamics based on pairwise phase interactions have been widely explored in cortical oscillation modeling, learnable oscillator systems, graph neural networks, orientation diffusion models, and phase-based neural architectures [ 1 , 31 , 29 , 37 , 47 ]. In contrast, Winfree-type formulations intro-duce separable sensitivity–influence interactions, enabling more flexible and expressive collective dynamics [ 12 , 25 ]. WONN builds on this formulation by using generalized Winfree dynamics with flexible parameterizations and grouped interactions, enabling hierarchical information flow through synchronization dynamics on a toroidal phase space. 
+
+## B Discussions 
+
+B.1 Limitation and Future Work 
+
+Our results suggest that oscillatory synchronization can serve not only as a biological or phys-ical metaphor, but also as a practical computational principle for modern neural networks. At the same time, WONN represents only an initial step toward synchronization-driven large-scale neural computation. While the recurrent Winfree dynamics provide strong parameter efficiency and expressive iterative refinement, they also introduce additional computational cost compared with conventional feed-forward architectures such as ResNets and ViTs, since each layer involves multiple recurrent synchronization steps. Furthermore, although WONN demonstrates competitive scalability up to ImageNet-1K, exploring larger-scale models and even language models remains an important direction for future work. Future research may further investigate more efficient synchro-nization mechanisms, adaptive or continuous-time dynamics, larger-scale oscillatory architectures, and deeper theoretical understanding of the stability, geometry, and representation structure induced by Winfree-type neural dynamics. 
+
+B.2 Difference against AKOrN 
+
+WONN is closely related to AKOrN [26 ] in that both methods introduce oscillatory dynamics into neural architectures. However, the two models differ in several essential aspects. 
+
+Practical scalability. In Table 7, we additionally compare the practical training cost of WONN 
+
+and AKOrN on ImageNet-1K. Despite using a batch size twice as large and 8 poweful H200 GPUs, 
+
+AKOrN requires nearly 1,000 GPU hours to train its standard-size model for only 200 epochs, whereas 
+
+WONN is trained for 300 epochs using only 4 H100 GPUs with substantially lower total GPU hours. We also observe a large memory gap under the same per-GPU batch size: AKOrN requires more 14 than 110GB aggregate GPU memory, compared with approximately 35GB for WONN . These results suggest that WONN is considerably more favorable for large-scale training under realistic compute and memory constraints. 
+
+Different state geometries. AKOrN represents each oscillatory neuron by a high-dimensional unit vector, so its oscillator state is embedded in a Euclidean ambient space. In contrast, WONN represents the oscillator state directly by a phase angle. Thus, each scalar oscillator evolves on the circle S1, and a collection of d oscillators naturally lives on the torus (S1)d. This makes the periodic geometry of the representation explicit rather than treating oscillation through a vector-valued Euclidean embedding. 
+
+Separable interaction mechanisms. AKOrN is motivated by Kuramoto-type synchronization (Eq. 2), where interactions are governed primarily by pairwise phase differences. Such dynamics are invariant under global phase shifts, since replacing every phase by θi + α leaves the differences θj − θi
+
+unchanged. While this symmetry simplifies the interaction structure, it may also restrict the class of admissible dynamics. In contrast, WONN builds upon the more general Winfree formulation (Eq. 1), where oscillator updates are decomposed into a sensitivity function of the receiving oscillator and an influence function of neighboring oscillators. This formulation recovers Kuramoto-style phase-difference coupling as a special case, while also permitting symmetry-breaking interactions (Eq. 3) that depend on absolute phase. As a result, WONN defines a more flexible and expressive class of oscillatory interactions. 
+
+Grouped hierarchical interactions. WONN extends the classical Winfree formulation into a grouped neural architecture. Instead of applying only pointwise oscillator interactions, WONN partitions oscillators into groups and computes group-level influence signals. This grouped formulation induces a hierarchical interaction structure: oscillators may synchronize locally within a group, while group-level influence signals coordinate information across larger spatial or feature regions. The group size therefore controls the interaction scale, interpolating between pointwise dynamics and more structured collective dynamics. 
+
+Flexible interaction parameterization. WONN provides a flexible parameterization of the Winfree interaction functions. The sensitivity and influence functions can either be instantiated as fixed trigonometric mappings, such as S(θ) = cos θ and I(θ) = sin θ, or implemented as learnable neural networks. The former preserves a strong oscillator-inspired inductive bias, while the latter increases representational flexibility and expressiveness. This allows the interaction dynamics of WONN to adapt naturally to different tasks, datasets, and computational regimes. 
+
+## C Additional Implementation Details and Extended Experiment Results 
+
+C.1 Implementation Details 
+
+C.1.1 IMAGE RECOGNITION 
+
+For Image Recognition, we train all the models under comparable training protocols. The detailed training recipes are reported in Table 5 for CIFAR-10/100 , Table 6 for ImageNet-100 , and Table 7 for ImageNet-1K .15 Table 5: Implementation details on CIFAR-10/100 .
+
+Hyperparameters Models 
+
+WONN AKOrN attn ResNet-18/50 ViT-T/S ViT-B 
+
+Batch Size 64 128 128 256 256 Optimizer AdamW Adam AdamW AdamW AdamW Weight Decay 0.0001 – 0.0001 0.05 0.05 LR 5 · 10 −4 5 · 10 −4 5 · 10 −4 3 · 10 −4 1 · 10 −4
+
+LR Decay ✗ ✗ ✗ cosine cosine Min LR ✗ ✗ ✗ 0 0Warmup Epochs ✗ ✗ ✗ 10 10 Epochs 200 200 200 300 300 Dynamics Layers (L) 6 3 – – –Dynamics Time Step (T) 3 3 – – –Group Size (N) 2 – – – –Oscillator Dimension (n) – 4 – – –GPUs 1×H100 1×H100 1×H100 1×H100 1×H100 Dropout ✗ ✗ ✗ ✗ ✗
+
+Label Smoothing ✗ ✗ ✗ 0.1 0.1 Mixup Alpha ✗ ✗ ✗ 0.8 0.8 Cutmix Alpha ✗ ✗ ✗ 1.0 1.0 Mixup Prob. ✗ ✗ ✗ 0.2 0.2 Cutmix Prob. ✗ ✗ ✗ 0.8 0.8 
+
+Table 6: Implementation details on ImageNet-100 .
+
+Hyperparameters Models 
+
+WONN AKOrN attn ResNet-18 ResNet-50 ViT-S-16 ViT-B-16 
+
+Batch Size 64 16 128 128 256 256 Optimizer AdamW Adam AdamW AdamW AdamW AdamW Weight Decay 0.0001 – 0.0001 0.0001 0.05 0.05 LR 5 · 10 −4 5 · 10 −4 5 · 10 −4 5 · 10 −4 3 · 10 −4 2/3 · 10 −4
+
+LR Decay ✗ ✗ ✗ ✗ cosine cosine Min LR ✗ ✗ ✗ ✗ 0 0Warmup Epochs ✗ ✗ ✗ ✗ 10 10 Epochs 200 200 200 200 300 300 Dynamics Layers ( L) 6 3 – – – –Dynamics Time Step ( T ) 3 3 – – – –Group Size ( N ) 2 – – – – –Oscillator Dimension ( n) – 4 – – – –Input Patch Size 7 7 – – 16 16 GPUs 1×H100 1×H100 1×H100 1×H100 1×H100 1×H100 Dropout ✗ ✗ ✗ ✗ ✗ ✗
+
+Label Smoothing ✗ ✗ ✗ ✗ 0.1 0.1 Mixup Alpha ✗ ✗ ✗ ✗ 0.8 0.8 Cutmix Alpha ✗ ✗ ✗ ✗ 1.0 1.0 Mixup Prob. ✗ ✗ ✗ ✗ 0.2 0.2 Cutmix Prob. ✗ ✗ ✗ ✗ 0.8 0.8 
+
+16 Table 7: Implementation details on ImageNet-1K .
+
+Hyperparameters Models 
+
+WONN AKOrN attn ResNet-18 ResNet-50 ViT-S-16 ViT-B-16 
+
+Batch Size 512 512 128 128 1024 1024 Optimizer AdamW AdamW AdamW AdamW AdamW AdamW Weight Decay 0.001 0.001 0.001 0.001 0.05 0.05 LR 7.5 · 10 −4 5 · 10 −4 5 · 10 −4 5 · 10 −4 3 · 10 −4 2/3 · 10 −4
+
+LR Decay cosine cosine cosine cosine cosine cosine Min LR 1 · 10 −6 1 · 10 −6 1 · 10 −6 1 · 10 −6 0 0Warmup Epochs 10 10 10 10 10 10 Epochs 300 200 200 200 300 300 Dynamics Layers ( L) 6 3 – – – –Dynamics Time Step ( T ) 3 3 – – – –Group Size ( N ) 2 – – – – –Oscillator Dimension ( n) – 4 – – – –Input Patch Size 7 7 – – 16 16 GPUs 4×H100 8×H200 1×H100 1×H100 4×H100 4×H100 GPU hours 750 950 – – – –Dropout ✗ ✗ ✗ ✗ ✗ ✗
+
+Mixup Alpha – – – – 0.8 0.8 Cutmix Alpha 1.0 1.0 1.0 1.0 1.0 1.0 Label Smoothing 0.1 0.1 0.1 0.1 0.1 0.1 Mixup Prob. 0.0 0.0 0.0 0.0 0.2 0.2 Cutmix Prob. 0.8 0.8 0.8 0.8 0.8 0.8 
+
+C.1.2 SOLVING MAZE -HARD 
+
+For the Maze-hard task, we train the two models WONN and AKOrN under the same training protocol, with implementation details summarized in Table 8. Results for the remaining baselines, including large language models and recurrent models, are taken from [44, 16]. Table 8: Implementation details on Maze-hard .
+
+Hyperparameters Models 
+
+WONN AKOrN attn 
+
+Batch Size 64 64 Channel 128 256 Optimizer Adam Adam Weight Decay – –LR 1 · 10 −3 1 · 10 −3
+
+LR Decay – –Min LR – –Warmup Epochs – –Epochs 9000 9000 Dynamics Layers ( L) 1 1Dynamics Time Step ( T ) 24 24 Group Size ( N ) 1 –GPUs 1×H100 1×H100 
+
+C.1.3 SOLVING SUDOKU 
+
+For the Sudoku task, we train WONN following the same training protocol as AKOrN . The detailed configuration is summarized in Table 9. Results for the remaining baselines are taken from prior work [45, 30, 26]. 17 Table 9: Implementation details on Sudoku .
+
+Hyperparameters Models 
+
+WONN AKOrN attn HRM 
+
+Batch Size 100 100 384 Channel 256 512 512 Optimizer Adam Adam Adam-atan2 Weight Decay – – 1.0 LR 1 · 10 −3 1 · 10 −3 1 · 10 −4
+
+LR Decay – – –Min LR – – –Warmup Epochs – – 2000 steps Epochs 100 100 2000 Dynamics Layers ( L) 1 1 H/L = 4 /4
+
+Dynamics Time Step ( T ) 16 16 –Group Size ( N ) 1 – –GPUs 1×H100 1×H100 1×H100 
+
+C.2 Additional Results and Ablations on Image Recognition 
+
+Here we provide additional experimental results for image recognition benchmarks, including supple-mentary evaluations on ImageNet-100 (Table 10) and CIFAR-100 (Table 11). We further conduct several ablation studies on CIFAR-100 to analyze the contribution of key architectural and dynamical components of WONN . Throughout this section, L denotes the number of Winfree dynamics layers, 
+
+T denotes the number of recurrent dynamics steps per layer, and N denotes the group size. Tables 10 and 11 summarize the ablation results on ImageNet-100 and CIFAR-100, respectively. Table 10: Additional image classification results on ImageNet-100 .
+
+Models Accuracy (%) # Parameters 
+
+AKOrN attn (input patch size = 7) 75.12 4.63M 
+
+AKOrN attn (input patch size = 4) 80.08 4.62M 
+
+S(θi) and I(θi) as MLPs, input patch size = 8 
+
+WONN (Ch = 256 → 256 ) 82.08 12.09M 
+
+S(θi) and I(θi) as MLPs, input patch size = 7 
+
+WONN (Ch = 128 → 128 ) 78.78 3.11M 
+
+WONN (Ch = 64 → 256 ) 79.12 7.57M 
+
+WONN (Ch = 256 → 256 ) 80.08 12.08M 
+
+S(θi) and I(θi) as MLPs, input patch size = 4 
+
+WONN (Ch = 128 → 128 ) 81.50 3.09M 
+
+WONN (Ch = 64 → 256 ) 82.04 7.56M 
+
+WONN (Ch = 256 → 256 ) 82.88 12.05M 
+
+S(θi) and I(θi) as trigonometric functions, input patch size = 7 
+
+WONN (Ch = 128 → 128 ) 77.92 3.01M 
+
+WONN (Ch = 64 → 256 ) 78.78 7.44M 
+
+WONN (Ch = 256 → 256 ) 80.34 11.89M 
+
+S(θi) and I(θi) as trigonometric functions, input patch size = 4 
+
+WONN (Ch = 128 → 128 ) 81.76 3.00M 
+
+WONN (( Ch = 64 → 256 ) 82.56 7.43M 
+
+WONN (Ch = 256 → 256 ) 82.22 11.87M 
+
+18 Table 11: Additional image classification results on CIFAR-100 .
+
+Models Accuracy (%) # Parameters 
+
+S(θi)& I(θi) as MLPs, L = 6 , T = 3 , N = 2 
+
+WONN (Ch = 128 → 128 ) 73.77 ±0.40 3.09M 
+
+WONN (Ch = 64 → 256 ) 75.12 ±0.49 7.56M 
+
+WONN (Ch = 256 → 256 ) 76.20 ±0.45 12.04M 
+
+S(θi)& I(θi) as trigonometric functions, L = 6 , T = 3 , N = 2 
+
+WONN (Ch = 128 → 128 ) 74.48 ±0.16 3.00M 
+
+WONN (Ch = 64 → 256 ) 75.81 ±0.33 7.43M 
+
+WONN (Ch = 256 → 256 ) 76.17 ±0.52 11.86M 
+
+S(θi)& I(θi) as MLPs, Ch=256, local (conv) and globle (attn) coupling 
+
+WONN attn (L1T3N2) 66.14 1.65M 
+
+WONN attn (L6T1N2) 74.53 12.04M 
+
+WONN attn (L6T3N1) 75.93 11.82M 
+
+WONN attn (L6T3N2) 76.20 12.04M 
+
+WONN conv (L6T3N2) 75.63 18.72M 
+
+WONN attn (L6T3N4) 75.13 15.14M 
+
+WONN attn (L6T6N2) 76.40 12.04M 
+
+WONN attn (L9T3N2) 76.77 18.28M 
+
+S(θi)& I(θi) as trigonometric functions, Ch=256, local (conv) and globle (attn) coupling 
+
+WONN attn (L1T3N2) 66.07 1.62M 
+
+WONN attn (L6T1N2) 74.58 11.86M 
+
+WONN attn (L6T3N2) 76.17 11.86M 
+
+WONN attn (L6T3N1) 76.94 11.79M 
+
+WONN conv (L6T3N2) 76.27 18.54M 
+
+WONN attn (L6T3N4) 76.24 12.67M 
+
+Impact of Patch Size. Table 10 studies the input patch size on ImageNet-100. For both MLPs-based and trigonometric interaction functions, a smaller patch size generally improves performance, suggesting that finer spatial tokenization might provides more effective oscillatory representations. 
+
+Impact of Interaction Parameterization. We compare two choices for the sensitivity and influence functions, namely learnable MLPs and fixed trigonometric functions. Both variants achieve strong per-formance, indicating that the benefit of WONN mainly comes from the oscillatory dynamical structure rather than a specific parameterization. The trigonometric form provides a stronger oscillator-inspired inductive bias and tends to outperfrom in small datasets, while the learnable MLP parameterization offers greater flexibility, which may be beneficial for scaling to larger and more complex datasets. 
+
+Impact of Depth (L). Increasing the number of Winfree dynamics layers generally improves per-formance. For example, moving from shallow layers to L = 6 substantially improves CIFAR-100 accuracy, showing that stacked dynamical refinement is important for representation learning. 
+
+Impact of Dynamics Steps (T). Increasing the number of recurrent dynamics steps also tends to improve performance, but at the cost of additional computation. This suggests a trade-off between the evolution horizon of synchronization dynamics and computational efficiency. 
+
+Impact of Group Size (N). The effect of group size depends on the interaction form. MLP-based interactions perform best at N = 2 , while trigonometric interactions benefit from a different grouping choice, with N = 1 outperforming N = 2 among grouped variants. This suggests that selecting an appropriate group size can enhance WONN performance by matching the interaction scale to the parameterization of the interaction function. 
+
+Impact of Coupling Type (conv vs. attn). We compare global attentive coupling with local con-volutional coupling under both MLP-based and trigonometric interactions. Although convolutional coupling achieves comparable accuracy, it introduces substantially more parameters in our implemen-tation. Attentive coupling therefore offers a more efficient mechanism for coordinating oscillators, and its better parameter efficiency may make it more favorable for scaling WONN to larger and more complex datasets. 19 C.3 Solving Maze-hard 
+
+Empirically, we observe that the interaction energy Eint consistently decreases as the number of time steps T increases, serving as a reliable metric for the degree of synchronization (as detailed in Sec. 2.3). Leveraging this property, we introduce the energy-based voting mechanism during inference to enhance model performance. Specifically, we appropriately extend the evaluation time steps T and perform K independent trials with different random initializations of initial phases. The prediction corresponding to the lowest final interaction energy Eint is ultimately selected as the optimal solution, which empirically boosts the performance. Table 12: Solving Maze-hard results                 
+
+> Models Accuracy (%) #Parameters
+> Other synchrony-based model
+> AKOrN attn (L1T16) 32.3 1M
+> AKOrN attn (L1T24) 36.2 1M
+> S(θi)&I(θi)as trigonometric functions, L=1, T=24
+> WONN 76.2 0.396M
+> WONN (Teval = 25 , K=32) 80.1 0.396M
+
+## D Energy Structure and Topological Obstruction 
+
+We clarify the energy structure of the trigonometric Winfree dynamics used in WONN . For simplicity, we analyze the continuous-time phase dynamics 
+
+˙θi = ωi + γ cos θi
+
+X
+
+> j
+
+cij sin θj , θi ∈ T := R/(2 πZ), (9) where ωi is the natural frequency, γ > 0 is the interaction strength, and cij is the coupling coefficient from oscillator j to oscillator i.
+
+Absence of a global potential in the presence of natural frequencies. We first show that the natural-frequency term prevents the full dynamics from being written as a globally defined gradient flow on the torus. Consider the pure frequency dynamics 
+
+˙θi = ωi. (10) If this vector field were the negative gradient of a globally defined scalar potential E : Td → R, then in local phase coordinates it would satisfy 
+
+− ∂E ∂θ i
+
+= ωi, or equivalently ∂E ∂θ i
+
+= −ωi. (11) Locally, this implies 
+
+E(Θ) = − X
+
+> i
+
+ωiθi + const . (12) However, θi is not a globally single-valued function on T. Since θi and θi + 2 π represent the same point on the circle, a globally defined potential must be invariant under the identification 
+
+θi ∼ θi + 2 π. 
+
+But the local potential changes by 
+
+E(Θ + 2 πe i) − E(Θ) = −2πω i. (13) Therefore, when ωi̸ = 0 , this local potential is not single-valued on the torus. Equivalently, the constant frequency drift has nonzero circulation along the fundamental cycle of the i-th circle: 
+
+I
+
+ωi dθ i = 2 πω i̸ = 0 . (14) Since the gradient of a globally defined scalar potential must have zero circulation along every closed loop, the natural-frequency term is a topological obstruction to a global potential on Td.20 Interaction energy. Although the full dynamics do not admit a globally defined potential in the presence of natural frequencies, the trigonometric interaction term admits a natural energy under symmetric coupling. Assume that the coupling matrix is fixed and symmetric: 
+
+cij = cji . (15) Define the interaction energy 
+
+Eint (Θ) = − 12
+
+X
+
+> i,j
+
+cij sin θi sin θj . (16) Then ∂E int 
+
+∂θ i
+
+= − cos θi
+
+X
+
+> j
+
+cij sin θj . (17) Therefore, the trigonometric interaction term can be written as 
+
+cos θi
+
+X
+
+> j
+
+cij sin θj = − ∂E int 
+
+∂θ i
+
+. (18) Substituting this into Eq. (9), the full dynamics can be decomposed as 
+
+˙θi = ωi − γ ∂E int 
+
+∂θ i
+
+. (19) Thus, the system is a drift-plus-gradient system rather than a pure gradient flow. The same structure can also be expressed geometrically on the embedded circle. Let 
+
+xi =
+
+cos θi
+
+sin θi
+
+
+
+∈ S1, Ti = ∂x i
+
+∂θ i
+
+=
+
+− sin θi
+
+cos θi
+
+
+
+. (20) Here Ti is the unit tangent vector at xi, satisfying x⊤ 
+
+> i
+
+Ti = 0 . Since ˙xi = Ti ˙θi, Eq. (19) becomes 
+
+˙xi = ωiTi − γ grad S1 
+
+> xi
+
+Eint . (21) The first term is the natural-frequency drift along the circle, while the second term is the Riemannian gradient flow induced by the interaction energy. 
+
+Why full dynamics does not admit a Lyapunov function. Although Eint captures the interaction part of the dynamics, it is not in general a Lyapunov function for the full system when ω̸ = 0 . Indeed, along trajectories of Eq. (19), 
+
+dE int 
+
+dt = X
+
+> i
+
+∂E int 
+
+∂θ i
+
+˙θi (22) 
+
+= X
+
+> i
+
+ωi
+
+∂E int 
+
+∂θ i
+
+− γ X
+
+> i
+
+ ∂E int 
+
+∂θ i
+
+2
+
+. (23) Equivalently, 
+
+dE int 
+
+dt = ⟨∇ ΘEint , ω ⟩ − γ ∥∇ ΘEint ∥22 . (24) The second term is non-positive, but the first term is not sign-definite. Consequently, Eint is not guaranteed to decrease along the full dynamics, and therefore it is not a Lyapunov function for the system with nonzero natural frequencies. 
+
+Lyapunov structure in the zero-frequency symmetric-coupling regime. If the natural-frequency term is removed, i.e., 
+
+ωi = 0 for all i, (25) and the coupling matrix is fixed and symmetric, then Eq. (19) reduces to 
+
+˙θi = −γ ∂E int 
+
+∂θ i
+
+. (26) 21 Figure 6: Additional qualitative visualizations of two-peak distributions on image recognition. Thus the dynamics are a gradient flow on the torus: 
+
+˙Θ = −γ∇ΘEint (Θ) . (27) In this case, 
+
+dE int 
+
+dt = X
+
+> i
+
+∂E int 
+
+∂θ i
+
+˙θi (28) 
+
+= −γ X
+
+> i
+
+ ∂E int 
+
+∂θ i
+
+2
+
+(29) 
+
+≤ 0. (30) Therefore, in the zero-frequency symmetric-coupling regime, Eint is a Lyapunov function for the trigonometric interaction dynamics. In particular, isolated local minima of Eint correspond to Lyapunov-stable synchronized states. 
+
+Implication for WONN . The full WONN architecture contains frequency states, discrete-time updates, layer transitions and non-symmetric or state-dependent interactions. Therefore, the Lyapunov structure above should not be interpreted as a global stability theorem for the full model. Nonetheless, 
+
+Eint provides a principled interaction energy for the trigonometric Winfree core and serves as a practical diagnostic of phase alignment. In Maze-hard (Sec. 3.3), we use this diagnostic for energy-based test-time selection among multiple stochastic phase trajectories. 
+
+## E Additional Visualization 
+
+E.1 Additional Visualization on Image Recognition 
+
+Here we provide additional qualitative visualizations for image recognition. As shown in Fig. 6, these examples exhibit similar patterns to those discussed in Sec. 3.2, further supporting the observation that the phase modes of WONN capture complementary visual structures. In addition to the static weighted maps shown in Sec. 3.2, we further visualize their layer-wise evolution in Fig. 7. The figures show how the weighted maps associated with the two dominant phase peaks evolve across recurrent Winfree dynamics steps and network depth. We observe that the phase-weighted responses are repeatedly refreshed at each layer: early layers mainly capture weak and local visual structures, while deeper layers progressively organize these responses into more coherent global semantic patterns. This behavior suggests that the recurrent synchronization dynamics of WONN gradually refine and reorganize visual representations over depth and time. 22 Figure 7: Layer-wise evolution of the weighted maps associated with the two dominant phase peaks in WONN on image recognition. Top : weighted map corresponding to the first dominant phase peak. 
+
+Bottom : weighted map corresponding to the second dominant phase peak. Here L denotes the layer index and T denotes the Winfree dynamics step within that layer. Panels are arranged according to the actual forward trajectory, from L1T 1 to L6T 3. Across layers, the phase-weighted responses are progressively refreshed and reorganized, evolving from weak local activations toward more coherent global semantic structures through the recurrent synchronization dynamics. 
+
+E.2 Additional Visualization on Maze-hard 
+
+This subsection presents additional Maze-hard examples for qualitative analysis. Fig. 8 illustrates the evolution of accuracy and interaction energy during training on the Maze-hard task. While the energy initially increases in the early stage of optimization, it subsequently decreases as training progresses, accompanied by a steady improvement in accuracy. This inverse correlation suggests that lower interaction energy is associated with more accurate solution states, indicating that the energy provides a useful proxy for solution quality in the learned synchronization dynamics. 23 0 1000 2000 3000 4000 5000 6000 7000 8000 
+
+> Epoch
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> Board Acc.
+> EMA Test Board Acc.
+> Train Final Energy
+> 70000
+> 60000
+> 50000
+> 40000
+> 30000
+> Energy
+
+Figure 8: Accuracy–energy dynamics on Maze-hard. We report the test accuracy and the corre-sponding energy over training epochs. After a slight increase in the early stage, the energy grad-ually decreases as training proceeds, whereas the accuracy exhibits a steady improvement trend. Fig. 10 shows the complete temporal evolution of the example discussed in Sec. 3.3, while Fig. 11 provides several additional instances. In the path prediction maps, black cells rep-resent walls, red and green cells denote the start and goal, respectively, blue cells indicate the predicted path, and purple cells correspond to invalid wall-crossing predictions. Across different examples, we observe a consistent synchronization-driven dynamics: during the early stages, the network activates multiple can-didate path fragments simultaneously rather than directly converging to a single solution. As the oscillatory dynamics evolve, these fragments progressively synchronize, compete, and merge into coherent global trajectories, while inconsis-tent or invalid paths are gradually suppressed. Eventually, the dynamics converge to the short-est valid path connecting the start and goal. These visualizations suggest that synchroniza-tion dynamics provide a very natural mechanism for coordinating distributed local candidates into globally consistent reasoning solutions. Fig. 9 show the temporal evolution of HRM on the same example discussed in Sec. 3.3, including both path predictions and probability maps. We visualize the first 12 H-block updates and regard them as the first 12 evolution steps. The results suggest that HRM remains largely inactive during the early stages, then begins to generate irregular predictions around T = 4 , and subsequently undergoes an abrupt transition around T = 6 that recovers most of the correct path. The remaining steps only introduce minor refinements. This abrupt, insight-like behavior contrasts sharply with the progressive path formation exhibited by WONN .
+
+E.3 Additional Visualization on Sudoku 
+
+This section provides qualitative visualizations on the Sudoku task. Fig. 12 shows that WONN follows a dynamical solving process similar to that observed on Maze-hard. At early time steps, the model tends to perform a global synchronized exploration of possible assignments. During subsequent evolution, these predictions are gradually refined, and the model progressively converges to the correct solution. 24 Figure 9: Partial temporal evolution of HRM on the example shown in Sec. 3.3. Top: discrete path predictions over time. Bottom: predicted path probability heatmaps over time. HRM remains mostly inactive during early H-block updates and then undergoes an abrupt, insight-like transition, while 
+
+WONN progressively synchronizes diffuse candidate path fragments into a coherent valid path. 25 Figure 10: Complete temporal evolution of the example shown in Sec. 3.3. Top: discrete path predictions over time. Bottom: predicted path probability heatmaps over time. 26 27 28 Figure 11: More Maze-hard pathfinding examples. Each pair shows the discrete path prediction and the corresponding path probability heatmap for one maze instance. 29 30 Figure 12: Temporal evolution of WONN on Sudoku. Early steps show global synchronized explo-ration over candidate digit assignments, while later steps progressively refine these predictions and converge to a correct globally consistent solution. 31
