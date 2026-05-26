@@ -1,0 +1,599 @@
+Title: CASE-NET: Deep Spatio-Temporal Representation Learning via Causal Attention and Channel Recalibration for Multivariate Time Series Classification
+
+URL Source: https://arxiv.org/pdf/2605.22043v1
+
+Published Time: Fri, 22 May 2026 00:47:36 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# CASE-NET: Deep Spatio-Temporal Representation Learning via Causal Attention and Channel Recalibration for Multivariate Time Series Classification 
+
+Fan Zhang 1 , Yating Cui 1 , Hua Wang 21Shandong Technology and Business University 
+
+> 2
+
+Ludong University zhangfan51@sina.com, 20254020269@sdtbu.edu.cn, hwa229@163.com 
+
+Abstract 
+
+Multivariate time series (MTS) classification is foundational to pervasive computing and financial analysis, yet existing multi-scale paradigms are of-ten constrained by suboptimal representation fi-delity. We identify two critical bottlenecks: tempo-ral non-causality in standard encoders that induces temporal confounding in non-stationary dynam-ics, and the absence of explicit channel saliency mechanisms that allows noise to contaminate the latent space. To address these challenges, we propose the Causal Attention and Spatio-temporal 
+
+Encoder Net work (CASE-NET), an architecture designed for structural manifold pre-conditioning. CASE-NET synergizes a Causal Temporal En-coder, which enforces physical arrow-of-time con-straints via masked self-attention and causal con-volutions, with an Adaptive Channel Recalibration module functioning as an information bottleneck to suppress detrimental noise. Comprehensive eval-uations across six heterogeneous domains demon-strate that CASE-NET establishes new state-of-the-art benchmarks on four tasks, achieving a peak accuracy of 98.6% on the AWR dataset and supe-rior robustness in non-stationary regimes. 
+
+1 Introduction 
+
+The surge in IoT and wearable data makes MTS classifi-cation a core AI challenge, ranging from clinical diagnos-tics to activity recognition [Morid et al. , 2023; Liu et al. ,2024a]. Unlike static data modalities, MTS exhibits profound Spatio-Temporal Complexity: temporal dimensions encap-sulate non-stationary dynamics across multiple granularities, while spatial dimensions involve intricate, high-dimensional couplings between heterogeneous variables [Wang et al. ,2024b]. Extracting robust representations from these com-plex sequences is a core challenge. Multi-scale analysis has proven effective in capturing cross-granularity patterns. Building upon this, recent break-throughs in Multi-scale Disentanglement have successfully introduced scale-shared and scale-specific orthogonal con-straints to eliminate inter-scale redundancy [Liu et al. , 2025], fostering a solid theoretical foundation for representation learning. However, these frameworks typically operate un-der the implicit assumption that the spatio-temporal features fed into the disentanglement module are sufficiently robust and noise-resilient. Critically, we argue that this assumption is often violated in real-world scenarios due to two repre-sentation bottlenecks in current feature extraction pipelines. First, existing encoders often suffer from temporal blind-ness: recurrent models struggle with long-range dependen-cies, while bidirectional processing may introduce future-induced stochastic fluctuations into current representations. In physical systems, the arrow of time dictates that current states should not depend on future observations. For non-stationary MTS, such future observations often correspond to evolutionary noise or sensor artifacts rather than useful semantic context, leading to temporal confounding and dis-torted latent motifs. Second, high-dimensional sensing systems also exhibit spatial channel heterogeneity. Variable importance is inher-ently dynamic and context-dependent, yet many architectures treat all channels with homogeneous priority and leave noise filtering to the downstream disentanglement module. This increases the burden on the disentanglement head and fun-damentally limits the purity of the distilled features. CASE-NET addresses these two bottlenecks by redefining the causal mask as a structural noise filter and introducing channel recal-ibration as a proactive spatial information bottleneck. Beyond time-series analysis, compositional representation learning has also been actively explored in composed image and video retrieval, where models disentangle target seman-tics from modification cues to support robust cross-modal matching [Li et al. , 2025; Fu et al. , 2025; Huang et al. , 2025; Chen et al. , 2025; Zhang et al. , 2026c; Li et al. , 2026a; Li et al. , 2026b]. Inspired by this general principle of composition-aware representation learning, we investigate compositionality along temporal-scale and channel dimen-sions in MTS, where future-induced stochasticity and sen-sor heterogeneity become the dominant obstacles. Motivated by the insight that better representation facilitates better dis-entanglement, we propose CASE-NET. Our objective is to implement structural manifold pre-conditioning on the up-stream representations to ensure high-fidelity feature decou-pling. Our contributions are summarized as follows: • Causal-Aware Temporal Reconstruction: We introduce a causal attention framework that explicitly enforces 
+
+> arXiv:2605.22043v1 [cs.LG] 21 May 2026
+
+a physical arrow-of-time prior, filtering future-induced evolutionary noise to ensure the integrity of latent ac-tion motifs. By coordinating local causal convolutions with global masked self-attention, the CASE encoder functions as a structural manifold pre-conditioner that is architecture-agnostic, empowering various downstream tasks as a high-fidelity front-end. • Context-Adaptive Spatial Recalibration: We implement a channel-wise information bottleneck via adaptive re-calibration (SE module) to execute proactive manifold pre-conditioning. By purging non-discriminative spatial artifacts before the disentanglement stage, this mecha-nism ensures that only high-saliency variables propagate to the latent space, thereby enhancing the purity of the distilled features. • Holistic Evaluation across Six Heterogeneous Domains: Unlike conventional approaches validated only in a sin-gle domain, CASE-NET was fully evaluated on six benchmark datasets with diverse physical characteris-tics and data distributions. Results show that CASE-NET established new state-of-the-art benchmarks on four tasks. 
+
+2 Related Work 
+
+2.1 Deep Temporal Modeling 
+
+Extracting temporal dependencies is central to MTS classifi-cation [Qin et al. , 2017; Zhu et al. , 2023]. While traditional recursive models like LSTMs and GRUs utilize inductive bias for sequential encoding, they often suffer from vanishing gra-dients and a critical paradigm limitation : Temporal Blind-ness. Most recurrent architectures lack strict physical causal-ity, leading to spurious future-information leakage that com-promises reliability in sensitive domains like clinical diag-nostics. Although recent works attempt to encode causality through transfer entropy [Sun et al. , 2024] or spatiotempo-ral information transformation [Cai et al. , 2025], these of-ten incur heavy computational costs. CASE-NET addresses this by re-engineering the encoder with causal convolutions and masked self-attention, enforcing strict temporal arrows to capture global dynamic motifs with high fidelity. Re-cent forecasting models further exploit multi-offset tempo-ral interactions, semantic fusion, and non-ideal data utiliza-tion to strengthen multivariate dependency learning [Zhang 
+
+et al. , 2026a; Zhang et al. , 2026b; Qiu et al. , 2025b; Wang 
+
+et al. , 2026b]. Nevertheless, these methods primarily empha-size predictive dependency modeling, whereas CASE-NET focuses on classification-oriented representation purification under strict temporal causality. In addition, ensuring high-fidelity representations remains a challenge, as explored by Zhang et al. [Zhang et al. , 2022] through time-frequency con-sistency. In contrast, CASE-NET enforces a strict causal in-ductive bias to purify manifolds, especially in nonstationary states. This distinguishes it from latent SDE-Attention [Fang 
+
+et al. , 2025], which focuses on irregular sampling, as we op-timize the upstream representation manifold for determinis-tic MTS. Recently, Xu et al. [Xu et al. , 2025] proposed a spatio-temporal fusion architecture for dynamic ECN anal-ysis, using Granger-causality-based discovery to model the evolution of brain networks. While their approach focuses on learning the explicit causal structure from observational data, CASE-NET leverages a causal inductive bias through archi-tectural masking. We argue that for non-stationary classifi-cation tasks, enforcing causality as a structural prior is more effective for filtering future-induced stochastic noise than ex-plicit causal discovery, which can be sensitive to latent con-founding factors. 
+
+2.2 Channel Saliency and Information Bottleneck 
+
+Attention mechanisms have shifted MTS modeling toward dynamic recalibration. Recent architectures have introduced cross-channel attention [Hao and Cao, 2020; Zhang et al. ,2025] or association adapters [Lin et al. , 2025] to handle mul-tivariate dependencies. Recent developments such as iTrans-former [Liu et al. , 2024b] have rethought the role of channel dependencies by inverting the transformer structure. How-ever, our approach differs in the implementation of active in-formation bottlenecks through adaptive recalibration to ac-tively suppress noise rather than focusing solely on channel-independent projections. However, many frameworks still rely on a suboptimal assumption of Spatial Channel Ho-mogeneity , treating sensors with uniform priority regardless of their varying Signal-to-Noise Ratios [Cheng et al. , 2023; Huang et al. , 2023]. Consistent with feature-centric ex-planation models like CAFO [Kim et al. , 2024], CASE-NET leverages Information Bottleneck theory and integrates an adaptive recalibration mechanism to execute proactive feature-cleaning, ensuring only high-saliency variables prop-agate to the latent space for robust disentanglement. 
+
+2.3 Multi-scale Analysis and Disentanglement Fidelity 
+
+Recent milestones like DisMS-TS have introduced multi-scale disentanglement to mitigate inter-scale redundancy [Liu 
+
+et al. , 2025]. At the benchmark and optimization lev-els, recent studies have emphasized fair time-series evalua-tion, non-ideal data utilization, and scalable optimization for time-series modeling [Qiu et al. , 2024; Wang et al. , 2026b; Wang et al. , 2026a; Qiu et al. , 2025a]. Unlike multi-scale token mixing [Zhong et al. , 2025], hierarchical temporal-frequency fusion [Song et al. , 2025], or multi-view meta-learning [Zhang et al. , 2024] that prioritize feature fusion, the efficacy of decoupling is fundamentally contingent upon the fidelity of underlying representations . Existing frame-works often overlook feature extractor quality, creating a per-formance bottleneck when processing noise-contaminated or temporally inconsistent inputs. Departing from efforts fo-cused solely on downstream decoupling logic, CASE-NET focuses on optimizing the quality of the upstream representa-tion manifold through structural pre-conditioning. By provid-ing causal-aware spatio-temporal priors, our model bridges the gap between raw sensing data and decoupled representa-tions, establishing new performance ceilings across heteroge-neous domains. 3 Methodology 
+
+3.1 Overall Architecture 
+
+CASE-NET enhances classification through three stages (Fig. 1): Multi-scale Projection, the CASE Encoder, and decom-position. The CASE encoder is weight-shared across all S
+
+branches. This ensures that the model learns a scale-invariant causal-spatial transformation while maintaining efficiency. Formal Rationale: We define the CASE encoder not merely as a collection of components, but as a synergistic informa-tion bottleneck and a manifold pre-conditioner designed to address the fundamental problem of distorted input mani-folds in existing frameworks. Existing multi-scale encoders often suffer from temporal blindness and channel homogene-ity, which introduce future-information leakage and spatial noise. Such contaminated inputs force the downstream dis-entanglement loss ( Ldif f ) to search within an excessively complex hypothesis space. By purifying the input mani-fold through structural pre-conditioning before it enters the sensitive disentanglement backend, we significantly narrow the search space of the downstream loss function and ensure high-resolution representations. 
+
+3.2 Generic Multi-scale Projection 
+
+To capture the polymorphic feature mapping of MTS at dif-ferent granularities, we construct a multiscale input space consisting of S branches. Specifically, given the input X ∈
+
+RN ×L, we utilize a set of convolutional operators with het-erogeneous receptive fields and strides to project it as a multi-resolution view set V = {Vs}Ss=1 , where: 
+
+Vs = σ(Conv1D s(X)) ∈ RCs×Ls (1) Non-uniform sampling here establishes multi-granularity rep-resentations, providing context for the CASE encoder. Impor-tantly, this stage only initializes scale-specific views, while the subsequent weight-shared CASE encoder imposes a uni-fied causal-spatial transformation across all resolutions. 
+
+3.3 Causal Adaptive Spatio-temporal Encoder 
+
+The CASE encoder serves as the core architecture for spatio-temporal feature extraction, specifically designed to solve the 
+
+representation fidelity bottleneck in multi-scale decoupling. Rather than a standard architectural stack, the encoder func-tions as a structural pre-conditioner that integrates two syn-ergistic modules: Causal Temporal Attention and Channel Adaptive Recalibration. This dual-constrained design ensures that the resulting latent space is both physically consistent and semantically sparse. 3.3.1 Causal Temporal Attention. The CTA module is de-signed to overcome the bottlenecks of traditional recurrent models in long-range dependency modeling while imposing a robust temporal causality constraint. By coupling local causal operators (Dilated Convolutions) with global masked self-attention, it ensures autoregressive consistency ( ht =
+
+f ({xτ }τ ≤t)). This configuration eliminates future informa-tion leakage while capturing multi-scale, long-range depen-dencies across the sequence. In contrast to bidirectional transformers or explicit discov-ery models [Xu et al. , 2025], CASE-NET recognizes that in non-stationary regimes (e.g., NASDAQ), future observa-tions often represent stochastic evolutionary noise relative to the current state. In contrast to bidirectional transformers (e.g., BERT) where future context helps clarify semantics, in high-frequency non-stationary MTS, future observations of-ten contain stochastic noise that does not reflect core discrim-inative motifs. By enforcing causality, our CTA module func-tions as a Structural Noise Filter. This ensures the encoder prioritizes the capture of underlying action motifs rather than fitting transient signal fluctuations , effectively executing Temporal De-confounding through architectural constraints. By enforcing this Manifold Pre-conditioning, we narrow the downstream hypothesis space and ensure the representation manifold remains invariant to future-induced noise, prevent-ing any form of data leakage within the architecture. To instantiate local causal modeling, we introduce dilated convolutional layers with asymmetric left padding. For an input sequence X, the temporal dimension is padded with 
+
+Lpad = ( k − 1) × d zeros on the left, where k denotes the kernel size and d is the dilation rate. The causal operator is defined as: 
+
+yt = σ
+
+> k−1
+
+X
+
+> i=0
+
+Wi · xt−d·i + b
+
+!
+
+(2) This operator forces the convolution kernel to slide only over current and historical trajectories, extracting local dynamics with high causal fidelity. Such a structured inductive bias is crucial for non-stationary sequences, since it keeps the tran-sition probability P (xt|x<t ) undisturbed by future observa-tions. To complement local causal filtering, we further integrate multi-head self-attention with an upper-triangular causal mask M ∈ RL×L. The mask is defined as: 
+
+Mij =
+
+0, i ≥ j
+
+−∞ , i < j (3) Given linear projection matrices WQ, WK , and WV , the masked attention reconstructs the temporal manifold by: Attention (Q, K, V) = Softmax 
+
+ QK ⊤
+
+√dk
+
++ M
+
+
+
+V (4) 3.3.2 Channel Adaptive Recalibration. To complement the temporal consistency established by CTA, this module instantiates the Information Bottleneck principle to address Channel Heterogeneity. Due to varying signal-to-noise ra-tios (SNRs) across sensors, the raw temporal representation 
+
+H is frequently contaminated by non-discriminative channel noise. The recalibration module complements CTA by constrain-ing the channel dimension of the feature manifold. While Eq. (4) filters noise along the temporal axis through causality, channel recalibration suppresses redundant or low-saliency variables along the spatial axis, ensuring that only discrim-inative and physically consistent spatio-temporal motifs are propagated to the disentanglement head. Given the temporal representation H ∈ RB×N ×L, we first summarize the global response of each channel using a .
+
+> .
+> .
+
+Stage I 
+
+Multi-resolution Temporal Projection 
+
+> Scale 1
+> (Short-term)
+> .
+> .
+> .
+> .
+> .
+> .
+> Scale 3
+> (Long-term)
+> Scale 2
+> (Mid-term )
+> Temporal Convolution
+> Stage III
+> Cross-scale Shared-Specific Disentanglement Head
+> Scale-Invariant Factor
+> Scale-Private Factor
+> Class
+> Prediction
+> MLP+
+> softmax
+> . . .  퓛풄풍풔 :
+> Classification Loss
+
+CASE Encoder 
+
+Causal Temporal Mechanism Adaptive Channel Recalibration                                         
+
+> Causal Convolution
+> T1 T2 T3 T4
+> Past-only dependence
+> Causal Relationships:
+> Attends only to preceding positions
+> Causal Relationships:
+> Attends only to preceding positions
+> Masked Attention Map
+> Causal Attention Weights
+> (Q)
+> T1 T3 T2 T4
+> T1
+> T2
+> T3
+> T4
+> T2
+> T3
+> T4
+> Masked
+> (Future blocked)
+> . . .
+> (푁×퐷)
+> 2. Excitation Phase
+> Learns channel-wise
+> dependencies&
+> generates weights
+> Global Descriptor
+> Aggregates global
+> Spatial information
+> . . .
+> Channel Gate a Salient Channels Recalibrated
+> Features
+> Input Features
+> (푁×퐿)
+> Noise/Redundant
+> Channels
+> ℒ￿￿￿￿:Orthogonality
+> 퐻￿￿⊥퐻￿￿
+> 퓛풕풐풕풂풍 =퓛풄풍풔 +흀ퟏ퓛풔풊풎 +흀ퟐ퓛풅풊풇풇
+> 1. Squeeze Phase
+> Causal Temporal Attention SE Channel Recalibration
+> Prevents Future
+> Leekage
+> Mask: 푴풊풋 =ퟎ,풊풇 풊<풋Weight: 푾풄=흈(푾ퟐ휹(푾ퟏ풛))
+> Causal Temporal Attention SE Channel Recalibration
+> Prevents Future
+> Leekage
+> High Importance Weights
+> Suppressed Noise
+> Channels
+> Mask: 푴풊풋 =ퟎ,풊풇 풊<풋Weight: 푾풄=흈(푾ퟐ휹(푾ퟏ풛))
+
+Stage II 
+
+Shared CASE Encoder                         
+
+> Causal Temporal Filtering Channel Recalibration
+> Causal Mask Attention Noise-Suppressed Features
+> Channel Gate a
+> Mask: 푴풊풋 =ퟎ,풊풇 풊>= 풋a=흈(푾ퟐ퐑퐞퐋퐔 (푾ퟏ풛))
+> T1
+> Temporal Convolution
+> Temporal Convolution
+> Past-only dependency
+> 퐺푎푡푒 푚(￿)
+> 풉풔풉
+> (풔)=
+> 풎(풔)⊙풓(풔)
+> 풉풔풑
+> (풔)=
+> (ퟏ−풎(풔))
+> ⊙풓(풔)
+> 풎(풔)=흈(푾품풓(풔)+풃품)
+> 푀푒푎푛 ￿
+> 퐶표푛푐푎푡 ￿
+> 퓛풔풊풎 :Shared Consistency
+> 푐표푠 （풉풔풉
+> (풔),풉풔풉
+> (풕)）↑
+> Weight-Shared
+> Across All Scales
+
+Figure 1: The hierarchical framework of CASE-NET, illustrating: (1) multi-scale representation initialization via parallel branches; (2) a 
+
+weight-shared CASE encoder (2 layers) that processes all branches synchronously, constrained by physical laws and SNR; and (3) inter-scale redundancy elimination via orthogonal constraints. 
+
+Global Average Pooling operator Fsq (·). For the n-th chan-nel, the descriptor is computed as: 
+
+zn = Fsq (hn) = 1
+
+L
+
+LX
+
+t=1 
+
+hn,t (5) Although early states in a causal sequence have limited re-ceptive fields, the later hidden states progressively accumu-late historical context. Therefore, Eq. (5) can be viewed as a compact summary of the feature evolution trajectory rather than a naive temporal average, providing stable anchors for estimating channel saliency under non-stationary dynamics. The channel descriptor z is then passed through a bottle-neck excitation gate with dimensionality reduction and ex-pansion N → N/r → N :
+
+a = σ (W2 · ReLU( W1 · z)) (6) where σ(u) = 1 /(1 + exp( −u)) is the element-wise sigmoid function, a ∈ [0 , 1] N denotes the channel saliency weights, and W1 and W2 are the reduction and expansion weights. The bottleneck ratio r encourages the model to learn essential inter-variable dependencies in a compact latent space. Finally, the recalibrated representation is obtained by ap-plying the learned channel saliency weights to the temporal representation: ˜H = a ⊙ H (7) where ⊙ denotes element-wise multiplication. This variable-level filtering mechanism improves the separability and noise-resilience of the representation before shared-specific disentanglement. In this way, the downstream decomposition head receives a cleaner manifold rather than being forced to suppress temporal and channel noise simultaneously. 
+
+3.4 Multi-Scale Feature Decomposition and Prediction 
+
+We adopt a shared-specific disentanglement head inspired by multi-scale disentanglement learning [Liu et al. , 2025] to evaluate the downstream utility and representational purity of the manifolds produced by the CASE encoder. This head ex-plicitly separates each recalibrated scale representation into scale-shared and scale-private factors, enabling inter-scale redundancy reduction while preserving scale-dependent dis-criminative details. While CASE-NET is designed to be compatible with var-ious discriminative heads, we instantiate the decomposition module with an adaptive shared-specific gate. For each scale 
+
+s, the disentanglement gate m(s) is generated from the recal-ibrated representation ˜H(s):
+
+m(s) = σ
+
+
+
+Wg ˜H(s) + bg
+
+
+
+,
+
+H(s)
+
+sh = m(s) ⊙ ˜H(s),
+
+H(s)
+
+sp =
+
+
+
+1 − m(s)
+
+⊙ ˜H(s).
+
+(8) Here, m(s) adaptively allocates each feature dimension to the scale-shared or scale-private subspace, Wg and bg are learn-able gate parameters, and ⊙ denotes element-wise multiplica-tion. The resulting shared and scale-private factors play com-plementary roles. The shared representation Hsh is encour-aged to capture stationary rhythms and scale-invariant seman-tic cores, such as basal cardiac or neural oscillatory patterns. In contrast, Hsp preserves non-stationary residual dynamics, including high-frequency transients and localized paroxys-mal events that may be suppressed during global aggrega-tion. This complementary allocation prevents scale-invariant semantics and scale-private residuals from collapsing into a single entangled representation. The efficacy of this decomposition is fundamentally pred-icated on the manifold pre-conditioning provided by the CASE encoder. By furnishing a noise-filtered and causally-consistent input, we demonstrate that the backend can achieve a higher degree of Feature Orthogonality with minimal infor-mation leakage. The final prediction ˆy is derived by fusing these descriptors: 
+
+ˆy = Softmax (MLP (G (Hsh ⊕ Hsp ))) (9) where ⊕ denotes feature concatenation, G(·) denotes global aggregation over temporal and scale dimensions, and the MLP outputs class logits before the Softmax normalization. This design combines scale-invariant semantics with scale-private discriminative details for final classification. 
+
+3.5 Synergistic Manifold Optimization 
+
+We formulate a multi-objective functional Ltotal to supervise the latent manifold evolution: 
+
+Ltotal = Lcls + λ1Lsim + λ2Ldif f (10) where Lcls is the task-specific Negative Log-Likelihood [Kingma and Ba, 2014] applied to the fused representation [Hsh ⊕ Hsp ], and λ1, λ 2 are non-negative balancing coefficients controlling the contributions of cross-scale consistency and shared-private orthogonal-ity, respectively. To capture invariant rhythmic motifs, 
+
+Lsim minimizes the cosine distance between shared representations across resolutions [Chen et al. , 2023; Chen et al. , 2024]: 
+
+Lsim = Es1̸ =s2
+
+"
+
+1 − ⟨H(s1) 
+
+> sh
+
+, H(s2) 
+
+> sh
+
+⟩∥H(s1) 
+
+> sh
+
+∥2∥H(s2) 
+
+> sh
+
+∥2
+
+#
+
+(11) where ⟨· , ·⟩ denotes the inner product after flattening or pooling the corresponding representations. This inductive bias identifies the universal physiological core and filters stochastic noise inherent to specific resolutions. Conversely, 
+
+Ldif f promotes Feature Orthogonality by penalizing the cross-covariance between Hsh and Hsp via the Frobenius Norm [Liu et al. , 2025]: 
+
+Ldif f = H⊤
+
+> sh
+
+Hsp  
+
+> 2
+> F
+
+(12) By driving representational diversity, this constraint prunes the hypothesis space, ensuring that Hsp captures unique residual dynamics (e.g., pathological paroxysms) without contaminating the global semantic anchor. Together, the three objectives couple task discrimination with representation ge-ometry: Lcls preserves label separability, Lsim enforces cross-scale invariance, and Ldif f prevents shared-private fea-ture leakage. 
+
+3.6 Computational Complexity Analysis 
+
+The computational overhead of CASE-NET is primarily dominated by the CASE encoder. The CTA module incurs a complexity of O(L2 · D) due to masked self-attention and 
+
+O(L · k · D) for causal convolutions. The adaptive recalibra-tion adds a negligible O(N 2/r ).Although the CTA module has O(L2) attention complex-ity, it is fully parallelizable and remains practical for long-range sequences. Empirically, CASE-NET uses about 2.1M parameters and maintains competitive throughput, supporting its feasibility for real-time MTS applications. The detailed step-by-step execution of the end-to-end train-ing procedure is summarized in Algorithm S1 in the Supple-mentary Material. 
+
+4 Experiments 
+
+4.1 Experimental Setup 
+
+4.1.1 Datasets. We evaluate CASE-NET on six bench-mark datasets [Qiu et al. , 2024], including AWR (Acoustic Wheel Recognition) and NASDAQ for market regime clas-sification. The NASDAQ task is window-level classification rather than next-step price prediction, preventing look-ahead leakage (see Table S1 in Supplementary Material). 
+
+Evaluation Metrics 
+
+We employ Accuracy (Acc), Macro-averaged F1-score (F1), and Matthews Correlation Coefficient (MCC) to comprehen-sively assess performance. 
+
+Baseline Methods 
+
+We compare CASE-NET with eight representative base-lines: LSTNet [Lai et al. , 2018], DTP [Lee et al. , 2021], TS-TCC [Eldele et al. , 2021], PatchTST [Nie et al. , 2022], MAGNN [Chen et al. , 2023], Pathformer [Chen et al. , 2024], TimeMixer [Wang et al. , 2024a], and DisMS-TS [Liu et al. ,2025]. These baselines cover recurrent and pooling-based classifiers, contrastive representation learning, Transformer-based temporal modeling, graph-based multivariate model-ing, and recent multi-scale architectures. 
+
+Implementation Details 
+
+We implement CASE-NET in PyTorch and report the av-erage results over five independent runs. All models are optimized with Adam, and key hyperparameters, including learning rate, batch size, hidden dimension, scale depth, and loss weights, are selected on a 20% hold-out validation set. Dropout, layer normalization, and early stopping are applied for regularization. 
+
+4.2 Comparative Analysis 
+
+Table 1 shows CASE-NET achieves SOTA performance on HAR, NASDAQ, AWR, and Epilepsy. On NASDAQ, CASE-NET leads by 7.05% via Causal Attention, which enforces temporal constraints to block future noise. For Epilepsy, SE recalibration provides noise resistance against artifacts, con-sistent with [Sun et al. , 2024], yielding a 2.18% gain. On HAR and AWR, CASE-NET significantly outperforms bidi-rectional baselines. Unlike BERT-style models where fu-ture context clarifies semantics, high-frequency MTS future frames often introduce stochastic noise (e.g., sensor artifacts) inducing temporal confounding. By causal masking, our Methods Metrics HAR ISRUC-S3 NASDAQ AWR FM Epilepsy 
+
+LSTNet ACC (%) 87 .52 ± 1.25 80 .19 ± 1.21 35 .34 ± 1.60 91 .73 ± 0.88 51 .60 ± 3.01 62 .57 ± 1.08 
+
+F1 (%) 86 .58 ± 1.28 77 .93 ± 1.12 25 .29 ± 2.18 91 .33 ± 0.93 51 .59 ± 3.00 60 .36 ± 1.72 
+
+MCC 0.846 ± 0.014 0.746 ± 0.016 0.058 ± 0.022 0.914 ± 0.009 0.032 ± 0.060 0.556 ± 0.011 
+
+DTP ACC (%) 92 .09 ± 0.88 74 .23 ± 1.04 34 .25 ± 0.85 94 .87 ± 1.20 50 .00 ± 1.98 42 .57 ± 2.46 
+
+F1 (%) 92 .10 ± 0.85 72 .38 ± 1.05 22 .78 ± 1.14 94 .82 ± 1.23 49 .98 ± 1.99 41 .14 ± 2.17 
+
+MCC 0.905 ± 0.010 0.671 ± 0.012 0.046 ± 0.015 0.946 ± 0.012 0.020 ± 0.039 0.301 ± 0.036 
+
+TS-TCC ACC (%) 90 .62 ± 0.59 77 .63 ± 1.18 35 .52 ± 1.26 89 .65 ± 0.58 51 .60 ± 1.62 64 .84 ± 1.14 
+
+F1 (%) 90 .66 ± 0.62 75 .50 ± 1.17 24 .96 ± 1.52 89 .57 ± 0.60 51 .33 ± 1.80 63 .26 ± 1.42 
+
+MCC 0.898 ± 0.006 0.735 ± 0.016 0.054 ± 0.017 0.889 ± 0.007 0.030 ± 0.032 0.552 ± 0.015 
+
+PatchTST ACC (%) 93 .34 ± 0.32 81 .05 ± 0.81 36 .51 ± 1.06 97 .47 ± 0.57 53 .40 ± 3.61 68 .68 ± 1.56 
+
+F1 (%) 93 .28 ± 0.34 79 .14 ± 0.80 25 .50 ± 1.27 97 .45 ± 0.64 52 .83 ± 3.68 67 .26 ± 1.72 
+
+MCC 0.919 ± 0.003 0.767 ± 0.015 0.056 ± 0.016 0.965 ± 0.005 0.106 ± 0.071 0.609 ± 0.020 
+
+MAGNN ACC (%) 92 .45 ± 0.58 79 .07 ± 0.86 38 .12 ± 1.13 93 .33 ± 0.61 52 .20 ± 2.48 51 .42 ± 2.20 
+
+F1 (%) 92 .52 ± 0.64 77 .51 ± 0.85 29 .52 ± 1.46 93 .36 ± 0.75 51 .32 ± 1.74 49 .55 ± 2.69 
+
+MCC 0.912 ± 0.008 0.749 ± 0.012 0.079 ± 0.014 0.930 ± 0.006 0.044 ± 0.055 0.430 ± 0.027 
+
+Pathformer ACC (%) 94 .88 ± 0.76 82 .52 ± 0.78 37 .24 ± 0.89 98 .43 ± 1.13 55 .60 ± 1.85 69 .18 ± 0.88 
+
+F1 (%) 94 .92 ± 0.74 81 .27 ± 0.83 27 .96 ± 1.62 98 .41 ± 1.15 54 .92 ± 1.90 67 .28 ± 0.85 
+
+MCC 0.938 ± 0.008 0.771 ± 0.012 0.078 ± 0.016 0.981 ± 0.013 0.121 ± 0.041 0.614 ± 0.010 
+
+Timemixer ACC (%) 95 .53 ± 0.65 83 .50 ± 1.04 38 .42 ± 0.75 97 .53 ± 0.98 54 .20 ± 3.73 67 .28 ± 1.19 
+
+F1 (%) 95 .60 ± 0.64 82 .18 ± 1.12 29 .68 ± 0.97 97 .54 ± 1.01 53 .67 ± 3.85 65 .65 ± 1.35 
+
+MCC 0.947 ± 0.005 0.790 ± 0.014 0.088 ± 0.012 0.972 ± 0.010 0.082 ± 0.074 0.584 ± 0.015 
+
+DisMS-TS ACC (%) 96 .47 ± 0.37 85.37 ±0.51 39 .71 ± 0.76 98 .27 ± 0.86 61.00 ±3.16 71 .30 ± 0.71 
+
+F1 (%) 96 .43 ± 0.40 84.20 ±0.54 32 .69 ± 0.83 98 .23 ± 0.90 60.67 ±3.10 70 .70 ± 1.18 
+
+MCC 0.957 ± 0.004 0.829 ±0.008 0.104 ± 0.012 0.976 ± 0.009 0.228 ±0.065 0.644 ± 0.006 
+
+ACC (%) 96.52 ±0.35 * 84 .38 ± 3.07 46.76 ±3.8* 98.60 ±0.91 * 58 .67 ± 3.82 73.48 ±0.57 *
+
+CASE-NET F1 (%) 96.47 ±0.37 * 82 .33 ± 3.51 33.26 ±3.6* 98.49 ±0.73 * 58 .36 ± 4.09 73.35 ±0.56 *MCC 0.960 ±0.03 * 0.794 ± 0.398 0.110 ±0.04 * 0.985 ±0.0079 * 0.173 ± 0.082 0.669 ±0.0072 *
+
+Table 1: Full performance comparison on six benchmark datasets. Results are reported as Mean ± Std across 5 independent runs. Bold and underline indicate the best and second-best results, respectively. * denotes that the improvement of CASE-NET over the best competing baseline is statistically significant under a two-tailed t-test ( p < 0.01 ). 
+
+model acts as a directional filter, ensuring the encoder cap-tures discriminative action motifs rather than transient signal fluctuations through structural regularization. Though ranking second on ISRUC-S3 and FM, CASE-NET remains competitive. DisMS-TS’s seasonal decom-position better suits the extreme periodicity of ISRUC-S3 (L = 3000 ), while its simpler logic offers stronger regular-ization in the low-data FM regime ( N = 284 ). 
+
+4.3 Ablation Study 
+
+We define the w/o Causal variant as the bidirectional version of our architecture, removing the temporal mask M to eval-uate component efficacy. In Table 2, this variant on NAS-DAQ drops from 46.76% to 38.20% ( −8.56% ), empirically proving that bidirectional context in non-stationary tasks in-troduces future-induced stochastic noise rather than useful in-formation. Similarly, HAR performance decreases to 91.25% (−5.27% ), confirming that even in classification-centric tasks, unconstrained bidirectional context blurs discrimina-tive boundaries with non-stationary artifacts. The causal prior acts as a structural stabilizer, yielding significant leaps in Epilepsy (+4.98%) and AWR (+2.12%) by enforcing physical time-arrow constraints (Fig. 2(a)). To isolate CASE’s contri-bution, we replace the backend logic with a linear MLP. In Table 2, CASE-NET + MLP still consistently outperforms all SOTA baselines (including the full DisMS-TS model) across all domains, validating the CASE encoder as the pri-mary, architecture-agnostic driver of representation fidelity. While the backend further refines these features, the CASE encoder functions as a powerful standalone front-end. Cru-cially, CASE-NET exhibits super-linear synergy, indicating that causal and spatial priors jointly enable effective multi-scale representation learning.                                                                 
+
+> Model Variant HAR NASDAQ AWR Epilepsy
+> Baseline (Vanilla GRU) 89 .42 ±.22 36 .50 ±.45 92 .15 ±.18 64 .20 ±.45
+> w/o SE (Only Causal) 93 .10 ±.18 44 .15 ±.32 96 .48 ±.14 68 .50 ±.31
+> w/o Causal (Only SE) 91 .25 ±.15 38 .20 ±.28 94 .30 ±.21 67 .40 ±.38
+> CASE-NET + MLP Head 95 .10 ±.12 45 .30 ±.25 97 .80 ±.16 71 .90 ±.42
+> CASE-NET (Full) 96.52 ±.08 46.76 ±.38 98.60 ±.91 73.48 ±.57
+
+Table 2: Ablation study results (Mean ± Std %). Bold denotes best performance. 
+
+4.4 Hyperparameter Analysis 
+
+Impact of Scale Levels S
+
+As depicted in Fig. 3(a), different datasets require differ-ent optimal scale depths: S = 6 for AWR and S = 4 for HAR. The performance drop at lower S values—particularly for high-cardinality tasks like AWR where S ≥ 5 is re-quired—does not indicate model instability. Instead, it re-flects the necessity of resolution matching. A sufficient scale depth ensures the temporal receptive field is large enough to encapsulate hierarchical motifs across the required temporal span. This confirms that the CASE encoder effectively reg-ulates temporal resolution to match domain-specific patterns, rather than merely relying on the initial projection layer. 0 20 40 60 80 100      
+
+> Epochs
+> 0.0
+> 0.5
+> 1.0
+> 1.5
+> 2.0
+> 2.5
+> 3.0
+> Loss Value
+> (a) Training and Validation Loss
+> AWR (T/V)
+> HAR (T/V)
+> ISRUC-S3 (T/V)
+> Epilepsy (T/V)
+> 020 40 60 80 100
+> Epochs
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Accuracy (%)
+> (b) Learning Curves Across Domains
+> AWR
+> HAR
+> ISRUC-S3
+> Epilepsy
+
+Figure 2: (a) Training and Validation Loss and (b) Learning Curves across four diverse domains. 0 1 2 3 4 5 6 7       
+
+> Number of Down-sampling Levels S
+> 60
+> 65
+> 70
+> 75
+> 80
+> 85
+> 90
+> 95
+> 100
+> Accuracy (%)
+> (a) Sensitivity to Scale Number S
+> HAR
+> AWR
+> ISRUC-S3
+> Epilepsy
+> 10 −3 10 −2 10 −1 10 0
+> Decoupling Weight λ
+> 60
+> 65
+> 70
+> 75
+> 80
+> 85
+> 90
+> 95
+> 100
+> Accuracy (%)
+> (b) Impact of Decoupling Intensity λ
+> HAR
+> AWR
+> ISRUC-S3
+> Epilepsy
+
+Figure 3: Sensitivity analysis of (a) down-sampling levels S and (b) decoupling intensity λ.Fsha , 0 Fsha , 1 Fsha , 2 Fsha , 3 Fsha , 4                     
+
+> Fsha , 0
+> Fsha , 1
+> Fsha , 2
+> Fsha , 3
+> Fsha , 4
+> 1.00 0.84 0.86 0.87 0.88
+> 0.84 1.00 0.87 0.88 0.89
+> 0.86 0.87 1.00 0.89 0.89
+> 0.87 0.88 0.89 1.00 0.89
+> 0.88 0.89 0.89 0.89 1.00
+
+(a) HAR (Shared)                                                 
+
+> Fsha , 0 Fsha , 1 Fsha , 2 Fsha , 3 Fsha , 4 Fsha , 5 Fsha , 6
+> Fsha , 0
+> Fsha , 1
+> Fsha , 2
+> Fsha , 3
+> Fsha , 4
+> Fsha , 5
+> Fsha , 6
+> 1.00 0.86 0.91 0.90 0.92 0.90 0.92
+> 0.86 1.00 0.88 0.91 0.92 0.91 0.89
+> 0.91 0.88 1.00 0.93 0.92 0.94 0.92
+> 0.90 0.91 0.93 1.00 0.90 0.96 0.92
+> 0.92 0.92 0.92 0.90 1.00 0.96 0.94
+> 0.90 0.91 0.94 0.96 0.96 1.00 0.94
+> 0.92 0.89 0.92 0.92 0.94 0.94 1.00
+
+(b) AWR (Shared) 
+
+Figure 4: Cross-scale correlation heatmaps of shared features Fsha ,equipped with quantitative colorbars. Fspe , 0 Fspe , 1 Fspe , 2 Fspe , 3 Fspe , 4                     
+
+> Fspe , 0
+> Fspe , 1
+> Fspe , 2
+> Fspe , 3
+> Fspe , 4
+> 1.00 0.60 0.65 0.68 0.52
+> 0.60 1.00 0.64 0.51 0.69
+> 0.65 0.64 1.00 0.65 0.66
+> 0.68 0.51 0.65 1.00 0.69
+> 0.52 0.69 0.66 0.69 1.00
+
+(a) HAR (Specific)                                                 
+
+> Fspe , 0 Fspe , 1 Fspe , 2 Fspe , 3 Fspe , 4 Fspe , 5 Fspe , 6
+> Fspe , 0
+> Fspe , 1
+> Fspe , 2
+> Fspe , 3
+> Fspe , 4
+> Fspe , 5
+> Fspe , 6
+> 1.00 0.63 0.50 0.62 0.58 0.56 0.41
+> 0.63 1.00 0.45 0.42 0.31 0.31 0.62
+> 0.50 0.45 1.00 0.32 0.46 0.16 0.38
+> 0.62 0.42 0.32 1.00 0.56 0.68 0.54
+> 0.58 0.31 0.46 0.56 1.00 0.38 0.55
+> 0.56 0.31 0.16 0.68 0.38 1.00 0.21
+> 0.41 0.62 0.38 0.54 0.55 0.21 1.00
+
+(b) AWR (Specific) 
+
+Figure 5: Correlation heatmaps of specific features Fspe , demonstrat-ing lower and more dispersed cross-scale correlations than shared fea-tures. (a) t-SNE Visualization: HAR     
+
+> Fspe, 0 Fspe, 1 Fspe, 2 Fspe, 3 Fspe, 4
+
+(b) t-SNE Visualization: AWR             
+
+> Fspe, 0 Fspe, 1 Fspe, 2 Fspe, 3 Fspe, 4 Fspe, 5 Fspe, 6
+> Fspe,0 Fspe,1 Fspe,2 Fspe,3 Fspe,4 Fspe,5 Fspe,6
+
+Figure 6: t-SNE visualization of learned feature manifolds for HAR and AWR datasets, illustrating superior manifold resolution. 
+
+Sensitivity to Decoupling Intensity λ
+
+As shown in Fig. 3(b), model performance remains stable across three orders of magnitude for the decoupling weight 
+
+λ. This high consistency suggests that the performance gains originate from the inherent structural design of CASE-NET rather than from heuristic parameter fine-tuning. 
+
+4.5 Convergence and Stability Analysis 
+
+Fig. 2 shows stable optimization across domains: training and validation losses decrease consistently and converge within about 40 epochs, while accuracy curves remain smooth across four modalities. These results indicate that the causal-spatial encoder provides robust optimization behavior for heteroge-neous MTS data. The close tracking between training and validation curves further suggests that the causal mask and channel bottleneck act as structural regularizers rather than merely increasing model capacity. Such stability is particu-larly important for non-stationary MTS, where overfitting to transient fluctuations can easily distort downstream represen-tations. 
+
+4.6 Representation Interpretability and Disentanglement 
+
+By comparing heatmaps in Fig. 4 and Fig. 5, Fsha exhibits strong cross-scale correlation, while Fspe shows lower and more dispersed cross-scale correlations, indicating effective shared-specific disentanglement. The t-SNE projections in Fig. 6 further show compact clusters and clear inter-class boundaries on HAR. Compared with DisMS-TS, CASE-NET produces more separable feature manifolds, suggesting that causal-spatial refinement improves representation clarity and supports the evolutionary noise hypothesis discussed in Sec-tion 4.2. This evidence indicates that the observed perfor-mance gains arise not only from stronger classifiers, but also from a cleaner and more structured latent geometry. 
+
+5 Conclusion 
+
+CASE-NET addresses the representation bottleneck in multi-scale MTS classification by combining causal temporal mod-eling with channel recalibration before shared-specific dis-entanglement. Experiments across six heterogeneous do-mains demonstrate that the proposed causal-spatial precondi-tioning improves robustness in non-stationary and noisy set-tings. The results further indicate that causal temporal fil-tering and channel recalibration play complementary roles: the former stabilizes temporal dynamics, while the latter sup-presses channel-wise noise before disentanglement. Future work will explore large-scale spatio-temporal pre-training for broader sensing applications. Acknowledgments 
+
+This work was supported in part by the National Natural Sci-ence Foundation of China under Grant Nos. U24A20219, 62272281, and U24A20328; the Yantai Natural Science Foundation under Grant No. 2024JCYJ034; and the Youth Innovation Technology Project of Higher School in Shandong Province under Grant No. 2023KJ212. 
+
+References 
+
+[Cai et al. , 2025] Sihua Cai, Hao Peng, Rui Liu, and Pei Chen. Causal-oriented representation learning for time-series forecasting based on the spatiotemporal information transformation. Communications Physics , 8(1):242, 2025. [Chen et al. , 2023] Ling Chen, Donghui Chen, Zongjiang Shang, Binqing Wu, Cen Zheng, Bo Wen, and Wei Zhang. Multi-scale adaptive graph neural network for multivariate time series forecasting. IEEE Transactions on Knowledge and Data Engineering , 35(10):10748–10761, 2023. [Chen et al. , 2024] Peng Chen, Yingying Zhang, Yunyao Cheng, Yang Shu, Yihang Wang, Qingsong Wen, Bin Yang, and Chenjuan Guo. Pathformer: Multi-scale trans-formers with adaptive pathways for time series forecast-ing. arXiv preprint arXiv:2402.05956 , 2024. [Chen et al. , 2025] Zhiwei Chen, Yupeng Hu, Zixu Li, Zhi-heng Fu, Haokun Wen, and Weili Guan. Hud: Hierarchical uncertainty-aware disambiguation network for composed video retrieval. In Proceedings of the ACM International Conference on Multimedia , page 6143–6152, 2025. [Cheng et al. , 2023] Yunyao Cheng, Peng Chen, Chenjuan Guo, Kai Zhao, Qingsong Wen, Bin Yang, and Chris-tian S Jensen. Weakly guided adaptation for robust time series forecasting. Proceedings of the VLDB Endowment ,17(4):766–779, 2023. [Eldele et al. , 2021] Emadeldeen Eldele, Mohamed Ragab, Zhenghua Chen, Min Wu, Chee Keong Kwoh, Xiaoli Li, and Cuntai Guan. Time-series representation learning via temporal and contextual contrasting. arXiv preprint arXiv:2106.14112 , 2021. [Fang et al. , 2025] Yuting Fang, Qouc Le Gia, and Flora Salim. Sde-attention: Latent attention in sde-rnns for ir-regularly sampled time series with missing data. arXiv preprint arXiv:2511.23238 , 2025. [Fu et al. , 2025] Zhiheng Fu, Zixu Li, Zhiwei Chen, Chunx-iao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Pair: Complementarity-guided disentanglement for com-posed image retrieval. In ICASSP 2025-2025 IEEE In-ternational Conference on Acoustics, Speech and Signal Processing (ICASSP) , pages 1–5. IEEE, 2025. [Hao and Cao, 2020] Yifan Hao and Huiping Cao. A new at-tention mechanism to classify multivariate time series. In 
+
+Proceedings of the Twenty-Ninth International Joint Con-ference on Artificial Intelligence , 2020. [Huang et al. , 2023] Qihe Huang, Lei Shen, Ruixin Zhang, Shouhong Ding, Binwu Wang, Zhengyang Zhou, and Yang Wang. Crossgnn: Confronting noisy multivariate time series via cross interaction refinement. Advances in Neural Information Processing Systems , 36:46885–46902, 2023. [Huang et al. , 2025] Qinlei Huang, Zhiwei Chen, Zixu Li, Chunxiao Wang, Xuemeng Song, Yupeng Hu, and Liqiang Nie. Median: Adaptive intermediate-grained aggregation network for composed image retrieval. In ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) , pages 1–5. IEEE, 2025. [Kim et al. , 2024] Jaeho Kim, Seok-Ju Hahn, Yoontae Hwang, Junghye Lee, and Seulki Lee. Cafo: Feature-centric explanation on time series classification. In Pro-ceedings of the 30th ACM SIGKDD Conference on Knowl-edge Discovery and Data Mining , pages 1372–1382, 2024. [Kingma and Ba, 2014] Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980 , 2014. [Lai et al. , 2018] Guokun Lai, Wei-Cheng Chang, Yiming Yang, and Hanxiao Liu. Modeling long-and short-term temporal patterns with deep neural networks. In The 41st international ACM SIGIR conference on research & devel-opment in information retrieval , pages 95–104, 2018. [Lee et al. , 2021] Dongha Lee, Seonghyeon Lee, and Hwanjo Yu. Learnable dynamic temporal pooling for time series classification. In Proceedings of the AAAI Confer-ence on Artificial Intelligence , volume 35, pages 8288– 8296, 2021. [Li et al. , 2025] Zixu Li, Zhiwei Chen, Haokun Wen, Zhi-heng Fu, Yupeng Hu, and Weili Guan. Encoder: Entity mining and modification relation binding for composed image retrieval. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 39, pages 5101–5109, 2025. [Li et al. , 2026a] Zixu Li, Yupeng Hu, Zhiwei Chen, Qin-lei Huang, Guozhi Qiu, Zhiheng Fu, and Meng Liu. Re-track: Evidence-driven dual-stream directional anchor cal-ibration network for composed video retrieval. In Proceed-ings of the AAAI Conference on Artificial Intelligence , vol-ume 40, pages 23373–23381, 2026. [Li et al. , 2026b] Zixu Li, Yupeng Hu, Zhiwei Chen, Mingyu Zhang, Zhiheng Fu, and Liqiang Nie. Cone-sep: Cone-based robust noise-unlearning compositional network for composed image retrieval, 2026. [Lin et al. , 2025] Xiao Lin, Zhichen Zeng, Tianxin Wei, Zhining Liu, and Hanghang Tong. Cats: Mitigating corre-lation shift for multivariate time series classification. arXiv preprint arXiv:2504.04283 , 2025. [Liu et al. , 2024a] Chenxi Liu, Sun Yang, Qianxiong Xu, Zhishuai Li, Cheng Long, Ziyue Li, and Rui Zhao. Spatial-temporal large language model for traffic prediction. In 
+
+2024 25th IEEE International Conference on Mobile Data Management (MDM) , pages 31–40. IEEE, 2024. [Liu et al. , 2024b] Yong Liu, Tengge Hu, Haoran Zhang, Haixu Wu, Shiyu Wang, Lintao Ma, and Mingsheng Long. itransformer: Inverted transformers are effective for time series forecasting. arXiv preprint arXiv:2310.06625 ,2024. [Liu et al. , 2025] Zhipeng Liu, Peibo Duan, Binwu Wang, Xuan Tang, Qi Chu, Changsheng Zhang, Yongsheng Huang, and Bin Zhang. Disms-ts: Eliminating redun-dant multi-scale features for time series classification. In 
+
+Proceedings of the 33rd ACM International Conference on Multimedia , pages 10817–10826, 2025. [Morid et al. , 2023] Mohammad Amin Morid, Olivia R Liu Sheng, and Joseph Dunbar. Time series prediction using deep learning methods in healthcare. ACM Transactions on Management Information Systems , 14(1):1–29, 2023. [Nie et al. , 2022] Yuqi Nie, Nam H Nguyen, Phanwadee Sinthong, and Jayant Kalagnanam. A time series is worth 64 words: Long-term forecasting with transformers. arxiv 2022. arXiv preprint arXiv:2211.14730 , 2022. [Qin et al. , 2017] Yao Qin, Dongjin Song, Haifeng Chen, Wei Cheng, Guofei Jiang, and Garrison Cottrell. A dual-stage attention-based recurrent neural network for time se-ries prediction. arXiv preprint arXiv:1704.02971 , 2017. [Qiu et al. , 2024] Xiangfei Qiu, Jilin Hu, Lekui Zhou, Xingjian Wu, Junyang Du, Buang Zhang, Chenjuan Guo, Aoying Zhou, Christian S. Jensen, Zhenli Sheng, and Bin Yang. TFB: Towards comprehensive and fair benchmark-ing of time series forecasting methods. In Proc. VLDB Endow. , pages 2363–2377, 2024. [Qiu et al. , 2025a] Xiangfei Qiu, Xingjian Wu, Hanyin Cheng, Xvyuan Liu, Chenjuan Guo, Jilin Hu, and Bin Yang. Dbloss: Decomposition-based loss function for time series forecasting. In NeurIPS , 2025. [Qiu et al. , 2025b] Xiangfei Qiu, Xingjian Wu, Yan Lin, Chenjuan Guo, Jilin Hu, and Bin Yang. Duet: Dual cluster-ing enhanced multivariate time series forecasting. In Pro-ceedings of the 31st ACM SIGKDD Conference on Knowl-edge Discovery and Data Mining V. 1 , pages 1185–1196, 2025. [Song et al. , 2025] Yaqi Song, Rujie Wan, Li Li, Wanyu Wang, and Haonan Xing. A multi-scale temporal-frequency fusion network based on mlp for long-term time series forecasting. International Journal of Machine Learning and Cybernetics , 16(5):3943–3954, 2025. [Sun et al. , 2024] Jie Sun, Jie Xiang, Yanqing Dong, Bin Wang, Mengni Zhou, Jiuhong Ma, and Yan Niu. Deep learning for epileptic seizure detection using a causal-spatio-temporal model based on transfer entropy. Entropy ,26(10):853, 2024. [Wang et al. , 2024a] Shiyu Wang, Haixu Wu, Xiaoming Shi, Tengge Hu, Huakun Luo, Lintao Ma, James Y Zhang, and Jun Zhou. Timemixer: Decomposable mul-tiscale mixing for time series forecasting. arXiv preprint arXiv:2405.14616 , 2024. [Wang et al. , 2024b] Yuxuan Wang, Haixu Wu, Jiaxiang Dong, Yong Liu, Chen Wang, Mingsheng Long, and Jian-min Wang. Deep time series models: A comprehensive survey and benchmark. arXiv preprint arXiv:2407.13278 ,2024. [Wang et al. , 2026a] Hua Wang, Jinghao Lu, and Fan Zhang. Eeo-tfv: Escape-explore optimizer for web-scale time-series forecasting and vision analysis. In Proceedings of the ACM Web Conference 2026 , pages 7271–7282, 2026. [Wang et al. , 2026b] Hua Wang, Jinghao Lu, and Fan Zhang. Idealtsf: Can non-ideal data contribute to enhancing the performance of time series forecasting models? In Pro-ceedings of the AAAI Conference on Artificial Intelligence ,volume 40, pages 26224–26232, 2026. [Xu et al. , 2025] Faming Xu, Yiding Wang, Gang Qu, Vince D Calhoun, Julia M Stephen, Tony W Wilson, Yu-Ping Wang, and Chen Qiao. A deep spatio-temporal ar-chitecture for dynamic ecn analysis with granger causality based causal discovery. Pattern Recognition , page 112346, 2025. [Zhang et al. , 2022] Xiang Zhang, Ziyuan Zhao, Theodoros Tsiligkaridis, and Marinka Zitnik. Self-supervised con-trastive pre-training for time series via time-frequency consistency. Advances in neural information processing systems , 35:3988–4003, 2022. [Zhang et al. , 2024] Liang Zhang, Jianping Zhu, Bo Jin, and Xiaopeng Wei. Multiview spatial-temporal meta-learning for multivariate time series forecasting. Sensors (Basel, Switzerland) , 24(14):4473, 2024. [Zhang et al. , 2025] Zhenglin Zhang, Tengfei Wang, Zian Hu, Li-Zhuang Yang, and Hai Li. Multivariate time series approach integrating cross-temporal and cross-channel at-tention for dysarthria detection from speech. Neurocom-puting , page 130708, 2025. [Zhang et al. , 2026a] Fan Zhang, Shiming Fan, and Hua Wang. Time-tk: A multi-offset temporal interaction frame-work combining transformer and kolmogorov-arnold net-works for time series forecasting. In Proceedings of the ACM Web Conference 2026 , pages 7495–7506, 2026. [Zhang et al. , 2026b] Fan Zhang, Shiming Fan, and Hua Wang. Timesaf: Towards llm-guided semantic asyn-chronous fusion for time series forecasting. arXiv preprint arXiv:2604.12648 , 2026. [Zhang et al. , 2026c] Mingyu Zhang, Zixu Li, Zhiwei Chen, Zhiheng Fu, Xiaowei Zhu, Jiajia Nie, Yinwei Wei, and Yupeng Hu. Hint: Composed image retrieval with dual-path compositional contextualized network. arXiv preprint arXiv:2603.26341 , 2026. [Zhong et al. , 2025] Shuhan Zhong, Weipeng Zhuo, Sizhe Song, Guanyao Li, Zhongyi Yu, and S-H Gary Chan. Mtm: A multi-scale token mixing transformer for irregular mul-tivariate time series classification. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2 , pages 4074–4085, 2025. [Zhu et al. , 2023] Chenglong Zhu, Xueling Ma, Weiping Ding, and Jianming Zhan. Long-term time series forecast-ing with multilinear trend fuzzy information granules for lstm in a periodic framework. IEEE Transactions on Fuzzy Systems , 32(1):322–336, 2023.

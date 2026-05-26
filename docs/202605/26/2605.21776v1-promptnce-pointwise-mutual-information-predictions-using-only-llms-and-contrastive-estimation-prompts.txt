@@ -1,0 +1,341 @@
+Title: PromptNCE: Pointwise Mutual Information Predictions Using Only LLMs and Contrastive Estimation Prompts
+
+URL Source: https://arxiv.org/pdf/2605.21776v1
+
+Published Time: Fri, 22 May 2026 00:17:50 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# PromptNCE: Pointwise Mutual Information Predictions Using Only LLMs and Contrastive Estimation Prompts 
+
+Juliette Woodrow 
+
+Department of Computer Science Stanford University 
+
+jwoodrow@cs.stanford.edu 
+
+Chris Piech 
+
+Department of Computer Science Stanford University 
+
+piech@cs.stanford.edu 
+
+# Abstract 
+
+Estimating mutual information from text usually requires training a task-specific critic, which limits its use in low-data settings. We ask whether large language models can instead estimate pointwise mutual information zero-shot, using only prompts and elicited probabilities. We introduce a benchmark with human-derived ground-truth PMI across three pub-licly available datasets, and evaluate five information-theoretic prompting-based estimators. Our main method, P ROMPT NCE, frames conditional probability estimation as a contrastive task and augments the candidate set with an explicit OTHER category. We show theoretically that adding OTHER recovers the true conditional P(y | x) rather than just a ranking over listed candidates, turning a contrastive prompt into a general-purpose zero-shot probability estimator. P ROMPT NCE is the best zero-shot method on all three datasets, reaching Spearman correlation up to 0.82 with human-derived PMI. We also present a case study in computer science education showing how these estimators can be used to score student knowledge summaries in a low-data setting. 
+
+# 1 Introduction 
+
+Mutual information (MI) between two random variables X and Y quantifies how much knowing one reduces uncertainty about the other. Its pointwise variant, pointwise mutual information (PMI), measures this for a specific pair (x, y) rather than in expectation, making it the natural quantity for scoring individual text pairs by how informative they are about each other. MI and PMI appear throughout machine learning, from learning representations (Hjelm et al., 2019) to feature selection (Vergara & Est ´evez, 2014) to analyzing what neural networks learn (Shwartz-Ziv & Tishby, 2017). But estimating these quantities is notoriously difficult. The relevant distributions are often high-dimensional and long-tailed, and exact computation is intractable for all but the simplest cases. Decades of work have addressed this by training neural critics to optimize variational bounds on MI (Belghazi et al., 2018; Nguyen et al., 2010; van den Oord et al., 2018). These methods are effective but require extensive task-specific training data, which limits their use in low-data settings. Large language models offer a potential path forward. Recent work shows they can serve as effective zero-shot scorers and judges on tasks well-covered by their training data (Liu et al., 2023; Zheng et al., 2023; Li et al., 2024a;b). In this paper, we study whether large language models can estimate pointwise mutual information zero-shot using only prompts and elicited probability estimates. We consider two strategies. The first is to simply ask the model to estimate PMI for a given pair. The second is theory-driven where we translate classical mutual information estimation ideas into natural language prompts, treating the language model as a critic that elicits the probabilities needed to estimate PMI. We formalize this as the Zero-Shot PMI Estimation Challenge and construct a benchmark from three publicly available datasets with human-derived ground-truth PMI. We compare five prompting methods grounded in the MI estimation literature. Among these, we introduce PROMPT NCE, a contrastive method that adds an explicit OTHER category to the candidate set. Standard contrastive approaches inflate conditional estimates. The OTHER category lets 1
+
+> arXiv:2605.21776v1 [cs.CL] 20 May 2026
+
+the model express that most mass falls outside the candidates, and we show theoretically that this recovers a better approximation of the true conditional. P ROMPT NCE achieves the highest correlation on all three datasets. We find that performance depends strongly on dataset structure. We introduce a variance decomposition that separates how much PMI variation comes from each component and show that it predicts when methods succeed and when they fail (Section 4.1). Finally, we present a case study that illustrates why zero-shot PMI estimation matters in practice. LLMs can generate natural-language summaries about individuals from observed data, such as a summary of what a student understands based on the code she has written, or a summary of a patient based on her medical records. But evaluating whether such a summary is any good is an open problem. A useful summary should contain enough individual-specific information to help predict what that person will do next, exactly the kind of relationship PMI captures. In section 5.4, we show that P ROMPT NCE can provide a principled scoring signal for summaries in one low-data setting when traditional PMI estimation methods would be infeasible. We make the following contributions :• Problem and benchmark. We formalize zero-shot PMI estimation as a challenge for prompted language models and introduce a benchmark with human-derived ground-truth PMI spanning word association, inference, and emotions. • PromptNCE. We introduce P ROMPT NCE, a contrastive prompting method that aug-ments the candidate set with an explicit OTHER category. We show theoretically that this recovers the open-vocabulary conditional P(y | x) rather than its renormalization onto a closed candidate set. • Empirical results. Across three datasets and two commercial language models, PROMPT NCE consistently achieves the highest zero-shot PMI estimation accuracy, reaching Spearman ρ = 0.82 against human-derived ground truth on ChaosNLI ( +0.10 over direct asking), ρ = 0.69 on Words ( +0.21), and ρ = 0.47 on GoEmotions ( +0.13). We also find consistent differences across model families, with Claude Sonnet 4 outper-forming GPT-5.2 across methods and datasets. • Error analysis. We decompose each dataset by how much PMI variation is driven by the conditional versus the marginal term, and show that this predicts when marginal estimation matters — providing a diagnostic framework that transfers to new datasets. We further show that ranking errors are the primary bottleneck, and that these errors are systematic rather than stochastic, pointing to limits in the model’s distributional knowledge rather than prompt sensitivity. • Case study. We present a case study in computer science education showing that PROMPT NCE provides a principled scoring signal for natural-language summaries of student understanding without any training data, and that estimated PMI scores correspond with expert teacher scores. 
+
+1.1 The Zero-Shot LLM Mutual Information Estimation Challenge 
+
+The Zero-Shot Mutual Information Estimation Challenge is to estimate pointwise mutual infor-mation for text pairs using only a pretrained language model and a prompt. The model receives a natural language description of the task and returns a verbal estimate. This challenge is difficult for at least two reasons. First, PMI over text is fundamentally hard. Text is discrete, high-dimensional, and long-tailed. Traditional MI estimators learn critics in continuous embedding spaces from training data Nguyen et al. (2010); van den Oord et al. (2018); Belghazi et al. (2018). Without a learned critic, you need some other way to evaluate density ratios over natural language. Second, PMI depends not just on how strongly x
+
+and y are associated but also on how common y is overall. The base rate of y is a property of a specific dataset, and the model has no direct access to dataset statistics. It must infer how common y is from general knowledge, which may not match the target distribution. We evaluate using Spearman rank correlation between estimated and ground-truth PMI, since the most natural downstream use of PMI is identifying which label y has the highest mutual information with a given input x. A “good” zero-shot MI estimator should rank pairs correctly by PMI. 21.2 Background and Related Work 
+
+The standard approach to MI estimation is to optimize a variational lower bound using a learned critic. The Donsker-Varadhan (DV) representation gives a tight bound but requires estimating an intractable log-partition function. Belghazi et al. (2018) operationalized this idea in MINE by training a neural critic with gradient descent. Nguyen et al. (2010) intro-duced the NWJ bound, which gives a looser but often lower-variance objective. Contrastive methods offer a simpler alternative. van den Oord et al. (2018) showed that identifying the true pair among distractors gives a lower bound on MI, an objective widely adopted in representation learning (Gutmann & Hyv ¨arinen, 2010; Hjelm et al., 2019; Chen et al., 2020). One key limitation shared by these methods is that the critic function needs extensive training data and specific modeling assumptions. We instead ask whether an LLM can serve as the critic without any training, by prompting it to provide the probability estimates needed for PMI directly. Whether LLMs can produce usable probability estimates from prompts alone remains an open question. Tian et al. (2023) found that for RLHF models, verbalized confidence scores are substantially better calibrated than token-level probabilities. Xiong et al. (2024) evaluated black-box confidence elicitation across LLMs, finding persistent overconfidence that no single prompting technique consistently resolves. Chen & Mueller (2024), Wang et al. (2024), and Kapoor et al. (2024) have since explored sampling-based and training-based approaches for more reliable uncertainty expression. Prior work treats verbalized probabilities as confidence in a final answer. We instead use them as plug-in estimates of the terms needed to compute PMI, so the relevant failure modes are in the model’s distributional knowledge rather than its calibration. Whether that distributional knowledge is sufficient for zero-shot estimation is an empirical question, but recent evidence is encouraging. A growing literature uses LLMs as zero-shot scorers in place of human evaluation (Liu et al., 2023; Zheng et al., 2023; Li et al., 2024a;b). LLM judges can match human agreement rates above 80% on tasks well-covered by pretraining, though they remain susceptible to bias and degraded performance on specialized criteria (Zheng et al., 2023; Li et al., 2024b). Our setting differs from zero-shot scoring in that we are not asking for a direct quality judgment. Instead, we take classical MI estimation methods and recast them as prompts, using elicited probabilities as plug-in estimates for the terms in PMI. To the best of our knowledge, this is the first work to use prompted probability elicitation for pointwise mutual information estimation. 
+
+# 2 Theoretical Motivation 
+
+Our goal is to estimate pointwise mutual information, PMI (x, y) = log P(y | x) − log P(y), (1) using only zero-shot probability elicitation from a language model. This section develops the theoretical structure underlying our methods. We begin by viewing PMI as a difference of two terms that can, in principle, be elicited independently. We then show that a contrastive formulation—asking the model to identify a true label among distractors—recovers PMI exactly up to a candidate-set-dependent constant. Finally, we show that augmenting the candidate set with an explicit OTHER category converts the contrastive posterior into an estimate of the open-vocabulary conditional P(y | x), enabling absolute PMI estimation. 
+
+2.1 PMI as a Probability Decomposition 
+
+The identity PMI (x, y) = log P(y | x) − log P(y) reduces PMI estimation to estimating two quantities: a conditional probability ˆP(y | x) and a marginal probability ˆP(y). Both of these terms can be estimated zero-shot by an LLM. This decomposition is useful because it separates two distinct estimation tasks. The condi-tional term P(y | x) depends on how the input x shifts probability across the outputs, while the marginal term P(y) captures how common y is overall. Errors from either component 3propagate into the final PMI estimate, and the relative importance of each component depends on the problem setting. In some settings, most of the variation in PMI across pairs comes from the marginal term, while in others the conditional term dominates. We quantify this empirically for each dataset via a variance decomposition in Section 4.1. The question, then, is how to elicit each term from a language model. 
+
+Estimating the marginal: The marginal is a property of the label distribution in the target dataset. This creates a distinct challenge because the model has no direct access to the dataset’s label frequencies and must infer them from its own prior knowledge. One approach we use is to ask the model directly by prompting it to reason about how common label y is overall. But this relies on the model’s internalized base rates, which may not match the target distribution. Another approach is to ground the marginal prompt by providing a small sample of labels drawn from the dataset. These examples do not reveal label frequencies or PMI measurements directly, but they anchor the estimate in the structure of the actual distribution rather than the model’s generic world knowledge. This grounding makes the method not strictly zero-shot, but it requires only a small number of input-output pairs from the dataset. 
+
+2.2 PMI from Contrastive Estimation 
+
+Eliciting a well-calibrated value of P(y | x) directly from a language model is difficult: the model must assign an absolute probability to a single label without any reference point. A contrastive formulation offers a more tractable path. Rather than requesting an absolute probability, we ask the model to identify the true label among K − 1 distractors—a comparative judgment grounded in a concrete set of alternatives. This reformulation might seem to discard the probabilistic structure we need, but the opposite is true: as we now show, the posterior over this identification task recovers pointwise mutual information exactly, up to a constant that depends only on the candidate set. Construct a candidate set S = {y1, . . . , yK }, formed by placing the true label y at a uniformly random index I = i∗ and filling the remaining K − 1 slots with distractors drawn from P(y).We task the model with recovering i∗ from S given x.To understand what this task reveals, we restate the derivation of van den Oord et al. (2018) for the posterior over I under this generative model. The joint probability of a configuration in which i is the true index is proportional to P(x, yi) ∏j̸ =i P(yj). Forming the posterior, the factor ∏j P(yj) is common to all terms and cancels, as does P(x), yielding 
+
+P(I = i | x, S) ∝ P(x, yi)/P(yi) ∝ P(yi | x)/P(yi). Normalizing over i gives 
+
+P(I = i | x, S) = P(yi | x)/P(yi)
+
+∑Kj=1 P(yj | x)/P(yj) . (2) We now use equation (2) to recover pointwise mutual information directly. Since P(y |
+
+x)/P(y) = exp (PMI (x, y)) by definition, equation (2) is a softmax over PMI scores. Evalu-ating at the true label y at index i∗ and inverting gives PMI (x, y) = log P(I = i∗ | x, S) + log Z(x, S),where Z(x, S) = ∑Kj=1 exp (PMI (x, yj)) depends only on S. Thus, the contrastive posterior recovers PMI (x, y) up to an additive constant shared across all candidates in S. This is sufficient for relative comparisons, and in particular for ranking candidates by PMI. However, this estimate will be biased by any changes to S, including changing the target y.
+
+2.3 Recovering Conditional Probabilities from Contrastive Estimation 
+
+We now show how to recover the open-vocabulary conditional P(y | x) from the contrastive construction. This matters because our evaluation ranks pairs across different inputs: without absolute estimates, PMI scores computed using the theory in 2.2 under different candidate sets S are not comparable. One might hope to use P(I = i∗ | x, S) directly as an estimate of P(y | x). This is tempting because from equation (2) , the posterior is proportional to P(y | x)/P(y): if P(y) were 4roughly constant across candidates, renormalization would approximately recover the conditional. But marginals vary substantially across candidates, and asking a model to distribute probability over a finite set S forces all mass onto the listed candidates regardless of how much weight the true conditional places outside S. The result is not P(y | x) but its renormalization onto S:
+
+PS(y | x) = P(y | x)
+
+∑y′ ∈S P(y′ | x) .Since the denominator is strictly less than one whenever P(Y /∈ S | x) > 0, this systemati-cally overestimates P(y | x).We fix this by introducing a residual category OTHER = Y \ S and asking the model to distribute probability over S ∪ { OTHER }. Under the generative model of Section 2.2, we extend the index I to range over S ∪ { OTHER }, with the OTHER slot representing the event 
+
+Y /∈ S. For the true label y at index i∗, the posterior calculation proceeds exactly as before: 
+
+P(I = i∗ | x, S ∪ { OTHER }) ∝ P(y) P(y | x)
+
+P(y) = P(y | x),where P(y) cancels exactly because distractors are still drawn from the marginal. The OTHER 
+
+slot absorbs the residual mass P(Y /∈ S | x), so normalization is now over the full output space rather than just S. The inflated denominator of PS is replaced by one, and the posterior probability of the true label directly approximates the open-vocabulary conditional: ˆP(y | x) ≈ ˆP(I = i∗ | x, S ∪ { OTHER }).This requires only a single extra category in the prompt. This conditional estimate is combined with a marginal term to predict PMI as shown in equation 1. 
+
+# 3 Methods for Estimating Pointwise Mutual Information 
+
+The derivations in section 2 characterize what an ideal contrastive classifier would recover. In practice, we approximate these classifiers by prompting an LLM, but the LLM is not the Bayes-optimal classifier assumed by the theory. We present five prompting methods to predict PMI using an LLM, and the experiments that follow measure how close each prompting strategy comes to the ideal classifier target. The methods differ in how they elicit these predictions from an LLM. We organize them from simplest to most structured. Appendix B shows a representative example. 
+
+Direct PMI. The model receives the pair (x, y) and the definition of PMI, and returns a single scalar estimate dPMI (x, y). This tests whether an LLM can perform the full estimation task without decomposition. No conditional or marginal is elicited separately. 
+
+Decomposed PMI. This method estimates the two terms of Equation 1 independently (Section 2.1). In the conditional prompt, the model sees an input x and a candidate label 
+
+y and instructions to return an estimate of how likely this label is for this input, P(y | x).In the base-rate prompt, the model sees only a label y and returns an estimate of P(y),how common this label is overall. The final estimate combines the responses to those two prompts from the LLM: dPMI Decomp (x, y) = log ˆ P(y | x) − log ˆ P(y).
+
+InfoNCE. Rather than asking for an open-ended probability, this method frames the con-ditional as a contrastive task (Section 2.2). The model sees an input x and a candidate set 
+
+S = {y1, . . . , yK } containing the true label and K − 1 distractors sampled from the marginal. It assigns a probability to each candidate, and the probability on the true label serves as the score. Because the candidate set is closed, all probability mass is forced onto the listed options. This method estimates only the conditional term (and no marginal term): 
+
+dPMI InfoNCE (x, y) = log ˆ P(y | x, S).
+
+MarginalNCE. Same contrastive conditional prompt as InfoNCE, but we subtract an LLM-estimated marginal using the same base-rate prompt described in Decomposed PMI: 5Dataset Var [log P(y | x)] Var [log P(y)] Var [log P(y)]                  
+
+> Var [log P(y|x)] Empirical Marginal-only ρ
+> Words 0.867 3.349 3.86 0.857 ChaosNLI 2.123 0.144 0.07 -0.034 GoEmotions 0.285 0.768 2.69 0.772 Table 1: Variance of ground-truth PMI components across datasets. Words and GoEmotions are marginal-dominated, while ChaosNLI is conditional-dominated. The final column reports the Spear-man correlation, ρ, by ranking pairs using only empirical log P(y).
+
+dPMI MarginalNCE (x, y) = log ˆ P(y | x, S) − log ˆ P(y). This tests whether adding marginal correc-tion to a contrastive conditional improves estimation, particularly on marginal-dominated datasets. 
+
+PromptNCE. This method modifies both terms (Section 2.3). For the conditional, the candidate set includes an OTHER category, so the model can place mass on unlisted la-bels rather than being forced to distribute all probability across a closed set. As shown in Section 2.3, this recovers the open-vocabulary conditional P(y | x) rather than its renormalization onto S. For the marginal, the base-rate prompt is grounded with a small number of input-label examples. These examples do not reveal label frequencies but anchor the estimate in the structure of the data distribution. The final estimate is: 
+
+dPMI PromptNCE (x, y) = log ˆ P(y | x, S ∪ { OTHER }) − log ˆ P(y; grounded ).
+
+# 4 Benchmark 
+
+We construct a benchmark for evaluating zero-shot PMI estimation from LLMs. Each bench-mark instance is a text pair (x, y) with ground-truth PMI derived from human annotations. The benchmark spans three datasets that differ in domain, label space size, and the relative importance of the conditional versus marginal terms of PMI. We evaluate PMI estimation quality using Spearman rank correlation, ρ, between estimated and ground-truth PMI val-ues across pairs. We choose a ranking metric because the most natural downstream use of PMI is selection: given a fixed input x, which label y has the highest mutual information? These tasks often compute the argmax over candidates, which depends on correct ordering. Spearman ρ captures exactly this: it measures whether the estimator places high-PMI pairs above low-PMI pairs, regardless of scale. 
+
+4.1 Datasets 
+
+Each dataset consists of input-label pairs (x, y). Ground-truth PMI is computed as PMI (x, y) = log P(y | x) − log P(y), with both terms derived from human annotations. We evaluate using Spearman ρ between estimated and true PMI across pairs. 
+
+Words. The University of South Florida Free Association Norms (Nelson et al., 2004): participants see a cue word x and produce the first word y that comes to mind. P(y | x)
+
+is the fraction of participants who produced y given x; P(y) is the overall frequency of y
+
+across all cues. 
+
+ChaosNLI. Re-annotations of SNLI Bowman et al. (2015) premise-hypothesis pairs (Nie et al., 2020), each labeled by 100 independent annotators as entailment, neutral, or contradiction. Here x is a premise-hypothesis pair and y is an NLI label. P(y | x) is the annotator vote share; P(y) is the label frequency across the dataset. 
+
+GoEmotions. Reddit comments annotated with emotion labels by 3-5 raters (Demszky et al., 2020). Here x is a comment and y is one of 28 emotion labels. P(y | x) is the fraction of raters who selected y for x; P(y) is the overall frequency of y. Because raters may assign multiple emotions, this dataset differs from standard single-label classification. Table 1 decomposes PMI variance into conditional and marginal terms. The ratio Var [log P(y)] /Var [log P(y | x)] characterizes each dataset. Values greater than 1 indicate 6Figure 1: Spearman ρ between estimated and true PMI. All methods are Claude Sonnet 4 unless otherwise noted in the label. The dashed line shows the P ROMPT NCE using the empirical label marginal. Error bars are standard error of the mean. 
+
+a marginal-dominated dataset where PMI rankings are driven by label base rates, P(y).Values near zero indicate a conditional-dominated dataset where rankings are driven by how the input x shifts probability across labels. Words is strongly marginal-dominated (ratio 3.9), GoEmotions moderately so (2.7), and ChaosNLI is conditional-dominated (0.07). On marginal-dominated datasets, errors in ˆP(y) propagate directly into PMI rankings. To characterize each dataset’s structure, the final column of Table 1 reports Spearman ρ when pairs are ranked by the empirical log P(y) alone — using ground-truth label frequencies unavailable to our models. This achieves ρ = 0.86 on Words and ρ = 0.77 on GoEmotions, but ρ = −0.03 on ChaosNLI. 
+
+# 5 Results 
+
+We evaluate on 500 pairs per dataset, disjoint from the 200 used during prompt development. All methods were run with GPT-5.2 OpenAI (2025) and Claude Sonnet 4 Anthropic (2025). Claude Sonnet 4 consistently outperformed GPT-5.2 across methods and datasets. We report Claude Sonnet 4 results in this section. Full results for both models appear in the appendix. 
+
+5.1 Zero-shot PMI Estimation 
+
+Figure 1 reports Spearman ρ between estimated and true PMI rankings across all methods and datasets. Zero-shot PMI estimation success varies significantly across datasets, and the variance decomposition from Section 4.1 predicts when. On conditional-dominated ChaosNLI, all decomposed methods achieve ρ between 0.73 and 0.82. On marginal-dominated Words, the best method reaches ρ = 0.69. On GoEmotions, which is moderately marginal-dominated with a large label space, no method exceeds ρ = 0.47. Among methods, P ROMPT NCE achieves the highest correlation on all three datasets. Direct PMI, which asks the model to estimate PMI without decomposition, is consistently weaker. Though on ChaosNLI, which has a small label space and is conditional-dominated, it still reaches ρ = 0.72, suggesting that decomposition matters most when the marginal is important and the label space is large. 
+
+5.2 Role of Marginal Estimation 
+
+The variance decomposition predicts where marginal estimation will matter. We first verify this by examining the effect of adding a marginal. InfoNCE, which uses only the conditional term, performs poorly on marginal-dominated datasets: ρ = 0.33 on Words and 0.18 on GoEmotions. Adding an LLM-estimated marginal (MarginalNCE) raises these to 0.64 and 0.45. On conditional-dominated ChaosNLI, the marginal correction has almost no effect: both variants score ρ = 0.73. This matches the variance decomposition: when Var [log P(y)] 
+
+dominates, you need a good marginal; when it doesn’t, the marginal is noise. 7Words ChaosNLI GoEmotions                                   
+
+> Method Cond. ρMarg. ρCond. ρMarg. ρCond. ρMarg. ρ
+> Decomposed PMI .35 ±.04 .63 ±.03 .72 ±.03 —.23 ±.04 .44 ±.19
+> MarginalNCE .38 ±.04 .63 ±.03 .76 ±.03 —.31 ±.04 .44 ±.19
+> PromptNCE .50 ±.04 .73 ±.02 .83 ±.02 —.33 ±.04 .74 ±.12
+> Table 2: Spearman ρfor conditional and marginal PMI components (Rank ρ,
+
+± s.e.m.). P ROMPT NCE achieves the highest conditional ranking on all three datasets. ChaosNLI marginal ranking is ill-defined due to its 3-label space. 
+
+To isolate the contribution of marginal estimation error, we replace the LLM-estimated marginal with the empirical dataset marginal, keeping conditional estimates unchanged. On Words, Decomposed PMI rises from 0.63 to 0.89, and MarginalNCE from 0.64 to 0.89. On GoEmotions, gains are smaller but consistent: Decomposed PMI rises from 0.40 to 0.66. On ChaosNLI, the swap has essentially no effect. These results confirm that on marginal-dominated datasets, the gap between current performance and an achievable ceiling is largely attributable to marginal estimation error. 
+
+5.3 Diagnosing Estimation Errors 
+
+The previous section shows that marginal estimation error is a major factor on marginal-dominated datasets. This section explores where errors come from, ranking or calibration, and if they reflect stochastic noise or systematic limits. Table 2 reports Spearman ρ between estimated and true values for each component separately. PROMPT NCE achieves the highest conditional ranking on all three datasets (0.50 on Words, 0.83 on ChaosNLI, 0.33 on GoEmotions), suggesting that the OTHER category in the contrastive prompt helps the model produce better relative conditional judgments. For marginals, P ROMPT NCE’s grounded prompt substantially outperforms the open-ended baseline: ρ = 0.73 vs. 0.63 on Words and 0.74 vs. 0.44 on GoEmotions. P ROMPT NCE’s overall advantage comes from gains in both components. Decomposed PMI and MarginalNCE use the same open-ended base-rate prompt, so their marginal columns are identical. Post-hoc isotonic regression on a held-out development set can, in principle, fix calibration errors while preserving rank order. Gains from recalibration are modest and dataset-dependent (Appendix Table A5), confirming that ranking errors are the primary bottleneck. Ranking errors are systematic, not stochastic. We ran the Decomposed PMI conditional prompt 10 times on 50 word-association pairs with caching disabled. The model’s rankings are highly self-consistent across runs (mean pairwise ρ = 0.86) but each run correlates with ground truth at only ρ ≈ 0.43 (Appendix Table A6). 
+
+5.4 Case Study: Scoring Student Knowledge Summaries 
+
+This work evaluates zero-shot MI estimation on datasets with known ground-truth PMI. But the methods are designed for settings where such ground truth does not exist. We present a case study in one such setting: using P ROMPT NCE to score LLM generated natural-language summaries of student understanding in computer science education. In introductory programming courses, instructors routinely form mental models of their students: what concepts a student has grasped, what they are confused about, and what they are likely to struggle with next. LLMs can generate such summaries automatically, but evaluating them is an open problem. A good summary should be specific enough to anticipate what a student will write next. We operationalize this as a contrastive task: given a student’s unseen future code attempt and a pool of attempts from other students, can the summary help pick out which one belongs to the student it describes? In most educational settings there is not enough data to train a critic function. Zero-shot PMI estimation offers a method with an information-theoretic interpretation and does not require any training data. We test this on 20 students from a large online introductory programming course. An expert teacher wrote a short summary of each student based on four consecutive code snapshots. 8For each student, we use P ROMPT NCE to estimate PMI between the student’s unseen future code attempt and two summaries: the expert summary and a generic summary that could apply to any student. A good scoring function should consistently assign higher PMI to the expert summary, reflecting that it carries more student-specific information. PROMPT NCE reliably prefers expert summaries, correctly scoring them above the generic summary 70.2% ± 1.8% of the time, compared to 60.3% ± 1.9% for InfoNCE. We hypothesize that P ROMPT NCE’s advantage here comes from the long-tailed nature of student code. The space of plausible future attempts is far larger than what can be captured in a small set of sampled negatives. A closed candidate set is therefore a poor approximation of the true output space. The explicit OTHER category lets the model express that most probability mass falls outside the listed candidates, producing conditional estimates that better reflect the open-ended nature of the task. This case study illustrates how zero-shot PMI estimation can provide an information-theoretic scoring function in settings where labeled data is too scarce to train a critic. We present it as a proof of concept rather than a validated evaluation method and future work should certainly test on larger populations and publicly available educational datasets. 
+
+# 6 Discussion and Conclusion 
+
+When to expect zero-shot MI estimation to work. The variance decomposition identifies which PMI component drives rankings in a given dataset, but the model must also estimate that component well. We hypothesize that zero-shot MI estimation succeeds when two conditions hold: the dominant component can be identified, and the model has good coverage of that component from pretraining. Our stability analysis (Appendix Table A6) supports this: ranking errors are systematic rather than stochastic, pointing to a distribution mismatch rather than unreliable reasoning. When the target distribution diverges from pretraining data, zero-shot estimation is less likely to succeed. 
+
+PromptNCE as a general tool for conditional probability elicitation. The gains of P ROMPT -NCE over its closest baseline are attributable to better estimation of P(y | x). Table 2 specifically isolates the conditional term as the locus of improvement. We therefore believe the P ROMPT NCE construction has value well beyond PMI, as there are many tasks that require estimating P(y | x) from a prompted language model. This construction requires no additional data or training and applies to any setting in which a prompted language model is asked to assign probability over a partial candidate set. Such tasks arise naturally in inference, commonsense reasoning, retrieval, and clinical prediction. 
+
+Limitations. Our theoretical derivations assume a Bayes-optimal classifier; the gap between this ideal and actual LLM behavior is what our experiments measure. We evaluate on three English-language datasets and two commercial models, so conclusions about other domains, languages, or model families require further validation. P ROMPT NCE requires access to a candidate label set and a small number of unlabeled input-output pairs; settings without this minimal structure would need a different approach. The case study covers 20 students from a single course and cannot be released due to privacy constraints, so generalization to other educational contexts remains an open question. 
+
+Conclusion. We introduced the zero-shot PMI estimation challenge and showed that prompted language models can estimate pointwise mutual information without training data, achieving Spearman ρ up to 0.82 against human-derived ground truth. Our key contribution is P ROMPT NCE, which augments the contrastive candidate set with an explicit  
+
+> OTHER
+
+category and provably recovers the open-vocabulary conditional P(y | x) rather than its renormalization onto a closed set. A variance decomposition of dataset structure predicts when methods succeed and where they fail. Beyond PMI, the OTHER construction offers a general and lightweight technique for improving conditional probability elicitation from prompted LLMs — a finding we hope will be useful well beyond this benchmark. 9References 
+
+Anthropic. System card: Claude Opus 4 and Claude Sonnet 4. Technical report, May 2025. URL https://www.anthropic.com/claude-4-system-card .Mohamed Ishmael Belghazi, Aristide Baratin, Sai Rajeshwar, Sherjil Ozair, Yoshua Bengio, Aaron Courville, and Devon Hjelm. Mutual information neural estimation. In ICML , pp. 531–540, 2018. Samuel R. Bowman, Gabor Angeli, Christopher Potts, and Christopher D. Manning. A large annotated corpus for learning natural language inference. In EMNLP , pp. 632–642, 2015. Jiuhai Chen and Jonas Mueller. Quantifying uncertainty in answers from any language model and enhancing their trustworthiness. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 5218–5241. Association for Computational Linguistics, 2024. doi: 10.18653/v1/2024.acl-long.283. URL https://aclanthology.org/2024.acl-long.283/ .Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. A simple frame-work for contrastive learning of visual representations. In ICML , pp. 1597–1607, 2020. Dorottya Demszky, Dana Movshovitz-Attias, Jeongwoo Ko, Alan Cowen, Gaurav Nemade, and Sujith Ravi. GoEmotions: A dataset of fine-grained emotions. In ACL , 2020. URL 
+
+https://github.com/google-research/google-research/tree/master/goemotions .Michael Gutmann and Aapo Hyv ¨arinen. Noise-contrastive estimation: A new estimation principle for unnormalized statistical models. In AISTATS , pp. 297–304, 2010. R. Devon Hjelm, Alex Fedorov, Samuel Lavoie-Marchildon, Karan Grewal, Phil Bachman, Adam Trischler, and Yoshua Bengio. Learning deep representations by mutual information estimation and maximization. In ICLR , 2019. Sanyam Kapoor, Sander Xie, Simran Jha, Kian Wu, Jacob Hall, Kirill Saveliev, Stefano Ermon, and Hritik Bansal. Large language models must be taught to know what they don’t know. 
+
+Advances in Neural Information Processing Systems , 37, 2024. Dawei Li, Bohan Jiang, Liangjie Huang, Alimohammad Beigi, Chengshuai Zhao, Zhen Tan, Amrita Bhattacharjee, Yuxuan Jiang, Canyu Chen, Tianhao Wu, Kai Shu, Lu Cheng, and Huan Liu. From generation to judgment: Opportunities and challenges of LLM-as-a-judge. 
+
+arXiv preprint arXiv:2411.16594 , 2024a. Haitao Li, Qian Dong, Junjie Chen, Huixue Su, Yujia Zhou, Qingyao Ai, Ziyi Ye, and Yiqun Liu. Llms-as-judges: A comprehensive survey on llm-based evaluation methods, 2024b. URL https://arxiv.org/abs/2412.05579 .Yang Liu, Dan Iter, Yichong Xu, et al. G-Eval: NLG evaluation using GPT-4 with better human alignment. In EMNLP , 2023. Douglas L. Nelson, Cathy L. McEvoy, and Thomas A. Schreiber. The University of South Florida free association, rhyme, and word fragment norms. Behavior Research Methods, In-struments, & Computers , 36(3):402–407, 2004. URL http://w3.usf.edu/FreeAssociation/ .XuanLong Nguyen, Martin J. Wainwright, and Michael I. Jordan. Estimating divergence functionals and the likelihood ratio by convex risk minimization. IEEE Transactions on Information Theory , 56(11):5847–5861, 2010. Yixin Nie, Xiang Zhou, and Mohit Bansal. What can we learn from collective human opinions on natural language inference data? In EMNLP , 2020. URL https://github. com/easonnie/ChaosNLI .OpenAI. Update to GPT-5 system card: GPT-5.2. Technical report, December 2025. URL https://cdn.openai.com/pdf/3a4153c8-c748-4b71-8e31-aecbde944f8d/oai 5 2 system-card.pdf .10 Ravid Shwartz-Ziv and Naftali Tishby. Opening the black box of deep neural networks via information. arXiv preprint arXiv:1703.00810 , 2017. Katherine Tian, Eric Mitchell, Allan Zhou, Archit Sharma, Rafael Rafailov, Huaxiu Yao, Chelsea Finn, and Christopher D. Manning. Just ask for calibration: Strategies for eliciting calibrated confidence scores from language models fine-tuned with human feedback. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing ,pp. 5433–5442. Association for Computational Linguistics, 2023. doi: 10.18653/v1/2023. emnlp-main.330. URL https://aclanthology.org/2023.emnlp-main.330/ .A ¨aron van den Oord, Yazhe Li, and Oriol Vinyals. Representation learning with contrastive predictive coding. arXiv:1807.03748 , 2018. Jorge R Vergara and Pablo A Est ´evez. A review of feature selection methods based on mutual information. Neural Computing and Applications , 24(1):175–186, 2014. Cheng Wang, Gyuri Szarvas, Georges Balazs, Pavel Danchenko, and Patrick Ernst. Calibrat-ing verbalized probabilities for large language models. CoRR , abs/2410.06707, 2024. URL 
+
+https://arxiv.org/abs/2410.06707 .Miao Xiong, Zhiyuan Hu, Xinyang Lu, Yifei Li, Jie Fu, Junxian He, and Bryan Hooi. Can LLMs express their uncertainty? An empirical evaluation of confidence elicitation in LLMs. In ICLR , 2024. Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica. Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. In NeurIPS Datasets and Benchmarks , 2023. 
+
+# A Additional results 
+
+A.1 Full results across models 
+
+Table A1 reports Spearman ρ for all methods on both GPT-5.2 and Claude Sonnet 4. Claude Sonnet 4 consistently outperforms GPT-5.2 across methods and datasets. The main paper results report Claude Sonnet 4.                                                         
+
+> Words ChaosNLI GoEmotions
+> Method GPT-5.2 Claude GPT-5.2 Claude GPT-5.2 Claude
+> Empirical marginal (oracle upper bound)
+> Decomposed PMI (emp.) 0.82 ±0.02 0.89 ±0.01 0.69 ±0.03 0.70 ±0.03 0.56 ±0.03 0.66 ±0.03 InfoNCE (emp.) 0.87 ±0.01 0.89 ±0.01 0.70 ±0.03 0.73 ±0.03 0.53 ±0.03 0.61 ±0.03 PromptNCE (emp.) 0.85 ±0.02 0.85 ±0.02 0.73 ±0.03 0.81 ±0.02 0.49 ±0.04 0.55 ±0.04
+> Zero-shot methods
+> InfoNCE 0.35 ±0.04 0.33 ±0.04 0.69 ±0.03 0.73 ±0.03 0.13 ±0.05 0.18 ±0.05 MarginalNCE 0.64 ±0.03 0.64 ±0.03 0.69 ±0.03 0.73 ±0.03 0.41 ±0.04 0.45 ±0.04 PromptNCE 0.74 ±0.02 0.69 ±0.03 0.73 ±0.03 0.82 ±0.02 0.43 ±0.04 0.47 ±0.04 Decomposed PMI 0.57 ±0.03 0.63 ±0.03 0.70 ±0.03 0.75 ±0.03 0.44 ±0.04 0.40 ±0.04 Direct PMI 0.36 ±0.04 0.48 ±0.04 0.49 ±0.04 0.72 ±0.03 0.35 ±0.04 0.34 ±0.04
+
+Table A1: Spearman ρ between estimated and true PMI rankings (500 held-out pairs per dataset). Bold 
+
+indicates best zero-shot method per column. Error bars are bootstrap standard errors. 
+
+A.2 Diagnostic decomposition across models 
+
+Tables A2 and A3 extend the main-paper diagnostic (Table 2) to both models. The pattern is consistent: PromptNCE achieves the best conditional ranking on all datasets for both models, and its grounded marginal prompt outperforms the open-ended baseline. Calibration slopes (ideal value 1.0) vary across methods, but post-hoc recalibration yields only modest gains (Section A.4), confirming that ranking errors are the primary bottleneck. 11 Rank ρ Cal. slope Method GPT-5.2 Claude GPT-5.2 Claude  
+
+> Words
+> Decomposed PMI 0.33
+
+±0.04 0.35 ±0.04 0.55 ±0.05 0.32 ±0.03 InfoNCE 0.26 ±0.04 0.38 ±0.04 0.25 ±0.03 0.23 ±0.02 PromptNCE 0.38 ±0.04 0.50 ±0.04 0.40 ±0.05 0.78 ±0.08  
+
+> ChaosNLI
+> Decomposed PMI 0.67
+
+±0.03 0.72 ±0.03 0.59 ±0.03 0.48 ±0.02 InfoNCE 0.73 ±0.02 0.76 ±0.03 0.72 ±0.03 0.80 ±0.04 PromptNCE 0.75 ±0.02 0.83 ±0.02 0.75 ±0.03 0.92 ±0.09  
+
+> GoEmotions
+> Decomposed PMI 0.30
+
+±0.04 0.23 ±0.04 0.65 ±0.09 0.36 ±0.06 InfoNCE 0.34 ±0.04 0.31 ±0.04 0.96 ±0.11 0.73 ±0.10 PromptNCE 0.34 ±0.04 0.33 ±0.04 0.95 ±0.19 1.63 ±0.25 Table A2: Diagnostic decomposition: conditional ˆP(y | x). Spearman ρ and calibration slope between estimated and true conditional probabilities (500 pairs per dataset). Error bars are standard error of the mean. Rank ρ Cal. slope Method GPT-5.2 Claude GPT-5.2 Claude  
+
+> Words
+> Decomposed PMI / InfoNCE 0.63
+
+±0.03 0.63 ±0.03 0.53 ±0.04 0.63 ±0.05 PromptNCE 0.81 ±0.02 0.73 ±0.02 0.65 ±0.03 0.57 ±0.03  
+
+> GoEmotions
+> Decomposed PMI / InfoNCE 0.42
+
+±0.20 0.44 ±0.19 0.35 ±0.13 0.35 ±0.10 PromptNCE 0.73 ±0.13 0.74 ±0.12 1.03 ±0.09 0.93 ±0.13 Table A3: Diagnostic decomposition: marginal ˆP(y). Spearman ρ and calibration slope between estimated and true marginal probabilities (500 pairs per dataset). Decomposed PMI and InfoNCE share the same marginal prompt, so their rows are merged. ChaosNLI is omitted because its 3-label marginal makes ranking ill-defined. Error bars are standard error of the mean. 
+
+A.3 Prompting interventions across models 
+
+Table A4 shares a small prompting intervention analysis on 80 pairs from two datasets. The pattern holds for both models: no intervention produces a consistent improvement over the baseline, the variation across interventions is smaller than the variation across models, and distribution-aware prompting actively degrades performance. 
+
+A.4 Post-hoc recalibration 
+
+To assess whether calibration errors contribute meaningfully to PMI estimation quality, we apply isotonic regression to the conditional estimates, the marginal estimates, or both, fitting on a 200-pair development set and evaluating on 500 held-out pairs. Table A5 reports the results. Recalibration yields modest and inconsistent gains, confirming that ranking errors rather than calibration errors are the primary bottleneck. For comparison, we also report an oracle condition that replaces the LLM-estimated marginal with the true empirical marginal, which provides a ceiling on the gains achievable from better marginal estimation alone. 
+
+A.5 Estimation stability 
+
+To determine whether conditional ranking errors are stochastic (reducible by averaging) or systematic (reflecting limits in the model’s knowledge), we ran the Decomposed PMI conditional prompt 10 times on 50 word-association pairs with API caching disabled. Ta-12 Words ChaosNLI Intervention GPT-5.2 Claude GPT-5.2 Claude Baseline .39 ±.10 .44 ±.09 .77 ±.06 .84 ±.03 
+
+Generate-then-rank .40 ±.10 .46 ±.09 .82 ±.04 .84 ±.05 
+
+Log-scale prior .40 ±.10 .46 ±.09 .84 ±.04 .81 ±.05 
+
+3-shot .38 ±.10 .50 ±.09 .79 ±.05 .86 ±.03 
+
+8-shot .45 ±.09 .37 ±.10 .79 ±.05 .80 ±.05 
+
+Distribution-aware .30 ±.10 .33 ±.10 .59 ±.09 .76 ±.06 
+
+Table A4: Conditional ranking Spearman ρ (Decomposed PMI) across prompting interventions and models (80 held-out pairs per dataset). No intervention produces a consistent improvement over the baseline. Distribution-aware prompting actively degrades performance. Error bars are bootstrapped standard error of the mean. Words ChaosNLI GoEmotions Method Recalibration GPT-5.2 Claude GPT-5.2 Claude GPT-5.2 Claude Decomposed PMI Uncalibrated 0.57 0.63 0.70 0.75 0.44 0.40 Isotonic (cond.) 0.65 0.64 0.70 0.72 0.58 0.56 Isotonic (both) 0.65 0.65 0.69 0.72 0.53 0.57 
+
+Empirical marginal 0.82 0.89 0.69 0.70 0.56 0.66 PromptNCE Uncalibrated 0.74 0.69 0.73 0.82 0.43 0.47 Isotonic (cond.) 0.80 0.76 0.73 0.81 0.62 0.66 Isotonic (both) 0.79 0.76 0.73 0.81 0.67 0.67 
+
+Empirical marginal 0.85 0.85 0.73 0.81 0.49 0.55 Table A5: Effect of post-hoc recalibration on PMI estimation (Spearman ρ). Isotonic regression is fit on a 200-pair development set and evaluated on 500 held-out pairs. Bold indicates best recalibrated result per method and dataset. The empirical marginal row replaces the LLM’s ˆP(y) with the true marginal, providing a ceiling on marginal-estimation gains. 
+
+ble A6 reports the results. The model’s rankings are highly self-consistent across runs (mean pairwise ρ = 0.86) but each run correlates with ground truth at only ρ ≈ 0.43. Averaging estimates across all 10 runs does not improve agreement with ground truth ( ρ = 0.44), confirming that the errors are systematic rather than stochastic. 
+
+# B Example Prompts 
+
+We include representative prompts for each method, shown across different datasets so readers can see how the task framing adapts. MarginalNCE is not shown separately because it combines the InfoNCE conditional prompt (Section B.4) with the Decomposed PMI marginal prompt (Section B.3). 
+
+B.1 Direct PMI (GoEmotions) 
+
+You are simulating a large-scale human annotation study of Reddit comments. Each rater reads ONE comment and selects ALL emotions that apply from a fixed set. Raters may select multiple emotions. Define an event T as: a randomly chosen rater selects the TARGET emotion for this comment. Pointwise mutual information (PMI) in nats is: PMI = ln(P(T|comment) / P(T)). COMMENT: {comment }
+
+TARGET EMOTION: {target }
+
+Return ONLY JSON: {"PMI LN": <number>, "notes": "<short>" }.
+
+13 Metric Value 
+
+Per-pair variability (CV across 10 runs) 
+
+Median CV 0.35 Mean CV 0.40 IQR [0.30, 0.48] 
+
+Inter-run rank agreement (Spearman ρ)
+
+Mean 0.86 Range [0.76, 0.95] 
+
+Agreement with ground truth (Spearman ρ)
+
+Per-run mean 0.43 Per-run range [0.38, 0.48] Averaged estimate 0.44 Table A6: Stability of GPT-5.2’s ˆP(y | x) estimates on 50 word-association pairs, each prompted 10 times. The model is highly self-consistent across runs (inter-run ρ = 0.86) but consistently misranked relative to ground truth ( ρ ≈ 0.43). Averaging across runs does not improve agreement, confirming that ranking errors are systematic. 
+
+B.2 Decomposed PMI Conditional Prompt (ChaosNLI) 
+
+In a large NLI annotation study, 100 raters each read a premise-hypothesis pair and choose ONE label: entailment, neutral, or contradiction. Estimate p apply = P(a randomly chosen rater selects TARGET label for this pair). PREMISE: {premise }
+
+HYPOTHESIS: {hypothesis }
+
+TARGET LABEL: {target }
+
+Return ONLY JSON: {"p apply": <number>, "notes": "<short>" }.p apply must be in (0,1]. 
+
+B.3 Decomposed PMI Marginal Prompt (Words) 
+
+In a free-association task, estimate p base = P(TARGET is first response) over random cues. TARGET: {target }
+
+Return ONLY JSON: {"p base": <number>, "notes": "<short>" }.p base must be in (0,1]. 
+
+B.4 InfoNCE Conditional Prompt (GoEmotions) 
+
+You are simulating a human emotion-annotation task on Reddit comments. A rater reads ONE comment and chooses exactly ONE emotion label from the list provided. Treat the list as a CLOSED set for this question. COMMENT: {comment }
+
+Emotion options (closed set): - {option 1 }
+
+- {option 2 }
+
+- ... - {option K }
+
+Return ONLY JSON mapping each option to probability. Probabilities must sum to 1. 
+
+14 B.5 PromptNCE Conditional Prompt (Words) 
+
+You are simulating a large-sample human free-association study. A participant sees ONE cue word and says the FIRST response word that comes to mind. CUE: {cue word }
+
+Candidate response words (partial list) 
+
+{option 1 }, {option 2 }, ..., {option K }
+
+TASK: Return a probability mass function (PMF) estimating how likely each candidate is to be the participant’s first response. Include a special key "OTHER" for the probability that the response is some word NOT in the candidate list. Calibration guidance: - The candidate list is partial (not exhaustive). Many response words are not listed. - Strong associates should get high probability; weak ones near zero. - Use OTHER for remaining probability mass (unlisted responses). OUTPUT REQUIREMENTS: - Output ONLY the JSON object. - Include EVERY candidate word plus OTHER. - Probabilities must be numeric and sum to 1. 
+
+B.6 PromptNCE Marginal Prompt (Words) 
+
+You are simulating a large-sample human free-association study. A participant sees a random cue word and says the FIRST response word. We want the BASE RATE probability that a specific target word is said as a first response, averaged across ALL possible cue words. Here are some example target words used in this study (no frequencies given): 
+
+{example label 1 }, {example label 2 }, ... Here are a few example cue words and their common responses (for grounding only; do NOT assume frequencies): Example 1: CUE = {example cue 1 }
+
+Common responses: {responses 1 }
+
+Example 2: CUE = {example cue 2 }
+
+Common responses: {responses 2 }
+
+TARGET WORD: {target }
+
+TASK: Estimate p base = P(TARGET WORD is said as first response) across random cue words. Important notes: - Very common response words (e.g. WATER, LOVE) have p base 0.001-0.01. - Most words have p base 0.00001-0.0001. - Rare words can be as low as 0.000001. - p base must be in (0,1]; do NOT use 0. Return ONLY JSON: "p base": <number> 
+
+15

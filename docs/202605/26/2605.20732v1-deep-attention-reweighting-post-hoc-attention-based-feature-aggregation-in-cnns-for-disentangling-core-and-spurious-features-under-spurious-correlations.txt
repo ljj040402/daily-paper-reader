@@ -1,0 +1,731 @@
+Title: Deep Attention Reweighting: Post-Hoc Attention-Based Feature Aggregation in CNNs for Disentangling Core and Spurious Features under Spurious Correlations
+
+URL Source: https://arxiv.org/pdf/2605.20732v1
+
+Published Time: Thu, 21 May 2026 00:41:33 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+# Deep Attention Reweighting: Post-Hoc Attention-Based Feature Aggregation in CNNs for Disentangling Core and Spurious Features under Spurious Correlations 
+
+Chew Kin Whye 1 and Jingxian Wang 1
+
+National University of Singapore, Singapore 117583, Singapore 
+
+{kinwhye,wang}@nus.edu.sg 
+
+Abstract. Convolutional Neural Networks (CNNs) often exploit spuri-ous correlations in datasets, learning superficially predictive yet causally irrelevant features, leading to poor generalization and fairness issues. Deep Feature Reweighting (DFR) is a post-hoc technique that reduces a trained model’s reliance on spurious correlations by retraining its clas-sification head on a target dataset. However, we show that DFR is fundamentally constrained by operating on entangled features, limiting its ability to amplify the core features while simultaneously suppress-ing the spurious ones. We trace this entanglement to the ubiquitous Global Average Pooling (GAP) layer, which indiscriminately collapses spatially distinct core and spurious features into a single representa-tion. To address this, we propose Deep Attention Reweighting (DAR), a post-hoc attention-based aggregation module that replaces GAP and is retrained jointly with the classification head. DAR computes an adap-tive weighting of spatial locations across feature maps, enabling selective suppression of spurious features before the collapse into entangled fea-tures. Across various datasets, metrics, and ablations, DAR consistently outperforms DFR, demonstrating that our attention-based aggregation mitigates GAP-induced entanglement and reduces spurious reliance. 
+
+Keywords: Spurious Correlations · Feature Entanglement · Attention-Based Feature Aggregation 
+
+## 1 Introduction 
+
+Convolutional Neural Networks (CNNs) have achieved strong in-distribution per-formance for vision tasks but often fail to generalize in the presence of spurious correlations —features in the training data that happen to be statistically cor-related with the labels but unrelated to the underlying target function. Under 
+
+Empirical Risk Minimization (ERM) , CNNs will indiscriminately exploit these shortcuts to minimize the empirical risk [2, 51, 61]. However, these spurious fea-tures do not generalize consistently, resulting in a severe lack of robustness, an inability to generalize, and unfairness [13]. For instance, in the Waterbirds  
+
+> arXiv:2605.20732v1 [cs.CV] 20 May 2026 2Chew and Wang
+
+dataset [58, 72], the label (waterbird vs. landbird) is spuriously correlated with the background (water vs. land), resulting in models that rely on the superficial and non-causal background shortcuts and therefore trivially fail on counterex-amples such as waterbirds on land or landbirds on water. In contrast, the core features are the task-relevant signals that are causally predictive of the label and generalize under distribution shifts. 
+
+Deep Feature Reweighting (DFR) [30] is a simple yet effective post-hoc tech-nique that retrains the last layer of an ERM-trained model on a small balanced target dataset , defined as one where there is a uniform distribution over classes within each spurious attribute such that the spurious attribute is no longer pre-dictive of the label. This yields strong empirical results because DFR reduces the model’s reliance on spurious features by adjusting the feature importance during retraining, while increasing reliance on the strong core features learned in the feature extractor. However, we find its effectiveness limited by the entanglement between the core and spurious features , where a single output feature encodes information from both. This entanglement forces DFR to navigate a trade-off: retaining a feature to preserve core information while including spurious cor-relations, or suppressing it to remove spurious influences at the cost of core information. As a result, DFR struggles to selectively suppress spurious features without inadvertently affecting core information. We further trace this entan-glement largely to the Global Average Pooling (GAP) layer [41], a widely used feature aggregation method in many popular CNN architectures [16,21,59,62,64] that uniformly averages the spatially distinct core and spurious features across each feature map into an entangled representation. To overcome this limitation, we propose Deep Attention Reweighting (DAR), a novel approach that replaces the GAP layer with an attention-based aggrega-tion mechanism retrained post-hoc alongside the last layer. Whereas GAP uni-formly averages all spatial locations, DAR learns an attention mechanism that 
+
+adaptively identifies and extracts the spatial locations in the feature maps that correspond to core features . This allows DAR to perform targeted feature selec-tion at the feature map representation, where the core and spurious features are spatially disentangled prior to collapsing into the feature vector. This difference between GAP and DAR is illustrated in Figure 1. The key contributions of this work are as follows: 
+
+– Diagnosing GAP-induced feature entanglement as the bottleneck of DFR. 
+
+We introduce the Core Effect Percentage (CEP), Core Activation Percentage (CAP), and Core GradCAM Percentage (CGP) as quantitative measures of feature entanglement, and complement them with GradCAM visualizations as a qualitative diagnostic. Using these metrics, we experimentally show that convolutional feature maps are channel-entangled yet spatially separa-ble: core and spurious features activate within the same feature map but at different locations. However, the GAP layer collapses this spatial separability into an entangled feature vector. Consequently, DFR cannot reliably retain core information while removing spurious features. Deep Attention Reweighting 3 
+
+> Fig. 1: Illustration of GAP vs. DAR. The input image from the Dominoes dataset consists of the spurious MNIST image concatenated with the core CIFAR image. After feature extraction by the convolutional layers, we find that the output feature maps are entangled, with each feature map activating both core and spurious features at distinct spatial locations. GAP uniformly averages these feature maps across spatial locations to produce entangled output features, whereas DAR’s attention mechanism computes the adaptive spatial weighting to extract a disentangled core feature representation.
+
+– Attention-based feature aggregation for disentanglement. 
+
+We propose DAR, a novel, lightweight attention-based feature aggregation mechanism that assigns adaptive importance weights to spatial locations over the convolutional feature maps. We experimentally show that when trained post-hoc on a target dataset, DAR significantly mitigates feature entanglement via the targeted extraction of core features and suppression of spurious features before they are collapsed into the final representation. 
+
+– Comprehensive empirical validation. 
+
+We evaluate DAR on six spurious correlation benchmark datasets against competitive baselines and across diverse experimental configurations. Our results show that DAR consistently outperforms the baselines, demonstrat-ing its robustness in mitigating spurious correlations. We additionally pro-vide various targeted ablation studies that characterize the source of DAR’s performance gains. 
+
+## 2 Related Works 
+
+2.1 Spurious Correlation 
+
+The challenge of spurious correlation in machine learning is studied under vari-ous frameworks, including the correlation-versus-causation dilemma [35, 47, 49], 
+
+invariant learning [2, 17, 55], subpopulation shift [7, 40, 76], and group robust-ness [34, 57, 58], among others (see also [77] for a recent survey). The methods 4 Chew and Wang 
+
+developed to address these challenges can be broadly categorized based on their dataset requirements. Firstly, methods that rely solely on the training dataset without additional information [37, 43, 52, 53, 63, 80]. Secondly, methods that re-quire datasets from different environments [1, 2, 42, 82]. Thirdly, methods that require group labels [58], where each group is defined as a combination of the label and the spurious attribute (e.g., background in Waterbirds). Lastly, meth-ods that require a small target dataset where spurious correlations are absent. Deep Feature Reweighting (DFR) [30] falls under this category, retraining the final classification head of an ERM-trained model in a post-hoc manner on the target dataset, achieving state-of-the-art performance on several benchmarks. Our work improves the applicability of DFR to CNNs by showing that its effectiveness is limited by feature entanglement in the GAP layer. We propose an attention-based aggregation mechanism that replaces it and is retrained along-side the classification head post-hoc, allowing the extraction of core features at the feature map level before they are entangled with spurious features. 
+
+2.2 Disentangled Representation Learning 
+
+Disentangled Representation Learning (DRL) aims to learn a feature represen-tation where each feature independently captures a distinct factor of variation while being invariant to the others [4,46]. A recent survey by [71] highlights that Variational Autoencoders [29] remain one of the most widely used frameworks, with many variants [5,8,12,18,19,26,27,33,50] formulated under the assumption that the factors of variation are statistically independent. However, [66] found that when this assumption is violated, these methods fail to prevent entangle-ment and may even introduce a bias against disentanglement. This makes feature disentanglement particularly challenging in the presence of spurious correlations, since the core and spurious features are statistically correlated. Unlike DRL methods that seek to learn a disentangled representation, our method operates in a post-hoc setting where the model has already learned an entangled feature representation. Our paper identifies that the GAP layer is primarily responsible for this entanglement in CNNs and replaces it with an attention mechanism that enables targeted extraction of task-relevant features. 
+
+2.3 Attention-Based Architectures in Vision 
+
+According to the survey by [15], the attention-based architectures in vision can be broadly categorized into two groups: pure attention architectures that replace convolutions entirely [11,44,65,69,78] and hybrid architectures that integrate at-tention with convolutions [3,20,70,73,74]. These architectures have weaker built-in spatial inductive biases and therefore often rely on large-scale pre-training to learn such structure implicitly, but are able to overcome the limited receptive field of standard convolutions. Several works have further explored the robust-ness of these attention architectures to spurious correlations, finding that while they can focus on semantically meaningful regions, they remain susceptible to biases [14, 68, 75, 79]. Deep Attention Reweighting 5
+
+In contrast to prior work that embeds attention within the backbone ar-chitecture to model token interactions for feature representation learning, DAR retains the CNN backbone, thereby preserving its efficiency and inductive bi-ases. Here, attention is used as a lightweight, modular mechanism specifically designed for adaptive spatial reweighting during feature aggregation, replacing GAP. The closest work to ours is [24], which applies the simple dot-product at-tention to aggregate features across multiple layers. By contrast, our proposed architecture, designed for post-hoc adaptation, applies a more expressive multi-head, multi-layer attention mechanism after the final convolutional layer, where high-level, task-relevant features reside. Further implementation details and em-pirical comparisons are provided in Sections 4.3 and 5.3. 
+
+## 3 Feature Entanglement Limits Post-Hoc Reweighting 
+
+In this section, we examine the key limitation of Deep Feature Reweighting (DFR): its reliance on entangled ERM-learned features. Leveraging our Core Effect Percentage (CEP) metric to quantify feature entanglement, our analysis reveals the following: First, the output feature maps of convolutional layers are channel-entangled but spatially disentangled. Second, uniform averaging across spatial locations via Global Average Pooling (GAP) collapses spatial separability and yields entangled output features. Finally, DFR operates on these entangled features and cannot eliminate reliance on spurious ones. 
+
+3.1 Quantifying Feature Entanglement with Core Effect Percentage 
+
+To quantify feature entanglement, we introduce the Core Effect Percentage (CEP) metric, which measures the extent to which the core and spurious portions of the image influence the model’s output features and predictions. This metric is derived from the Controlled Direct Effect in do-calculus [54], similar to many interventional-based metrics [6]. Each input x is decomposed into the core xcore 
+
+and the spurious xspu components. The effect E of each component on the model 
+
+f is quantified by the change in the model’s output when that component is in-dependently intervened on: 
+
+Ecore (x) = ∥f (x) − f (x | do (xcore = x′
+
+> core
+
+)) ∥1, (1) 
+
+Espu (x) = ∥f (x) − f  x | do (xspu = x′
+
+> spu
+
+) ∥1. (2) Here, ∥ · ∥ 1 denotes the L1 norm, defined as the sum of absolute values over all entries, while x′ 
+
+> core
+
+and x′ 
+
+> spu
+
+represent counterfactual replacements of the cor-responding components, instantiated by substituting that component with the value from another datapoint while keeping the other component fixed. Finally, the CEP value is the expectation over inputs of the normalized core effect: 6 Chew and Wang          
+
+> (a) ERM Core M ap (b) ERM M ap (c) DF R CN N M ap (d) ERM P ixel
+
+Fig. 2: Histogram of CEP values across 512 output feature maps for various methods. Figures (a), (b), and (c) analyze the feature maps as a whole, whereas Figure (d) analyzes the feature maps at the pixel level. Refer to Section 3.2 for a detailed analysis.          
+
+> (a) ERM Core (b) ERM (c) DF R F C (d) DAR (e) DAR Spu
+
+Fig. 3: Histogram of CEP values across 512 output features for various baseline meth-ods. Refer to Section 3.2, 4.5, and 5.1 for a detailed analysis. 
+
+CEP = Ex
+
+ Ecore (x)
+
+Ecore (x) + Espu (x)
+
+
+
+× 100% . (3) High CEP ( ≈ 100% ) indicates reliance on core features; low CEP ( ≈ 0% ) indi-cates reliance on spurious features; intermediate CEP ( ≈ 50% ) signifies reliance on both, i.e., entanglement. 
+
+3.2 Empirical Analysis of Feature Entanglement 
+
+We run experiments on the MNIST-CIFAR Dominoes [61] dataset, which is con-structed by concatenating MNIST [9] images with CIFAR-10 [32] images. The labels correspond to CIFAR-10 classes (core features) but are spuriously corre-lated with the MNIST digits (spurious features). This dataset is well-suited to our study because it supports controlled interventions on the input and provides straightforward interpretability via GradCAM [60] visualization. Details regard-ing the dataset and experimental setup are available in Appendix A and B, respectively. We assessed feature entanglement across various baseline methods using the CEP metric at different levels of the model’s representation: feature map (Figure 2), feature vector (Figure 3), and output prediction (Table 1). 
+
+Table 1: CEP values (%) of the output prediction. Refer to Section 3.2 and 4.5 for a detailed analysis. 
+
+Metric  ERM Core  ERM  DFR  DFR CNN  DFR FC  DAR  DAR Spu 
+
+CEP  95 .6 ± 0.1 69 .9 ± 0.6 81 .6 ± 0.8 85 .7 ± 1.5 83 .0 ± 1.2 95 .2 ± 0.4 6.1 ± 0.7Deep Attention Reweighting 7
+
+ERM Core . We train an ERM model on the dataset with a spurious strength of 
+
+0% , ensuring the model learns only core features since the spurious features are not predictive. As expected, CEP values are close to  100%  for all output levels: the feature maps (Figure 2a), features (Figure 3a), and predictions (Table 1). 
+
+ERM  . When trained on the dataset with the spurious correlation, the ERM model learns both core and spurious features since both are predictive. The feature maps exhibit significant entanglement (CEP ≈ 50% in Figure 2b). How-ever, a more fine-grained pixel-level analysis reveals that different spatial loca-tions within the same feature map often remain individually disentangled, with the pixel CEP values close to either  0%  or  100%  (Figure 2d). The subsequent GAP layer discards this spatial information by averaging over the entire feature map, collapsing otherwise disentangled spatial activations into entangled output features (Figure 3b). Finally, output predictions depend on both the core and spurious features, as reflected in the low CEP score of 69 .9% (Table 1). 
+
+DF R . Because DFR operates on the already entangled ERM representation (Figure 3b), it can only partially reduce reliance on spurious features rather than fully remove their influence (CEP score of 81 .6% in Table 1). To further examine whether adapting only a single layer is sufficient for feature disentanglement [66], we evaluate two variants:  DF R CN N  and  DF R F C  . DF R CN N  additionally re-trains the final CNN layer, leading to a slight improvement in CEP scores of the feature maps (Figure 2c).  DF R F C  introduces an additional fully connected layer to transform the output features, which slightly improves the CEP scores of the output features (Figure 3c). However, both variants remain insufficient to remove the influence of spurious features (CEP scores of 85 .7% and 83 .0% 
+
+respectively in Table 1). Beyond CEP, we provide an additional analysis in Appendix C and comple-mentary visualizations in Appendix D, both of which corroborate our findings. 
+
+## 4 Disentangling Features via Deep Attention Reweighting 
+
+Building on our analysis in Section 3, we replace GAP with our proposed Deep Attention Reweighting (DAR), an attention-based aggregation mechanism that can adaptively assign importance weights to different spatial locations based on task relevance. This allows DAR to selectively emphasize core features and suppress spurious ones while they remain spatially separable within the feature maps. In this section, we formally introduce our approach, outline the design considerations, and present experimental evidence demonstrating its effective-ness. 
+
+4.1 Motivation: Beyond GAP for Feature Aggregation 
+
+In CNNs, the GAP layer is widely used for feature aggregation by uniformly av-eraging each feature map across all spatial locations. However, as shown in Sec-tion 3, this uniform weighting indiscriminately aggregates both core and spurious 8 Chew and Wang 
+
+features distributed across spatial locations of feature maps, resulting in feature entanglement that undermines post-hoc reweighting strategies. To address this limitation, we seek an aggregation mechanism that fulfills two criteria: 1. Spatial weighting : The aggregation mechanism should assign different im-portance weights to different spatial locations within each feature map, allow-ing the model to emphasize task-relevant regions while suppressing irrelevant or spurious ones. 2. Adaptive weighting : The importance weights should not be fixed learnable parameters, because the spatial locations of core and spurious features vary across inputs . Instead, the weights should be input-conditional, yielding per-example importance maps specific to each input. 
+
+4.2 Attention-Based Feature Aggregation 
+
+To satisfy the spatial and adaptive weighting criteria outlined above, we replace the GAP layer with an attention-based aggregation mechanism. Rather than uniformly averaging over all spatial positions, the model learns to assign input-dependent importance weights to different spatial locations of the feature map. Let  Ai ∈ Rd×H×W denote the activation map for input  xi, where d is the number of channels and H × W is the spatial resolution. GAP aggregates each channel j ∈ [d] across spatial locations to produce the resulting aggregated representation hi ∈ Rd:
+
+hi[j] = 
+
+> H
+
+X
+
+> h=1
+> W
+
+X
+
+> w=1
+
+1
+
+H ∗ W Ai[j, h, w ]. (4) We replace this with an attention-weighted aggregation: 
+
+hi[j] =
+
+> H
+
+X
+
+> h=1
+> W
+
+X
+
+> w=1
+
+ai[j, h, w ]Ai[j, h, w ], (5) where  ai = fatt (Ai) ∈ Rd×H×W denotes the attention weight assigned to each spatial location in each feature map while  fatt  denotes the attention module. This attention-based aggregation mechanism satisfies the two aggregation criteria in-troduced in Section 4.1: (1) spatial weighting via attention weights ai[j, h, w ],and (2) adaptive weighting since the ai[j, h, w ] is computed based on Ai.
+
+4.3 Architectural Design of Attention Mechanism 
+
+We adopt the scaled dot-product attention mechanism [67], with the following design considerations tailored for post-hoc retraining on a small target set: 1. Query Vectors: We use multiple learned query vectors, each of which in-dependently computes attention weights over spatial locations of the feature map, allowing DAR to capture a diverse set of distinct core-feature patterns. Deep Attention Reweighting 9
+
+2. Positional Encoding: We omit the use of positional encodings, which are typically added to inject information about the spatial position of each pixel. This preserves spatial invariance, ensuring that the attention weights depend only on the input content rather than their position. 3. Attention Depth: We employ a two-layer configuration, where the learned query vectors are first updated through a contextual transformation to align more closely with input-specific feature distributions before being utilized in the attention computation, yielding a more adaptive weighting mechanism. 4. Multi-Headed Attention: We utilize a multi-headed attention setup, where each attention head independently learns a set of attention weights to focus on distinct spatial regions. This allows for a more expressive aggregation mechanism that can capture features encoded across different feature maps and at different spatial locations. Refer to Section 5.3 for the ablation results that empirically validate our pro-posed attention architecture and Appendix E for the full mathematical formu-lation of our attention architecture. 
+
+4.4 Deep Attention Reweighting Algorithm 
+
+The application of DAR involves three steps. First, we train an ERM model on the training set to obtain the backbone feature extractor. Since both core and spurious features are predictive, the resulting representation encodes both. Second, we replace GAP with the proposed attention-based aggregation module. This replaces uniform pooling with selective aggregation at the feature map level, where features are spatially disentangled. Finally, we fine-tune only the attention module and the classification head on a small, balanced target dataset where the spurious features are no longer predictive. This enables post-hoc mitigation of spurious correlations by selectively emphasizing core features and suppressing spurious ones during feature aggregation. 
+
+4.5 Experimental Validation and Analysis 
+
+To assess whether DAR effectively mitigates feature entanglement, we apply the same diagnostic tools and experimental setup in Section 3. As shown in Fig-ure 3d, DAR predominantly captures the core features while suppressing the spurious ones. Consequently, its predictions rely primarily on the core signal, achieving an output prediction CEP score of 95 .2 ± 0.4% (Table 1). To fur-ther examine the flexibility of the attention mechanism, we train  DAR Spu , a variant that predicts the spurious attributes instead. In this configuration, the output feature vector relies predominantly on spurious features (Figure 3e), with an output prediction CEP score of 6.1 ± 0.7% (Table 1). These results demon-strate the effectiveness of the attention-based feature-aggregation architecture in 
+
+preserving core features while removing spurious ones by selecting task-relevant spatial locations. This is supported by the additional entanglement metrics in Appendix C and GradCAM visualizations in Appendix D. 10 Chew and Wang 
+
+## 5 Experiments 
+
+We evaluate DAR across six spurious correlation benchmark datasets against competitive baselines and across diverse experimental configurations. The re-sults show that DAR consistently outperforms the baselines, demonstrating its robustness in mitigating spurious correlations. We also present targeted ablation studies that characterize the source of DAR’s performance gains. 
+
+5.1 Experimental Setup 
+
+Datasets. We evaluate on six widely used spurious-correlation image benchmarks spanning diverse spurious structures. MNIST–CIFAR Dominoes [61] exhibits clear spatial separation between core and spurious regions; Waterbirds [58, 72] captures background bias , where background context contains the spurious fea-tures while the foreground bird is the core feature; Spuco-Animals [25] extends this setting to a more challenging 4-class classification task; Spawrious [48] contains photorealistic images artificially generated by a text-to-image model; CelebA [45, 58] has partial overlap between core and spurious attributes; and UrbanCars [39] is a many-to-one setting with multiple spurious cues predictive of the label. Additional details on the datasets are provided in Appendix A. 
+
+Baselines. We compare DAR against a set of widely used competitive base-line methods for mitigating spurious correlations. Empirical Risk Minimization (ERM) trains the model directly on the full dataset without any additional techniques and serves as the naïve reference point. Just Train Twice (JTT) [43], Correct-N-Contrast (CNC) [80], and Conditional Value at Risk Distributionally Robust Optimization (CVaR) [38] do not require any additional information and infer the spurious attribute from the training loss, which is then used to regularize the training. The Reweight (RW), Subsample (SUB), and Group Dis-tributionally Robust Optimization (gDRO) [58] methods require access to the spurious attributes, using them to balance the training distribution to remove the statistical correlation between the spurious attributes and the labels. Deep Feature Reweighting (DFR) [30] and our proposed DAR require a small, bal-anced target dataset for post-hoc reweighting. For a fair comparison, methods that do not use the target dataset will have it included in the training set. 
+
+Evaluation. Consistent with the spurious-correlation literature [58, 76, 77], the minority-group accuracy is treated as the primary benchmark for robustness .Subgroups are defined by the combination of the target label and a spurious attribute. The overrepresentation of a particular subgroup creates a statisti-cal correlation between the corresponding spurious attribute and target label. Consequently, the majority group comprises subgroups in which the spurious correlation holds, whereas the minority group comprises subgroups in which it does not. Therefore, the majority-group accuracy, and by extension the average accuracy, is highly misleading as it may reflect successful learning of the spurious shortcut rather than the core features. In contrast, the minority-group accuracy Deep Attention Reweighting 11 
+
+Table 2: Minority-Group Test Accuracy (%) Across Datasets 
+
+Dataset Method ERM JTT CNC CVaR SUB RW gDRO DFR DAR Dominoes 67 .5 ± 1.6 69 .4 ± 0.5 70 .4 ± 0.6 68 .9 ± 1.1 72 .9 ± 0.9 76 .1 ± 1.6 78 .9 ± 1.9 75 .6 ± 0.8 79 .0 ± 0.4
+
+Spawrious 89 .2 ± 1.0 93 .0 ± 1.4 93 .2 ± 1.3 95 .2 ± 0.8 98 .8 ± 0.5 95 .8 ± 1.1 95 .0 ± 1.0 94 .6 ± 1.4 98 .6 ± 0.5
+
+Waterbirds 67 .4 ± 0.7 68 .5 ± 0.9 69 .2 ± 0.3 67 .7 ± 0.5 75 .1 ± 0.6 75 .0 ± 0.9 76 .7 ± 0.4 73 .3 ± 0.5 74 .6 ± 0.7
+
+Spuco 39 .8 ± 1.7 40 .2 ± 1.4 42 .1 ± 1.1 45 .7 ± 0.4 59 .2 ± 0.6 65 .4 ± 2.0 65 .3 ± 1.2 63 .2 ± 1.0 67 .1 ± 1.7
+
+CelebA 90 .8 ± 2.1 91 .1 ± 1.2 92 .3 ± 1.1 93 .9 ± 1.1 94 .7 ± 0.5 92 .8 ± 0.6 95 .0 ± 0.9 96 .2 ± 1.3 97 .4 ± 0.5
+
+UrbanCars 73 .0 ± 1.0 76 .0 ± 1.1 75 .4 ± 1.3 73 .9 ± 0.4 81 .6 ± 0.7 79 .4 ± 0.6 82 .2 ± 0.6 87 .1 ± 0.5 89 .7 ± 1.0
+
+Table 3: Minority-Group Test Accuracy (%) Across Datasets and Configurations 
+
+Dataset Config Method ERM JTT CNC CVaR SUB RW gDRO DFR DAR Dominoes 
+
+ResNet-50 67 .4 ± 1.7 70 .7 ± 0.6 70 .5 ± 1.1 70 .8 ± 0.6 72 .0 ± 1.3 73 .5 ± 1.0 73 .3 ± 1.2 74 .1 ± 1.2 78 .1 ± 0.6
+
+90% 75 .5 ± 1.0 76 .8 ± 0.4 77 .3 ± 1.2 77 .9 ± 0.8 79 .6 ± 1.4 79 .1 ± 0.7 79 .0 ± 0.4 81 .7 ± 1.8 82 .6 ± 1.7
+
+Pretrained 81 .9 ± 0.3 81 .7 ± 1.2 83 .7 ± 2.3 81 .4 ± 0.7 84 .3 ± 0.5 87 .6 ± 0.5 85 .2 ± 0.7 87 .6 ± 0.8 87 .9 ± 1.4
+
+Spawrious 
+
+ResNet-50 88 .8 ± 0.5 89 .8 ± 1.6 93 .4 ± 0.8 90 .2 ± 0.4 96 .6 ± 1.6 95 .8 ± 0.7 94 .4 ± 0.7 95 .0 ± 0.6 96 .2 ± 0.9
+
+90% 93 .0 ± 1.0 95 .0 ± 1.5 94 .0 ± 0.5 96 .0 ± 1.7 99 .0 ± 0.7 96 .2 ± 0.4 96 .4 ± 0.6 97 .0 ± 0.8 98 .8 ± 0.6
+
+Pretrained 98 .2 ± 0.8 98 .4 ± 0.8 98 .0 ± 0.4 98 .2 ± 0.4 99 .4 ± 0.6 99 .0 ± 0.5 98 .7 ± 0.9 97 .8 ± 0.7 99 .4 ± 0.4
+
+Waterbirds 
+
+ResNet-50 63 .6 ± 0.3 64 .0 ± 0.6 67 .1 ± 1.3 68 .9 ± 1.0 74 .2 ± 1.8 73 .1 ± 0.4 73 .5 ± 1.1 74 .8 ± 0.6 77 .7 ± 0.6
+
+90% 73 .5 ± 0.5 74 .7 ± 0.8 76 .3 ± 0.8 75 .7 ± 0.5 85 .4 ± 0.4 85 .2 ± 1.6 83 .7 ± 1.6 84 .3 ± 0.7 85 .3 ± 0.4
+
+Pretrained 86 .7 ± 0.4 88 .1 ± 0.4 88 .0 ± 0.8 86 .5 ± 1.4 92 .8 ± 0.6 90 .5 ± 0.9 91 .7 ± 0.7 90 .3 ± 0.4 92 .0 ± 0.6
+
+Spuco 
+
+ResNet-50 41 .6 ± 0.6 44 .8 ± 0.4 43 .4 ± 0.5 47 .8 ± 1.0 61 .1 ± 0.4 66 .4 ± 0.6 65 .9 ± 0.4 64 .3 ± 0.7 68 .9 ± 0.5
+
+90% 50 .5 ± 0.6 57 .7 ± 0.8 53 .5 ± 0.5 53 .2 ± 0.7 65 .0 ± 0.4 67 .3 ± 0.9 66 .9 ± 0.6 65 .2 ± 1.3 70 .9 ± 0.4
+
+Pretrained 59 .9 ± 0.3 62 .8 ± 0.6 61 .7 ± 0.8 62 .2 ± 1.3 76 .5 ± 0.8 76 .8 ± 0.4 78 .3 ± 0.7 84 .0 ± 0.6 87 .9 ± 1.0
+
+CelebA 
+
+ResNet-50 89 .8 ± 0.8 90 .7 ± 0.3 92 .2 ± 2.1 92 .6 ± 0.4 94 .1 ± 0.4 92 .3 ± 0.5 93 .2 ± 1.5 96 .3 ± 0.4 97 .1 ± 0.7
+
+90% 91 .2 ± 0.9 92 .3 ± 0.9 92 .6 ± 1.6 95 .0 ± 0.9 95 .1 ± 0.6 94 .6 ± 1.5 95 .5 ± 0.7 97 .5 ± 0.6 98 .2 ± 0.5
+
+Pretrained 91 .6 ± 1.3 92 .7 ± 0.5 94 .2 ± 0.8 95 .2 ± 0.5 96 .3 ± 0.3 96 .7 ± 1.4 96 .4 ± 0.5 98 .0 ± 0.8 98 .5 ± 0.7
+
+UrbanCars 
+
+ResNet-50 65 .9 ± 1.0 67 .2 ± 1.2 68 .1 ± 1.5 66 .4 ± 1.2 72 .6 ± 1.2 77 .0 ± 1.4 75 .4 ± 0.6 79 .9 ± 0.8 84 .1 ± 1.3
+
+90% 83 .3 ± 0.4 85 .1 ± 0.5 84 .8 ± 1.3 83 .7 ± 1.6 86 .6 ± 1.3 87 .3 ± 0.9 89 .7 ± 0.5 88 .2 ± 0.8 91 .3 ± 1.0
+
+Pretrained 87 .3 ± 0.6 88 .5 ± 1.4 89 .5 ± 0.7 87 .8 ± 1.1 94 .1 ± 0.8 91 .2 ± 0.5 92 .3 ± 0.5 91 .2 ± 1.3 93 .7 ± 0.5
+
+evaluates the model on datapoints where the spurious correlations do not hold .We report the mean and standard deviation over three random seeds. 
+
+Training Setup. The main experiment uses a randomly initialized ResNet18 model [16]. This random initialization isolates each method’s ability to learn feature representations independently of any pre-trained features from datasets such as ImageNet. The models are trained for  200  epochs to ensure convergence. We follow the hyperparameter-tuning setup described in [76], where the vali-dation dataset is used to select the optimal hyperparameters for each method through grid search. Additional details of the experimental setup are provided in Appendix B. 
+
+5.2 Main Results: Generalization Under Spurious Correlations 
+
+Table 2 shows a clear performance hierarchy across method families. Firstly, ERM performs worst, illustrating how standard empirical risk minimization readily exploits spurious correlations in the training distribution and conse-quently fails to generalize to minority-group examples where those correlations 12 Chew and Wang 
+
+break. Secondly, methods that infer spurious structure from training dynamics (JTT, CNC, and CVaR) generally improve over ERM, but their gains are mod-est, highlighting the limitations of approaches that do not rely on additional su-pervision signals. Thirdly, group-aware methods (SUB, RW, and gDRO), which explicitly use spurious-attribute annotations to rebalance or regularize training, achieve larger improvements, underscoring the value of leveraging spurious-group information to mitigate shortcut learning. Finally, despite its simplicity, DFR re-mains a strong post-hoc baseline: it is consistently competitive and, in several settings, even surpasses group-aware methods. This highlights the effectiveness of adapting using only a small target set, which requires minimal extra information and relaxes the requirement of spurious-attribute annotations. Across all datasets in Table 2, DAR consistently outperforms DFR , highlight-ing the robustness of the improvement gains across benchmarks. This improve-ment is consistent with the feature-entanglement analysis in Section 3: while DFR is a strong post-hoc adaptation baseline, its effectiveness is ultimately con-strained by operating on an already collapsed feature vector in which core and spurious information remain entangled. By contrast, DAR replaces GAP with an attention-based aggregation at the feature-map level, where the core and spurious features are more spatially separable, enabling more selective empha-sis of core features and suppression of spurious ones (Section 4). Finally, this increased reliance on core features ultimately translates into more robust perfor-mance. Importantly, this observed improvement across all datasets suggests that DAR does not require that the core/spurious regions be fully disjoint. As long as 
+
+core and spurious signals exhibit any spatial heterogeneity (e.g., clear spatial sep-aration, coarse localization differences, or partial spatial overlap), as is often the case in real-world datasets, DAR can exploit spatial structure to improve perfor-mance . Moreover, DAR outperforms many baselines and is often superior to the strongest group-aware methods , further supporting the effectiveness of post-hoc adaptation for mitigating spurious correlations. Table 3 shows that the trends observed in the main benchmark setting re-main consistent across diverse experimental configurations. These settings vary several of the most consequential aspects of the experimental setup and reflect common variations encountered in practice. Specifically, increasing the back-bone from ResNet-18 to ResNet-50 tests whether DAR remains effective under a deeper, higher-capacity architecture; using pretrained initialization tests whether its gains persist when the model begins from a stronger feature prior; and reduc-ing the spurious correlation strength from 95% to 90% evaluates performance under a less extreme shortcut regime. Across all datasets and realistic, high-impact variations, DAR maintains a consistent advantage over DFR and many other baselines, providing strong empirical evidence for the generalizability of our proposed DAR in mitigating spurious correlations .
+
+5.3 Ablation Results 
+
+To better characterize DAR’s performance, we conduct a set of targeted ablation studies on the challenging and representative Spuco-Animals benchmark. Deep Attention Reweighting 13 Single Query Single Head Single Layer Positional Proposed 
+
+> 60
+> 62
+> 64
+> 66
+> 68
+> 70
+> Minority-group accuracy (%)
+> 63.00
+> 65.40
+> 64.20
+> 62.90
+> 67.10
+
+(a) Attention Architecture. 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4   
+
+> Trainable parameters 1e6
+> 65.25
+> 65.50
+> 65.75
+> 66.00
+> 66.25
+> 66.50
+> 66.75
+> 67.00
+> Minority-group accuracy (%)
+> DAR
+> DFR_CNN
+
+(b) Post-Hoc Retraining Capacity. 
+
+Fig. 4: Post-hoc retraining architecture ablations. (a) Attention architecture complexity ablation. (b) Post-Hoc retraining capacity ablation. 35 40 45 50 55 60 65 70 75 
+
+> Minority-group accuracy (%)
+> ERM
+> DFR
+> DAR
+> +3.5
+> +3.2
+> +6.2
+> w/o feature learning
+> w/ feature learning
+
+(a) Feature Learning. DFR DAR    
+
+> 80
+> 85
+> 90
+> 95
+> 100
+> Accuracy (%)  97.40 97.60
+> = +0.20
+> cMNIST
+> DFR DAR
+> 81.70
+> 84.40
+> = +2.70
+> Average performance
+
+(b) CMNIST. Small Medium Large        
+
+> ResNet
+> EfficientNet
+> DenseNet
+> +3.90 +4.00 +3.40
+> +4.40 +3.20 +3.60
+> +2.50 +3.50 +4.20
+> 4
+> 2
+> 0
+> 2
+> 4
+> accuracy (DAR  DFR)
+
+(c) CNN Architecture. 
+
+Fig. 5: Ablations for method characterization. (a) Feature learning compatibility. (b) Complete spatial overlap (CMNIST) robustness. (c) CNN architecture generality. 
+
+Attention Architecture Ablation. Figure 4a validates the attention-module design in Section 4.3 by ablating one component at a time from the proposed archi-tecture. The proposed design performs best, and every simplification degrades performance . These drops directly justify the use of multiple query vectors (to capture distinct core-feature patterns), multi-head attention (to model comple-mentary attention patterns), a two-layer attention module (for more adaptive spatial weighting), and no positional encoding (to preserve spatial invariance). 
+
+Post-Hoc Retraining Capacity Ablation. Figure 4b evaluates whether DAR’s gains can be explained solely by increased post-hoc model capacity by comparing it against DF R CN N , a DFR variant that additionally retrains the final CNN layer, resulting in substantially more trainable parameters than DAR. Despite its greater adaptation capacity, DF R CN N yields only modest improvements over DFR and still underperforms DAR. This shows that DAR’s advantage does not arise solely from post-hoc capacity .
+
+Compatibility with Feature Learning Methods. Figure 5a evaluates the post-hoc DFR and DAR methods when applied to a model trained with the spectral decoupling loss [56], a feature-learning technique designed to improve represen-tations under spurious correlations. We observe that training the backbone with a feature-learning objective improves both DFR and DAR, with DAR remaining superior to DFR. These results show that post-hoc methods and feature-learning techniques are complementary , as they optimize different aspects of the pipeline: feature learning improves the backbone representations, while post-hoc methods improve adaptation on top of the frozen features. 14 Chew and Wang 
+
+Performance under Complete Spatial Overlap. Figure 5b evaluates DAR on Colored-MNIST (CMNIST) [2], a dataset in which the MNIST digits are col-orized such that color is spuriously correlated with the digit labels. This yields an extreme setting in which the core and spurious features exhibit complete spatial overlap. In this setting, DAR achieves performance comparable to DFR. This result is consistent with DAR’s operating principle of exploiting any available spatial heterogeneity. When no such heterogeneity is present, DAR introduces no additional degradation and behaves similarly to DFR. 
+
+Performance across Base ERM Architectures. Figure 5c evaluates the robustness of DAR across a diverse set of popular CNN backbones (ResNet [16], Efficient-Net [64], DenseNet [21]), spanning multiple capacity regimes (Small, Medium, Large). Across all evaluated architectures, DAR consistently outperforms DFR. These results highlight the broad generality of DAR across CNN architectures .
+
+## 6 Limitations and Future Work 
+
+First, because DAR is a post-hoc method applied on top of a fixed backbone, its performance is constrained by the quality of the learned feature representation. Consequently, an insufficient representation may limit DAR’s performance, even when it yields substantial gains. Indeed, DAR is naturally complementary to approaches for robust feature learning [22,56,63]. As demonstrated by the feature learning compatibility ablation in Section 5.3, integrating such techniques to improve representation quality can further enhance DAR’s performance. Second, DAR is limited in the extreme case of complete spatial overlap be-tween the core and spurious signals. As shown in the spatial overlap ablation in Section 5.3, DAR provides limited additional benefit over DFR, although it introduces no further degradation. However, DAR does not require fully disjoint regions between the core and spurious: it provides the additional spatial dimen-sions for disentanglement, allowing it to exploit any spatial heterogeneity when present. To further improve DAR, existing disentangled representation learning techniques [10, 31, 36, 81] can be incorporated into backbone training, which is complementary to DAR. 
+
+## 7 Conclusion 
+
+We introduce Deep Attention Reweighting, an attention-based feature aggrega-tion mechanism that replaces Global Average Pooling in CNNs. DAR addresses feature entanglement, a key limitation of post-hoc Deep Feature Reweighting, by enabling selective aggregation across spatial regions within feature maps. Across various metrics, datasets, experimental setups, and ablations, we demon-strate DAR’s ability to mitigate feature entanglement and spurious correlations. More broadly, this work highlights how architectural choices shape representa-tion disentanglement and, in turn, influence its capacity to mitigate spurious correlations. Deep Attention Reweighting 15 
+
+## References 
+
+1. Ahuja, K., Shanmugam, K., Varshney, K., Dhurandhar, A.: Invariant risk min-imization games. In: III, H.D., Singh, A. (eds.) Proceedings of the 37th Inter-national Conference on Machine Learning. Proceedings of Machine Learning Re-search, vol. 119, pp. 145–155. PMLR (13–18 Jul 2020), https://proceedings. mlr.press/v119/ahuja20a.html 
+
+2. Arjovsky, M., Bottou, L., Gulrajani, I., Lopez-Paz, D.: Invariant risk minimization (2020) 3. Bello, I., Zoph, B., Vaswani, A., Shlens, J., Le, Q.V.: Attention augmented con-volutional networks. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) (2019), https://openaccess.thecvf.com/content_ ICCV_2019/html/Bello_Attention_Augmented_Convolutional_Networks_ICCV_ 2019_paper.html 
+
+4. Bengio, Y., Courville, A., Vincent, P.: Representation learning: A review and new perspectives. IEEE Transactions on Pattern Analysis and Machine Intelligence (2013). https://doi.org/10.1109/TPAMI.2013.50 
+
+5. Burgess, C.P., Higgins, I., Pal, A., Matthey, L., Watters, N., Desjardins, G., Ler-chner, A.: Understanding disentangling in β-vae (2018), https://arxiv.org/abs/ 1804.03599 
+
+6. Carbonneau, M.A., Zaïdi, J., Boilard, J., Gagnon, G.: Measuring disentanglement: A review of metrics. IEEE Transactions on Neural Networks and Learning Systems 
+
+35 (7), 8747–8761 (2024). https://doi.org/10.1109/TNNLS.2022.3218982 
+
+7. Chen, A.S., Lee, Y., Setlur, A., Levine, S., Finn, C.: Confidence-based model se-lection: When to take shortcuts for subpopulation shifts (2023) 8. Chen, R.T.Q., Li, X., Grosse, R., Duvenaud, D.: Isolating sources of disentangle-ment in variational autoencoders (2019), https://arxiv.org/abs/1802.04942 
+
+9. Deng, L.: The mnist database of handwritten digit images for machine learning research. IEEE Signal Processing Magazine 29 (6), 141–142 (2012) 10. Deng, W., Zhao, L., Liao, Q., Guo, D., Kuang, G., Hu, D., Pietikäinen, M., Liu, L.: Informative feature disentanglement for unsupervised domain adaptation. IEEE Transactions on Multimedia 24 , 2407–2421 (2022). https://doi.org/10.1109/ TMM.2021.3080516 
+
+11. Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., Houlsby, N.: An image is worth 16x16 words: Transformers for image recognition at scale. In: International Conference on Learning Representations (ICLR) (2021), https: //openreview.net/forum?id=YicbFdNTTy 
+
+12. Dupont, E.: Learning disentangled joint continuous and discrete representations (2018), https://arxiv.org/abs/1804.00104 
+
+13. Geirhos, R., Jacobsen, J., Michaelis, C., Zemel, R.S., Brendel, W., Bethge, M., Wichmann, F.A.: Shortcut learning in deep neural networks. CoRR 
+
+abs/2004.07780 (2020), https://arxiv.org/abs/2004.07780 
+
+14. Ghosal, S.S., Ming, Y., Li, Y.: Are vision transformers robust to spurious correla-tions? (2022), https://arxiv.org/abs/2203.09125 
+
+15. Han, K., Wang, Y., Chen, H., Chen, X., Guo, J., Liu, Z., Tang, Y., Xiao, A., Xu, C., Xu, Y., Yang, Z., Zhang, Y., Tao, D.: A survey on vision transformer. IEEE Transactions on Pattern Analysis and Machine Intelligence 45 (1), 87–110 (2023). 
+
+https://doi.org/10.1109/TPAMI.2022.3152247 16 Chew and Wang 16. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). pp. 770–778 (2016), https://openaccess.thecvf.com/content_cvpr_ 2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html 
+
+17. Heinze-Deml, C., Peters, J., Meinshausen, N.: Invariant causal prediction for non-linear models (2018) 18. Higgins, I., Matthey, L., Pal, A., Burgess, C.P., Glorot, X., Botvinick, M., Mo-hamed, S., Lerchner, A.: Beta-vae: Learning basic visual concepts with a con-strained variational framework. In: International Conference on Learning Repre-sentations (ICLR) (2017) 19. Higgins, I., Sonnerat, N., Matthey, L., Pal, A., Burgess, C.P., Bosnjak, M., Shana-han, M., Botvinick, M., Hassabis, D., Lerchner, A.: Scan: Learning hierarchical compositional visual concepts (2018), https://arxiv.org/abs/1707.03389 
+
+20. Hu, J., Shen, L., Sun, G.: Squeeze-and-excitation networks. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) (2018), 
+
+https://openaccess.thecvf.com/content_cvpr_2018/html/Hu_Squeeze-and-Excitation_Networks_CVPR_2018_paper.html 
+
+21. Huang, G., Liu, Z., van der Maaten, L., Weinberger, K.Q.: Densely connected convolutional networks. In: Proceedings of the IEEE Conference on Computer Vi-sion and Pattern Recognition (CVPR) (2017), https://openaccess.thecvf.com/ content _ cvpr _ 2017 / html / Huang _ Densely _ Connected _ Convolutional _ CVPR _ 2017_paper.html 
+
+22. Huang, Z., Wang, H., Xing, E.P., Huang, D.: Self-challenging improves cross-domain generalization (2020), https://arxiv.org/abs/2007.02454 
+
+23. Idrissi, B., Arjovsky, M., Pezeshki, M., Lopez-Paz, D.: Simple data balancing achieves competitive worst-group-accuracy. In: International Conference on Ar-tificial Intelligence and Statistics (AISTATS) (2022), https://proceedings.mlr. press/v177/idrissi22a.html 
+
+24. Jetley, S., Lord, N.A., Lee, N., Torr, P.H.S.: Learn to pay attention. In: In-ternational Conference on Learning Representations (ICLR) (2018), https:// openreview.net/forum?id=HkG3SJZ1D 
+
+25. Joshi, S., Yang, Y., Xue, Y., Yang, W., Mirzasoleiman, B.: Towards mitigating spurious correlations in the wild: A benchmark and a more realistic dataset (2023) 26. Kim, H., Mnih, A.: Disentangling by factorising (2019), https://arxiv.org/abs/ 1802.05983 
+
+27. Kim, M., Wang, Y., Sahu, P., Pavlovic, V.: Relevance factor vae: Learning and identifying disentangled factors (2019), https://arxiv.org/abs/1902.01568 
+
+28. Kingma, D., Ba, J.: Adam: A method for stochastic optimization. In: International Conference on Learning Representations (ICLR). San Diego, CA, USA (2015) 29. Kingma, D.P., Welling, M.: Auto-encoding variational bayes. In: International Con-ference on Learning Representations (ICLR) (2014), https://arxiv.org/abs/ 1312.6114 
+
+30. Kirichenko, P., Izmailov, P., Wilson, A.G.: Last layer re-training is sufficient for robustness to spurious correlations. In: The Eleventh International Conference on Learning Representations (2023), https://openreview.net/forum?id=Zb6c8A-Fghk 
+
+31. Kong, L., Xie, S., Yao, W., Zheng, Y., Chen, G., Stojanov, P., Akinwande, V., Zhang, K.: Partial disentanglement for domain adaptation. In: Chaudhuri, K., Jegelka, S., Song, L., Szepesvari, C., Niu, G., Sabato, S. (eds.) Proceedings of the 39th International Conference on Machine Learning. Proceedings of Machine Deep Attention Reweighting 17 Learning Research, vol. 162, pp. 11455–11472. PMLR (17–23 Jul 2022), https: //proceedings.mlr.press/v162/kong22a.html 
+
+32. Krizhevsky, A., Hinton, G.: Learning multiple layers of features from tiny images. Tech. Rep. 0, University of Toronto, Toronto, Ontario (2009), https://www.cs. toronto.edu/~kriz/learning-features-2009-TR.pdf 
+
+33. Kumar, A., Sattigeri, P., Balakrishnan, A.: Variational inference of disentangled la-tent concepts from unlabeled observations (2018), https://arxiv.org/abs/1711. 00848 
+
+34. LaBonte, T., Muthukumar, V., Kumar, A.: Towards last-layer retraining for group robustness with fewer annotations. In: Oh, A., Neumann, T., Glober-son, A., Saenko, K., Hardt, M., Levine, S. (eds.) Advances in Neural Infor-mation Processing Systems. vol. 36, pp. 11552–11579. Curran Associates, Inc. (2023), https : / / proceedings. neurips.cc/ paper_files/ paper/2023/ file/ 265bee74aee86df77e8e36d25e786ab5-Paper-Conference.pdf 
+
+35. Lake, B.M., Ullman, T.D., Tenenbaum, J.B., Gershman, S.J.: Building machines that learn and think like people (2016) 36. Lee, S., Cho, S., Im, S.: Dranet: Disentangling representation and adaptation net-works for unsupervised cross-domain adaptation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 15252– 15261 (June 2021) 37. Lee, Y., Yao, H., Finn, C.: Diversify and disambiguate: Learning from underspec-ified data (2023) 38. Levy, D., Carmon, Y., Duchi, J.C., Sidford, A.: Large-scale methods for distribu-tionally robust optimization (2020), https://arxiv.org/abs/2010.05893 
+
+39. Li, Z., Evtimov, I., Gordo, A., Hazirbas, C., Hassner, T., Ferrer, C.C., Xu, C., Ibrahim, M.: A whac-a-mole dilemma: Shortcuts come in multiples where mitigat-ing one amplifies others (2023), https://arxiv.org/abs/2212.04825 
+
+40. Liang, W., Mao, Y., Kwon, Y., Yang, X., Zou, J.: Accuracy on the curve: On the nonlinear correlation of ML performance between data subpopulations. In: Krause, A., Brunskill, E., Cho, K., Engelhardt, B., Sabato, S., Scarlett, J. (eds.) Proceed-ings of the 40th International Conference on Machine Learning. Proceedings of Machine Learning Research, vol. 202, pp. 20706–20724. PMLR (23–29 Jul 2023), 
+
+https://proceedings.mlr.press/v202/liang23d.html 
+
+41. Lin, M., Chen, Q., Yan, S.: Network in network. In: International Conference on Learning Representations (ICLR) (2014), https://openreview.net/forum?id= ylE6yojDR5yqX 
+
+42. Lin, Y., Dong, H., Wang, H., Zhang, T.: Bayesian invariant risk minimization. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). pp. 16021–16030 (June 2022) 43. Liu, S., Beery, S., Teney, D., Liu, S., van den Hengel, A., Gould, S.: Just train twice: Improving group robustness without training group information. In: International Conference on Machine Learning (ICML) (2021) 44. Liu, Z., Lin, Y., Cao, Y., Hu, H., Wei, Y., Zhang, Z., Lin, S., Guo, B.: Swin transformer: Hierarchical vision transformer using shifted windows. In: Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) (2021), https : // openaccess .thecvf . com/ content /ICCV2021 / html/ Liu _ Swin _ Transformer _ Hierarchical_Vision_ Transformer _using_Shifted_ Windows_ICCV_2021_paper.html 
+
+45. Liu, Z., Luo, P., Wang, X., Tang, X.: Deep learning face attributes in the wild. In: Proceedings of the IEEE International Conference on Computer Vision (ICCV) (2015), https://arxiv.org/abs/1411.7766 18 Chew and Wang 46. Locatello, F., Tschannen, M., Bauer, S., Rätsch, G., Schölkopf, B., Bachem, O.: Disentangling factors of variation using few labels (2020), https://arxiv.org/ abs/1905.01258 
+
+47. Lopez-Paz, D.: From dependence to causation (2016) 48. Lynch, A., Dovonon, G.J.S., Kaddour, J., Silva, R.: Spawrious: A benchmark for fine control of spurious correlation biases (2023) 49. Marcus, G.: Deep learning: A critical appraisal (2018) 50. Mathieu, E., Rainforth, T., Siddharth, N., Teh, Y.W.: Disentangling disentangle-ment in variational autoencoders (2019), https://arxiv.org/abs/1812.02833 
+
+51. Nagarajan, V., Andreassen, A., Neyshabur, B.: Understanding the failure modes of out-of-distribution generalization (2020). https://doi.org/10.48550/ARXIV. 2010.15775 , https://arxiv.org/abs/2010.15775 
+
+52. Nam, J., Cha, H., Ahn, S., Lee, J., Shin, J.: Learning from failure: Training debiased classifier from biased classifier (2020) 53. Pagliardini, M., Jaggi, M., Fleuret, F., Karimireddy, S.P.: Agree to disagree: Di-versity through disagreement for better transferability (2022) 54. Pearl, J.: The do-calculus revisited (2012), https://arxiv.org/abs/1210.4852 
+
+55. Peters, J., Bühlmann, P., Meinshausen, N.: Causal inference using invariant pre-diction: identification and confidence intervals (2015) 56. Pezeshki, M., Kaba, S., Bengio, Y., Courville, A.C., Precup, D., Lajoie, G.: Gradi-ent starvation: A learning proclivity in neural networks. CoRR abs/2011.09468 
+
+(2020), https://arxiv.org/abs/2011.09468 
+
+57. Qiu, S., Potapczynski, A., Izmailov, P., Wilson, A.G.: Simple and fast group ro-bustness by automatic feature reweighting. In: Krause, A., Brunskill, E., Cho, K., Engelhardt, B., Sabato, S., Scarlett, J. (eds.) Proceedings of the 40th Inter-national Conference on Machine Learning. Proceedings of Machine Learning Re-search, vol. 202, pp. 28448–28467. PMLR (23–29 Jul 2023), https://proceedings. mlr.press/v202/qiu23c.html 
+
+58. Sagawa*, S., Koh*, P.W., Hashimoto, T.B., Liang, P.: Distributionally robust neu-ral networks. In: International Conference on Learning Representations (2020), 
+
+https://openreview.net/forum?id=ryxGuJrFvS 
+
+59. Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., Chen, L.C.: Mobilenetv2: Inverted residuals and linear bottlenecks. In: Proceedings of the IEEE Con-ference on Computer Vision and Pattern Recognition (CVPR) (2018), https: //openaccess.thecvf.com/content_cvpr_2018/html/Sandler_MobileNetV2_ Inverted_Residuals_CVPR_2018_paper.html 
+
+60. Selvaraju, R.R., Cogswell, M., Das, A., Vedantam, R., Parikh, D., Batra, D.: Grad-CAM: Visual explanations from deep networks via gradient-based localization. International Journal of Computer Vision 128 (2), 336–359 (oct 2019). https: //doi.org/10.1007/s11263-019-01228-7 , https://doi.org/10.1007/s11263-019-01228-7 
+
+61. Shah, H., Tamuly, K., Raghunathan, A., Jain, P., Netrapalli, P.: The pitfalls of simplicity bias in neural networks. In: Larochelle, H., Ranzato, M., Hadsell, R., Balcan, M., Lin, H. (eds.) Advances in Neural Information Processing Systems. vol. 33, pp. 9573–9585. Curran Associates, Inc. (2020), https://proceedings. neurips.cc/paper/2020/file/6cfe0e6127fa25df2a0ef2ae1067d915-Paper.pdf 
+
+62. Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., Erhan, D., Vanhoucke, V., Rabinovich, A.: Going deeper with convolutions. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) (2015) Deep Attention Reweighting 19 63. Taghanaki, S.A., Khani, A., Khani, F., Gholami, A., Tran, L., Mahdavi-Amiri, A., Hamarneh, G.: Masktune: Mitigating spurious correlations by forcing to explore (2022) 64. Tan, M., Le, Q.V.: Efficientnet: Rethinking model scaling for convolutional neu-ral networks. In: International Conference on Machine Learning (ICML) (2019), 
+
+https://proceedings.mlr.press/v97/tan19a.html 
+
+65. Touvron, H., Cord, M., Douze, M., Massa, F., Sablayrolles, A., J’egou, H.: Train-ing data-efficient image transformers & distillation through attention. In: Interna-tional Conference on Machine Learning (ICML) (2021), https://proceedings. mlr.press/v139/touvron21a.html 
+
+66. Träuble, F., Creager, E., Kilbertus, N., Locatello, F., Dittadi, A., Goyal, A., Schölkopf, B., Bauer, S.: On disentangled representations learned from correlated data (2021), https://arxiv.org/abs/2006.07886 
+
+67. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.N., Kaiser, L.u., Polosukhin, I.: Attention is all you need. In: Guyon, I., Luxburg, U.V., Bengio, S., Wallach, H., Fergus, R., Vishwanathan, S., Garnett, R. (eds.) Advances in Neural Information Processing Systems. vol. 30. Curran Associates, Inc. (2017), https://proceedings.neurips.cc/paper_files/paper/2017/file/ 3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf 
+
+68. Wang, T., Zhou, C., Sun, Q., Zhang, H.: Causal attention for unbiased visual recognition (2021), https://arxiv.org/abs/2108.08782 
+
+69. Wang, W., Xie, E., Li, X., Fan, D.P., Song, K., Liang, D., Lu, T., Luo, P., Shao, L.: Pyramid vision transformer: A versatile backbone for dense prediction without convolutions (2021), https://arxiv.org/abs/2102.12122 
+
+70. Wang, X., Girshick, R., Gupta, A., He, K.: Non-local neural networks. In: Pro-ceedings of the IEEE Conference on Computer Vision and Pattern Recogni-tion (CVPR). pp. 7794–7803 (2018), https://openaccess.thecvf.com/content_ cvpr_2018/html/Wang_Non-Local_Neural_Networks_CVPR_2018_paper.html 
+
+71. Wang, X., Chen, H., Tang, S., Wu, Z., Zhu, W.: Disentangled representation learn-ing. IEEE Transactions on Pattern Analysis and Machine Intelligence 46 (12), 9677–9696 (2024). https://doi.org/10.1109/TPAMI.2024.3420937 
+
+72. Welinder, P., Branson, S., Mita, T., Wah, C., Schroff, F., Belongie, S., Perona, P.: Caltech-ucsd birds 200. Tech. Rep. CNS-TR-2010-001, California Institute of Technology (2010) 73. Woo, S., Park, J., Lee, J.Y., Kweon, I.S.: Cbam: Convolutional block atten-tion module. In: Computer Vision – ECCV 2018. pp. 3–19 (2018). https:// doi.org/10.1007/978- 3- 030- 01234- 2_1 , https://openaccess.thecvf.com/ content _ ECCV _ 2018 / html / Sanghyun _ Woo _ Convolutional _ Block _ Attention _ Module_ECCV_2018_paper.html 
+
+74. Wu, B., Xu, C., Dai, X., Wan, A., Zhang, P., Yan, Z., Tomizuka, M., Gonzalez, J., Keutzer, K., Vajda, P.: Visual transformers: Token-based image representation and processing for computer vision (2020), https://arxiv.org/abs/2006.03677 
+
+75. Yang, X., Zhang, H., Qi, G., Cai, J.: Causal attention for vision-language tasks (2021), https://arxiv.org/abs/2103.03493 
+
+76. Yang, Y., Zhang, H., Katabi, D., Ghassemi, M.: Change is hard: a closer look at subpopulation shift. In: Proceedings of the 40th International Conference on Machine Learning. ICML’23, JMLR.org (2023) 77. Ye, W., Zheng, G., Cao, X., Ma, Y., Hu, X., Zhang, A.: Spurious correlations in machine learning: A survey (2024) 20 Chew and Wang 78. Yuan, L., Chen, Y., Wang, T., Yu, W., Shi, Y., Jiang, Z., Tay, F.E., Feng, J., Yan, S.: Tokens-to-token vit: Training vision transformers from scratch on imagenet (2021), https://arxiv.org/abs/2101.11986                 
+
+> 79. Yue, D., Zou, J., Jin, X., Leng, T.: Causal inference for confounder-purify vi-sion transformers. In: 2024 7th International Conference on Artificial Intelli-gence and Big Data (ICAIBD). pp. 530–537 (2024). https://doi.org/10.1109/ ICAIBD62003.2024.10604648
+> 80. Zhang, M., Jia, R., Misra, D.: Correct-n-contrast: A contrastive approach for improving robustness to spurious correlations. In: International Conference on Machine Learning (ICML) (2022), https : / / proceedings . mlr . press / v162 / zhang22c.html
+> 81. Zhou, Q., Gu, Q., Pang, J., Lu, X., Ma, L.: Self-adversarial disentangling for specific domain adaptation. IEEE Transactions on Pattern Analysis and Machine Intelli-gence 45 (7), 8954–8968 (2023). https://doi.org/10.1109/TPAMI.2023.3238727
+> 82. Zhou, X., Lin, Y., Zhang, W., Zhang, T.: Sparse invariant risk minimization. In: Chaudhuri, K., Jegelka, S., Song, L., Szepesvari, C., Niu, G., Sabato, S. (eds.) Pro-ceedings of the 39th International Conference on Machine Learning. Proceedings of Machine Learning Research, vol. 162, pp. 27222–27244. PMLR (17–23 Jul 2022),
+> https://proceedings.mlr.press/v162/zhou22e.html
+
+## A Datasets 
+
+Dataset Description: The methods are evaluated on six spurious-correlation im-age datasets: MNIST–CIFAR Dominoes [61], Waterbirds [58,72], Spuco-Animals [25], Spawrious [48], CelebA [45,58], and UrbanCars [39]. These benchmarks were se-lected for their widespread use in evaluating robustness to spurious correlations. Briefly: 
+
+– Dominoes is a synthetic dataset constructed by concatenating MNIST dig-its (spurious) with CIFAR-10 images (core), where the label corresponds to the CIFAR-10 object class. Unlike the binary setting in the original paper, we adopt the full 10-class classification task. 
+
+– Waterbirds is a binary bird-classification dataset where the foreground bird provides the core signal, while the background environment (water or land) is spuriously correlated with the label, creating a canonical background-bias setting. 
+
+– Spuco-Animals extends the Waterbirds setting to a more challenging 4-class classification task, where the task of identifying the animal type is spuriously correlated with the background. 
+
+– Spawrious contains photorealistic AI-generated dog images, where the task of identifying the dog breed is spuriously correlated with the background style. 
+
+– CelebA contains face images where the task is to classify hair color (e.g., blond vs. non-blond), which is spuriously correlated with gender. Unlike background-bias datasets, the core and spurious attributes partially overlap spatially within the face region. Deep Attention Reweighting 21 
+
+– UrbanCars is a car-classification benchmark in which the label is associ-ated with multiple spurious cues, such as the background and co-occurring objects, making it a many-to-one spurious-correlation setting. 
+
+Terminology: We follow the standard terminology used in the group-robustness literature [30, 58]: 
+
+– Group: A group defined by the tuple (y, a ), where y denotes the target label and a denotes the spurious attribute. 
+
+– Majority Group: The subgroups that comprise the largest fraction of the dataset, resulting in the spurious correlation between the attribute and the label. Consequently, the spurious correlation holds for examples in the ma-jority group. 
+
+– Minority Group: The subgroups that comprise the smallest fraction of the dataset, with attributes and class labels that conflict with the spurious correlation. 
+
+– Spurious Correlation Strength: The probability that the spurious at-tribute a is predictive of the target label y. Equivalently, this corresponds to the accuracy achieved by a classifier that relies solely on the spurious attribute. 
+
+– Minority Group Accuracy: The average test accuracy computed over samples in the minority groups, where the spurious correlation does not hold. 
+
+– Majority Group Accuracy: The average test accuracy computed over samples in the majority groups. This metric can be highly misleading, as a model can perform well on these samples by exploiting spurious correlations alone. 
+
+Dataset Splits: Each dataset is partitioned into four splits: 
+
+– Training split: Used to learn the model parameters. The training split sizes for Dominoes, Waterbirds, CelebA, Spuco-Animals, Spawrious, and Urban-Cars are 43,960, 9,472, 18,946, 18,944, 24,544, and 6,992, respectively. 
+
+– Target split: Used by DFR and DAR for post-hoc adaptation. For methods that do not use a separate target set, this split is merged into the training split. The target split contains 1,000 samples for all datasets. 
+
+– Validation split: Used for hyperparameter tuning. The validation split contains 1,000 samples for all datasets. 
+
+– Test split: Used for final evaluation. Similar to [23], the breakdown of the training split group counts for the spurious correlation train datasets is presented in Table 4. 
+
+## B Experimental Setup 
+
+B.1 Training Setup 
+
+Data Augmentation: The datapoints are normalized using dataset-specific statis-tics and augmented using Random Crop and Random Horizontal Flip. The main 22 Chew and Wang 
+
+experiment uses a randomly initialised ResNet18 model [16]. This random ini-tialisation isolates each method’s ability to learn the feature representation, inde-pendent of any pre-trained features from datasets such as ImageNet. The models are trained for  200  epochs to ensure convergence. The models are optimised using the Adam optimiser [28] with default beta values. 
+
+B.2 Hyperparameter Tuning Setup 
+
+For the main experiment, we follow the hyperparameter-tuning setup described in [76]. Specifically, we use the validation dataset to select the optimal hyperpa-rameters for each method through grid search. These selected hyperparameters are then fixed and used to rerun the experiments across three random seeds, enabling us to report the mean accuracy and its standard deviation. The three main hyperparameters we tune are: learning rate in  {10 −2, 10 −3, 10 −4}, weight decay in  {10 −1, 10 −2, 10 −3, 10 −4}, and batch size in  {32 , 64 , 128 }. The reported results correspond to the epoch with the highest minority-group validation accu-racy, i.e., early stopping. We do not perform additional hyperparameter tuning for the ablation experiments; instead, we use the best hyperparameters identified during the main experiments. The hyperparameter tuning for DFR and DAR follows the setup in the orig-inal DFR paper [30]. Hyperparameter tuning is performed on the base model 
+
+ERM train , which only utilizes the training split. 1 This base model is then frozen for the retraining step. During this retraining step, both the DAR and DFR steps include an additional regularization parameter that is tuned. 
+
+B.3 Evaluation Setup 
+
+To evaluate the model’s performance, we report both majority-group accuracy and minority-group accuracy. The majority-group accuracy is not a good eval-uation of the model’s performance, as the model could achieve it by learning spurious correlations rather than the target function, making it misleading. By extension, the average group accuracy is also not a good metric. Therefore, minority-group accuracy is used to benchmark the model’s performance by eval-uating its performance on data points where the spurious correlation does not hold. This is consistent with the spurious correlation literature. All methods are repeated with three random seeds to assess robustness, and the mean and standard deviation are reported. 
+
+## C Supplementary Metrics and Analysis for Feature Entanglement 
+
+C.1 Core Activation Percentage (CAP) Metric 
+
+Given an output feature map of the final convolutional layer, the activation in the top half corresponds to the MNIST input. In contrast, the activation at the           
+
+> 1In contrast, ERM uses both the training and target splits combined. Deep Attention Reweighting 23
+> (a) ERM Core (b) ERM (c) DF R CN N
+> Fig. 6: Histogram of CAP values across 512 output feature maps.
+
+bottom half of the feature map corresponds to the CIFAR input. We compute the Core Activation Percentage (CAP) for the  j-th feature map as follows: 
+
+CAP j = Ei
+
+" P Hh=H/ 2
+
+PWw |Ai[j, h, w ]|
+
+PHh=1 
+
+PWw=1 |Ai[j, h, w ]|
+
+#
+
+∗ 100%  (6) where  H and  W are the height and width of the feature map, and  Ai ∈ Rd×H×W
+
+is the activation of the feature map for input  xi. The CAP metric is computed for all of the model’s output feature maps. 
+
+C.2 Core GradCAM Percentage (CGP) Metric 
+
+We use GradCAM [60] to obtain a heatmap that highlights the regions of the input image the model focuses on when making its prediction. As with the CAP, the top half of the GradCAM heatmap corresponds to the MNIST input, whereas the bottom half corresponds to the CIFAR input. We measure the Core GradCAM Percentage (CGP) as follows: 
+
+CGP = Ei
+
+" P Hh=H/ 2
+
+PWw=1 |Gi[h, w ]|
+
+PHh=1 
+
+PWw=1 |Gi[h, w ]|
+
+#
+
+∗ 100%  (7) where  H and  W are the height and width of the GradCAM heatmap, and  Gi ∈
+
+RH×W is the GradCAM heatmap for input  xi. The CGP metric is computed for the model’s output. 
+
+C.3 Ablation Results and Analysis 
+
+The results from these two additional ablation metrics (Table 5 and Figure 6) support the conclusions drawn in Section 4: 1.  ERM core : When trained on a dataset where the spurious correlation is ab-sent, the feature maps (Figure 6a) and output prediction ( CGP = 91 .0% ,Table 5) demonstrate a strong reliance on core features. 2.  ERM  : When trained on the dataset with spurious correlation, the feature maps (Figure 6b) exhibit significant entanglement between core and spurious features, resulting in an output that depends on both ( CGP = 66 .8% , Table 5). 24 Chew and Wang              
+
+> 1(a) ERM 1(b) DF R 1(c) DAR 1(d) DAR Spu
+> Fig. 7: A random sample of 16 GradCAM images from the test datasets for ERM ,
+> DF R ,DAR ,DAR Spu models that were obtained from the main experiments for the Dominoes dataset.
+
+3.  DF R : While DFR improves the CGP score ( CGP = 70 .0% , Table 5) com-pared to ERM train , it is still insufficient to fully eliminate the influence of spurious features as it still relies on the entangled feature maps (Figure 6b). 4.  DF R CN N  : Modifying DF R to include the retraining of the final CNN layer reduces reliance on the spurious features in both the feature maps (Figure 6c) and the output prediction ( CGP = 79 .6% , Table 5), but remains insufficient to fully remove their influence. 5.  DF R F C  : Modifying DF R to retrain a two-layer classification head (instead of the original single-layer) reduces the reliance on the spurious feature in the output prediction ( CGP = 82 .5% , Table 5), but remains insufficient to fully remove their influence. 6.  DAR : The proposed DAR method significantly outperforms DF R , effec-tively extracting core features while almost completely eliminating spurious feature influence ( CGP = 95 .8% , Table 5). Alternatively, it can be config-ured to extract only the spurious features ( CGP = 2 .2% , Table 5). 
+
+## D GradCAM Images 
+
+Through visual inspection of Figure 7, we observe that the ERM model relies on both the core and spurious features. The DFR model reduces reliance on spurious features, but it is insufficient to completely remove their influence due to feature entanglement. Finally, our proposed DAR method can almost completely eliminate the influence of these spurious features, focusing almost exclusively on the core features. Alternatively, it can predict the spurious attributes and focus on the spurious features. We also note that the attention mechanism learns to Deep Attention Reweighting 25 
+
+assign dynamic, highly focused attention, with attention for each input image confined to the most discriminative regions. 
+
+## E Mathematical Formulation of DAR 
+
+In Section 4, we introduced the architectural design used in our proposed DAR model. In this appendix, we mathematically introduce the architecture, which is based on the scaled dot-product attention mechanism: 
+
+SDP A (Q, K, V) = sof tmax 
+
+ QK T
+
+√d
+
+
+
+V (8) where Q, K, V represent the query, key, and value matrices, respectively, while 
+
+d represents the dimension of the vectors. The multihead attention architecture extends the SDP A as follows: 
+
+head t = SDP A (QW tQ, KW tK , VW tV ), t = 1 , . . . , n head (9) 
+
+M HA (Q, K, V) = Concat (head 1, ..., head nhead )WO (10) where nhead refers to the number of heads and WtQ, WtK , WtV ∈ Rd,d head are lin-ear projection matrices that map from the original dimension d to the dimension of each head dhead = d/n head . WO ∈ Rd,d is the output projection matrix. Using these attention modules, we can define our two-layer attention archi-tecture as: 
+
+Q′ = M HA (Q, A, A) (11) 
+
+H = M HA (Q′, A, A) (12) where Q ∈ Rk×d represents k learnable query vectors, A ∈ RHW ×d represents the output activation map, which is used as both the key and value matrices. In this formulation, the first layer updates the query vectors in the context of the feature map, before using the updated queries to extract the core features. Finally, f attention represents the feature embedding extracted from the fea-ture map A based on the learnable query vectors Q. We take the average of these feature vectors to obtain the final feature representation: 
+
+h = 1
+
+k
+
+> k
+
+X
+
+> i=1
+
+H[i] ∈ Rd (13) 26 Chew and Wang 
+
+Table 4: Training-split group counts for the spurious-correlation datasets. For datasets with a one-to-one label–attribute correspondence, the majority groups lie on the di-agonal and the minority groups lie off-diagonal. UrbanCars is unique because it is a many-to-one setting with multiple spurious cues predictive of the label. 
+
+Dataset Label Train Group Counts 
+
+↓ y → a Digit 0 Digit 1  · · ·  Digit 8 Digit 9 
+
+MNIST–CIFAR Dominoes 
+
+Airplane 4180 24  · · ·  24 24 Automobile 24 4180  · · ·  24 24 
+
+... ... ... . . . ... ...
+
+Ship 24 24  · · ·  4180 24 Truck 24 24  · · ·  24 4180 
+
+↓ y → a Land Water 
+
+Waterbirds  Landbird  4500 236 
+
+W aterbird  236 4500 
+
+↓ y → a F emale  M ale 
+
+CelebA  Blonde  9000 473 
+
+N on − Blonde  473 9000 
+
+↓ y → a Land Water Indoors Outdoors 
+
+Spuco-Animals 
+
+Landbirds 4500 236 0 0Waterbirds 236 4500 0 0Small Dogs 0 0 4500 236 Big Dogs 0 0 236 4500 
+
+↓ y → p Jungle  Desert  M ountain  Snow 
+
+Spawrious 
+
+Bulldog  5830 0 306 0
+
+Corgi  306 5830 0 0
+
+Dachshund  0 0 5830 306 
+
+Labrador  0 306 0 5830 
+
+↓ y → p p = 0  p = 1  p = 2  p = 3 
+
+UrbanCars  CountryCar  3156 166 166 8
+
+U rbanCar  8 166 165 3153 
+
+Method  ERM Core  ERM train  DFR  DFR FC  DFR CNN  DAR  DAR Spu 
+
+CGP  91 .0 ± 0.3 66 .8 ± 0.4 70 .0 ± 1.5 82 .5 ± 1.2 79 .6 ± 1.8 95 .8 ± 0.5 2.2 ± 0.5
+
+Table 5: Core GradCAM Percentage for Model’s Output Prediction.

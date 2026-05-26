@@ -6,77 +6,65 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-25
-- 运行时间：2026-05-25 21:07:45 UTC
+- 最新运行日期：2026-05-26
+- 运行时间：2026-05-26 20:52:04 UTC
 - 运行状态：成功
-- 本次总论文数：19
-- 精读区：8
-- 速读区：11
+- 本次总论文数：15
+- 精读区：5
+- 速读区：10
 
 ### 今日简报（AI）
-今日精读8篇、速读11篇，共19篇论文，重点关注Transformer架构与多智能体AI创造力突破。最值得关注的两篇高分研究：无限深宽Transformer理论（9.0/10）及多智能体AI在创意任务上超越人类团队（9.0/10）。建议普通读者优先阅读这两篇精读论文，了解AI在深度模型和协作创新方面的前沿进展。
-- 详情：[/202605/25/README](/202605/25/README)
+今日处理15篇论文，精读5篇，其中《Aligned Training》与《DashAttention》获最高评价。最值得关注：无参数方法提升稀疏自编码器特征质量与稳定性，以及可微分自适应稀疏分层注意力。建议深入这两篇精读论文，特别是其稀疏注意力机制在长上下文场景中的实践价值。
+- 详情：[/202605/26/README](/202605/26/README)
 
 ### 精读区论文标签
-1. [Training Infinitely Deep and Wide Transformers](/202605/25/2605.17660v1-training-infinitely-deep-and-wide-transformers)  
-   标签：评分：9.0/10、query:ai
-   evidence：无限深宽Transformer的理论分析，直接匹配神经网络架构需求
-2. [Multi-agent AI systems outperform human teams in creativity](/202605/25/2605.17885v1-multi-agent-ai-systems-outperform-human-teams-in-creativity)  
-   标签：评分：9.0/10、query:ai
-   evidence：多智能体AI创造力研究
-3. [Pointwise Generalization in Deep Neural Networks](/202605/25/2605.18598v1-pointwise-generalization-in-deep-neural-networks)  
-   标签：评分：9.0/10、query:ai
-   evidence：深度神经网络的点态泛化理论，属于深度学习近期进展
-4. [The Annotation Scarcity Paradox in Low-Resource NLP Evaluation: A Decade of Acceleration and Emerging Constraints](/202605/25/2605.19066v1-the-annotation-scarcity-paradox-in-low-resource-nlp-evaluation-a-decade-of-acceleration-and-emerging-constraints)  
-   标签：评分：9.0/10、query:ai
-   evidence：提供了低资源自然语言处理评估技术的综述
-5. [FBOS-RL: Feedback-Driven Bi-Objective Synergistic Reinforcement Learning](/202605/25/2605.20256v1-fbos-rl-feedback-driven-bi-objective-synergistic-reinforcement-learning)  
-   标签：评分：9.0/10、query:ai
-   evidence：提出基于反馈的双目标协同强化学习算法
-6. [Interpretable Discriminative Text Representations via Agreement and Label Disentanglement](/202605/25/2605.20693v1-interpretable-discriminative-text-representations-via-agreement-and-label-disentanglement)  
-   标签：评分：9.0/10、query:ai
-   evidence：NLP可解释文本表示方法
-7. [Winfree Oscillatory Neural Network](/202605/25/2605.20922v1-winfree-oscillatory-neural-network)  
-   标签：评分：9.0/10、query:ai
-   evidence：提出一种新颖的振荡神经网络架构
-8. [Approximation Theory for Neural Networks: Old and New](/202605/25/2605.21451v1-approximation-theory-for-neural-networks-old-and-new)  
-   标签：评分：9.0/10、query:ai
-   evidence：神经网络逼近理论综述
+1. [Aligned Training: A Parameter-Free Method to Improve Feature Quality and Stability of Sparse Autoencoders (SAE)](/202605/26/2605.18629v1-aligned-training-a-parameter-free-method-to-improve-feature-quality-and-stability-of-sparse-autoencoders-sae)  
+   标签：评分：8.0/10、query:ai
+   evidence：改进稀疏自编码器以提升深度神经网络可解释性
+2. [DashAttention: Differentiable and Adaptive Sparse Hierarchical Attention](/202605/26/2605.18753v1-dashattention-differentiable-and-adaptive-sparse-hierarchical-attention)  
+   标签：评分：8.0/10、query:ai
+   evidence：提出可微分自适应稀疏层级注意力
+3. [Deep Neural Sheaf Diffusion](/202605/26/2605.19021v1-deep-neural-sheaf-diffusion)  
+   标签：评分：8.0/10、query:ai
+   evidence：深层图神经网络架构
+4. [KAN-MLP-Mixer: A comprehensive investigation of the usage of Kolmogorov-Arnold Networks (KANs) for improving IMU-based Human Activity Recognition](/202605/26/2605.19031v1-kan-mlp-mixer-a-comprehensive-investigation-of-the-usage-of-kolmogorov-arnold-networks-kans-for-improving-imu-based-human-activity-recognition)  
+   标签：评分：8.0/10、query:ai
+   evidence：研究KAN与MLP混合架构用于人体活动识别
+5. [EmbGen: Teaching with Reassembled Corpora](/202605/26/2605.19394v1-embgen-teaching-with-reassembled-corpora)  
+   标签：评分：8.0/10、query:ai
+   evidence：用于指令微调的合成数据生成
 
 ### 速读区论文标签
-1. [Integration of AI in Cybersecurity: Current Trends with a Focused Look at Intrusion Detection Applications](/202605/25/2605.17219v1-integration-of-ai-in-cybersecurity-current-trends-with-a-focused-look-at-intrusion-detection-applications)  
+1. [m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder](/202605/26/2605.19568v1-m3bert-a-modern-multi-lingual-matryoshka-bidirectional-encoder)  
    标签：评分：8.0/10、query:ai
-   evidence：关于AI在网络安全中的趋势综述，直接符合人工智能研究论文需求
-2. [ConflictRAG: Detecting and Resolving Knowledge Conflicts in Retrieval Augmented Generation](/202605/25/2605.17301v1-conflictrag-detecting-and-resolving-knowledge-conflicts-in-retrieval-augmented-generation)  
+   evidence：支持灵活嵌入维度的多语言BERT
+2. [Efficient Long-Context Modeling in Diffusion Language Models via Block Approximate Sparse Attention](/202605/26/2605.19726v1-efficient-long-context-modeling-in-diffusion-language-models-via-block-approximate-sparse-attention)  
    标签：评分：8.0/10、query:ai
-   evidence：冲突感知的检索增强生成框架
-3. [From Node2Vec to GPT-based GraphRAG: scientific impact prediction across graph and language models](/202605/25/2605.18410v1-from-node2vec-to-gpt-based-graphrag-scientific-impact-prediction-across-graph-and-language-models)  
+   evidence：扩散语言模型的高效长上下文建模，属于深度学习近期进展
+3. [ContextRAG: Extraction-Free Hierarchical Graph Construction for Retrieval-Augmented Generation](/202605/26/2605.19735v1-contextrag-extraction-free-hierarchical-graph-construction-for-retrieval-augmented-generation)  
    标签：评分：8.0/10、query:ai
-   evidence：图模型和语言模型用于影响预测
-4. [Scheduling That Speaks: An Interpretable Programmatic Reinforcement Learning Framework](/202605/25/2605.18454v1-scheduling-that-speaks-an-interpretable-programmatic-reinforcement-learning-framework)  
+   evidence：用于检索增强生成的自然语言处理新技术，免去LLM提取
+4. [Fast Tensorization of Neural Networks via Slice-wise Feature Distillation](/202605/26/2605.19842v1-fast-tensorization-of-neural-networks-via-slice-wise-feature-distillation)  
    标签：评分：8.0/10、query:ai
-   evidence：开发可解释的程序化强化学习框架用于调度问题
-5. [NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents](/202605/25/2605.17596v2-neusymms-a-hybrid-neuro-symbolic-memory-system-for-persistent-self-curating-llm-agents)  
-   标签：评分：7.0/10、query:ai
-   evidence：面向LLM代理的混合神经符号记忆系统
-6. [Exact Convex Reformulations of Linear Neural Networks via Completely Positive Lifting](/202605/25/2605.17692v1-exact-convex-reformulations-of-linear-neural-networks-via-completely-positive-lifting)  
-   标签：评分：7.0/10、query:ai
-   evidence：为线性神经网络训练提供精确凸重构方法
-7. [StatQAT: Statistical Quantizer Optimization for Deep Networks](/202605/25/2605.17745v1-statqat-statistical-quantizer-optimization-for-deep-networks)  
-   标签：评分：7.0/10、query:ai
-   evidence：深度网络量化优化
-8. [PIPER: Content-Based Table Search via profiling and LLM-Generated Pseudoqueries](/202605/25/2605.18199v1-piper-content-based-table-search-via-profiling-and-llm-generated-pseudoqueries)  
-   标签：评分：7.0/10、query:ai
-   evidence：基于LLM的内容驱动表格检索方法
-9. [NeuSymMS: A Hybrid Neuro-Symbolic Memory System for Persistent, Self-Curating LLM Agents](/202605/25/2605.17596v1-neusymms-a-hybrid-neuro-symbolic-memory-system-for-persistent-self-curating-llm-agents)  
-   标签：评分：6.0/10、query:ai
-   evidence：LLM智能体混合神经符号记忆系统
-10. [Stochastic Penalty-Barrier Methods for Constrained Machine Learning](/202605/25/2605.18618v1-stochastic-penalty-barrier-methods-for-constrained-machine-learning)  
-   标签：评分：6.0/10、query:ai
-   evidence：约束机器学习的新型优化方法
-11. [Learning Quantifiable Visual Explanations Without Ground-Truth](/202605/25/2605.18681v1-learning-quantifiable-visual-explanations-without-ground-truth)  
-   标签：评分：6.0/10、query:ai
-   evidence：深度学习可解释性量化指标与无需真实标注的新方法
+   evidence：用于神经网络压缩的张量化
+5. [Layer-wise Token Compression for Efficient Document Reranking](/202605/26/2605.20683v2-layer-wise-token-compression-for-efficient-document-reranking)  
+   标签：评分：8.0/10、query:ai
+   evidence：面向交叉编码器重排序器的自适应令牌池化方法
+6. [Deep Attention Reweighting: Post-Hoc Attention-Based Feature Aggregation in CNNs for Disentangling Core and Spurious Features under Spurious Correlations](/202605/26/2605.20732v1-deep-attention-reweighting-post-hoc-attention-based-feature-aggregation-in-cnns-for-disentangling-core-and-spurious-features-under-spurious-correlations)  
+   标签：评分：8.0/10、query:ai
+   evidence：基于注意力的CNN特征聚合方法解决虚假相关
+7. [ACL-Verbatim: hallucination-free question answering for research](/202605/26/2605.21102v1-acl-verbatim-hallucination-free-question-answering-for-research)  
+   标签：评分：8.0/10、query:ai
+   evidence：开发用于研究论文的抽取式问答系统，直接应用于自然语言处理技术
+8. [Graph Navier Stokes Networks](/202605/26/2605.21247v1-graph-navier-stokes-networks)  
+   标签：评分：8.0/10、query:ai
+   evidence：提出受纳维-斯托克斯启发的图神经网络新架构，解决过平滑问题
+9. [PromptNCE: Pointwise Mutual Information Predictions Using Only LLMs and Contrastive Estimation Prompts](/202605/26/2605.21776v1-promptnce-pointwise-mutual-information-predictions-using-only-llms-and-contrastive-estimation-prompts)  
+   标签：评分：8.0/10、query:ai
+   evidence：使用大型语言模型进行零样本互信息估计，属于人工智能研究方法
+10. [CASE-NET: Deep Spatio-Temporal Representation Learning via Causal Attention and Channel Recalibration for Multivariate Time Series Classification](/202605/26/2605.22043v1-case-net-deep-spatio-temporal-representation-learning-via-causal-attention-and-channel-recalibration-for-multivariate-time-series-classification)  
+   标签：评分：8.0/10、query:ai
+   evidence：提出一种用于时间序列分类的新型深度神经网络架构
 
 
 <div class="dpr-home-promo-card">

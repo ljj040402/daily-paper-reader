@@ -1,0 +1,765 @@
+Title: KAN-MLP-Mixer: A comprehensive investigation of the usage of Kolmogorov-Arnold Networks (KANs) for improving IMU-based Human Activity Recognition
+
+URL Source: https://arxiv.org/pdf/2605.19031v1
+
+Published Time: Wed, 20 May 2026 00:17:23 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+## KAN-MLP-Mixer: A comprehensive investigation of the usage of Kolmogorov–Arnold Networks (KANs) for improving IMU-based Human Activity Recognition 
+
+## MENGXI LIU, DFKI, Germany 
+
+## SIZHEN BIAN, Northwestern Polytechnical University, China 
+
+## VITOR FORTES, DFKI and RPTU, Germany 
+
+## FRANCISCO CALATRAVA NICOLAS, Örebro University, Sweden 
+
+## DANIEL GEISSLER, DFKI, Germany 
+
+## MAXIMILIAN KIEFER-EMMANOUILIDIS, DFKI and RPTU, Germany 
+
+## BO ZHOU, DFKI and RPTU, Germany 
+
+## PAUL LUKOWICZ, DFKI and RPTU, Germany 
+
+Kolmogorov–Arnold Networks (KANs) have demonstrated an exceptional ability to learn complex functions on clean, low-dimensional data but struggle to maintain performance on noisy and imperfect real-world datasets. In contrast, conventional multi-layer perceptrons (MLPs) are far more tolerant to noise and computationally efficient. Replacing all MLP components with KANs in HAR models often degrades accuracy and computation efficiency, highlighting an open challenge: how to combine KANs’ precision with MLPs’ noise robustness and efficiency. To address this, we systematically explore various placements of KAN modules within deep HAR networks and propose a hybrid architecture that strategically synergizes the strengths of both paradigms, which uses a KAN-based input embedding layer, retains MLP layers for intermediate feature mixing, and introduces a specialized LarctanKAN module for final activity classification. Across eight public HAR datasets, the hybrid KAN–MLP model achieves an average macro F1 score relative improvement of 5.33% compared pure-MLP model, significantly outperforming standalone KAN and MLP baselines. Furthermore, integrating this hybrid strategy into other state-of-the-art HAR architectures consistently boosts their performance. Our findings demonstrate that a carefully orchestrated combination of KAN, MLP, or other conventional neural components yields more robust and accurate HAR models for real-world wearable sensing environments. CCS Concepts: • Do Not Use This Code → Generate the Correct Terms for Your Paper ; Generate the Correct Terms for Your Paper ; Generate the Correct Terms for Your Paper; Generate the Correct Terms for Your Paper. Additional Key Words and Phrases: Do, Not, Us, This, Code, Put, the, Correct, Terms, for, Your, Paper 
+
+ACM Reference Format: 
+
+Mengxi Liu, Sizhen Bian, Vitor Fortes, Francisco Calatrava Nicolas, Daniel Geißler, Maximilian Kiefer-Emmanouilidis, Bo Zhou, and Paul Lukowicz. 2018. KAN-MLP-Mixer: A comprehensive investigation of the usage of Kolmogorov–Arnold Networks (KANs) for 
+
+Authors’ Contact Information: Mengxi Liu, mengxi.liu@dfki.de, DFKI, Germany; Sizhen Bian, sizhen.bian@nwpu.edu.cn, Northwestern Polytechnical University, China; Vitor Fortes, vitor.fortes_rey@dfki.de, DFKI and RPTU, Germany; Francisco Calatrava Nicolas, Örebro University, Sweden; Daniel Geißler, daniel.geissler@dfki.de, DFKI, Germany; Maximilian Kiefer-Emmanouilidis, maximilian.kiefer@dfki.de, DFKI and RPTU, Germany; Bo Zhou, bo.zhou@dfki.de, DFKI and RPTU, Germany; Paul Lukowicz, paul.lukowicz@dfki.de, DFKI and RPTU, Germany. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. 
+
+© 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. Manuscript submitted to ACM Manuscript submitted to ACM 1
+
+> arXiv:2605.19031v1 [cs.AI] 18 May 2026
+
+2 Liu et al.   
+
+> improving IMU-based Human Activity Recognition . In Proceedings of Make sure to enter the correct conference title from your rights confirmation email (Conference acronym ’XX). ACM, New York, NY, USA, 24 pages. https://doi.org/XXXXXXX.XXXXXXX
+
+1 Introduction 
+
+Accurate Human Activity Recognition (HAR) from body-worn sensors is a cornerstone of ubiquitous computing, enabling applications ranging from personalized health monitoring and fitness tracking on smartwatches [ 1 , 52 ] to context-aware interactions in smart environments [ 2 , 8]. Inertial Measurement Units (IMUs), commonly embedded in wearables, provide rich motion data. However, leveraging this data effectively is challenging; real-world IMU signals are notoriously complex and plagued by noise, sensor drift, placement variations, and inter-subject differences, hindering the development of robust, universally applicable HAR systems [48]. Deep learning models have become the standard for tackling HAR, automatically learning features from sensor data [ 14 ]. Among these, Multi-Layer Perceptrons (MLPs) and their variants remain surprisingly effective [ 36 , 56 ]. While perhaps less complex than CNNs or RNNs, MLPs are valued not only for their representational power but crucially for their robustness to noise and computational efficiency [ 28 ]. This efficiency is paramount for deployment on resource-constrained wearable devices where battery life and processing power are limited. Indeed, recent work has shown that purely MLP-based architectures, like MLP-Mixers adapted for HAR and MLPHAR, can achieve state-of-the-art or competitive performance with significantly fewer parameters than heavier models [ 35 , 36 , 56 ], making them highly practical for the wearable and ubiquitous computing domain. Recently, Kolmogorov–Arnold Networks (KANs) emerged as a novel neural network paradigm offering remarkable theoretical potential [ 33 ]. Inspired by the Kolmogorov-Arnold representation theorem, KANs replace the fixed activations and linear weights of MLPs with learnable univariate functions on network edges. This design grants them exceptional flexibility, enabling them to approximate complex functions with high fidelity, often surpassing traditional networks on clean, low-dimensional mathematical or physics-based tasks [ 18 , 24 , 33 , 39 ],including new efficient architectures for quantum machine learning [23, 49]. However, translating KANs’ theoretical promise to the messy reality of wearable sensor data presents a significant hurdle. A growing body of evidence indicates that KANs exhibit considerable sensitivity to noise and data imper-fections [ 11 , 22 , 43 ]. Their intricate function-fitting mechanism, while powerful on clean signals, appears vulnerable to the inherent variability and noise found in IMU data collected in the wild. Moreover, KANs are based on the assumption that the target function is continuous; if this assumption is violated, the model may fail to approximate the function effectively [ 33 ], as shown in Fig. 1. As we can see there, KANs can fit better smooth periodic signals while MLPs outperform them in decision boundaries such as step functions. Directly substituting KANs for MLPs in established HAR pipelines often results in a substantial drop in accuracy and can negate the efficiency benefits sought in wearable applications due to complex spline computations and tuning requirements [ 28 ], including our own preliminary findings shown in Table 3. This creates a critical dilemma for HAR researchers aiming to leverage cutting-edge architectures: How can we harness the potential function approximation power of KANs for complex activity patterns without sacrificing the robustness and computational efficiency essential for practical, real-world wearable HAR systems? While initial explorations into hybrid KAN models exist [ 9, 31 , 51 ], there lacks a systematic investigation into how to best integrate KAN components within HAR architectures specifically designed to handle real-world sensor streams effectively and efficiently. 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 3To bridge this gap, we firstly conduct a systematic empirical investigation into strategically integrating KANs and their variants within a strong, efficient, pure MLP-based HAR architecture (MLPHAR [ 56 ]). Our analysis reveals that the placement of KAN modules is critical: they excel at initial data embedding but falter in intermediate feature mixing roles, while specific variants show promise for classification. Based on these insights, we then propose KAN-MLP-Mixer , a novel hybrid architecture that synergistically combines: 
+
+1. An EfficientKAN module for adaptive data embedding, chosen for its ability to capture input complexities while managing computational overhead. 
+
+2. Standard MLP layers for intermediate feature mixing, preserving the baseline’s proven robustness and efficiency. 
+
+3. A LarctanKAN module for classification, selected for its smooth, bounded activation potentially offering enhanced stability against noise in the final prediction stage. We evaluate KAN-MLP-Mixer rigorously across eight diverse wearable and ubiquitous HAR datasets. Our results demonstrate that this targeted hybridization achieves a significant average macro F1-score improvement of 5.33% over the robust MLPHAR baseline and substantially outperforms naive full KAN replacement strategies. The main contributions of this work are: 
+
+• A systematic empirical analysis of different KAN integration strategies within an MLP-based HAR framework, identifying performance trade-offs on real-world IMU sensor data. 
+
+• The proposal of KAN-MLP-Mixer , a novel hybrid architecture specifically designed to balance KAN expressive-ness with MLP robustness and efficiency for practical HAR. 
+
+• Demonstration of improved performance , showing that KAN-MLP-Mixer consistently outperforms the MLPHAR baseline across eight diverse public HAR datasets by an average of 5.33% macro F1-score. 
+
+• Providing evidence that strategic hybridization , rather than wholesale replacement, offers a viable pathway to leverage advanced architectures like KANs effectively in challenging real-world sensor-based applications common in ubiquitous computing. 
+
+• Extending the hybrid design strategy across diverse neural backbones, window sizes, and sensing modalities, demonstrating consistent performance improvements under varying conditions through strategic hybridization. 
+
+• Providing a set of practical design guidelines derived from comprehensive empirical findings to inform the effective application of KANs in sensor-based HAR tasks. While comprehensive benchmarking against the broader HAR state-of-the-art and detailed computational profiling for on-device deployment remain important future steps, our findings provide strong evidence for the potential of carefully constructed KAN-MLP hybrids. This work paves the way for developing more accurate, robust, and ultimately practical HAR systems suitable for the demands of next-generation wearable and mobile technologies. 
+
+2 Related Work 
+
+This section reviews prior research relevant to our work, focusing on KANs, the role of MLPs in HAR, and the evolution of hybrid architectures in this domain. 
+
+2.1 Kolmogorov-Arnold Networks (KANs): Potential and Challenges 
+
+KANs, inspired by the Kolmogorov–Arnold representation theorem [ 4 , 5, 27 ], represent a recent shift in neural network design [ 33 ]. Instead of fixed activations at nodes, KANs employ learnable univariate functions (often splines) on network edges. This grants them significant theoretical expressiveness, allowing them to approximate complex functions 
+
+> Manuscript submitted to ACM
+
+4 Liu et al. 0.4 0.2 0.0 0.2 0.4 
+
+> x
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> f(x)
+> Model Predictions on Step Function
+> True Continual Function
+> MLP (RMSE: 0.021, Params: 593)
+> KAN (RMSE: 0.056, Params: 5440)
+> LarctanKAN (RMSE: 0.018, Params: 593)
+
+(a) Predictions on a step function. LarctanKAN achieves the low-est error (RMSE = 0.018) with only 593 parameters, outperform-ing both MLP and KAN, the latter of which exhibits overshooting due to its spline-based formulation and uses 5440 parameters. This demonstrates the advantage of LarctanKAN for modeling discontinuous decision boundaries. 0.4 0.2 0.0 0.2 0.4 
+
+> x
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> f(x)
+> Model Predictions on Continual Function (f(x)=sin(2*pi*x)*cos(2*pi*x))
+> True Continual Function
+> MLP (RMSE: 0.011, Params: 2901)
+> MLP_small (RMSE: 0.257, Params: 321)
+> KAN (RMSE: 0.001, Params: 2880)
+> LarctanKAN (RMSE: 0.031, Params: 321)
+
+(b) Predictions on a smooth periodic function 𝑓 (𝑥 ) =
+
+sin (2𝜋𝑥 ) cos (2𝜋𝑥 ). KAN achieves the lowest RMSE (0.001), cap-turing the waveform precisely. MLP and LarctanKAN underfit due to limited expressivity, highlighting KAN’s strength in em-bedding smooth sensor signals. Fig. 1. Comparison of model predictions on synthetic functions representing typical characteristics of sensor data. The step function emulates classification boundaries, while the periodic function simulates continuous IMU signal patterns. Results highlight the motivation for our hybrid architecture: using KAN in the embedding layer and LarctanKAN in the classifier. Table 1. Comparative summary of KAN variants 
+
+KAN Type Basis Function Function Form Major Feature 
+
+KAN [33] B-spline 𝜙 (𝑥 ) = 𝑤 (silu (𝑥 ) + Í𝑖 𝑐 𝑖 𝐵 𝑖 (𝑥 ) ) High interpretability EfficientKAN [12] B-spline 𝜙 (𝑥 ) = 𝑤 (silu (𝑥 ) + Í𝑖 𝑐 𝑖 𝐵 𝑖 (𝑥 ) ) GPU optimized, memory-efficient FastKAN [29] Gaussian RBF 𝜙 (𝑥 ) = Í𝐾 𝑖 =1 𝑐 𝑖 exp 
+
+
+
+− (𝑥 −𝜇 𝑖 )2
+
+> 2𝜎 2
+
+
+
+Fast computation WavKAN [10] Wavelet 𝜙 (𝑥 ) = Í𝐽 𝑗 =0
+
+Í2𝑗 −1 
+
+> 𝑘 =0
+
+𝑤 𝑗,𝑘 𝜓 𝑗,𝑘 (𝑥 ) Multiresolution analysis FourierKAN [50] Sine and Cosine 𝜙 (𝑥 ) = Í𝑔 𝑘 =1 (𝑎 𝑘 cos (𝑘𝑥 ) + 𝑏 𝑘 sin (𝑘𝑥 ) ) Smooth and differentiable LarctanKAN [15] Arctan 𝜙 (𝑥 ; 𝑘 ) = arctan (𝑘𝑥 ) Compact, efficient activation MLP – 𝜙 (𝑥 ) = 𝑓 𝑎𝑐𝑡 (𝑊 𝑥 + 𝑏 ) Simple, widely used 
+
+accurately, sometimes with fewer parameters than traditional MLPs, particularly on clean, well-structured tasks like symbolic regression or physics modeling [ 21 , 26 , 32 , 33 , 47 ]. This potential for capturing intricate relationships is intriguing for modeling complex human motion patterns from sensor data. However, the transition from theoretical promise to practical application in ubiquitous computing faces hurdles. KANs’ reliance on fine-grained, learnable activation functions makes them susceptible to noise and data irregularities [ 11 , 43 , 44 ]. This sensitivity is a major concern for wearable sensor HAR, where IMU signals are inherently noisy and variable due to real-world conditions [ 48 ]. Furthermore, the computational overhead associated with training and evaluating spline-based KANs can be substantial [ 28 ], potentially conflicting with the strict resource constraints (power, memory, compute) of wearable devices. Ongoing research aims to mitigate these issues through architectural variants like EfficientKAN [ 12 ], FastKAN [ 29 ], WavKAN [ 10 ], FourierKAN [ 50 ], and parameter-efficient designs like LarctanKAN [ 15 , 16 ], as well as regularization techniques [ 3 ]. A comparative summary of KAN variants are presented in Table 1. An initial study by Liu et al. [ 31 ] explored KANs for feature extraction in HAR, hinting at their potential but not providing a systematic hybridization strategy for robust, practical use. Thus, while KANs offer a powerful new tool, their direct application to complex, sensor-based HAR scenarios remains challenging. 
+
+Manuscript submitted to ACM KAN-MLP-Mixer 5
+
+2.2 MLPs: The Robust and Efficient Workhorse for HAR 
+
+Despite the advent of newer architectures, MLPs remain a highly relevant and effective tool, particularly in practical HAR applications. Long known as universal function approximators [ 38 ], MLPs have seen renewed interest, partly inspired by MLP-Mixer architectures [ 46 ] demonstrating their capability even in complex domains previously dominated by CNNs or Transformers. Crucially for HAR on wearable devices, MLPs offer a compelling balance of performance, robustness, and computa-tional efficiency [30 , 35 , 36 , 56 ]. Their simpler structure with fixed activation functions makes them generally easier to train, more robust to noise, and significantly more lightweight than many alternatives [ 20 , 28 ]. Models like MLPHAR [ 56 ] achieve competitive accuracy on HAR benchmarks using only MLP layers, often with orders of magnitude fewer parameters than CNN or RNN counterparts like DeepConvLSTM [ 37 ] or TinyHAR [ 57 ]. This efficiency is vital for deployment on battery-powered wearables. Their established effectiveness and practicality make MLPs not only a strong baseline but also a valuable component for building robust and deployable HAR systems. 
+
+2.3 Hybrid Architectures: Combining Strengths for HAR 
+
+Recognizing that different network components excel at different tasks, hybrid architectures have become common in HAR to leverage complementary strengths. The seminal DeepConvLSTM [ 37 ] combined CNNs for local spatial feature extraction from sensor windows with LSTMs for modeling temporal dependencies, significantly improving performance. This principle has been extended to include attention mechanisms [ 25 ] and Transformers [ 17 , 42 , 45 ]combined with CNNs, RNNs, or MLPs [ 19 , 55 , 57 ] to capture both local patterns and long-range or global context within activity sequences. The emergence of KANs opens new possibilities for hybridization. The core motivation is to combine KANs’ potential for high-fidelity function approximation with the proven robustness and efficiency of established components like CNNs, RNNs, or, as explored in this work, MLPs [ 9, 31 , 44 , 51 ]. For instance, a KAN module might excel at learning complex initial transformations from raw sensor data, while an MLP or CNN handles subsequent feature aggregation more robustly and efficiently. While the idea of KAN-based HAR hybrids exists, and specific variants like Temporal-KAN have been proposed [ 44 ], concrete implementations and systematic studies evaluating how best to integrate KANs into HAR pipelines, particularly considering the noise and efficiency constraints of wearable sensing, are currently lacking. 
+
+3 Empirical Study 
+
+We conducted a comprehensive empirical investigation to explore the impact of integrating various KAN variants into the established MLPHAR architecture [ 56 ]. Specifically, we systematically replaced the original MLP layers in the MLPHAR baseline with different KAN variants, including the original KAN, EfficientKAN, FastKAN, WavKAN, FourierKAN, and LarctanKAN. We evaluated these modifications on eight widely-used HAR datasets. 
+
+3.1 Testbed Model 
+
+To systematically evaluate the impact of integrating KANs into existing neural architectures, we selected MLPHAR [56 ]as our baseline testbed model. MLPHAR is a purely MLP-based neural architecture specifically tailored for sensor-based HAR tasks. The MLPHAR model consists of three sequentially concatenated modules: the Data Embedding module, the Feature Mixer module, and the Classifier module. Detailed information about the implementation can be found in the existing 
+
+> Manuscript submitted to ACM
+
+6 Liu et al. work [56]. Formally, these modules are arranged in the following order: Data Embedding ⇒ Feature Mixer ⇒ Classifier The straightforward design and robust empirical performance of MLPHAR make it an ideal model to rigorously assess the benefits and limitations of various KAN implementations. By systematically substituting its MLP layers with different KAN variants, we can precisely isolate and quantify the effects of KAN-based components, free from confounding architectural complexities found in models employing convolutional or recurrent modules. Specifically, MLPHAR was chosen as the test model for several key reasons: 
+
+• Architectural Purity: MLPHAR exclusively employs fully connected layers, intentionally omitting convolutional and recurrent layers commonly found in other HAR architectures. This design choice provides a controlled experimental environment to clearly identify how KAN replacements impact representational capacity and training dynamics compared to MLP. 
+
+• Proven Effectiveness: Despite its simplicity, MLPHAR has consistently achieved competitive results across multiple HAR benchmark datasets, as shown in the previous work [ 56 ], often matching or exceeding the performance of more sophisticated models such as CNNs and LSTMs. Thus, it provides a reliable baseline against which the performance implications of integrating KANs can be accurately measured. 
+
+• Practical Efficiency: Due to its compact parameterization and computational efficiency, MLPHAR is particularly well-suited for deployment on edge devices and wearable systems. Evaluating KAN integrations within such an efficiency-critical model directly addresses real-world constraints, ensuring the practical applicability of our findings in ubiquitous computing environments. By employing MLPHAR as our foundational test architecture, this empirical study delivers a clear, consistent, and practically relevant evaluation of various KAN-based architectural designs, providing actionable insights for future development in sensor-based HAR applications. 
+
+3.2 Datasets 
+
+We employed eight widely used benchmark datasets to comprehensively evaluate the impact of integrating various KAN variants into the MLPHAR model. These datasets represent a broad spectrum of HAR scenarios, differing notably in sensor types, body sensor placements, data sampling frequencies, and the complexity of activity classification tasks. The window size was selected by referring to the existing works [ 56 , 57 ]. The raw input data 𝑋 ∈ R𝐿 ×𝐶 (with 𝐿 as window length and 𝐶 as the number of sensor channels) is split into 𝑇 intervals of length 𝜏 , producing segments 𝑋 𝑡 ∈ R𝜏 ×𝑇 ×𝐶 
+
+as the input of the MLPHAR model. Detailed characteristics of each dataset are summarized in Table 2. By leveraging these diverse datasets, our empirical study robustly evaluates the generalization and performance of various KAN-integrated architectures under realistic and varying conditions characteristic of practical HAR deployments. 
+
+3.3 Experiment Setup 
+
+All experiments were conducted on an NVIDIA A6000 GPU. We trained each model for up to 200 epochs, employing early stopping with a patience of 7 epochs to prevent overfitting. Model parameters were optimized using the Adam optimizer with an initial learning rate of 0.001. We adopted subject-independent evaluation strategies appropriate for each dataset to ensure fair and realistic assessments. Specifically, most datasets utilized a Leave-One-Subject-Out (LOSO) cross-validation scheme, where data from each subject was iteratively reserved as the test set while data from 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 7
+
+> Table 2. Details of HAR datasets used in experiments.
+
+Dataset Sensors 𝑎 Position 𝑏 Freq. (Hz) Classes Channels Window (s) T 𝑐 𝝉 𝒄 
+
+HAPT [41] Acc, Gyro Waist 50 12 6 2.56 8 16 
+
+OPPO [13] Acc, Gyro, Mag Lower Arm 30 18 9 1.00 3 10 
+
+DG [6] Acc Leg 64 2 3 1.00 4 16 
+
+PAMAP2 [40] Acc, Gyro Right Hand 33 12 6 3.00 9 11 
+
+Skodar [53] Acc Right Wrist 30 10 3 3.00 5 18 
+
+DSADS [54] Acc, Gyro, Mag Arm 25 19 9 5.00 5 25 
+
+MotionSense [34] Acc, Gyro Waist 50 6 6 2.56 8 16 
+
+MHEALTH [7] Acc, Gyro Arm 50 13 6 2.56 8 16  
+
+> a
+
+only the IMU sensor is selected  
+
+> b
+
+only sensor in one position is selected  
+
+> c
+
+The raw input data 𝑋 ∈ R𝐿 ×𝐶 (with 𝐿 as window length and 𝐶 as the number of sensor channels) is split into 𝑇 
+
+intervals of length 𝜏 , producing segments 𝑋 𝑡 ∈ R𝜏 ×𝑇 ×𝐶 as the input of the MLPHAR Model. all remaining subjects served as the validation and training set. Two exceptions were the MotionSense dataset, which employed Leave-Group-Out validation, and the Skodar dataset, evaluated using Leave-One-Session-Out cross-validation. Model performance was assessed using the macro F1-score, providing a balanced metric suitable for handling class-imbalanced HAR datasets and effectively capturing performance across all activity categories. To ensure reproducibility and consistent results, the initial parameters were generated with five seeds (1-5), and the average was reported. In the empirical experiment, only the data from the accelerometer in a single body part was used; we further extended the experiment to multiple sensors in multiple positions in Section 7.1. This empirical study consists of two sequential parts, each designed to analyze the integration of KANs into the MLPHAR architecture from a different perspective. In the first part, we replace all MLP (or linear) layers in the original MLPHAR model with KAN or one of its variants to construct fully KAN-based models. This setup allows us to assess the performance and limitations of pure KAN architectures in the context of HAR tasks, and to compare them directly against the original MLP-based baseline. In the second part, we investigate the effects of partial KAN integration by selectively inserting KAN components at different positions within the MLPHAR architecture, specifically, the data embedding, feature mixer, or classifier modules. This staged integration enables us to precisely isolate and quantify the individual contributions of KAN modules at each stage of the network, offering deeper insights into where KANs are most effective within a modern MLP-based HAR pipeline. To ensure fair comparison, we maintain consistent input/output dimensions and layer counts between MLP and KAN configurations, with the data embedding module set to a hidden dimension of 16 across all datasets. KAN configuration details are as follows: KAN and EfficientKAN use a grid size of 5, spline degree 3, with grid range [− 1, 1]; FastKAN uses grid size 8, grid range [− 2, 2]; FourierKAN uses grid size 5, and the Mexican hat function was selected in WavKAN. Further analysis on the effects of hidden dimension (in MLPHAR) and grid size (in EfficientKAN) is discussed in Section 7.4. 
+
+3.4 Direct Replacement of all MLPs with KANs 
+
+To evaluate the direct effectiveness of KANs in HAR tasks, we replaced all MLP (or linear) layers in the MLPHAR baseline model with KAN-based alternatives. The results are summarized in Table 3, which reports the average macro F1 score across eight benchmark HAR datasets. As shown in the in Table 3, the baseline MLP model (MLPHAR) consistently 
+
+> Manuscript submitted to ACM
+
+8 Liu et al. 
+
+Table 3. Result Summary of direct replacement of MLPs with KANs in the MLPHAR baseline [ 56 ] across eight HAR datasets. Each cell shows the macro F1 score on a specific dataset. The highest mean macro F1 score per dataset is highlighted in Gold , the second-best in Silver and the third-best in Bronze . The last column reports the average relative improvement (%) of each model across all datasets over the baseline. (macro-F1 ± std).                                                                         
+
+> Model DG DSADS PAMAP2 OPPO Skodar HAPT MotionSense MHEALTH Gain (%)
+> KAN 0.591 ±0.164 0.434 ±0.228 0.322 ±0.304 0.318 ±0.198 0.396 ±0.431 0.297 ±0.339 0.420 ±0.387 0.306 ±0.373 -36.66 EfficientKAN 0.592 ±0.164 0.432 ±0.228 0.322 ±0.304 0.317 ±0.197 0.395 ±0.430 0.298 ±0.340 0.421 ±0.388 0.305 ±0.372 -36.74 FastKAN 0.543 ±0.116 0.503 ±0.078 0.474 ±0.200 0.415 ±0.124 0.478 ±0.190 0.604 ±0.126 0.753 ±0.025 0.627 ±0.161 -12.37 WavKAN 0.533 ±0.040 0.377 ±0.074 0.435 ±0.151 0.420 ±0.086 0.087 ±0.013 0.480 ±0.037 0.654 ±0.051 0.495 ±0.049 -28.20 FourierKAN 0.570 ±0.218 0.015 ±0.007 0.037 ±0.061 0.114 ±0.010 0.051 ±0.010 0.263 ±0.206 0.666 ±0.111 0.064 ±0.066 -66.45 LarctanKAN 0.583 ±0.187 0.480 ±0.105 0.440 ±0.269 0.185 ±0.151 0.053 ±0.156 0.547 ±0.267 0.672 ±0.310 0.592 ±0.310 -28.99 Baseline (MLP) 0.580 ±0.101 0.504 ±0.090 0.540 ±0.186 0.411 ±0.175 0.844 ±0.017 0.685 ±0.046 0.836 ±0.026 0.747 ±0.114 0.00
+
+outperforms all KAN-based variants on the majority of datasets. Specifically, MLP achieves the best results on seven out of eight datasets, with substantial margins in several cases such as PAMAP2 , MotionSense , and MHEALTH . The only exceptions are found in the DG dataset, where the vanilla KAN slightly exceeds the baseline (0.591 vs. 0.580), and in OPPO ,where WavKAN shows a marginal gain (0.420 vs. 0.411). These two cases, however, are isolated and do not indicate a general trend. Among the KAN variants tested, FastKAN and LarctanKAN demonstrate relatively competitive performance. FastKAN ,in particular, achieves the smallest drop in average accuracy (only –12.37% relative to the MLP baseline), suggesting its potential when adapted properly. In contrast, FourierKAN performs significantly worse across all datasets, with the steepest performance degradation (–66.45%), raising questions about the suitability of Fourier basis representations for HAR tasks in this form. The consistent performance gap observed between the MLP baseline and KAN-based replacements suggests that direct substitution is not effective. This may be attributed to several factors. First, KANs introduce a different representational inductive bias compared to standard MLPs, which could disrupt feature hierarchies learned through dense layers. Second, KANs rely on spline-based function approximations that may require task-specific tuning of hyperparameters, such as the number of grids or the interpolation strategy. Lastly, their optimization behavior and sensitivity to initialization could lead to suboptimal convergence when used without tailored training routines. In a short conclusion, while the theoretical flexibility of KANs makes them appealing, our results show that a naïve replacement of MLPs in HAR pipelines is insufficient. More targeted design and careful tuning are required to unlock the full potential of KANs in this domain. 
+
+3.5 Performance of Selective KAN Integration 
+
+Table 6 summarizes the experimental outcomes of these configurations across eight benchmark datasets. The primary observations drawn from these results are: 
+
+• KAN in Data Embedding (K-M-M) : Integrating KAN variants at the Data Embedding module typically yielded positive results. Notably, standard KAN and EfficientKAN in the embedding position resulted in average performance improvements of approximately 3.38% and 3.15%, respectively. This indicates that KAN modules effectively capture initial nonlinear relationships and representations from raw sensor data. 
+
+• KAN in Feature Mixer (M-K-M) : Replacing the Feature Mixer module with KAN variants generally resulted in substantial performance degradation (ranging approximately from -7% to -25%). Such consistent performance drops suggest that KAN modules might not be well-suited for the role of intermediate feature transformation, possibly due to difficulties handling feature interactions at deeper network layers. 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 9
+
+• KAN in Classifier (M-M-K) : The integration of KANs at the Classifier module produced mixed results. While most variants showed neutral or negative impacts, LarctanKAN showed slight positive effects (+1.36% improve-ment), suggesting that certain KAN designs could offer advantages in classification scenarios, potentially due to their smooth activation functions aiding decision boundary formation. This result aligns with the existing work [15]. Overall, these selective integration results demonstrate the importance of module-specific placements when employ-ing KAN-based architectures in HAR. Optimal performance gains from KANs are achieved by carefully identifying the modules within which their unique functional approximation capabilities can be most effectively leveraged. 
+
+4 Proposed Hybrid Architecture Split     
+
+> FFT KAN
+> KAN
+> KAN MLP MLP Larcta
+> nKAN
+> Larcta
+> nKAN
+> Sensor
+> Data
+
+Data Embedding  Feature Mixer  Classifier                     
+
+> Fig. 2. The proposed hybrid network architecture KAN-MLP-Mixer based on an empirical study. It consists of three modules: KAN-based data embedding, MLP-based feature mixer and LarctanKAN-based classifier. This proposed hybrid network is built based on the MLPHAR framework [ 56 ]. During implementation, we employed EfficientKAN in place of the original KAN, as it delivers nearly identical performance while offering significantly improved memory efficiency and training speed. ( Split : The raw input data
+> 𝑋 ∈R𝐿 ×𝐶 (with 𝐿 as window length and 𝐶 as the number of sensor channels) is split into 𝑇 intervals of length 𝜏 , producing segments
+> 𝑋 𝑡 ∈R𝜏 ×𝑇 ×𝐶 as the input of the neural network. FFT : Fast Fourier Transform)
+
+Based on the findings of our empirical study of KAN integration, we propose a new hybrid architecture, KAN-MLP-Mixer , strategically combining the strengths of both KAN and MLPs to improve the performance in HAR tasks. 
+
+4.1 Design Rationale 
+
+Our experimental results reveal that KANs perform best when applied to the input embedding stage, where they capture complex nonlinear relationships from raw sensor data. In contrast, substituting KANs into the feature mixer significantly degrades performance, likely due to optimization difficulties and overfitting. Finally, LarctanKAN demonstrates a unique advantage when used in the classifier, offering improved generalization and smooth decision boundaries. Based on these insights, we adopt a modular hybrid architecture as shown in Fig. 2. This design leverages the expressiveness of KANs at the input level, preserves the stability and scalability of MLPs for feature transformation, and enhances classification robustness via LarctanKAN’s bounded, smooth activation function. 
+
+4.2 Architecture Details 
+
+• Data Embedding (EfficientKAN): The raw input signal is passed through a KAN-based embedding module. We adopt the EfficientKAN variant due to its lower memory cost and strong performance in the data embedding role, 
+
+> Manuscript submitted to ACM
+
+10 Liu et al. as observed in our experiments. This module transforms raw sensor input into a high-level feature representation using spline-based function learning. 
+
+• Feature Mixer (MLP): The transformed features are then passed through a standard MLP block, which remains unchanged from the original MLPHAR. This module performs the core latent feature transformation and mixing. Our results show that MLPs outperform all tested KANs in this role, providing better generalization and stability. 
+
+• Classifier (LarctanKAN): The final layer is a LarctanKAN classifier, which replaces the original MLP-based classification head. The arctangent-based activation offers smooth gradients and bounded outputs, which improve robustness and classification performance. 
+
+4.3 Expected Benefits 
+
+This hybrid architecture is designed to: (1) Enhance expressiveness in early feature extraction using KANs. (2) Retain robustness and efficiency in mid-layer processing via MLPs. (3) Improve generalization and stability in classifica-tion using LarctanKAN. In doing so, it addresses the performance degradation seen in fully KAN-based models while still leveraging their theoretical strengths in function approximation. We demonstrate in the following section that this architecture consistently outperforms both pure KAN and pure MLP baselines across multiple HAR benchmarks. 
+
+5 Evaluation of the Proposed Hybrid Architecture 
+
+To comprehensively evaluate our proposed hybrid architecture ( KAN-MLP-Mixer ), we benchmarked its performance across eight diverse and representative HAR datasets, comparing against both the original MLPHAR baseline and previously tested selective KAN configurations. Table 6 summarizes the macro F1 scores obtained, clearly highlighting our proposed model’s effectiveness. 
+
+5.1 Overall Performance 
+
+Our proposed KAN-MLP-Mixer architecture consistently outperforms all previously evaluated configurations, achieving an average macro F1 improvement of +5.33% relative to the original MLPHAR baseline. Such significant gains underscore the complementary advantages of strategically integrating KAN modules into pure MLP-based models, confirming our initial hypothesis that careful placement of KANs can substantially enhance HAR performance. Our hybrid model consistently outperformed baseline architectures, demonstrating substantial improvements in datasets such as OPPO (+5.90%), Skodar (+4.38%), MHEALTH (+5.52%), DSADS (+3.10%), and HAPT (+2.00%), showcasing the hybrid approach’s superior ability to handle modality fusion, noise resilience, and fine-grained activity distinctions. Even in simpler or structured scenarios (DG, MotionSense, PAMAP2), the hybrid design achieved notable improvements by strategically leveraging EfficientKAN’s expressive embedding and LarctanKAN’s robust classification capabilities, balanced by the generalization strength of MLP-based mixers. These results validate our selective integration of KAN modules, confirming their practical effectiveness and adaptability across diverse real-world wearable HAR contexts. 
+
+5.2 Comparative Insights and Module Contributions 
+
+Our results yield several key insights regarding module-specific contributions within the KAN-MLP-Mixer architecture: 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 11 
+
+• KAN-based Data Embedding (EfficientKAN): Consistently improves early-stage feature extraction, partic-ularly effective with noisy and raw sensor signals, confirming prior observations that expressive embedding functions significantly boost performance in HAR tasks. 
+
+• MLP-based Feature Mixer: Critical for maintaining high generalization performance. Our empirical results reinforce earlier findings that MLP layers remain highly effective at deeper network levels, especially when complex feature interactions and stability are required. 
+
+• LarctanKAN Classifier: Provides substantial advantages in classification accuracy, leveraging smooth and bounded activation functions that create well-defined and stable decision boundaries, crucial in noisy HAR data contexts. This nuanced combination leverages each module’s specific strengths, resulting in the superior overall performance observed. 
+
+5.3 Generalization and Practical Implications 
+
+Compared to previous approaches that exhibited significant performance variability across datasets, the proposed KAN-MLP-Mixer hybrid architecture demonstrates remarkable stability and generalization. Its consistently superior performance across diverse sensor placements and varying classification complexities underscores its suitability for real-world wearable and ubiquitous computing applications. These empirical findings highlight the clear advantages of strategically integrating KAN modules into robust MLP-based HAR frameworks, offering actionable guidance for researchers and practitioners seeking to build accurate, efficient, and reliable HAR systems on mobile and wearable devices. 
+
+Table 4. Comparison of Model Performance across Various Datasets. This table provides the mean F1 score for different models evaluated on various datasets. The top three models for each dataset are highlighted: first place in Gold , second place in Silver, and third place in Bronze .(macro-F1 ± std). 
+
+Model DG DSADS PAMAP2 OPPO Skodar HAPT MotionSense MHEALTH Gain (%) 
+
+KAN K-M-M 0.589 ±0.093 0.509 ±0.071 0.549 ±0.192 0.478 ±0.090 0.860 ±0.020 0.697 ±0.040 0.831 ±0.024 0.772 ±0.095 3.38 M-K-M 0.586 ±0.175 0.416 ±0.219 0.450 ±0.274 0.256 ±0.187 0.525 ±0.419 0.487 ±0.323 0.599 ±0.357 0.457 ±0.378 -25.62 M-M-K 0.571 ±0.080 0.517 ±0.091 0.549 ±0.183 0.412 ±0.155 0.834 ±0.022 0.697 ±0.043 0.829 ±0.027 0.755 ±0.114 0.46 EfficientKAN K-M-M 0.587 ±0.094 0.507 ±0.071 0.547 ±0.192 0.477 ±0.086 0.858 ±0.017 0.698 ±0.041 0.831 ±0.025 0.769 ±0.097 3.15 M-K-M 0.584 ±0.175 0.419 ±0.219 0.449 ±0.274 0.252 ±0.184 0.526 ±0.420 0.486 ±0.322 0.598 ±0.356 0.457 ±0.378 -25.71 M-M-K 0.572 ±0.081 0.517 ±0.089 0.545 ±0.183 0.411 ±0.156 0.835 ±0.016 0.696 ±0.044 0.829 ±0.025 0.757 ±0.117 0.39 FastKAN K-M-M 0.562 ±0.080 0.484 ±0.178 0.482 ±0.242 0.388 ±0.155 0.426 ±0.337 0.672 ±0.044 0.791 ±0.028 0.739 ±0.091 -10.16 M-K-M 0.558 ±0.081 0.451 ±0.067 0.512 ±0.175 0.434 ±0.080 0.808 ±0.028 0.657 ±0.098 0.803 ±0.022 0.721 ±0.102 -3.72 M-M-K 0.560 ±0.080 0.486 ±0.075 0.531 ±0.184 0.335 ±0.181 0.887 ±0.018 0.673 ±0.101 0.828 ±0.021 0.746 ±0.109 -3.14 WavKAN K-M-M 0.553 ±0.066 0.523 ±0.078 0.563 ±0.188 0.464 ±0.081 0.793 ±0.026 0.610 ±0.060 0.787 ±0.029 0.735 ±0.107 -1.02 M-K-M 0.523 ±0.052 0.429 ±0.081 0.452 ±0.158 0.398 ±0.054 0.729 ±0.041 0.562 ±0.051 0.721 ±0.027 0.575 ±0.080 -14.07 M-M-K 0.548 ±0.079 0.363 ±0.093 0.467 ±0.175 0.353 ±0.089 0.638 ±0.128 0.609 ±0.051 0.765 ±0.053 0.622 ±0.086 -15.22 FourierKAN K-M-M 0.543 ±0.050 0.311 ±0.180 0.518 ±0.176 0.377 ±0.147 0.714 ±0.024 0.641 ±0.043 0.712 ±0.125 0.667 ±0.091 -13.02 M-K-M 0.541 ±0.072 0.438 ±0.077 0.496 ±0.160 0.431 ±0.084 0.721 ±0.040 0.643 ±0.043 0.777 ±0.021 0.666 ±0.094 -7.70 M-M-K 0.547 ±0.059 0.385 ±0.073 0.458 ±0.155 0.406 ±0.060 0.528 ±0.052 0.615 ±0.036 0.783 ±0.019 0.586 ±0.067 -15.18 LarctanKAN K-M-M 0.568 ±0.080 0.507 ±0.084 0.552 ±0.181 0.408 ±0.175 0.810 ±0.022 0.682 ±0.040 0.830 ±0.027 0.755 ±0.098 -0.54 M-K-M 0.579 ±0.176 0.543 ±0.095 0.440 ±0.271 0.367 ±0.206 0.426 ±0.397 0.563 ±0.275 0.724 ±0.265 0.613 ±0.288 -15.07 M-M-K 0.584 ±0.101 0.513 ±0.078 0.559 ±0.187 0.402 ±0.168 0.834 ±0.027 0.698 ±0.037 0.837 ±0.026 0.793 ±0.109 1.36 MLPHAR 0.580 ±0.101 0.504 ±0.090 0.540 ±0.186 0.411 ±0.175 0.844 ±0.017 0.685 ±0.046 0.836 ±0.026 0.747 ±0.114 0.00 KAN-MLP-Mixer 0.598 ±0.098 0.535 ±0.081 0.560 ±0.192 0.470 ±0.080 0.881 ±0.019 0.705 ±0.040 0.840 ±0.026 0.802 ±0.102 5.33 
+
+Manuscript submitted to ACM 12 Liu et al. 
+
+Table 5. [ New ]Comparison of Model Performance across Various Datasets. This table provides the mean F1 score for different models evaluated on various datasets. The top three models for each dataset are highlighted: first place in Gold , second place in Silver, and third place in Bronze . (macro-F1 ± std). 
+
+Model DG DSADS PAMAP2 OPPO Skodar HAPT MOTIONSENSE MHEALTH 
+
+KAN K-M-M 69.072 ±1.899 86.751 ±1.339 80.651 ±1.824 73.770 ±1.553 89.240 ±1.764 71.147 ±2.050 88.419 ±1.081 91.540 ±2.021 M-K-M 58.037 ±12.286 36.110 ±44.791 34.811 ±41.850 36.881 ±32.109 37.218 ±43.907 30.197 ±34.664 39.395 ±41.005 38.210 ±46.092 M-M-K 68.311 ±2.007 86.523 ±1.099 79.961 ±1.035 73.623 ±1.423 89.285 ±2.461 70.960 ±2.274 87.748 ±1.213 92.142 ±1.521 
+
+EfficientKAN K-M-M 71.418 ±2.083 83.538 ±19.579 81.447 ±1.599 70.525 ±13.924 90.208 ±1.912 71.432 ±1.813 89.090 ±1.089 92.889 ±1.571 
+
+M-K-M 56.644 ±11.584 36.100 ±44.773 28.329 ±38.844 30.396 ±29.819 36.542 ±42.911 28.193 ±34.626 39.377 ±40.839 38.161 ±46.112 M-M-K 67.879 ±2.302 87.540 ±1.128 79.939 ±0.956 74.004 ±1.670 88.020 ±1.843 71.789 ±1.899 88.079 ±1.273 91.247 ±1.547 FastKAN K-M-M 73.453 ±2.470 72.930 ±24.820 77.292 ±1.615 68.624 ±2.231 82.017 ±3.077 68.773 ±2.537 86.181 ±1.448 89.748 ±1.392 M-K-M 68.345 ±2.273 85.305 ±1.310 74.959 ±2.488 71.194 ±1.649 81.894 ±5.279 69.131 ±1.675 86.321 ±1.396 87.638 ±1.973 M-M-K 62.895 ±3.435 88.424 ±1.401 78.489 ±1.400 65.458 ±18.537 73.971 ±27.179 70.554 ±1.841 87.953 ±1.382 91.679 ±1.575 WavKAN K-M-M 69.327 ±2.484 84.304 ±2.242 78.520 ±1.846 71.460 ±1.796 86.280 ±3.645 62.896 ±2.957 85.222 ±1.242 89.056 ±2.424 M-K-M 55.558 ±3.345 80.431 ±1.998 62.996 ±3.336 65.905 ±2.471 50.267 ±7.458 58.187 ±2.915 79.256 ±2.096 77.456 ±4.059 M-M-K 60.347 ±4.327 72.672 ±7.919 64.746 ±6.232 62.739 ±5.313 63.378 ±11.107 60.803 ±4.433 79.861 ±5.504 79.326 ±5.873 FourierKAN K-M-M 72.712 ±2.210 84.612 ±1.344 75.714 ±1.743 71.658 ±1.618 78.761 ±2.950 68.276 ±2.144 78.744 ±19.723 85.093 ±17.555 M-K-M 64.348 ±3.262 80.476 ±2.469 70.372 ±1.912 67.929 ±3.387 60.654 ±4.931 67.055 ±2.337 82.085 ±1.184 83.810 ±3.874 M-M-K 58.543 ±2.138 80.280 ±1.701 54.973 ±3.691 67.064 ±1.844 38.108 ±8.514 59.777 ±2.316 81.560 ±1.452 69.575 ±4.281 LarctanKAN K-M-M 67.910 ±2.219 85.214 ±1.105 76.916 ±1.782 72.085 ±1.844 86.318 ±2.478 70.103 ±1.705 86.792 ±1.236 89.801 ±1.342 M-K-M 60.943 ±11.485 51.243 ±42.559 48.925 ±39.882 49.073 ±31.605 51.953 ±41.320 44.280 ±35.014 55.157 ±40.364 54.897 ±44.770 M-M-K 69.984 ±2.169 86.537 ±2.264 82.010 ±1.249 74.572 ±1.554 88.769 ±2.414 70.860 ±1.879 88.775 ±1.023 91.566 ±1.794 MLPHAR 68.572 ±2.271 86.243 ±1.603 79.270 ±1.355 72.898 ±1.861 88.766 ±2.722 70.481 ±1.797 87.570 ±1.037 90.907 ±1.704 EfficientKAN-LarctanKAN 71.967 ±1.672 88.492 ±1.072 83.930 ±1.699 75.363 ±1.433 90.235 ±2.465 72.080 ±2.446 89.697 ±1.064 93.669 ±1.235 
+
+Table 6. Comparison of Model Performance across Various Datasets. This table provides the mean F1 score for different models evaluated on various datasets. The top three models for each dataset are highlighted: first place in Gold , second place in Silver, and third place in Bronze . (macro-F1 ± std). 
+
+Model DG DSADS PAMAP2 OPPO Skodar HAPT MOTIONSENSE MHEALTH 
+
+KAN K-M-M 69.072 ±1.899 86.751 ±1.339 80.923 ±1.847 73.770 ±1.553 89.240 ±1.764 71.147 ±2.050 88.419 ±1.081 91.540 ±2.021 M-K-M 58.037 ±12.286 36.110 ±44.791 32.252 ±40.951 36.881 ±32.109 37.218 ±43.907 30.197 ±34.664 39.395 ±41.005 38.210 ±46.092 M-M-K 68.311 ±2.007 86.523 ±1.099 80.421 ±1.271 73.623 ±1.423 89.285 ±2.461 70.960 ±2.274 87.748 ±1.213 92.142 ±1.521 
+
+EfficientKAN K-M-M 71.394 ±2.209 83.663 ±19.605 81.400 ±1.372 70.846 ±13.998 90.174 ±1.946 71.023 ±1.943 89.213 ±1.206 92.866 ±1.548 
+
+M-K-M 56.644 ±11.584 36.100 ±44.773 26.945 ±38.016 30.396 ±29.819 36.542 ±42.911 28.193 ±34.626 39.377 ±40.839 38.161 ±46.112 M-M-K 67.879 ±2.302 87.540 ±1.128 80.277 ±1.133 74.004 ±1.670 88.020 ±1.843 71.789 ±1.899 88.079 ±1.273 91.247 ±1.547 FastKAN K-M-M 73.453 ±2.470 72.930 ±24.820 77.601 ±1.622 68.624 ±2.231 82.017 ±3.077 68.773 ±2.537 86.181 ±1.448 89.748 ±1.392 M-K-M 68.345 ±2.273 85.305 ±1.310 74.928 ±2.377 71.194 ±1.649 81.894 ±5.279 69.131 ±1.675 86.321 ±1.396 87.638 ±1.973 M-M-K 62.895 ±3.435 88.424 ±1.401 74.444 ±17.605 65.458 ±18.537 73.971 ±27.179 70.554 ±1.841 87.953 ±1.382 91.679 ±1.575 WavKAN K-M-M 69.327 ±2.484 84.304 ±2.242 79.112 ±2.009 71.460 ±1.796 86.280 ±3.645 62.896 ±2.957 85.222 ±1.242 89.056 ±2.424 M-K-M 55.558 ±3.345 80.431 ±1.998 63.505 ±3.514 65.905 ±2.471 50.267 ±7.458 58.187 ±2.915 79.256 ±2.096 77.456 ±4.059 M-M-K 60.347 ±4.327 72.672 ±7.919 63.430 ±8.285 62.739 ±5.313 63.378 ±11.107 60.803 ±4.433 79.861 ±5.504 79.326 ±5.873 FourierKAN K-M-M 72.712 ±2.210 84.612 ±1.344 75.946 ±1.719 71.658 ±1.618 78.761 ±2.950 68.276 ±2.144 78.744 ±19.723 85.093 ±17.555 M-K-M 64.348 ±3.262 80.476 ±2.469 70.630 ±1.845 67.929 ±3.387 60.654 ±4.931 67.055 ±2.337 82.085 ±1.184 83.810 ±3.874 M-M-K 58.543 ±2.138 80.280 ±1.701 54.391 ±3.853 67.064 ±1.844 38.108 ±8.514 59.777 ±2.316 81.560 ±1.452 69.575 ±4.281 LarctanKAN K-M-M 67.910 ±2.219 85.214 ±1.105 77.193 ±1.845 72.085 ±1.844 86.318 ±2.478 70.103 ±1.705 86.792 ±1.236 89.801 ±1.342 M-K-M 60.943 ±11.485 51.243 ±42.559 51.711 ±39.194 49.073 ±31.605 51.953 ±41.320 44.280 ±35.014 55.157 ±40.364 54.897 ±44.770 M-M-K 69.984 ±2.169 86.537 ±2.264 82.212 ±1.246 74.572 ±1.554 88.769 ±2.414 70.860 ±1.879 88.775 ±1.023 91.566 ±1.794 MLPHAR 63.965 ±5.312 90.182 ±4.892 81.175 ±6.573 73.980 ±6.498 86.099 ±4.964 69.704 ±5.457 86.558 ±1.682 90.594 ±7.658 EfficientKAN-LarctanKAN 67.115 ±5.689 92.079 ±4.164 85.839 ±4.583 75.699 ±5.768 85.222 ±7.343 69.940 ±7.582 88.604 ±1.884 91.971 ±7.519 
+
+Manuscript submitted to ACM KAN-MLP-Mixer 13 EfficientKAN   
+
+> FastKAN
+> WavKAN
+> FourierKAN
+> LarctanKAN
+> MLP
+> 8
+> 6
+> 4
+> 2
+> 0
+> 2
+> 4
+> 6
+> Improvement (%)
+> 5.33
+> -2.08 0.47
+> -8.33
+> 2.14 1.36
+
+(a) Data Embedding EfficientKAN   
+
+> FastKAN
+> WavKAN
+> FourierKAN
+> LarctanKAN
+> MLP
+> 40
+> 30
+> 20
+> 10
+> 0
+> Improvement (%)
+> -44.26
+> 2.93
+> -4.31 -6.18
+> -31.93
+> 5.33
+
+(b) Feature Mixer EfficientKAN   
+
+> FastKAN
+> WavKAN
+> FourierKAN
+> LarctanKAN
+> MLP
+> 12.5
+> 10.0
+> 7.5
+> 5.0
+> 2.5
+> 0.0
+> 2.5
+> 5.0
+> Improvement (%)  3.60 3.49
+> -10.14
+> -13.33
+> 5.33
+> 3.38
+
+(c) Classifier Fig. 3. Average performance improvement compared to the MLPHAR baseline across eight datasets using the hybrid model with different (a) data embedding, (b) feature mixer, and (c) classifier modules. In (a), the feature mixer is fixed as MLP and the classifier as LarctanKAN. In (b), the data embedding is fixed as EfficientKAN and the classifier as LarctanKAN. In (c), the data embedding is EfficientKAN and the feature mixer is MLP. 
+
+6 Ablation Study: Module-Level Analysis of Hybrid Design 
+
+To systematically examine the role and effectiveness of each component in the hybrid architecture inspired by the empirical study, we conducted a comprehensive ablation study across three core modules: the data embedding layer, feature mixer, and classifier. For each module, we tested six alternatives, five KAN variants (EfficientKAN, FastKAN, WavKAN, FourierKAN, LarctanKAN) and a standard MLP, while keeping the other two components fixed. The results, shown in Fig. 3, report average performance improvements compared to the original MLPHAR model across eight HAR datasets. In Fig. 3a, EfficientKAN achieves the highest improvement (+5.33%), validating its expressiveness and efficiency for modeling raw, smooth IMU signals. LarctanKAN (+2.14%) and MLP (+1.36%) also deliver modest improvements, while WavKAN (+0.47%) shows limited gains. In contrast, FastKAN (-2.08%) and FourierKAN (-8.33%) underperform significantly, indicating that not all spline-based or basis-function approaches are suitable for early-stage processing in noisy or variable sensor conditions. Fig. 3b highlights the importance of choosing a stable and generalizable mixer module. When EfficientKAN and LarctanKAN are fixed, MLP provides the best improvement (+5.33%), reaffirming its effectiveness in latent feature transformation. FastKAN also performs well (+2.93%), but other KAN variants, particularly EfficientKAN (-44.26%), FourierKAN (-6.18%) and LarctanKAN (-31.93%), degrade performance sharply. This suggests that KANs are more prone to instability and overfitting in deeper latent spaces, likely due to sensitivity to input distributions and higher-order feature interactions. As shown in Fig. 3c, LarctanKAN outperforms all other classifier options (+5.33%), confirming its ability to model complex decision boundaries without instability. MLP (+3.38%), EfficientKAN (+3.60%), and FastKAN (+3.49%) provide moderate improvements. However, WavKAN (-10.14%) and FourierKAN (-13.33%) again show severe performance drops, likely due to poorly shaped output manifolds or unbounded activation behaviors. These results strongly reinforce the modular strategy behind our final model: 
+
+> Manuscript submitted to ACM
+
+14 Liu et al. 
+
+• EfficientKAN is most suitable as a data embedding layer , effectively extracting rich features from smooth IMU signals. 
+
+• MLP remains the most stable and generalizable feature mixer , ensuring robustness in high-dimensional latent spaces. 
+
+• LarctanKAN provides the most effective classifier module , offering smooth yet discriminative decision boundaries critical for HAR classification. In addition, this study also highlights that KAN variants are not interchangeable; their performance is highly sensitive to position within the network. When misapplied, they can cause significant degradation, as seen with FourierKAN in both embedding and classifier roles, and EfficientKAN in the feature mixer. Thus, this ablation study provides both quantitative and architectural support for the hybrid design: Efficien-tKAN–MLP–LarctanKAN. 
+
+7 Discussion 
+
+In this section, we first evaluate the generalizability of the proposed hybrid design across multiple sensing modalities, diverse window sizes, and a variety of neural backbones. We then evaluate parameter and computational efficiency of hybrid KAN designs. Finally, we discuss the limitations of the current work, outline potential directions for future research, and offer practical design guidelines for applying KANs in sensor-based HAR systems. 
+
+7.1 Extending Hybrid Design Across Multiple Modalities 
+
+To evaluate the generalizability of the KAN-MLP-Mixer hybrid architecture across different sensing modalities and channels, we conducted experiments under three sensor configurations as shown in Table 7: (1) single 3-axis accelerom-eter (ACC) in single body position, (2) single IMU, and (3) multiple sensors. We exclude the dataset Skodar, DG and HAPT, because only acceleration sensor data is available in the first two datasets, and only 6-channel IMU data is included in the HAPT dataset. 
+
+> Table 7. Sensor channel configuration and the performance improvement by KAN-MLP-Mixer (The gain is the average macro F1 score improvement across the five dataset by hybrid KAN-MLP-Mixer compared to pure MLPHAR model)
+
+Dataset Channels for One Acc Channels for Single IMU 1 Channels for Multiple Sensors 2
+
+DSADS 3 9 45 
+
+PAMAP2 3 6 18 
+
+OPPO 3 9 77 
+
+MotionSense 3 6 12 
+
+MHEALTH 3 6 12 
+
+Macro F1 Gain (%) 6.43 4.68 2.17  
+
+> 1
+
+6-channel configuration includes 3-axis accelerometer and 3-axis gyroscope. another 3-axis magnetic information is included in a 9-channel configuration.  
+
+> 2
+
+Multiple sensor configuration includes multiple IMUs on different body parts and a single IMU with additional feature channels like rotation angle. As shown in Fig. 4 and Table 7, the hybrid models KAN-MLP-Mixer consistently outperformed the MLPHAR baseline across all five public datasets. The KAN-MLP-Mixer model achieved an average macro F1 score improvement of 6.43% 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 15 DSADS PAMAP2 OPPO MotionSense MHEALTH         
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Macro F1 Score
+> 0.031
+> 0.032
+> 0.023
+> 0.020 0.017
+> 0.020
+> 0.059
+> 0.022
+> 0.000 0.004 0.007 0.005 0.055 0.067
+> 0.041
+> Value /indicates the KAN-MLP-Mixer performance improvement compare MLPHAR
+> KAN-MLP-Mixer (ACC)
+> MLPHAR (ACC)
+> KAN-MLP-Mixer (IMU)
+> MLPHAR (IMU)
+> KAN-MLP-Mixer (Multi)
+> MLPHAR (Multi)
+
+Fig. 4. Performance comparison for KAN-MLP-Mixer and MLPHAR models on five datasets under three sensor configurations (single ACC, single IMU, Multiple sensors). Numerical annotations show the absolute performance difference between models for each condition; ▲ favors KAN-MLP-Mixer, ▼ favors MLPHAR. 
+
+with a single 3-channel accelerometer input, 4.68 % with a single IMU sensor input, and 2.17% with multiple channel sensors, compared to the MLPHAR baseline. These results demonstrate that the benefits of introducing KAN-based feature embeddings and the LarctanKAN module are not confined to a specific modality or sensor richness level. The largest performance gains were observed under the single-accelerometer setting, where sensor information is relatively sparse. This finding suggests that KANs’ strong function approximation capabilities are particularly advantageous when handling limited and noisy sensor data. In contrast, when multiple IMU sensors are available, the improvement margin diminishes. Specifically, in the OPPO dataset, which includes 77-channel inputs from IMUs placed on multiple body locations, the KAN-MLP-Mixer and MLPHAR models achieved comparable performance. Nevertheless, substantial gains were consistently observed when only a single accelerometer or IMU sensor served as input. A plausible explanation is that richer sensing mitigates the limitations of the MLPHAR model, while the complexity introduced by numerous input channels and diverse body placements reduces the effectiveness of the KAN-based embedding. Overall, these results validate the robustness of the proposed hybrid design across varying sensor configurations and underscore its practical value for real-world HAR deployments with heterogeneous sensing conditions. 
+
+7.2 Extending Hybrid Design Across Diverse Window Size 
+
+To further assess the flexibility of the proposed KAN-MLP hybrid architecture, we investigated its performance under varying temporal window sizes. The data from a single IMU was used in this experiment. We select the sensors as shown in Table 2. Specifically, we compared three configurations: (1) activity-oriented mixed window sizes from 1 to 5 seconds as shown in Table 2. (2) uniform 5-second windows, and (3) uniform 10-second windows. The evaluation was conducted across eight datasets, as illustrated in Fig. 5. Across all datasets, the KAN-MLP-Mixer consistently outperformed the MLPHAR baseline, regardless of the window-ing strategy. On average, the KAN-MLP-Mixer achieved a macro F1 score improvement of 4.14% with a mixed window size, 4.38% with a 5-second window size, and 5.39% with a 10-second window size. These results demonstrate that the hybrid model not only adapts well to activity-driven heterogeneous windowing across different datasets but also benefits from longer uniform windows, which offer more temporal context. The largest gains were observed under the 10-second window condition, suggesting that the KAN-MLP-Mixer architecture is particularly effective at leveraging richer temporal information to improve classification accuracy. The robustness of the model across different window 
+
+> Manuscript submitted to ACM
+
+16 Liu et al. DG DSADS PAMAP2 OPPO Skodar HAPT MotionSense MHEALTH           
+
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> 0.9
+> 1.0
+> Macro F1 Score
+> 0.019
+> 0.006
+> 0.016
+> 0.032
+> 0.027 0.035 0.017
+> 0.014
+> 0.048
+> 0.022 0.025 0.035
+> 0.037 0.055
+> 0.038
+> 0.015 0.012
+> 0.023
+> 0.007
+> 0.012 0.003
+> 0.067
+> 0.091 0.087
+> Value /indicates the KAN-MLP-Mixer performance improvement compare MLPHAR
+> KAN-MLP-Mixer (Mixed)
+> MLPHAR (Mixed)
+> KAN-MLP-Mixer (Win=5s)
+> MLPHAR (Win=5s)
+> KAN-MLP-Mixer (Win=10s)
+> MLPHAR (Win=10s)
+
+Fig. 5. Performance comparison for KAN-MLP-Mixer and MLPHAR models under three window size configurations. Numerical annotations show the absolute performance difference between models for each condition; ▲ favors KAN-MLP-Mixer, ▼ favors MLPHAR. Across eight datasets, the KAN-MLP-Mixer model achieved an average macro F1 score improvement of 4.14% with a mixed window size, 4.38% with a 5-second window size, and 5.39% with a 10-second window size, compared to the MLPHAR baseline. 
+
+sizes further highlights its practical applicability to real-world scenarios, where sensing and segmentation strategies may vary depending on deployment constraints. Overall, these results reinforce the versatility and strong generalization ability of the KAN-MLP hybrid design across diverse temporal settings. 
+
+7.3 Extending Hybrid Design Across Diverse Neural Backbones 
+
+To evaluate the generalizability of the proposed hybrid design, we further extended our modular approach, specifically, the use of KAN-based embedding layers and LarctanKAN classifiers , to a set of widely adopted non-pure MLP-based neural network architectures, including MCNN , DeepConvLSTM [37 ], and the lightweight TinyHAR [ 57 ]models. The MCNN model comprises four convolutional layers for feature extraction, followed by two fully connected layers serving as the classifier. DeepConvLSTM shares a similar feature extraction and classification structure with MCNN but incorporates an additional LSTM module between the feature extractor and the classifier to capture temporal dependencies. TinyHAR features a more sophisticated and efficient design, integrating transformer-based and MLP-based cross-channel feature interaction and fusion modules, in addition to convolutional layers for feature extraction, LSTM layers for temporal modeling, and MLP layers for final classification. Together, these three models encompass a wide range of state-of-the-art components commonly used in deep learning-based HAR studies, making them ideal candidates for evaluating the generalizability performance of KANs-based hybrid models. In each model, we define the convolutional blocks as the feature extractor, the MLP layers at the end as the classifier, and the remaining modules between the feature extractor and classifier as the backbone. Notably, the MCNN model, with its simpler architecture, does not contain a distinct backbone module. In these experiments, we used the sensor configurations summarized in Table 2. Specifically, we replaced the original first convolutional layer in the feature extraction block with EfficientKAN module, where the linear kernel function in the convolutional layer is replaced by the EfficientKAN, while preserving the backbone design of each model. Similarly, we substituted their output classifier heads with LarctanKAN modules. This modular insertion allowed us to assess whether our hybrid philosophy, originally optimized for pure-MLP models, could transfer effectively to more complex 
+
+Manuscript submitted to ACM KAN-MLP-Mixer 17 Transformer/LSTM/MLP 
+
+> LactanKAN
+> LactanKAN
+
+## Feature Extractor  Backbone  Classifier 
+
+Fig. 6. The extending hybrid design across diverse neural backbones, the original models only have the pure convolutional layers on the feature extractor and the MLP layer on the classifier. We tested several combinations by replacing the first convolutional layer in the feature extractor or MLPs in the classifier with KANs. The combination shown above is denoted as K-B-K .
+
+backbones commonly deployed in HAR tasks. Fig. 6 illustrates the resulting hybrid architectures. In the original model designs, there was typically a single convolutional branch; in our hybrid configuration, we split this branch into two parallel branches, introducing a KAN layer into one of them. Each branch outputs half the number of channels compared to the original single-branch configuration, thereby maintaining the same overall output dimensionality before feeding into the backbone. We compare our hybrid architecture with a version where the KAN block is replaced by a vanilla CNN block, matching the other branch. We evaluated three variants based on different combinations: 
+
+• K-B-M: EfficientKAN in the first convolutional layer, original backbone, and MLP classifier. 
+
+• C-B-K: Original CNN-based feature extractor and backbone, LarctanKAN classifier. 
+
+• K-B-K: EfficientKAN in the first convolutional layer and LarctanKAN classifier, and original backbone, as shown in Fig. 6. 
+
+Table 8. Performance of hybrid variants across diverse neural backbones among 8 datasets (macro-F1 ± std).                                                                                                                      
+
+> Model DG DSADS PAMAP2 OPPO Skodar HAPT MotionSense MHEALTH Gain (%)
+> K-B-M 0.654 ±0.164 0.657 ±0.089 0.615 ±0.227 0.544 ±0.140 0.964 ±0.008 0.819 ±0.024 0.914 ±0.032 0.642 ±0.151 +0.24 C-B-K 0.668 ±0.148 0.675 ±0.090 0.615 ±0.204 0.575 ±0.135 0.960 ±0.014 0.821 ±0.027 0.919 ±0.034 0.652 ±0.143 +1.77
+> K-B-K 0.672 ±0.159 0.686 ±0.080 0.616 ±0.196 0.564 ±0.122 0.968 ±0.009 0.825 ±0.025 0.919 ±0.035 0.659 ±0.137 +2.13
+> MCNN 0.659 ±0.155 0.657 ±0.091 0.607 ±0.202 0.567 ±0.146 0.952 ±0.012 0.817 ±0.030 0.921 ±0.030 0.615 ±0.142 0.00 K-B-M 0.680 ±0.147 0.683 ±0.098 0.631 ±0.216 0.593 ±0.156 0.964 ±0.013 0.834 ±0.029 0.920 ±0.024 0.635 ±0.153 +0.22 C-B-K 0.638 ±0.158 0.678 ±0.100 0.629 ±0.216 0.599 ±0.152 0.971 ±0.005 0.837 ±0.025 0.929 ±0.029 0.684 ±0.157 +0.61
+> K-B-K 0.650 ±0.155 0.689 ±0.082 0.654 ±0.214 0.596 ±0.157 0.959 ±0.016 0.830 ±0.032 0.936 ±0.021 0.671 ±0.179 +1.09
+> DeepConvLSTM 0.669 ±0.150 0.677 ±0.106 0.614 ±0.243 0.586 ±0.157 0.966 ±0.015 0.838 ±0.020 0.925 ±0.034 0.656 ±0.147 0.00 K-B-M 0.665 ±0.151 0.670 ±0.074 0.624 ±0.207 0.589 ±0.140 0.955 ±0.013 0.810 ±0.029 0.928 ±0.017 0.580 ±0.146 -0.16 C-B-K 0.641 ±0.176 0.655 ±0.141 0.643 ±0.213 0.561 ±0.140 0.940 ±0.011 0.810 ±0.041 0.914 ±0.021 0.615 ±0.134 -0.82
+> K-B-K 0.631 ±0.174 0.636 ±0.085 0.634 ±0.200 0.590 ±0.129 0.931 ±0.028 0.814 ±0.029 0.910 ±0.029 0.689 ±0.109 +0.46
+> TinyHAR 0.658 ±0.168 0.659 ±0.129 0.623 ±0.211 0.589 ±0.129 0.930 ±0.014 0.806 ±0.035 0.913 ±0.023 0.636 ±0.119 0.00
+
+Table 8 presents the performance summary of the hybrid variants neural network across the three models, it can be found that the K-B-K models achieve a better macro F1 score than the original models and other variants. Besides, the average performance revealed a clear trend: KAN-based modules delivered the largest performance gains (2.13%) in the simplest architecture (MCNN), with progressively smaller improvements (1.09%) for DeepConvLSTM and especially for the advanced TinyHAR (0.46%). This indicates that the benefits of the EfficientKAN embedding and LarctanKAN classifier are inversely related to the capacity and sophistication of the host architecture. In other words, the more complex and expressive the backbone, the less additional value the KAN components seem to provide. One fundamental reason for the diminishing returns is the difference in model capacity across these backbones. MCNN, being a relatively shallow CNN-only model, has limited ability to capture complex, non-linear relationships in 
+
+Manuscript submitted to ACM 18 Liu et al. sensor data. It relies on local convolutional filters and static activation functions, so augmenting it with KAN modules significantly boosts its expressive power. In contrast, DeepConvLSTM already possesses greater representational capacity by combining convolutional feature extractors with LSTM layers that capture temporal dynamics. This means the baseline DeepConvLSTM can already model many of the patterns that KAN would help with in a simpler network. Any additional complex mapping provided by the KAN embedding or classifier might partially duplicate what the CNN+LSTM is learning (a form of learning redundancy), resulting in only moderate gains. Finally, TinyHAR is an even more sophisticated model, incorporating not just convolution and recurrent layers but also attention-based mechanisms (transformer encoder blocks) for cross-channel feature interaction. Such attention modules effectively perform a data-dependent re-weighting of features, which is conceptually similar to the kernel-based weighting that KAN modules implement. Thus, the TinyHAR baseline is already extremely expressive – it was designed to match or exceed DeepConvLSTM’s accuracy with a much smaller parameter count by cleverly maximizing model utilization. There is simply less “unused capacity” for KAN to fill in TinyHAR. The small improvement observed in TinyHAR with KAN likely comes from fine-tuning the decision boundaries or subtle feature tweaks, but much of KAN’s powerful function-approximation ability is redundant given TinyHAR’s existing components. In essence, as the backbone’s capacity to approximate complex functions increases, the marginal utility of inserting KAN layers decreases. 
+
+7.4 Evaluating Parameter and Computational Efficiency of Hybrid KAN Designs 
+
+We further assessed the practicality and efficiency of the hybrid KAN-MLP-Mixer architecture by analyzing its parameter and computational complexities relative to the baseline MLPHAR model. As depicted in Fig. 7, when the KAN-MLP-Mixer and MLPHAR models have identical layer configurations and input/output dimensions, the hybrid KAN design generally incurs a higher total parameter count. This increase arises primarily because each KAN layer inherently introduces approximately G times more parameters than a corresponding MLP layer, where G is the number of grid points used in the B-spline basis. However, by strategically assigning KAN modules only to the data embedding and classifier components, and preserving MLP in the typically larger feature mixer module, the hybrid design achieves a balanced trade-off between parameter efficiency and expressive capacity. DG DSADS HAPT MHEALTH MotionSense OPPO PAMAP2 Skodar     
+
+> 10 2
+> 10 3
+> 10 4
+> Number of Parameters
+> Parameter Comparison: KAN-MLP-Mixer(solid) vs MLPHAR(hatched)
+> Classifier Feature Mixer Data Embedding KAN-MLP-Mixer Model MLPHAR Model
+
+Fig. 7. Number of parameters in different components of KAN-MLP-Mixer and MLPHAR models.(The LarctanKAN based classifier and MLP modules have the same number of trainable parameters; therefore, the parameter difference between the KAN-MLP-Mixer 
+
+and the MLPHAR models originates entirely from the data embedding module.) 
+
+In order to investigate the effect of model size on performance, we also increased the size of the data embedding in MLPHAR models (see Fig. 8) to elucidate whether our gain in performance can be matched by simply increasing the size of MLP-only models. This parameter-efficiency comparison shows that, across multiple benchmark datasets, 
+
+> Manuscript submitted to ACM
+
+KAN-MLP-Mixer 19 the KAN-MLP-Mixer consistently outperforms or matches the performance of the MLPHAR baseline while using fewer or comparable parameters. Specifically, as the grid size G increased from 1 to 6 in the KAN-based components and the hidden dimensions varied from 8 to 40 in the data embedding module from MLPHAR, the hybrid model demonstrated superior scalability. In datasets such as DG, DSADS, and HAPT, the KAN-MLP-Mixer achieved notably higher macro F1 scores even at lower parameter counts compared to the MLPHAR baseline. This suggests that the hybrid model’s strategically placed KAN layers leverage their powerful function approximation capabilities to learn richer representations, leading to improved accuracy without excessively increasing model size. 15.0k 30.0k 45.0k                     
+
+> #Parameters
+> 0.570
+> 0.585
+> 0.600
+> 0.615
+> F1 Score  DG
+> 20.0k 40.0k 60.0k
+> #Parameters
+> 0.450
+> 0.475
+> 0.500
+> 0.525
+> 0.550 DSADS
+> 40.0k 80.0k 120.0k
+> #Parameters
+> 0.685
+> 0.690
+> 0.695
+> 0.700
+> 0.705 HAPT
+> 40.0k 80.0k 120.0k
+> #Parameters
+> 0.74
+> 0.76
+> 0.78
+> 0.80
+> MHEALTH
+> 40.0k 80.0k 120.0k
+> #Parameters
+> 0.828
+> 0.832
+> 0.836
+> 0.840
+> F1 Score  MotionSense
+> 10.0k 20.0k 30.0k
+> #Parameters
+> 0.375
+> 0.400
+> 0.425
+> 0.450
+> 0.475 OPPO
+> 40.0k 80.0k 120.0k
+> #Parameters
+> 0.536
+> 0.544
+> 0.552
+> 0.560 PAMAP2
+> 20.0k 40.0k 60.0k
+> #Parameters
+> 0.80
+> 0.82
+> 0.84
+> 0.86
+> 0.88 Skodar
+> MLPHAR KAN-MLP-Mixer
+
+Fig. 8. Parameter-efficiency when scaling models comparing between KAN-MLP-Mixer and MLPHAR across eight benchmark datasets. For KAN-MLP-Mixer, the grid size 𝐺 was systematically increased from 1 to 6; for MLPHAR, the hidden dimensions in the data embedding module were varied from 8, 16, 24, 32, to 40. These results illustrate the scalability of KAN-hybrid models and their ability to achieve competitive or superior performance compared to MLP-only models under varying parameter budgets. 
+
+Computational efficiency analysis further corroborates the practicality of the hybrid approach, as shown in Fig. 9. Although KAN layers typically demand higher computation due to the evaluation of spline-based activation functions, the KAN-MLP-Mixer still maintains competitive or superior computational efficiency across the benchmark datasets. Notably, in datasets like DG, DSADS, OPPO, and Skodar, the hybrid architecture achieves higher macro F1 scores at comparable or lower floating-point operation (FLOP) budgets relative to MLPHAR. This efficiency arises primarily because the KAN layers’ ability to accurately model complex input-output relationships with fewer neurons and layers compensates for their inherently higher per-layer computational demands. Consequently, the hybrid architecture can provide enhanced performance within practical computational constraints, making it particularly suitable for deployment in resource-constrained wearable and ubiquitous computing scenarios. 
+
+7.5 Limitations of the Current Study 
+
+Despite the promising results and comprehensive evaluation presented, this study is subject to several limitations that should be acknowledged: 
+
+Dataset Scope and Generalization. Our evaluation relies primarily on publicly available benchmark datasets, which—while diverse in sensor modalities, positions, and activity complexity—may not encompass the full variety and unpredictability of real-world HAR scenarios. Many real-world datasets include intermittent sensor noise, missing data, and user-specific variations not fully captured by the controlled benchmark conditions. 
+
+Sensor Modality and Placement Constraints. The selected datasets primarily utilize accelerometers, gyroscopes, and occasionally magnetometers. Other sensor modalities, such as physiological sensors (e.g., heart rate monitors, electromyography), environmental sensors (e.g., ambient light or temperature), or fusion with video and audio data, 
+
+Manuscript submitted to ACM 20 Liu et al. 80.0k 160.0k 240.0k                     
+
+> #Flops
+> 0.570
+> 0.585
+> 0.600
+> 0.615
+> F1 Score  DG
+> 100.0k 200.0k 300.0k
+> #Flops
+> 0.450
+> 0.475
+> 0.500
+> 0.525
+> 0.550 DSADS
+> 200.0k 400.0k 600.0k
+> #Flops
+> 0.685
+> 0.690
+> 0.695
+> 0.700
+> 0.705 HAPT
+> 200.0k 400.0k 600.0k
+> #Flops
+> 0.74
+> 0.76
+> 0.78
+> 0.80
+> MHEALTH
+> 200.0k 400.0k 600.0k
+> #Flops
+> 0.828
+> 0.832
+> 0.836
+> 0.840
+> F1 Score  MotionSense
+> 40.0k 80.0k 120.0k
+> #Flops
+> 0.375
+> 0.400
+> 0.425
+> 0.450
+> 0.475 OPPO
+> 200.0k 400.0k 600.0k
+> #Flops
+> 0.536
+> 0.544
+> 0.552
+> 0.560 PAMAP2
+> 100.0k 200.0k 300.0k
+> #Flops
+> 0.80
+> 0.82
+> 0.84
+> 0.86
+> 0.88 Skodar
+> MLPHAR KAN-MLP-Mixer
+
+Fig. 9. Computational efficiency comparison between KAN-MLP-Mixer and MLPHAR across eight benchmark datasets. For KAN-MLP-Mixer, grid size 𝐺 was increased from 1 to 6; for MLPHAR, hidden dimensions were varied from 8, 16, 24, 32, to 40. These results demonstrate how KAN-based models maintain competitive or superior performance relative to MLP-based models while offering favorable computational profiles under varying FLOP budgets. 
+
+were not considered. Consequently, the performance of the proposed architecture in multi-modal sensing contexts remains unexplored. 
+
+Computational and Energy Constraints. While the proposed KAN-MLP-Mixer architecture significantly improves model performance, its practical deployment on resource-constrained devices (e.g., low-powered wearables or IoT sensors) has not been directly validated. The trade-off between improved accuracy and increased computational complexity or energy consumption—common challenges in real-world applications—requires further investigation. 
+
+Architectural and Hyperparameter Optimization. Our proposed model utilizes specific variants of KANs (Effi-cientKAN and LarctanKAN) selected based on empirical performance. The sensitivity of our results to hyperparameters such as KAN spline complexity, grid size, or the number of layers and neurons remains to be fully quantified. Additionally, automated methods for systematically selecting or optimizing these parameters have yet to be explored. 
+
+7.6 Future Work Directions 
+
+Based on the insights gained from this study, several promising research directions emerge: 
+
+Extension to Multi-modal HAR Systems . Exploring the integration of additional sensor modalities beyond inertial sensors—such as physiological, audio, visual, and environmental data—offers an intriguing avenue for enhancing HAR performance and robustness. Investigating how KAN-based architectures perform within such multi-modal data fusion frameworks could further validate their utility in practical HAR deployments. 
+
+Resource-aware Optimization for Edge Devices . Evaluating and optimizing the proposed hybrid architecture explicitly for computational and energy efficiency on edge and wearable devices represents an important next step. Future work should examine model compression techniques, efficient quantization, lightweight model structures, and energy-aware training procedures to ensure the hybrid model remains practical for ubiquitous deployment. 
+
+Automated Architecture Search and Hyperparameter Optimization . Investigating automated techniques, such as Neural Architecture Search (NAS), to systematically identify optimal KAN placements, architectural param-eters, and hyperparameter settings would further refine performance. Additionally, rigorous sensitivity analyses of hyperparameters could provide clearer guidelines for deploying KAN-based hybrid architectures in diverse scenarios. 
+
+Interpretable and Explainable KAN-based Models . Given the inherent interpretability of KAN modules, future research should investigate interpretability-focused evaluations, providing clearer insights into what sensor-derived 
+
+Manuscript submitted to ACM KAN-MLP-Mixer 21 features and patterns contribute most significantly to accurate HAR predictions. Enhanced interpretability could substantially increase user trust and acceptance in critical application domains such as healthcare or rehabilitation. 
+
+7.7 Design Guidelines for Sensor-Based HAR 
+
+Our comprehensive ablation results, supported by theoretical insights and synthetic function fitting experiments, offer actionable design principles for integrating KANs into modern neural architectures. We distill these findings into three practical guidelines: (1) Use KANs selectively, not universally: While KANs demonstrate strong representational capacity—particularly for modeling smooth, continuous functions—our findings show that full-scale replacement of MLPs with KANs leads to significant performance degradation , especially in deeper layers. Instead of wholesale substitution, KANs should be applied strategically where their strengths (e.g., spline-based approximation, localized activation) align with the structure of the input data. (2) Match model component to signal characteristics: Our empirical results suggest a strong link between model layer type and the nature of the signal it processes: 
+
+• Use KANs for data embedding when inputs are smooth and periodic, such as IMU sensor data in HAR. 
+
+• Use MLPs for latent feature mixing , where signal continuity is less pronounced and stability, generalization, and scalability are crucial. 
+
+• Use LarctanKANs for classification , where stable, bounded nonlinearities can model decision boundaries without inducing overshooting or noise amplification. (3) Prioritize hybrid modularity over architectural novelty: The key to successful KAN integration lies not in the novelty of the model itself, but in the modular hybridization of architectures . Each module should be chosen and positioned based on its demonstrated strengths. Our EfficientKAN–MLP–LarctanKAN configuration provides a template for how to combine expressive, stable, and efficient modules into a unified architecture—one that outperforms both pure MLP and pure KAN-based designs across diverse datasets. These guidelines are intended to help researchers and practitioners move beyond one-size-fits-all architectures, encouraging principled design choices based on signal properties, module behavior, and empirical evidence. We believe this modular mindset will be essential as the field continues to integrate emerging neural operators into scalable, interpretable, and domain-adaptive machine learning systems. 
+
+8 Conclusion 
+
+This work systematically explored integrating KANs into robust and computationally efficient MLP based architectures for IMU-based HAR. Recognizing KANs’ high expressivity yet sensitivity to noisy, real-world data and MLPs’ robustness and efficiency, we introduced the KAN-MLP-Mixer hybrid architecture. This hybrid design strategically employs Effi-cientKAN for adaptive input embedding, retains standard MLP layers for intermediate feature mixing, and incorporates a specialized LarctanKAN classifier. Evaluations across eight diverse HAR datasets confirmed the effectiveness of this targeted integration, achieving an average macro F1 score improvement of 5.33% over the pure-MLP baseline (MLPHAR). Our results clearly demonstrate that selective hybridization significantly surpasses both standalone KAN and MLP models. Furthermore, extending this hybrid strategy to other state-of-the-art neural backbones consistently improved their performance, underscoring its broad applicability. This work thus provides concrete guidelines for effectively 
+
+> Manuscript submitted to ACM
+
+22 Liu et al. leveraging KANs in practical wearable sensing scenarios, marking a promising advancement towards accurate HAR systems harnessing the potential function approximation power of KANs. 
+
+References 
+
+[1] Sidra Abbas, Shtwai Alsubai, Muhammad Ibrar Ul Haque, Gabriel Avelino Sampedro, Ahmad Almadhor, Abdullah Al Hejaili, and Iryna Ivanochko. 2024. Active machine learning for heterogeneity activity recognition through smartwatch sensors. IEEE Access 12 (2024), 22595–22607. [2] Reem Abdel-Salam, Rana Mostafa, and Mayada Hadhood. 2021. Human activity recognition using wearable sensors: review, challenges, evaluation benchmark. In International workshop on deep learning for human activity recognition . Springer, 1–15. [3] Mohammed Ghaith Altarabichi. 2024. Dropkan: Regularizing kans by masking post-activations. arXiv preprint arXiv:2407.13044 (2024). [4] Vladimir I. Arnold. 1963. On Functions of Three Variables. Doklady Akademii Nauk SSSR 148 (1963), 9–12. [5] Vladimir I Arnold. 2009. On functions of three variables. Collected Works: Representations of Functions, Celestial Mechanics and KAM Theory, 1957–1965 (2009), 5–8. [6] Marc Bachlin, Meir Plotnik, Daniel Roggen, Inbal Maidan, Jeffrey M Hausdorff, Nir Giladi, and Gerhard Troster. 2009. Wearable assistant for Parkinson’s disease patients with the freezing of gait symptom. IEEE Transactions on Information Technology in Biomedicine 14, 2 (2009), 436–446. [7] Oresti Banos, Rafael Garcia, Juan A Holgado-Terriza, Miguel Damas, Hector Pomares, Ignacio Rojas, Alejandro Saez, and Claudia Villalonga. 2014. mHealthDroid: A novel framework for agile development of mobile health applications. Ambient Assisted Living and Daily Activities 8868, 14 (2014), 91–98. [8] Sizhen Bian, Mengxi Liu, Bo Zhou, and Paul Lukowicz. 2022. The state-of-the-art sensing techniques in human activity recognition: A survey. 
+
+Sensors 22, 12 (2022), 4596. [9] Alexander Dylan Bodner, Antonio Santiago Tepsich, Jack Natan Spolski, and Santiago Pourteau. 2024. Convolutional kolmogorov-arnold networks. 
+
+arXiv preprint arXiv:2406.13155 (2024). [10] Zavareh Bozorgasl and Hao Chen. [n. d.]. Wav-kan: Wavelet kolmogorov-arnold networks, 2024. arXiv preprint arXiv:2405.12832 ([n. d.]). [11] Yueyang Cang, Li Shi, et al . 2024. Can KAN Work? Exploring the Potential of Kolmogorov-Arnold Networks in Computer Vision. arXiv preprint arXiv:2411.06727 (2024). [12] Blealtan Cao. 2024. An Efficient Implementation of Kolmogorov-Arnold Network. https://github.com/Blealtan/efficient-kan. Accessed: 2025-04-10. [13] Ricardo Chavarriaga, Hesam Sagha, Alberto Calatroni, Sundara Tejaswi Digumarti, Gerhard Tröster, José del R Millán, and Daniel Roggen. 2013. The Opportunity challenge: A benchmark database for on-body sensor-based activity recognition. Pattern Recognition Letters 34, 15 (2013), 2033–2042. [14] Kaixuan Chen, Dalin Zhang, Lina Yao, Bin Guo, Zhiwen Yu, and Yunhao Liu. 2021. Deep learning for sensor-based human activity recognition: Overview, challenges, and opportunities. ACM Computing Surveys (CSUR) 54, 4 (2021), 1–40. [15] Zhijie Chen and Xinglin Zhang. 2024. Larctan-skan: Simple and efficient single-parameterized kolmogorov-arnold networks using learnable trigonometric function. arXiv preprint arXiv:2410.19360 (2024). [16] Zhijie Chen and Xinglin Zhang. 2024. Lss-skan: Efficient kolmogorov-arnold networks based on single-parameterized function. arXiv preprint arXiv:2410.14951 (2024). [17] Iveta Dirgová Luptáková, Martin Kubovčík, and Jiří Pospíchal. 2022. Wearable sensor-based human activity recognition with transformer model. 
+
+Sensors 22, 5 (2022), 1911. [18] Ivan Drokin. 2024. Kolmogorov-arnold convolutions: Design principles and empirical studies. arXiv preprint arXiv:2407.01092 (2024). [19] Yu Enokibori. 2024. rTsfNet: a DNN model with Multi-head 3D Rotation and Time Series Feature Extraction for IMU-based Human Activity Recognition. Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 8, 4 (2024), 1–26. [20] Changjun Fan and Fei Gao. 2021. Enhanced human activity recognition using wearable sensors via a hybrid feature selection method. Sensors 21, 19 (2021), 6434. [21] Remi Genet and Hugo Inzirillo. 2024. Tkan: Temporal kolmogorov-arnold networks. arXiv preprint arXiv:2405.07344 (2024). [22] Ahmed Dawod Mohammed Ibrahum, Zhengyu Shang, and Jang-Eui Hong. 2024. How Resilient Are Kolmogorov–Arnold Networks in Classification Tasks? A Robustness Investigation. Applied Sciences 14, 22 (2024), 10173. [23] Petr Ivashkov, Po-Wei Huang, Kelvin Koor, Lirandë Pira, and Patrick Rebentrost. 2026. QKAN: quantum Kolmogorov-Arnold networks with applications in machine learning and multivariate state preparation. npj Quantum Information 12, 1 (11 Mar 2026), 73. doi:10.1038/s41534-026-01202-5 [24] Ali Jamali, Swalpa Kumar Roy, Danfeng Hong, Bing Lu, and Pedram Ghamisi. 2024. How to learn more? Exploring Kolmogorov–Arnold networks for hyperspectral image classification. Remote Sensing 16, 21 (2024), 4015. [25] Zanobya N Khan and Jamil Ahmad. 2021. Attention induced multi-head convolutional neural network for human activity recognition. Applied soft computing 110 (2021), 107671. [26] Benjamin C Koenig, Suyong Kim, and Sili Deng. 2024. KAN-ODEs: Kolmogorov–Arnold network ordinary differential equations for learning dynamical systems and hidden physics. Computer Methods in Applied Mechanics and Engineering 432 (2024), 117397. [27] Andrei Nikolaevich Kolmogorov. 1957. On the representations of continuous functions of many variables by superposition of continuous functions of one variable and addition. In Dokl. Akad. Nauk USSR , Vol. 114. 953–956. Manuscript submitted to ACM KAN-MLP-Mixer 23 
+
+[28] Tran Xuan Hieu Le, Thi Diem Tran, Hoai Luan Pham, Vu Trung Duong Le, Tuan Hai Vu, Van Tinh Nguyen, Yasuhiko Nakashima, et al . 2024. Exploring the limitations of kolmogorov-arnold networks in classification: Insights to software training and hardware implementation. In 2024 Twelfth International Symposium on Computing and Networking Workshops (CANDARW) . IEEE, 110–116. [29] Ziyao Li. 2024. Kolmogorov-Arnold Networks are Radial Basis Function Networks. (2024). arXiv:2405.06721 [cs.LG] [30] Hanxiao Liu, Zihang Dai, David So, and Quoc V Le. 2021. Pay attention to mlps. Advances in neural information processing systems 34 (2021), 9204–9215. [31] Mengxi Liu, Daniel Geißler, Dominique Nshimyimana, Sizhen Bian, Bo Zhou, and Paul Lukowicz. 2024. Initial investigation of kolmogorov-arnold networks (kans) as feature extractors for imu based human activity recognition. In Companion of the 2024 on ACM International Joint Conference on Pervasive and Ubiquitous Computing . 500–506. [32] Ziming Liu, Pingchuan Ma, Yixuan Wang, Wojciech Matusik, and Max Tegmark. 2024. Kan 2.0: Kolmogorov-arnold networks meet science. arXiv preprint arXiv:2408.10205 (2024). [33] Ziming Liu, Yixuan Wang, Sachin Vaidya, Fabian Ruehle, James Halverson, Marin Soljačić, Thomas Y Hou, and Max Tegmark. 2024. Kan: Kolmogorov-arnold networks. arXiv preprint arXiv:2404.19756 (2024). [34] Mohammad Malekzadeh, Richard Clegg, Andrea Cavallaro, and Hamed Haddadi. 2021. Dana: Dimension-adaptive neural architecture for multivariate sensor data. Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 5, 3 (2021), 1–27. [35] Takeru Miyoshi, Makoto Koshino, and Hidetaka Nambo. 2025. Applying MLP-Mixer and gMLP to Human Activity Recognition. Sensors 25, 2 (2025), 311. [36] Kamsiriochukwu Ojiako and Katayoun Farrahi. 2023. MLPs Are All You Need for Human Activity Recognition. Applied Sciences 13, 20 (2023), 11154. [37] Francisco J. Ordóñez and Daniel Roggen. 2016. Deep Convolutional and LSTM Recurrent Neural Networks for Multimodal Wearable Activity Recognition. Sensors 16, 1 (2016), 115. [38] Allan Pinkus. 1999. Approximation theory of the MLP model in neural networks. Acta numerica 8 (1999), 143–195. [39] Eleonora Poeta, Flavio Giobergia, Eliana Pastor, Tania Cerquitelli, and Elena Baralis. 2024. A benchmarking study of kolmogorov-arnold networks on tabular data. In 2024 IEEE 18th International Conference on Application of Information and Communication Technologies (AICT) . IEEE, 1–6. [40] Attila Reiss and Didier Stricker. 2012. Introducing a new benchmarked dataset for activity monitoring. In 2012 16th international symposium on wearable computers . IEEE, 108–109. [41] Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio, Luca Oneto, and Xavier Parra. 2013. Human Activity Recognition Using Smartphones .doi:10.24432/C54S4K [42] Yoli Shavit and Itzik Klein. 2021. Boosting inertial-based human activity recognition with transformers. IEEE Access 9 (2021), 53540–53547. [43] Haoran Shen, Chen Zeng, Jiahui Wang, and Qiao Wang. 2025. Reduced effectiveness of kolmogorov-arnold networks on functions with noise. In 
+
+ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 1–5. [44] Shriyank Somvanshi, Syed Aaqib Javed, Md Monzurul Islam, Diwas Pandit, and Subasish Das. 2024. A survey on kolmogorov-arnold network. arXiv preprint arXiv:2411.06078 (2024). [45] Yueyuan Sui, Minghui Zhao, Junxi Xia, Xiaofan Jiang, and Stephen Xia. 2024. Tramba: A hybrid transformer and mamba architecture for practical audio and bone conduction speech super resolution and enhancement on mobile and wearable platforms. Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 8, 4 (2024), 1–29. [46] Ilya O Tolstikhin, Neil Houlsby, Alexander Kolesnikov, Lucas Beyer, Xiaohua Zhai, Thomas Unterthiner, Jessica Yung, Andreas Steiner, Daniel Keysers, Jakob Uszkoreit, et al . 2021. Mlp-mixer: An all-mlp architecture for vision. Advances in neural information processing systems 34 (2021), 24261–24272. [47] Juan Diego Toscano, Vivek Oommen, Alan John Varghese, Zongren Zou, Nazanin Ahmadi Daryakenari, Chenxi Wu, and George Em Karniadakis. 2025. From pinns to pikans: Recent advances in physics-informed machine learning. Machine Learning for Computational Science and Engineering 1, 1 (2025), 1–43. [48] Yu-Hsuan Tseng and Chih-Yu Wen. 2023. Hybrid Learning Models for IMU-Based HAR with Feature Analysis and Data Correction. Sensors 23, 18 (2023), 7802. [49] Yannick Werner, Akash Malemath, Mengxi Liu, Vitor Fortes Rey, Nikolaos Palaiodimopoulos, Paul Lukowicz, and Maximilian Kiefer-Emmanouilidis. 2025. QuKAN: A Quantum Circuit Born Machine Approach to Quantum Kolmogorov Arnold Networks. Scientific Reports 15, 1 (09 Oct 2025), 35239. doi:10.1038/s41598-025-22705-9 [50] Jinfeng Xu, Zheyu Chen, Jinze Li, Shuo Yang, Wei Wang, Xiping Hu, and Edith C-H Ngai. 2024. FourierKAN-GCF: Fourier Kolmogorov-Arnold Network–An Effective and Efficient Feature Transformation for Graph Collaborative Filtering. arXiv preprint arXiv:2406.01034 (2024). [51] Xingyi Yang and Xinchao Wang. 2024. Kolmogorov-arnold transformer. arXiv preprint arXiv:2409.10594 (2024). [52] Yafeng Yin, Lei Xie, Zhiwei Jiang, Fu Xiao, Jiannong Cao, and Sanglu Lu. 2024. A systematic review of human activity recognition based on mobile devices: overview, progress and trends. IEEE Communications Surveys & Tutorials 26, 2 (2024), 890–929. [53] Piero Zappi, Clemens Lombriser, Thomas Stiefmeier, Elisabetta Farella, Daniel Roggen, Luca Benini, and Gerhard Tröster. 2008. Activity recognition from on-body sensors: accuracy-power trade-off by dynamic sensor selection. In Wireless Sensor Networks: 5th European Conference, EWSN 2008, Bologna, Italy, January 30-February 1, 2008. Proceedings . Springer, 17–33. [54] Licheng Zhang, Xihong Wu, and Dingsheng Luo. 2015. Recognizing human activities from raw accelerometer data using deep neural networks. In 
+
+2015 IEEE 14th International conference on machine learning and applications (ICMLA) . IEEE, 865–870. Manuscript submitted to ACM 24 Liu et al. 
+
+[55] Ye Zhang, Longguang Wang, Huiling Chen, Aosheng Tian, Shilin Zhou, and Yulan Guo. 2022. IF-ConvTransformer: A framework for human activity recognition using IMU fusion and ConvTransformer. Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 6, 2 (2022), 1–26. [56] Yexu Zhou, Tobias King, Haibin Zhao, Yiran Huang, Till Riedel, and Michael Beigl. 2024. MLP-HAR: Boosting Performance and Efficiency of HAR Models on Edge Devices with Purely Fully Connected Layers. In Proceedings of the 2024 ACM International Symposium on Wearable Computers .133–139. [57] Yexu Zhou, Haibin Zhao, Yiran Huang, Till Riedel, Michael Hefenbrock, and Michael Beigl. 2022. Tinyhar: A lightweight deep learning model designed for human activity recognition. In Proceedings of the 2022 ACM International Symposium on Wearable Computers . 89–93. 
+
+Received 20 February 2007; revised 12 March 2009; accepted 5 June 2009 
+
+Manuscript submitted to ACM

@@ -1,0 +1,496 @@
+Title: m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder
+
+URL Source: https://arxiv.org/pdf/2605.19568v1
+
+Published Time: Wed, 20 May 2026 00:55:32 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder 
+
+# Yaoxiang Wang ∗
+
+wangyaoxiang@stu.xmu.edu.cn Xiamen University Xiamen, China 
+
+# Simiao Zuo 
+
+simiaozuo@microsoft.com Microsoft Redmond, USA 
+
+# Qingguo Hu ∗
+
+huqingguo@stu.xmu.edu.cn Xiamen University Xiamen, China 
+
+# Yucheng Ding ∗
+
+yc.ding@sjtu.edu.cn Shanghai Jiao Tong University Shanghai, China 
+
+# Yeyun Gong †
+
+yegong@microsoft.com Microsoft Beijing, China 
+
+# Jian Jiao 
+
+Jian.Jiao@microsoft.com Microsoft Redmond, USA 
+
+# Jinsong Su †
+
+jssu@xmu.edu.cn Xiamen University Xiamen, China 
+
+## Abstract 
+
+Embedding models are pivotal in industrial information retrieval systems like search and advertising. However, existing pretrained models often exhibit fixed architectures and embedding dimension-alities, posing significant challenges when adapting them to diverse deployment scenarios with varying business-driven constraints. A common practice involves fine-tuning with partial parameter ini-tialization from larger pretrained models for resource-constrained tasks. This method is often suboptimal as the misalignment be-tween pretraining and downstream usage prevents full realization of pretraining benefits. To address this limitation, we introduce m3BERT : a Modern, Multi-lingual, Matryoshka Bidirectional En-coder, which features a novel pretraining strategy that jointly opti-mizes representations across both transformer layers and multiple embedding dimensions. This enables a single model to be tailored to varied resource and accuracy targets while maintaining consistency with pretraining. Incorporating recent architectural improvements, m3BERT uses a three-stage pretraining: monolingual pretraining, multilingual adaptation to serve diverse user bases, and crucial continual pretraining on a massive web domain corpus to enhance utility in commercial retrieval. m3BERT significantly outperforms state-of-the-art embedding models in Bing-Click , a large-scale in-dustrial retrieval dataset, showcasing its practical versatility as an efficient foundation for resource-aware industrial retrieval systems.  
+
+> ∗This work is done during their internships at Microsoft.
+> †Corresponding author. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> Conference acronym ’XX, Woodstock, NY
+> ©2018 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+Further experiments on public datasets also confirm the general effectiveness of our multigranular Matryoshka pretraining strategy. 
+
+## CCS Concepts 
+
+• Information systems → Language models ; Web and social media search .
+
+## Keywords 
+
+information retrieval, language model, web search 
+
+ACM Reference Format: 
+
+Yaoxiang Wang, Simiao Zuo, Qingguo Hu, Yucheng Ding, Yeyun Gong, Jian Jiao, and Jinsong Su. 2018. m 3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder. In Proceedings of Make sure to enter the correct con-ference title from your rights confirmation email (Conference acronym ’XX). 
+
+ACM, New York, NY, USA, 13 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+The embedding model is a fundamental component in information retrieval, especially encoder-only transformer architectures [ 31 ], which are widely used in commercial applications such as search en-gines, advertising platforms, retrieval-augmented generation [ 47 ], and agent systems [ 11 ]. In these domains, pretraining on large-scale datasets followed by supervised fine-tuning with domain-specific data has proven to be an effective approach for building robust embedding models. Existing pretrained embedding models [ 21 , 26 , 40 , 44 ] provide powerful general-purpose embeddings and often incorporate train-ing strategies and architectural innovations to enhance perfor-mance. However, a significant limitation of these models lies in their rigid design: both the model size and the dimension of the generated embeddings are fixed. This rigidity makes it challenging to meet the diverse requirements of downstream tasks, which may demand varying trade-offs between retrieval performance, latency, and computational resources. Figure 1 illustrates this challenge: while increasing embedding dimension or model depth (number       
+
+> arXiv:2605.19568v1 [cs.CL] 19 May 2026 Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. 32 64 128 768
+> Embedding Dimension
+> 0.58
+> 0.60
+> 0.62
+> 0.64
+> 0.66
+> Performance (R@100)
+> (a) Performance vs. Embedding Dimension
+> Model Depth
+> 4 Layers
+> 8 Layers
+> 12 Layers
+> 4812
+> Number of Transformer Layers
+> 0.58
+> 0.60
+> 0.62
+> 0.64
+> 0.66
+> Performance (R@100)
+> (b) Performance vs. Number of Layers
+> Embedding Dim.
+> 32-dim
+> 64-dim
+> 128-dim
+> 768-dim
+
+Figure 1: Illustrative curves showing the diminishing returns of retrieval performance (Recall@100) with increasing (a) embedding dimension and (b) number of transformer layers for an mBERT model on Bing-Click . While performance generally improves, the gains diminish significantly at higher dimensions/depths, whereas computational costs (e.g., forward latency, embedding memory) often scale linearly. 
+
+of layers) generally improves retrieval performance, the gains of-ten diminish significantly at higher values. For instance, doubling the embedding dimension from 64 to 128 might yield a substantial performance boost, but further increasing it to 768 may offer only marginal improvements while linearly increasing retrieval latency and storage costs. This characteristic of diminishing return underscores the ineffi-ciency of a one-size-fits-all approach in embedding model design. Tasks with strict latency constraints or those deployed on resource-constrained hardware may thus require smaller models and lower-dimensional embeddings to operate efficiently, even if it means a slight compromise on performance. To obtain these smaller vari-ants from an existing large pre-trained model, a common practice is to construct a smaller architecture and initialize its parameters by copying a corresponding weights from the large model. How-ever, this approach of partial parameter initialization can fail to fully leverage the benefits of pre-training due to the misalignment between pretraining and downstream fine-tuning, thereby limiting the performance gains. To address this challenge, we draw inspiration from Matryoshka Representation Learning (MRL) [ 22 ], which enables flexibility in embedding representations by training them at multiple dimen-sions. Extending this concept, we propose a novel pre-training strategy that incorporates multigranular embedding representa-tions across both transformer layers and embedding dimensions. By jointly optimizing diverse embeddings along these two axes during pretraining, our approach equips the model with flexible and robust representations, making it a stronger foundation for fine-tuning across a broad range of downstream tasks requiring different model sizes and embedding dimensions. Building upon this strategy, we present m3BERT , a Modern, 
+
+Multi-lingual, Matryoshka Bidirectional Encoder, designed for flex-ible adaptation to varying deployment scenarios. While current widely used embedding models [ 29 , 30 , 40 ]predominantly adopt the traditional BERT architecture, recent advancements in language model design [ 20 , 37 , 38 ] have indicated potential sub-optimality in certain aspects of this structure. Consequently, we incorporate recent architectural improvements from large language models into our m3BERT . Our pre-training process comprises three dis-tinct stages: monolingual pretraining, multilingual pretraining, and continual pretraining on a large-scale web domain corpus. This three-stage approach is specifically designed to enhance the model’s performance in real-world retrieval tasks. Extensive experiments demonstrate the effectiveness and ro-bustness of our approach. On our collected large-scale industrial dataset BINGCLICK, m3BERT consistently outperforms current state-of-the-art embedding models across various model sizes and embedding dimensions. To further validate the generalizability of our matryoshka pre-training strategy, we conduct evaluations on multiple public datasets, showing that its benefits extend beyond our specific industrial use case. Additionally, we explore a novel self-distillation technique, termed Matryoshka Distillation, which leverages the nested structure of our model to further enhance the performance of smaller embeddings during the pre-training phase. The effectiveness of m3BERT is validated by its large-scale de-ployment at Bing Search. Since June 2025, m3BERT has been a core component of the production query-keyword selection workflow, consistently handling over 25,000 queries per second (QPS). This deployment, which contributes an annualized revenue impact of approximately USD 50 million, demonstrates the tangible business value and engineering success of our model design. Our main contributions can be summarized as follows: 
+
+• We introduce the Matryoshka Representation Learning par-adigm into the pretraining of embedding models and extend it to encompass multigranular representations across both transformer layers and embedding dimensions. This inno-vation enables a single pretrained model to effectively align with the varying deployment scenarios. m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+• We pretrain m3BERT , a novel model that incorporates mod-ern architectural advancements. We leverage a massive, multi-stage pre-training process, including a large-scale web do-main corpus, to specifically tailor the model for superior performance in industrial retrieval applications. 
+
+• Our model not only outperforms state-of-the-art baselines in extensive offline experiments but has also been proven under live traffic at Bing, delivering substantial business impact with an annualized revenue of USD 50 million. 
+
+## 2 m3BERT 2.1 Matryoshka Pretraining 
+
+To enable flexible and efficient embedding across various down-stream tasks, we propose a multigranular embedding pretraining strategy. Unlike traditional pre-training approaches that rely solely on the final layer and full-dimensional embeddings, our method jointly optimizes embeddings across multiple transformer layers and multiple sub-dimensions. Formally, let a transformer encoder have 𝑁 total layers, produc-ing hidden states {ℎ𝑘 }𝑁 𝑘 =1. Each full hidden state from a layer 𝑘 is 
+
+ℎ𝑘 ∈ R𝑠 ×𝑀 , where 𝑠 is the sequence length, and 𝑀 is the full embed-ding dimension. To accommodate diverse deployment scenarios, we predefine a set of selected layer indices 𝐿 ⊆ { 1, . . . , 𝑁 } and a set of target sub-dimensions 𝐷 ⊆ { 1, . . . , 𝑀 }. For each selected layer 
+
+𝑙 𝑖 ∈ 𝐿 and each sub-dimension 𝑑 𝑗 ∈ 𝐷 , we extract the truncated embedding from the output of layer 𝑙 𝑖 :
+
+ℎ𝑙 𝑖   
+
+> [:𝑑 𝑗 ]
+
+∈ R𝑠 ×𝑑 𝑗 
+
+where ℎ𝑙 𝑖   
+
+> [:𝑑 𝑗 ]
+
+denotes taking the first 𝑑 𝑗 dimensions of ℎ𝑙 𝑖 (the full 
+
+𝑀 -dimensional hidden state output by layer 𝑙 𝑖 ). This process results in |𝐿 | × | 𝐷 | distinct embedding representations that are jointly optimized during training. For masked language modeling (MLM) training, we reuse a shared MLM head. The MLM head consists of a projection ma-trix 𝑊 ∈ R𝑀 ×𝑉 and a bias 𝑏 ∈ R𝑉 , where 𝑉 is the vocabulary size. When using a truncated embedding ℎ𝑙 𝑖   
+
+> [:𝑑 𝑗 ]
+
+, we utilize the cor-responding submatrix 𝑊 [:𝑑 𝑗 ,:] ∈ R𝑑 𝑗 ×𝑉 to project the embedding into the vocabulary space: 
+
+ˆ𝑦 𝑙 𝑖 ,𝑑 𝑗 = Softmax 
+
+
+
+ℎ𝑙 𝑖  
+
+> [:𝑑 𝑗 ]
+
+𝑊 [:𝑑 𝑗 ,:] + 𝑏 
+
+
+
+The total loss is computed by aggregating the MLM losses across all selected (layer, sub-dimension) pairs: 
+
+Ltotal =∑︁  
+
+> 𝑙 𝑖 ∈𝐿
+
+∑︁ 𝑑 𝑗 ∈𝐷 
+
+LMLM ( ˆ𝑦 𝑙 𝑖 ,𝑑 𝑗 , 𝑦 )
+
+where 𝑦 denotes the ground-truth tokens at masked positions. By optimizing Ltotal , the model learns robust and flexible repre-sentations that are consistent and predictive across multiple granu-larities of layers and embedding dimensions. This design ensures that practitioners can dynamically select different model depths and embedding widths to balance the trade-offs between latency, memory, and performance. 
+
+## 2.2 Modern Architecture 
+
+Building upon the original BERT architecture, we incorporate sev-eral recent advancements from large language models (LLMs) to enhance training and inference efficiency, improve training stability, and boost overall model performance. 
+
+Activation Function. We replace the GeLU activation of BERT with SwiGLU [ 34 ], which has demonstrated better performance in transformer-based models [ 13 , 38 , 44 ]. The SwiGLU activation introduces a gated mechanism, providing stronger non-linearity and facilitating more effective feature learning. 
+
+Normalization. Following recent trends in LLM [ 1 , 38 ], we adopt the root mean square layer normalization (RMSNorm) [ 49 ] instead of the standard LayerNorm. Additionally, we transition from post-norm configuration to a pre-norm design, which stabilizes training and improves gradient flow in deep transformers [41]. 
+
+Bias Terms and Dropout. Recent studies [ 38 , 44 ] indicate that bias terms contribute little to model performance while introducing unnecessary computational overhead. We remove the bias terms in both the self-attention and feed-forward layers. Furthermore, we eliminate dropout applied to the hidden states between transformer layers, as its removal has been shown to maintain performance while simplifying the model and accelerating training. 
+
+Flash Attention. We replace the standard attention computation with FlashAttention [ 5, 6], an efficient algorithm that leverages tiling and memory-efficient strategies to significantly accelerate attention operations without compromising numerical precision. By integrating these architectural refinements, our model in-herits the proven strengths of BERT while benefiting from the efficiency and scalability improvements pioneered in recent LLMs. 
+
+## 2.3 Three-Stage Pretraining 
+
+To equip the model with broad linguistic understanding, cross-lingual capabilities, and domain-specific knowledge, we adopt a three-stage pretraining strategy. 
+
+Stage 1: Monolingual Pretraining. We first conduct pretraining on a large English corpus consisting of 100 billion tokens from Nemotron-CC [ 35 ] using the masked language modeling (MLM) objective. Although previous work [ 46 ] suggests that increasing the masking rate to 0.3 can benefit the training of larger models, we ob-serve that in our setting—which emphasizes learning from reduced layers and sub-dimensional embeddings—a high masking rate leads to unstable training and convergence issues. Therefore, we adopt a standard masking rate of 0.15 to balance learning difficulty and training stability. 
+
+Stage 2: Multilingual Pretraining. To extend the model’s capa-bilities to multilingual scenarios, we continue pretraining on a corpus constructed from the Wikipedia dumps of the top 100 lan-guages, totaling approximately 20 billion tokens. Following the general practice introduced by multilingual BERT [ 21 ], we apply an exponential smoothing strategy to balance the contribution of different languages. Specifically, if 𝑃 (𝐿 ) denotes the original data proportion for language 𝐿 , the sampling probability is adjusted as Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. Input Tokens 
+
+# Embedding Layer 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × l1
+
+# Block 1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × L1 
+
+# Transformer Layer × l|L |
+
+# Block |L|Blocks 
+
+# …
+
+# Target Tokens 
+
+# Matryoshka Embedding 
+
+# Matryoshka LM Head 
+
+Figure 2: Overview of the matryoshka model structure using masked language modeling (MLM) as the training objective. The model simultaneously optimizes embeddings across multiple transformer layers and multiple sub-dimensions. 
+
+𝑃 ′ (𝐿 ) ∝ 𝑃 (𝐿 )𝑆 with a smoothing factor 𝑆 = 0.7, followed by nor-malization. This approach mitigates the imbalance between high-resource and low-resource languages by relatively downsampling dominant languages like English and upsampling underrepresented languages. 
+
+Stage 3: Web Domain Pretraining. To specialize the model for ads and web search-related applications, we adapt our multigranular pretraining strategy using an infinite contrastive learning objective (Inf-CL) [ 4 ] on in-domain data. Inf-CL facilitates training with exceptionally large batch sizes by utilizing a tile-based computation strategy. This approach partitions the contrastive loss calculation, thereby avoiding the full materialization of the similarity matrix and overcoming typical GPU memory constraints associated with scaling contrastive learning. The training corpus consists of 10 billion query-document (Q-Doc) pairs collected from one month of user-ads click logs. Each pair includes ad features (e.g., keyword, ad titles and ad descriptions), and URL features (e.g., landing page titles and contents). We apply extensive data cleaning, including Q-Doc deduplication and query-level sampling caps. Pretraining continues from the Stage 2 checkpoint under the same multigranular learning settings, with batch sizes scaled up to one million samples. The model is trained for 2 trillion tokens over the corpus. 
+
+Training Details. For our model size, we adopt the same config-uration as mBERT-base 1 and mE5-base 2, utilizing 12 transformer 
+
+> 1https://huggingface.co/google-bert/bert-base-multilingual-uncased
+> 2https://huggingface.co/intfloat/multilingual-e5-base
+
+layers and a hidden size of 768. In Stage 1 and Stage 2, we adopt masked language modeling (MLM) as the training objective. For the multigranular optimization, we select a layer set 𝐿 = {4, 8, 12 }
+
+and a dimension set 𝐷 = {32 , 64 , 128 , 768 }. These granularities are specifically chosen to align with the hierarchical deployment tiers and hardware constraints in Bing’s production infrastructure, where different retrieval stages must adhere to latency budgets and memory limits. The learning rate was set to 1 × 10 −4 with a batch size of 128K sequences, each with a maximum length of 512 tokens. In Stage 3, we switch to the Infinite contrastive learning (Inf-CL) objective to better align with the web domain data, increasing the batch size to 1 million samples and setting the learning rate to 
+
+2 × 10 −4. For this stage, considering computational efficiency and practical application needs, the multigranular optimization utilizes a layer set 𝐿 = {4, 12 } and a dimension set 𝐷 = {32 , 64 , 128 }. Across all stages, we employ the AdamW optimizer [ 27 ] with 𝛽 1 = 0.9,
+
+𝛽 2 = 0.999 , a weight decay of 0.01 , and a cosine learning rate decay schedule with 10,000 warm-up steps. To enhance computational efficiency, bfloat16 mixed-precision training was utilized. The entire pretraining process was conducted on a cluster of NVIDIA A100 GPUs, accumulating approximately 40,000 GPU hours. 
+
+## 3 Experiments 
+
+This section presents a comprehensive empirical evaluation of our proposed framework. In Section 3.1, we detail the experimen-tal setup, including our large-scale industrial dataset Bing-Click .m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+Section 3.2 showcases the main results on Bing-Click , demon-strating that m3BERT achieves state-of-the-art performance in this industrial retrieval scenario. To validate the core of our method, Section 3.3 isolates the impact of the multigranular matryoshka pretraining strategy by comparing it against standard pretraining across multiple datasets. Finally, Section 3.4 discusses the successful deployment of our model, highlighting its operational scale and significant business impact. 
+
+## 3.1 Setup 
+
+Datasets. To evaluate the effectiveness of m3BERT in real-world industrial retrieval scenarios, we collected and curated a large-scale multilingual industrial text retrieval dataset, which we name Bing-Click . This dataset comprises a substantial volume of user queries and their corresponding clicked webpages, gathered from the Bing search engine across diverse languages and regions worldwide. Specifically, a page is considered a positive instance for a given user query if the user clicked on it and subsequently remained for ten seconds, indicating relevance. We amassed six months of such interaction data, resulting in 100 million query-page pairs after being filtered for training. For evaluation, we constructed a test set using the same methodology in another three months, ensuring that the click timestamps for the test data chronologically followed those of the training data to prevent data leakage and simulate a realistic deployment scenario. The test set is designed to emulate a large-scale retrieval system, consisting of a candi-date pool of 10 million unique documents and 1 million positive query-document pairs. This massive scale and the temporal sep-aration provide a high-fidelity proxy for the model’s robustness against evolving user trends in an online environment. To further validate the generalizability of matryoshka Pretraining beyond the industrial setting, we also conduct experiments on three public benchmarks: MS MARCO document ranking [ 2], Natural Ques-tions [23 ], and TREC-COVID [ 39 ]. More training details can be found in Appendix A.1. 
+
+Models. Our proposed models are evaluated in two configura-tions based on their pretraining: 
+
+• m3BERT-s2 : This model corresponds to the checkpoint ob-tained after Stage 1 (English pretraining) and Stage 2 (multi-lingual adaptation), primarily trained with the multigranular MLM objective. 
+
+• m3BERT-s3 : This model is the result of Stage 3, which is continually pretrained on the large-scale web domain corpus using the Inf-CL objective, also incorporating the multigran-ular learning strategy for layers and dimensions. We compare m3BERT against commonly used baseline embed-ding models of similar parameter scales to ensure a fair and mean-ingful comparison. These include: 
+
+• mBERT [21 ]: We use bert-base-multilingual, a standard mul-tilingual BERT model pretrained with masked language mod-eling and next sentence prediction objectives. 
+
+• mE5 [40 ]: We use multilingual-e5-base, a multilingual ver-sion of the E5 model designed for dense retrieval. 
+
+• ModernBERT [ 44 ]: We use ModernBERT-base, incorporat-ing modern architectural improvements, pretrained with MLM and a contrastive learning objective. We do not include significantly larger models such as bge-m3 [29 ]. To the best of our knowledge, embedding models used in some large-scale commercial scenarios are in the “lite” or base-size. To assess performance under stricter resource constraints and to leverage the matryoshka capabilities, we evaluate "lite" versions of all models, which utilize the first 1/3 of their total transformer layers. For embedding dimension, we report results for 32, 64, 128, and 768 dimensions. A notable exception is m3BERT-s3 ; due to its multigranular pretraining in Stage 3 being optimized for ma-tryoshka embeddings up to 128 dimensions, we evaluate it for 32, 64, and 128 dimensions. 
+
+Supervised Finetuning. All models are supervised fine-tuned (SFT) using a contrastive learning objective with in-batch negatives. Given a query 𝑞 , its corresponding positive document 𝑑 +, and a set of 𝑁 − 1 negative documents {𝑑 − 
+
+> 𝑖
+
+}𝑁 −1 
+
+> 𝑖 =1
+
+from the same batch, we first define the scaled similarity score as 𝑠 (𝑞, 𝑑 ) = sim (𝐸 (𝑞 ), 𝐸 (𝑑 ))/ 𝜏 .Here, 𝐸 (·) is the embedding function (the model), sim (· , ·) is the co-sine similarity, and the temperature 𝜏 is set to 0.05 . The contrastive loss for the query is then formulated as: 
+
+LSFT = − log exp (𝑠 (𝑞, 𝑑 +)) 
+
+exp (𝑠 (𝑞, 𝑑 +)) + Í𝑁 −1 
+
+> 𝑖 =1
+
+exp (𝑠 (𝑞, 𝑑 − 
+
+> 𝑖
+
+)) (1) For Bing-Click , we use a batch size of 1024 and a learning rate of 5 × 10 −4. For MS MARCO , Natural Questions , and TREC-COVID , we use a batch size of 32 and a learning rate of 2×10 −5. The models are trained on 8 NVIDIA A100 GPUs using the AdamW opti-mizer [ 27 ] with fp16 mixed-precision training. Results are averaged over three runs. More training details can be found in Appendix A.1. 
+
+## 3.2 Main Results 
+
+We evaluate Recall@100 and Recall@1000 of all models on the Bing-Click test set. The comprehensive results, comparing m3BERT-s2 and m3BERT-s3 against the baselines across various layer configu-rations (full and lite) and embedding dimensions (32, 64, 128, 768), are presented in Table 1. The results consistently demonstrate the superiority of m3BERT framework. Across all evaluated configurations, both m3BERT-s2 and m3BERT-s3 significantly outperform the baseline models. This advantage is evident not only when using the full model depth and standard 768 embedding dimension but also extends robustly to the “lite” models (1/3 layers) and lower matryoshka embedding dimensions (32, 64, 128). Particularly noteworthy is the performance of m3BERT-s3 . In our experiments, we observed that m3BERT-s2 had already reached a state of convergence on the general-purpose multilingual corpora from Stage 2, and further pretraining on the same data yielded negligible gains. The continued pretraining on the large-scale web domain corpus (Stage 3) provides a substantial boost in retrieval effectiveness, showcasing the benefit of domain-specific adaptation combined with our multigranular pretraining strategy. Even at very low dimensions like 32 or 64, m3BERT-s3 surpasses or performs competitively with baseline models using much larger embeddings, highlighting the efficiency and representational power instilled by Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. 
+
+Table 1: Main retrieval performance (Recall@100 and Recall@1000) on the Bing-Click test set. Results are grouped by model configuration (Lite or Full layers). Best performing figures for each metric and configuration are in bold. m3BERT-s3 is not evaluated at 768 dim due to its matryoshka pretraining focus up to 128 dim. 
+
+Model Dim=32 Dim=64 Dim=128 Dim=768 R@100 R@1000 R@100 R@1000 R@100 R@1000 R@100 R@1000 
+
+Lite (1/3 layers) 
+
+mBERT 57.46 80.78 62.50 84.67 64.58 86.27 65.39 86.99 mE5 57.18 80.63 62.16 84.40 64.40 86.14 65.39 86.90 ModernBERT 57.10 80.55 62.43 84.59 64.59 86.23 65.34 86.87 m3BERT-s2 58.34 81.67 63.43 85.49 65.47 87.02 66.33 87.66 
+
+m3BERT-s3 62.06 84.52 66.47 87.67 67.72 88.51 – –
+
+Full 
+
+mBERT 59.74 82.83 64.63 86.28 66.76 87.69 67.33 88.12 mE5 59.31 82.24 64.32 85.98 66.85 87.39 67.97 88.49 ModernBERT 59.44 82.65 64.62 86.27 66.75 87.71 67.50 88.25 m3BERT-s2 60.25 83.29 65.44 87.00 67.34 88.37 68.32 89.00 
+
+m3BERT-s3 63.30 85.50 67.60 88.35 68.94 89.23 – –our approach. The consistent gains across the spectrum of model sizes and embedding dimensions underscore the flexibility and strong generalization capabilities of m3BERT , making it a highly ef-fective foundation for industrial applications with varying resource constraints. 
+
+Table 2: Recall@100 comparison of Matryoshka vs. Standard pretraining across datasets and embedding dimensions. 
+
+Dataset Strategy D=32 D=64 D=128 D=768 
+
+Bing-Click Standard 57.19 62.50 64.95 65.55 Matryoshka 57.53 62.79 64.62 65.44 
+
+MS MARCO Standard 50.08 57.98 61.25 63.91 Matryoshka 51.55 58.63 61.29 63.28 
+
+Natural Questions 
+
+Standard 81.17 88.36 91.56 91.80 Matryoshka 83.74 88.49 91.09 91.32 
+
+TREC-COVID Standard 76.07 83.58 86.92 88.07 Matryoshka 79.23 84.14 86.33 87.36 
+
+## 3.3 Impact of Matryoshka Pretraining 
+
+To assess the direct benefits of our multigranular matryoshka pre-training strategy, we compare it against standard pretraining ap-proaches where models are individually optimized for specific layer depths and embedding dimensions. We conduct two main pretrain-ing paradigms for 100,000 steps using the Stage-1 English corpus, identical hyperparameters and architecture: 
+
+• Standard Pretraining : For this paradigm, we train separate models. Each model is pretrained using a standard MLM objective where the loss is computed *only* from a specific target layer (the 4th) and for a specific target full-dimension (32, 64, 128, or 768). This results in 4 distinct pretrained models. 
+
+• Matryoshka Pretraining : Our proposed approach, where a single model is pretrained. The MLM loss is aggregated across multiple selected layers (including the 4th and 12th) and multiple sub-dimensions (32, 64, 128, and 768), as de-scribed in Section 2.1. All pretrained models adopt the m3BERT architecture and are in-dependently fine-tuned (SFT) on each downstream dataset: Bing-Click , MS MARCO , Natural Questions , and TREC-COVID . For all of the standard pretrained models, SFT targets the specific layer and dimension they were pretrained for. For the Matryoshka model, SFT also targets specific layer/dimension combinations for evalua-tion, but benefits from the joint pretraining. As shown in Table 2, the single matryoshka-pretrained model achieve comparable performance to individually pretrained coun-terparts. Notably, while performance at the highest dimension may show minor reductions in some datasets, matryoshka pretraining consistently improves retrieval quality at lower dimensions. This in-dicates that matryoshka pretraining enhances the flexibility of rep-resentation learning, particularly benefiting resource-constrained deployment scenarios where compact embeddings are crucial. 
+
+## 3.4 Deployment 
+
+The model was mainstreamed in 2025 as a core component of the query–keyword online selection workflow, where it consistently handles 25,000 queries per second (QPS) under production traffic. To support this scale, we deployed a large-scale document index containing over 120 million keywords, enabling coverage across diverse query intents and verticals. Retrieval is powered by an approximate nearest neighbor (ANN) search framework, which efficiently narrows down the search space and returns the top 100 most relevant keywords for each incoming query with low latency. From a business perspective, this deployment has proven to be highly impactful. By integrating the model directly into the serving stack, we improved both the efficiency and precision of query–keyword matching, driving measurable gains in downstream m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+ad relevance and monetization. The system currently contributes an annualized revenue impact (APR) of approximately USD 50 million, establishing it as one of the most valuable model deployments in the query understanding pipeline. 
+
+## 4 Analysis 
+
+In this section, we analyze the contributions of different compo-nents of m3BERT and explore more matryoshka strategies. Sec-tion 4.1 shows the impact of various modern architectural com-ponents on model performance. Section 4.2 explores how lever-aging higher-dimensional representations as teacher signals can enhance the performance of lower-dimensional embeddings during matryoshka pretraining. Section 4.3 demonstrates the advantages of using models pretrained with matryoshka strategy in conjunction with matryoshka supervised fine-tuning. 
+
+## 4.1 Architecture Ablation 
+
+To quantify the impact of the modern architectural modifications incorporated into m3BERT , we perform an ablation study. Starting with our m 3BERT-s2 model in a lite configuration (1/3 layers) and using 64-dimensional embeddings, we systematically revert each enhancement to its counterpart in traditional BERT or E5 models. Specifically, we evaluate the following variations: 
+
+• Replacing SwiGLU with GeLU activation ( w/o SwiGLU ). 
+
+• Reverting from pre-normalization to post-normalization ( w/o Pre-norm ). 
+
+• Replacing RMSNorm with standard LayerNorm ( w/o RM-SNorm ). 
+
+• Re-introducing dropout on hidden states between trans-former layers ( w/ Dropout ). 
+
+• Re-introducing the bias terms in self-attention and feed-forward layers ( w/ Bias ). Each ablated model is trained on the Bing-Click dataset without pretraining. The results, presented in Table 4, show that while some architectural choices positively impact the final performance, others exhibit negligible effects on accuracy but, as noted by [ 38 ], con-tribute to computational efficiency or training stability, justifying their inclusion in m 3BERT. 
+
+## 4.2 Matryoshka Distillation 
+
+Given the nature of matryoshka pretraining, which simultane-ously optimizes embeddings across multiple layers and dimensions, we explore leveraging deeper, higher-dimensional embeddings as "teacher" signals for shallower, lower-dimensional embeddings dur-ing the pretraining process itself. This can be viewed as a form of self-distillation inherent to the matryoshka framework. To investi-gate this, we take the m3BERT model checkpoint from Stage 1 after 300,000 pretraining steps as our base. We then continue pretraining for an additional 50,000 steps under several distillation settings. The distillation objective aims to minimize the KL divergence be-tween the output distributions of the LM heads corresponding to the teacher and student embeddings. The specific settings are as follows: 
+
+• Continued MRL Pretraining : Continue standard matryoshka pretraining for 50k steps (baseline for this experiment). 
+
+• Distill L12-D768 to All : The embedding from the 12th layer and 768 dimensions acts as the teacher. Its LM head output is used to distill knowledge to the LM head outputs of all 11 other combinations of layers (4th, 8th, 12th) and dimensions (32, 64, 128, 768), excluding the teacher itself. 
+
+• Specific Distillation : Use the LM head output from the 12th layer as the teacher and distill to the 4th layer, 64-dimension embedding. We experiment with two variants: (1) teacher = L12-D64, and (2) teacher = L12-D768. We evaluate the performance of the 4th layer, 64-dimension em-bedding (L4-D64) after these continued pretraining variants on the 
+
+Bing-Click dataset. The results in Table 5 suggest that leveraging deeper or higher-dimensional embeddings as teacher signals dur-ing pretraining can indeed enhance the performance of shallower, lower-dimensional student embeddings. However, the "Distill L12-D768 to All" setting, where a single powerful teacher attempts to guide numerous diverse students simultaneously, does not show a comparable benefit . This might indicate that overly broad distilla-tion targets could introduce conflicting signals or noise, potentially interfering with the nuanced learning required for each specific layer-dimension combination. 
+
+## 4.3 Matryoshka Finetuning 
+
+We also investigate the application of the MRL principle during the supervised fine-tuning (SFT) phase. Standard SFT typically op-timizes a model for a single embedding dimension, which often yields the best possible performance at that specific dimension. MRL SFT aims to make the model perform well across a set of chosen dimensions ( DSFT = {32 , 64 , 128 , 768 } for m3BERT-s2 , and 
+
+DSFT = {32 , 64 , 128 } for m3BERT-s3 ), aggregating SFT loss contri-butions from these dimensions. This explicit optimization for mul-tiple granularities can sometimes introduce a slight performance decrease at any single dimension compared to dedicated standard SFT. Table 3 presents the performance of Lite models fine-tuned with the MRL SFT strategy, alongside the performance change (in paren-theses) relative to their standard SFT counterparts (from Table 1, Lite section). While MRL SFT can lead to minor performance drops across all models, our m3BERT models , having been pretrained with an MRL objective, generally exhibit smaller performance degra-dation compared to the baseline models when subjected to MRL SFT. This indicates that MRL pretraining effectively prepares the model architecture for subsequent MRL SFT, allowing it to maintain strong, flexible performance across various embedding dimensions with a more mitigated trade-off. 
+
+## 5 Related Work 5.1 Pretrained Embedding Models 
+
+The advent of encoder-only Transformer architectures, exempli-fied by BERT [ 21 ] and its successors like RoBERTa [ 26 ], has sig-nificantly advanced information retrieval by providing powerful contextualized text embeddings. Subsequent specialized models such as Sentence-BERT [ 32 ], and more recently E5 [ 40 ] and Mod-ernBERT [ 44 ], have further refined these embeddings for retrieval tasks through techniques like contrastive learning [ 12 , 25 , 32 ] and Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. 
+
+Table 3: Matryoshka Supervised Finetuning (MRL SFT) performance on Bing-Click (Lite models). Parenthesized values denote the performance drop ( Δ) compared to standard single-dimension finetuning. Bold indicates the smallest performance drop in each column. 
+
+Model (Lite) Dim=32 Dim=64 Dim=128 Dim=768 R@100 R@1000 R@100 R@1000 R@100 R@1000 R@100 R@1000 mBERT 57.12 (-0.34) 80.66 (-0.12) 62.29 (-0.21) 84.59 (-0.08) 63.87 (-0.71) 85.87 (-0.40) 64.26 (-1.13) 86.20 (-0.79) mE5 56.91 (-0.27) 80.33 (-0.30) 61.87 (-0.29) 84.20 (-0.20) 63.44 (-0.96) 85.42 (-0.72) 63.99 (-1.40) 85.91 (-0.99) ModernBERT 56.34 (-0.76) 80.24 (-0.31) 62.29 (-0.14) 84.65 (+0.06) 63.80 (-0.79) 85.79 (-0.44) 64.11 (-1.23) 86.00 (-0.87) m3BERT-s2 58.25 (-0.09) 81.59 (-0.08) 63.52 (+0.09) 85.51 (+0.02) 65.01 (-0.46) 86.64 (-0.38) 65.36 (-0.97) 86.96 (-0.70) 
+
+m3BERT-s3 61.73 (-0.33) 84.30 (-0.22) 66.45 (-0.02) 87.56 (-0.11) 67.39 (-0.33) 88.19 (-0.32) – –
+
+Table 4: Architecture ablation for m 3BERT on Bing-Click .
+
+Model Configuration R@100 R@1000 m3BERT 61.65 84.13 – SwiGLU 60.18 82.79 – Pre-norm 61.42 84.01 – RMSNorm 61.66 84.12 + Hidden Dropout 61.65 84.14 + Bias Terms 61.53 84.12 
+
+Table 5: Impact of Matryoshka Distillation. 
+
+Pretraining Strategy R@100 R@1000 MRL Pretraining (300k steps) 62.96 85.15 
+
++ 50k additional steps 
+
+MRL Pretraining 63.00 85.20 Distill L12-D768 to All 62.98 85.20 Distill L12-D64 to L4-D64 63.12 85.30 
+
+Distill L12-D768 to L4-D64 63.14 85.27 instruction tuning [ 40 , 45 ]. These models are typically pretrained on vast corpora and then fine-tuned for specific domains. However, a critical limitation of these existing pretrained embed-ding models is their fixed architecture and output dimension. This inherent rigidity makes it challenging to efficiently adapt them to diverse downstream applications with varying latency and com-putational resource constraints, common in commercial systems. While solutions like task-specific fine-tuning of smaller models by partial initialization or post-hoc compression [ 15 , 16 , 19 ] exist, they often fail to fully leverage the extensive knowledge of large pretrained models. 
+
+## 5.2 Matryoshka Representation Learning 
+
+Matryoshka Representation Learning (MRL)[ 22 ] presents a novel approach to create adaptable representations by training a single model whose embeddings are effective even when truncated to various smaller nested dimensions . This allows for a direct trade-off between performance and computational cost without needing to train or store multiple distinct models, and has shown promise in vision[ 43 ] and language tasks [ 24 ] by enabling flexible deployment. Beyond output embeddings, the core principle of MRL has also been extended to internal model components [ 8, 42 ], and its versatility is further demonstrated in multimodal learning [ 3, 18 ] and federated learning for knowledge sharing [48]. While MRL offers valuable dimensional flexibility, its applica-tion focused on the output embeddings, often during fine-tuning stages [ 24 ], rather than being integrated into the pretraining of foundation models. Furthermore, existing MRL work primarily ad-dresses variability in embedding dimension [ 22 ], not extending this adaptive capability to the model’s architectural depth. Our work is inspired by MRL’s efficiency but aims to extend its principles by incorporating multigranular optimization across both embedding dimensions and transformer layers directly within the pretraining phase, creating a more fundamentally versatile foundation model. 
+
+## 5.3 Efficient Model Deployment 
+
+To bridge the gap between large, powerful models and resource-constrained deployment environments, a variety of techniques have gained prominence. Knowledge distillation [ 16 ] focuses on transfer-ring complex capabilities from teacher to student models [ 14 , 17 , 28 ]. Other methods operate directly on a trained network, such as prun-ing techniques which can remove significant weights in a one-shot manner [ 9 , 36 ], and advanced quantization methods that drastically reduce the numerical precision of parameters with minimal perfor-mance loss [ 7, 10 ]. A different approach involves dynamic networks that adapt computation at inference time through adaptive layer skipping or early exiting based on input confidence [33]. These methods have limitations in the context of flexible, large-scale deployment. Knowledge distillation requires separate training and maintaining a student model for each specific performance target, which can be computationally expensive and add significant engineering overhead. Dynamic methods like early exiting are not directly controllable for deploying a model variant tailored to a specific hardware profile . Pruning and quantization are largely orthogonal to our work and can be combined with our approach. 
+
+## 6 Conclusion 
+
+We proposed m3BERT , a Modern, Multilingual, Matryoshka Bidi-rectional Encoder that leverages a novel matryoshka pretraining strategy to optimize embedding representations across multiple transformer layers and dimensions. Extensive experiments on the m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+BINGCLICK dataset demonstrate that m3BERT consistently out-performs state-of-the-art models across various model sizes and embedding dimensions, effectively balancing resource efficiency and retrieval performance in industrial settings. The model’s effec-tiveness is also verified by its successful deployment at Bing. Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. 
+
+## References 
+
+[1] Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, et al . 2023. Qwen technical report. arXiv preprint arXiv:2309.16609 (2023). [2] Payal Bajaj, Daniel Campos, Nick Craswell, Li Deng, Jianfeng Gao, Xiaodong Liu, Rangan Majumder, Andrew McNamara, Bhaskar Mitra, Tri Nguyen, Mir Rosenberg, Xia Song, Alina Stoica, Saurabh Tiwary, and Tong Wang. 2018. MS MARCO: A Human Generated MAchine Reading COmprehension Dataset. arXiv:1611.09268 [cs.CL] [3] Mu Cai, Jianwei Yang, Jianfeng Gao, and Yong Jae Lee. 2025. Matryoshka multi-modal models. In The Thirteenth International Conference on Learning Representa-tions .[4] Zesen Cheng, Hang Zhang, Kehan Li, Sicong Leng, Zhiqiang Hu, Fei Wu, Deli Zhao, Xin Li, and Lidong Bing. 2024. Breaking the Memory Barrier: Near Infinite Batch Size Scaling for Contrastive Loss. arXiv preprint arXiv:2410.17243 (2024). [5] Tri Dao. 2023. Flashattention-2: Faster attention with better parallelism and work partitioning. arXiv preprint arXiv:2307.08691 (2023). [6] Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 2022. Flashat-tention: Fast and memory-efficient exact attention with io-awareness. Advances in neural information processing systems 35 (2022), 16344–16359. [7] Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. 2023. QLoRA: Efficient Finetuning of Quantized LLMs. In Advances in Neural Informa-tion Processing Systems , A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine (Eds.), Vol. 36. Curran Associates, Inc., 10088–10115. [8] Fnu Devvrit, Sneha Kudugunta, Aditya Kusupati, Tim Dettmers, Kaifeng Chen, Inderjit Dhillon, Yulia Tsvetkov, Hanna Hajishirzi, Sham Kakade, Ali Farhadi, et al . 2024. Matformer: Nested transformer for elastic inference. Advances in Neural Information Processing Systems (2024). [9] Elias Frantar and Dan Alistarh. 2023. SparseGPT: Massive Language Models Can be Accurately Pruned in One-Shot. In International Conference on Machine Learning, ICML 2023 (Proceedings of Machine Learning Research, Vol. 202) . PMLR, 10323–10337. [10] Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2023. GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers. In International Conference on Learning Representations .[11] Linfeng Gao, Yaoxiang Wang, Minlong Peng, Jialong Tang, Yuzhe Shang, Ming-ming Sun, and Jinsong Su. 2025. Tool Graph Retriever: Exploring Depen-dency Graph-based Tool Retrieval for Large Language Models. arXiv preprint arXiv:2508.05152 (2025). [12] Tianyu Gao, Xingcheng Yao, and Danqi Chen. 2021. SimCSE: Simple Contrastive Learning of Sentence Embeddings. In Proceedings of the 2021 Conference on Em-pirical Methods in Natural Language Processing (EMNLP) .[13] Dirk Groeneveld, Iz Beltagy, Pete Walsh, Akshita Bhagia, Rodney Kinney, Oyvind Tafjord, Ananya Harsh Jha, Hamish Ivison, Ian Magnusson, Yizhong Wang, et al . 2024. Olmo: Accelerating the science of language models. arXiv preprint arXiv:2402.00838 (2024). [14] Yuxian Gu, Li Dong, Furu Wei, and Minlie Huang. 2024. MiniLLM: Knowledge Distillation of Large Language Models. In International Conference on Learning Representations .[15] Song Han, Huizi Mao, and William J Dally. 2015. Deep compression: Compressing deep neural networks with pruning, trained quantization and huffman coding. 
+
+arXiv preprint arXiv:1510.00149 (2015). [16] Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. 2015. Distilling the knowledge in a neural network. arXiv preprint arXiv:1503.02531 (2015). [17] Cheng-Yu Hsieh, Chun-Liang Li, Chih-kuan Yeh, Hootan Nakhost, Yasuhisa Fujii, Alex Ratner, Ranjay Krishna, Chen-Yu Lee, and Tomas Pfister. 2023. Distilling Step-by-Step! Outperforming Larger Language Models with Less Training Data and Smaller Model Sizes. In Findings of the Association for Computational Linguistics: ACL 2023 . Association for Computational Linguistics, Toronto, Canada, 8003– 8017. [18] Wenbo Hu, Zi-Yi Dou, Liunian Li, Amita Kamath, Nanyun Peng, and Kai-Wei Chang. 2024. Matryoshka query transformer for large vision-language models. 
+
+Advances in Neural Information Processing Systems (2024). [19] Benoit Jacob, Skirmantas Kligys, Bo Chen, Menglong Zhu, Matthew Tang, Andrew Howard, Hartwig Adam, and Dmitry Kalenichenko. 2018. Quantization and training of neural networks for efficient integer-arithmetic-only inference. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition .2704–2713. [20] Gueyoung Jung, Matti A Hiltunen, Kaustubh R Joshi, Richard D Schlichting, and Calton Pu. 2010. Mistral: Dynamically managing power, performance, and adaptation cost in cloud infrastructures. In 2010 IEEE 30th International Conference on Distributed Computing Systems . IEEE, 62–73. [21] Jacob Devlin Ming-Wei Chang Kenton and Lee Kristina Toutanova. 2019. Bert: Pre-training of deep bidirectional transformers for language understanding. In 
+
+Proceedings of naacL-HLT , Vol. 1. Minneapolis, Minnesota. [22] Aditya Kusupati, Gantavya Bhatt, Aniket Rege, Matthew Wallingford, Aditya Sinha, Vivek Ramanujan, William Howard-Snyder, Kaifeng Chen, Sham Kakade, Prateek Jain, et al . 2022. Matryoshka representation learning. Advances in Neural Information Processing Systems 35 (2022), 30233–30249. [23] Tom Kwiatkowski, Jennimaria Palomaki, Olivia Redfield, Michael Collins, Ankur Parikh, Chris Alberti, Danielle Epstein, Illia Polosukhin, Jacob Devlin, Kenton Lee, Kristina Toutanova, Llion Jones, Matthew Kelcey, Ming-Wei Chang, Andrew M. Dai, Jakob Uszkoreit, Quoc Le, and Slav Petrov. 2019. Natural Questions: A Benchmark for Question Answering Research. Transactions of the Association for Computational Linguistics 7 (2019). [24] Riwei Lai, Li Chen, Weixin Chen, and Rui Chen. 2024. Matryoshka Representation Learning for Recommendation. arXiv preprint arXiv:2406.07432 (2024). [25] Zhibin Lan, Liqiang Niu, Fandong Meng, Jie Zhou, and Jinsong Su. 2025. Llave: Large language and vision embedding models with hardness-weighted con-trastive learning. arXiv preprint arXiv:2503.04812 (2025). [26] Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692 
+
+(2019). [27] Ilya Loshchilov and Frank Hutter. 2017. Decoupled weight decay regularization. 
+
+arXiv preprint arXiv:1711.05101 (2017). [28] Zhongjian Miao, Wen Zhang, Jinsong Su, Xiang Li, Jian Luan, Yidong Chen, Bin Wang, and Min Zhang. 2023. Exploring all-in-one knowledge distillation framework for neural machine translation. In Proceedings of the 2023 conference on empirical methods in natural language processing . 2929–2940. [29] Multi-Linguality Multi-Functionality Multi-Granularity. 2024. M3-Embedding: Multi-Linguality, Multi-Functionality, Multi-Granularity Text Embeddings Through Self-Knowledge Distillation. (2024). [30] OrdalieTech. [n. d.]. Solon Embeddings Large 0.1. https://huggingface.co/ OrdalieTech/Solon-embeddings-large-0.1. [31] Rajvardhan Patil, Sorio Boit, Venkat Gudivada, and Jagadeesh Nandigam. 2023. A survey of text representation and embedding techniques in nlp. IEEE Access 11 (2023), 36120–36146. [32] Nils Reimers and Iryna Gurevych. 2019. Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. In Proceedings of the 2019 Conference on Em-pirical Methods in Natural Language Processing . Association for Computational Linguistics. [33] Tal Schuster, Adam Fisch, Jai Gupta, Mostafa Dehghani, Dara Bahri, Vinh Tran, Yi Tay, and Donald Metzler. 2022. Confident Adaptive Language Modeling. In Advances in Neural Information Processing Systems , S. Koyejo, S. Mohamed, A. Agarwal, D. Belgrave, K. Cho, and A. Oh (Eds.), Vol. 35. Curran Associates, Inc., 17456–17472. [34] Noam Shazeer. 2020. Glu variants improve transformer. arXiv preprint arXiv:2002.05202 (2020). [35] Dan Su, Kezhi Kong, Ying Lin, Joseph Jennings, Brandon Norick, Markus Kliegl, Mostofa Patwary, Mohammad Shoeybi, and Bryan Catanzaro. 2024. Nemotron-CC: Transforming Common Crawl into a Refined Long-Horizon Pretraining Dataset. arXiv preprint arXiv:2412.02595 (2024). [36] Mingjie Sun, Zhuang Liu, Anna Bair, and Zico Kolter. 2024. A Simple and Effective Pruning Approach for Large Language Models. In International Conference on Representation Learning , B. Kim, Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun (Eds.). 4942–4964. [37] Gemma Team, Thomas Mesnard, Cassidy Hardin, Robert Dadashi, Surya Bhupati-raju, Shreya Pathak, Laurent Sifre, Morgane Rivière, Mihir Sanjay Kale, Juliette Love, et al . [n. d.]. Gemma: Open models based on gemini research and technology, 2024. URL https://arxiv. org/abs/2403.08295 2 ([n. d.]), 10–19. [38] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al . 2023. Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971 (2023). [39] Ellen Voorhees, Tasmeer Alam, Steven Bedrick, Dina Demner-Fushman, William R Hersh, Kyle Lo, Kirk Roberts, Ian Soboroff, and Lucy Lu Wang. 2020. TREC-COVID: Constructing a Pandemic Information Retrieval Test Collection. arXiv:2005.04474 [40] Liang Wang, Nan Yang, Xiaolong Huang, Binxing Jiao, Linjun Yang, Daxin Jiang, Rangan Majumder, and Furu Wei. 2022. Text embeddings by weakly-supervised contrastive pre-training. arXiv preprint arXiv:2212.03533 (2022). [41] Qiang Wang, Bei Li, Tong Xiao, Jingbo Zhu, Changliang Li, Derek F Wong, and Lidia S Chao. 2019. Learning deep transformer models for machine translation. 
+
+arXiv preprint arXiv:1906.01787 (2019). [42] Yaoxiang Wang, Qingguo Hu, Yucheng Ding, Ruizhe Wang, Yeyun Gong, Jian Jiao, Yelong Shen, Peng Cheng, and Jinsong Su. 2025. Training Matryoshka Mixture-of-Experts for Elastic Inference-Time Expert Utilization. arXiv preprint arXiv:2509.26520 (2025). [43] Yueqi Wang, Zhenrui Yue, Huimin Zeng, Dong Wang, and Julian McAuley. 2024. Train once, deploy anywhere: Matryoshka representation learning for multimodal recommendation. arXiv preprint arXiv:2409.16627 (2024). [44] Benjamin Warner, Antoine Chaffin, Benjamin Clavié, Orion Weller, Oskar Hall-ström, Said Taghadouini, Alexis Gallagher, Raja Biswas, Faisal Ladhak, Tom Aarsen, Nathan Cooper, Griffin Adams, Jeremy Howard, and Iacopo Poli. 2024. m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                 
+
+> Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient, and Long Context Finetuning and Inference. arXiv:2412.13663 [45] Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le. 2021. Finetuned language models are zero-shot learners. arXiv preprint arXiv:2109.01652 (2021). [46] Alexander Wettig, Tianyu Gao, Zexuan Zhong, and Danqi Chen. 2022. Should you mask 15% in masked language modeling? arXiv preprint arXiv:2202.08005
+> (2022). [47] Zhishang Xiang, Chuanjie Wu, Qinggang Zhang, Shengyuan Chen, Zijin Hong, Xiao Huang, and Jinsong Su. 2025. When to use graphs in rag: A compre-hensive analysis for graph retrieval-augmented generation. arXiv preprint arXiv:2506.05690 (2025). [48] Liping Yi, Han Yu, Chao Ren, Gang Wang, Xiaoxiao Li, et al .2024. Federated model heterogeneous matryoshka representation learning. Advances in Neural Information Processing Systems (2024). [49] Biao Zhang and Rico Sennrich. 2019. Root mean square layer normalization.
+> Advances in Neural Information Processing Systems 32 (2019).
+
+## A Implementation Details A.1 Evaluation 
+
+As mentioned in Section 4.1, we conduct experiments on four bench-mark datasets: BING-CLICK, MS MARCO Document Ranking, Nat-ural Questions, and TREC-COVID. All datasets are formatted as query-document pairs to align with our model’s input requirements. Specifically, for the Natural Questions dataset, we use question-answer pairs where the answer span is treated as the relevant document. For TREC-COVID, we adopt the title-text pairs, where the title represents the query and the document text serves as the candidate passage. Our evaluation pipeline leverages the sentence-transformers for generating text embeddings from the fine-tuned models. For the retrieval tasks, we employ Faiss, a library for efficient similarity search. Specifically, we perform an exhaustive (exact) search using the inner product similarity (cosine similarity on L2-normalized embeddings). This is typically achieved using Faiss indices like 
+
+IndexFlatIP after ensuring all embeddings are L2-normalized. No approximate nearest neighbor (ANN) search methods were used for the reported results to ensure precise recall figures. The Recall@K metric is computed as follows: For each query 𝑞 in the test set and its corresponding ground-truth positive document 
+
+𝑑 + ∈ D pool (where Dpool is the 10 million document candidate pool): (1) Obtain the query embedding 𝐸 (𝑞 ) and the embeddings for all documents 𝑑 𝑖 ∈ D pool , denoted 𝐸 (𝑑 𝑖 ).(2) Calculate the similarity score (cosine similarity) between 
+
+𝐸 (𝑞 ) and every 𝐸 (𝑑 𝑖 ).(3) Rank all documents in Dpool based on their similarity scores with 𝐸 (𝑞 ) in descending order. (4) If the ground-truth positive document 𝑑 + is found within the top K ranked documents, this query is considered a "hit" for Recall@K. (5) The final Recall@K is the proportion of queries for which 
+
+𝑑 + was retrieved within the top K results, averaged over all test queries. We report Recall@100 and Recall@1000 in our experiments. 
+
+## A.2 Matryoshka Distillation 
+
+As explored in Section 4.3.3, Matryoshka distillation aims to lever-age deeper or higher-dimensional embeddings as teacher signals for shallower or lower-dimensional student embeddings during pre-training. The distillation objective minimizes the Kullback-Leibler (KL) divergence between the predicted token distributions from the LM heads of the teacher and student embeddings. Given a teacher embedding output ℎ𝑇 (e.g., from layer 𝑙 𝑇 , dimension 𝑑 𝑇 ) and a stu-dent embedding output ℎ𝑆 (e.g., from layer 𝑙 𝑆 , dimension 𝑑 𝑆 ), their respective predicted token distributions over the vocabulary 𝑉 
+
+are 𝑃 𝑇 = Softmax (ℎ𝑇 𝑊 [:𝑑 𝑇 ,:] /𝜏 𝐷 ) and 𝑃 𝑆 = Softmax (ℎ𝑆 𝑊 [:𝑑 𝑆 ,:] /𝜏 𝐷 ),where 𝑊 is the shared MLM projection matrix and 𝜏 𝐷 is the distilla-tion temperature. The distillation loss for a single teacher-student pair is: 
+
+Ldistill (𝑃 𝑆 || 𝑃 𝑇 ) =∑︁  
+
+> 𝑣 ∈𝑉
+
+𝑃 𝑆 (𝑣 ) log 𝑃 𝑆 (𝑣 )
+
+𝑃 𝑇 (𝑣 ) (2) When multiple student (or teacher) embeddings are involved, such as in the "Distill L12-D768 to All" setting, the individual KL diver-gence losses are summed. This distillation loss is then added to the primary Matryoshka pretraining loss (e.g., multigranular MLM loss 
+
+LMRL ): 
+
+Ltotal = LMRL + 𝜆 𝐷 ∑︁  
+
+> (𝑆,𝑇 ) ∈ P distill
+
+Ldistill (𝑃 𝑆 || 𝑃 𝑇 ) (3) where Pdistill is the set of chosen teacher-student pairs and 𝜆 𝐷 is a weighting factor for the distillation loss (set to 1.0 in our experi-ments). We observed that initiating Matryoshka Distillation from the very beginning of pretraining can lead to instability. This is likely because the initial representations, especially from deeper layers and higher dimensions, are noisy and not yet effective teachers. Therefore, in our experiments reported in Table 5, we first pre-trained the m3BERT model for 300,000 steps using standard Ma-tryoshka pretraining (as in Stage 1) and then continued pretraining for an additional 50,000 steps with the distillation objective in-corporated. The distillation temperature 𝜏 𝐷 was set to 1.0. Other hyperparameters (learning rate, batch size, etc.) for these 50,000 steps remained consistent with the Stage 1 pretraining configura-tion. This approach shows promise for enhancing the quality of more compact representations within the Matryoshka framework. 
+
+## A.3 Matryoshka Finetuning 
+
+For Matryoshka Finetuning, as discussed in Section 4.3.4, we adapt the standard supervised fine-tuning (SFT) objective to simultane-ously optimize the model for multiple embedding dimensions. Given a set of target embedding dimensions DSFT (e.g., {32 , 64 , 128 , 768 }
+
+for m3BERT-s2 and {32 , 64 , 128 } for m3BERT-s3 ), the MRL SFT loss is the sum of the standard SFT losses computed for each dimension in DSFT :
+
+LMRL-SFT =∑︁  
+
+> 𝑑 ∈ D SFT
+
+LSFT (𝐸 [:𝑑 ] ) (4) where 𝐸 [:𝑑 ] denotes the model’s output embedding truncated to the first 𝑑 dimensions, and LSFT (𝐸 [:𝑑 ] ) is the contrastive loss calculated using these 𝑑 -dimensional embeddings. The individual SFT losses for different dimensions are directly summed. All other hyperpa-rameters for MRL SFT (e.g., learning rate, batch size, temperature 𝜏 
+
+for the contrastive loss) were kept identical to those used for the standard single-dimension SFT experiments reported in the main results. Conference acronym ’XX, June 03–05, 2018, Woodstock, NY Trovato et al. 
+
+## B Pretraining Data 
+
+For all of the pretraining stages, input sequences were processed by padding shorter sequences and truncating longer ones to a max-imum length of 1024 tokens using mE5 tokenizer. 
+
+Nemotron-CC (Stage 1). The English pretraining corpus is derived from the high-quality split of Nemotron-CC, which is itself based on CommonCrawl (CC) and refined through extensive filtering and deduplication. We utilized a subset of approximately 100 billion tokens from the high-quality split. 
+
+Multilingual Wikipedia (Stage 2). For multilingual adaptation, we used publicly available Wikipedia dumps 3 for the top 100 languages by article count. The selection of languages and initial processing followed mBERT. The raw data from these dumps, totaling approx-imately 20 billion tokens, was further processed. As mentioned in the main text, an exponential smoothing strategy ( 𝑃 ′ (𝐿 ) ∝ 𝑃 (𝐿 )𝑆 
+
+with 𝑆 = 0.7) was applied to upsample low-resource languages and downsample high-resource languages. This creates a more balanced multilingual training mixture, preventing high-resource languages from dominating the training process. Table 6 illustrates the smoothed sampling probabilities for the top 20 languages in our multilingual corpus after applying this strategy. 
+
+Web Domain Corpus (Stage 3). The corpus for Stage 3 continual pretraining, designed to specialize the model for ads and web search-related industrial retrieval tasks, consists of 10 billion query-item pairs derived from anonymized and aggregated user interaction logs within an advertising system. These pairs represent implicit positive associations between user queries and relevant advertising content. We constructed three primary types of query-item pairs: 
+
+• (Query, Keyword): Pairs linking user search queries to advertiser-defined keywords that triggered ad impressions. 
+
+• (Query, Ad Creative): Pairs linking user search queries to the textual content of advertisements they interacted with. The "Ad Creative" item concatenates the ad’s title and de-scriptive text. 
+
+• (Query, Landing Page Information): Pairs linking user search queries to textual information associated with the ad’s destination. The "Landing Page Information" item is a concatenation of text extracted from resources related to the ad’s landing URL, such as its associated page title, prominent headings, and representative content snippets. Compared to the carefully curated and processed Bing-Click evaluation data, this pretraining corpus for Stage 3 comprises a signif-icantly larger volume of text that is more diverse in form, contains more noise, and is generally of lower raw qual-ity, reflecting the scale and nature of real-world advertising interaction data. These different pair types capture diverse semantic relationships rel-evant to advertising retrieval. In the underlying advertising ecosys-tem, a single keyword can be associated with multiple ad creatives, and an ad creative can point to various landing page information items (and vice versa). This rich interconnectedness provides a diverse training signal. 
+
+> 3https://meta.wikimedia.org/wiki/List_of_Wikipedias
+
+The corpus was rigorously pre-processed, including the duplica-tion of identical query-item pairs and query-level sampling caps to mitigate frequency bias. The model was trained on this corpus for approximately 2 trillion tokens using the Infinite Contrastive Learning (Inf-CL). The input for the "item" side of the pair was formed by concatenating the relevant textual fields (e.g., ad title + ad description for "Ad Creative") using special separator tokens, then tokenized and processed to the model’s maximum input length. This domain-specific pretraining significantly enhances the model’s utility for commercial retrieval applications. 
+
+## C Use of Large Language Models 
+
+In preparing this manuscript, the LLM was used for language pol-ishing, such as rephrasing sentences for clarity and correcting grammar. The human authors critically reviewed and edited all LLM-generated outputs, and retain full responsibility for the final content, methodology, and conclusions of this work. m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder Conference acronym ’XX, June 03–05, 2018, Woodstock, NY 
+
+Table 6: Smoothed sampling probabilities for the top 20 languages (Stage 2 multilingual Wikipedia corpus). 
+
+Code Language Name Prob.(%) Code Language Name Prob.(%) en English 20.99 ceb Cebuano 20.33 de German 11.89 sv Swedish 11.08 fr French 11.05 nl Dutch 9.73 ru Russian 9.11 es Spanish 8.77 it Italian 8.74 arz Egyptian Arabic 8.02 pl Polish 7.90 ja Japanese 7.20 zh Chinese 7.18 uk Ukrainian 6.85 vi Vietnamese 6.83 war Waray-Waray 6.75 ar Arabic 6.57 pt Portuguese 6.16 fa Persian 5.64 ca Catalan 4.62
