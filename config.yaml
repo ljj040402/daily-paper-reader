@@ -189,6 +189,53 @@ subscriptions:
           note: ''
       updated_at: '2026-05-26T04:26:45.424Z'
       paused: true
+    - tag: ai-classic
+      description: AI和人工智能顶刊论文推荐
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: artificial intelligence classic papers
+          keyword_cn: 人工智能经典论文
+          query: classic papers in artificial intelligence
+        - keyword: artificial intelligence papers
+          keyword_cn: 人工智能论文
+          query: recommended artificial intelligence research papers
+        - keyword: top AI journals
+          keyword_cn: 顶级AI期刊
+          query: papers from top artificial intelligence journals
+        - keyword: classic AI research
+          keyword_cn: 经典AI研究
+          query: classic foundational artificial intelligence studies
+        - keyword: AI paper recommendations
+          keyword_cn: AI论文推荐
+          query: recommendations for important AI papers
+        - keyword: influential AI publications
+          keyword_cn: 有影响力的AI出版物
+          query: most influential publications in artificial intelligence
+      intent_queries:
+        - query: find recommendations for classic papers in artificial intelligence
+          query_cn: 寻找人工智能经典论文推荐
+          enabled: true
+          source: manual
+          note: ''
+        - query: list top papers from leading AI journals
+          query_cn: 列出顶级AI期刊的顶级论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: suggest must read AI research papers
+          query_cn: 建议必读的AI研究论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: curated list of influential AI publications
+          query_cn: 精选有影响力的AI出版物列表
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-05-26T06:00:13.131Z'
+      paused: true
 source_backends:
   arxiv:
     papers_table: arxiv_papers
