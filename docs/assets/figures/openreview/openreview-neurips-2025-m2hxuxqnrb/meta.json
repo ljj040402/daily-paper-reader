@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/openreview/openreview-neurips-2025-m2hxuxqnrb/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 710,
+      "height": 654,
+      "label": "Figure"
+    }
+  ]
+}

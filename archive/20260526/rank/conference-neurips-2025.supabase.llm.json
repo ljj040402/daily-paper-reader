@@ -1,0 +1,3487 @@
+{
+  "top_k": 200,
+  "generated_at": "2026-05-26T06:26:11.682676+00:00",
+  "papers": [
+    {
+      "id": "openreview-neurips-2025-hmvq00vaby",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Probabilistic Reasoning with LLMs for Privacy Risk Estimation",
+      "abstract": "Probabilistic reasoning is a key aspect of both human and artificial intelligence that allows for handling uncertainty and ambiguity in decision-making. In this paper, we introduce a new numerical reasoning task under uncertainty for large language models, focusing on estimating the privacy risk of user-generated documents containing privacy-sensitive information. We propose BRANCH, a new LLM methodology that estimates the $k$-privacy value of a text—the size of the population matching the given information. BRANCH factorizes a joint probability distribution of personal information as random variables.  The probability of each factor in a population is estimated separately using a Bayesian network and combined to compute the final $k$-value. Our experiments show that this method successfully estimates the $k$-value 73% of the time, a 13% increase compared to o3-mini with chain-of-thought reasoning. We also find that LLM uncertainty is a good indicator for accuracy, as high variance predictions are 37.47% less accurate on average.",
+      "authors": [
+        "Jonathan Zheng",
+        "Alan Ritter",
+        "Sauvik Das",
+        "Wei Xu"
+      ],
+      "primary_category": "LLMs",
+      "categories": [
+        "LLMs",
+        "probabilistic reasoning",
+        "chain of thought",
+        "prompting",
+        "NLP",
+        "privacy risk",
+        "personal disclosures"
+      ],
+      "published": "2025-09-18T17:44:35.716+00:00",
+      "link": "https://openreview.net/forum?id=HMVQ00vabY",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-cmn8wbvanr",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Can Large Language Models Master Complex Card Games?",
+      "abstract": "Complex games have long been an important benchmark for testing the progress of artificial intelligence algorithms. AlphaGo, AlphaZero, and MuZero have defeated top human players in Go and Chess, garnering widespread societal attention towards artificial intelligence. Concurrently, large language models (LLMs) have exhibited remarkable capabilities across various tasks, raising the question of whether LLMs can achieve similar success in complex games. In this paper, we explore the potential of LLMs in mastering complex card games. We systematically assess the learning capabilities of LLMs across eight diverse card games, evaluating the impact of fine-tuning on high-quality gameplay data, and examining the models' ability to retain general capabilities while mastering these games. Our findings indicate that: (1) LLMs can approach the performance of strong game AIs through supervised fine-tuning on high-quality data, (2) LLMs can achieve a certain level of proficiency in multiple complex card games simultaneously, with performance augmentation for games with similar rules and conflicts for dissimilar ones, and (3) LLMs experience a decline in general capabilities when mastering complex games, but this decline can be mitigated by integrating a certain amount of general instruction data. The evaluation results demonstrate strong learning ability and versatility of LLMs. The code is available at \nhttps://github.com/THUDM/LLM4CardGame",
+      "authors": [
+        "Wei Wang",
+        "Fuqing Bie",
+        "Junzhe Chen",
+        "Dan Zhang",
+        "Shiyu Huang",
+        "Evgeny Kharlamov",
+        "Jie Tang"
+      ],
+      "primary_category": "Language Model",
+      "categories": [
+        "Language Model",
+        "Evaluation"
+      ],
+      "published": "2025-09-18T17:41:01.597+00:00",
+      "link": "https://openreview.net/forum?id=cmN8Wbvanr",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-eozfqye9ok",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Plasticity as the Mirror of Empowerment",
+      "abstract": "Agents are minimally entities that are influenced by their past observations and act to influence future observations. This latter capacity is captured by empowerment, which has served as a vital framing concept across artificial intelligence and cognitive science. This former capacity, however, is equally foundational: In what ways, and to what extent, can an agent be influenced by what it observes? In this paper, we ground this concept in a universal agent-centric measure that we refer to as plasticity, and reveal a fundamental connection to empowerment. Following a set of desiderata on a suitable definition, we define plasticity using a new information-theoretic quantity we call the generalized directed information. We show that this new quantity strictly generalizes the directed information introduced by Massey (1990) while preserving all of its desirable properties. Under this definition, we find that plasticity is well thought of as the mirror of empowerment: The two concepts are defined using the same measure, with only the direction of influence reversed. Our main result establishes a tension between the plasticity and empowerment of an agent, suggesting that agent design needs to be mindful of both characteristics. We explore the implications of these findings, and suggest that plasticity, empowerment, and their relationship are essential to understanding agency.",
+      "authors": [
+        "David Abel",
+        "Michael Bowling",
+        "Andre Barreto",
+        "Will Dabney",
+        "Shi Dong",
+        "Steven Stenberg Hansen",
+        "Anna Harutyunyan",
+        "Khimya Khetarpal",
+        "Clare Lyle",
+        "Razvan Pascanu",
+        "Georgios Piliouras",
+        "Doina Precup",
+        "Jonathan Richens",
+        "Mark Rowland",
+        "Tom Schaul",
+        "Satinder Singh"
+      ],
+      "primary_category": "Plasticity",
+      "categories": [
+        "Plasticity",
+        "Empowerment",
+        "Agents",
+        "Reinforcement Learning",
+        "Continual Reinforcement Learning",
+        "Information Theory"
+      ],
+      "published": "2025-09-18T17:32:32.316+00:00",
+      "link": "https://openreview.net/forum?id=eOZFqyE9Ok",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-9fur5ifu9j",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Confounding Robust Deep Reinforcement Learning: A Causal Approach",
+      "abstract": "A key task in Artificial Intelligence is learning effective policies for controlling agents in unknown environments to optimize performance measures. Off-policy learning methods, like Q-learning, allow learners to make optimal decisions based on past experiences. This paper studies off-policy learning from biased data in complex and high-dimensional domains where \\emph{unobserved confounding} cannot be ruled out a priori. Building on the well-celebrated Deep Q-Network (DQN), we propose a novel deep reinforcement learning algorithm robust to confounding biases in observed data. Specifically, our algorithm attempts to find a safe policy for the worst-case environment compatible with the observations. We apply our method to twelve confounded Atari games, and find that it consistently dominates the standard DQN in all games where the observed input to the behavioral and target policies mismatch and unobserved confounders exist.",
+      "authors": [
+        "Mingxuan Li",
+        "Junzhe Zhang",
+        "Elias Bareinboim"
+      ],
+      "primary_category": "Causal Inference",
+      "categories": [
+        "Causal Inference",
+        "Reinforcement Learning",
+        "Deep Learning"
+      ],
+      "published": "2025-09-18T17:40:01.679+00:00",
+      "link": "https://openreview.net/forum?id=9fUr5iFU9j",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-a5y8uh5szl",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Exploration from a Primal-Dual Lens: Value-Incentivized Actor-Critic Methods for Sample-Efficient Online RL",
+      "abstract": "Online reinforcement learning (RL) with complex function approximations such as transformers and deep neural networks plays a significant role in the modern practice of artificial intelligence. Despite its popularity and importance, balancing the fundamental trade-off between exploration and exploitation remains a long-standing challenge; in particular, we are still in lack of efficient and practical schemes that are backed by theoretical performance guarantees. Motivated by recent developments in exploration via optimistic regularization, this paper provides an interpretation of the principle of optimism through the lens of primal-dual optimization. From this fresh perspective, we set forth a new value-incentivized actor-critic (VAC) method, which optimizes a single easy-to-optimize objective integrating exploration and exploitation --- it promotes state-action and policy estimates that are both consistent with collected data transitions and result in higher value functions. Theoretically, the proposed VAC method has near-optimal regret guarantees under linear Markov decision processes (MDPs) in both finite-horizon and infinite-horizon settings, which can be extended to the general function approximation setting under appropriate assumptions.",
+      "authors": [
+        "Tong Yang",
+        "Bo Dai",
+        "Lin Xiao",
+        "Yuejie Chi"
+      ],
+      "primary_category": "exploration-exploitation trade-off",
+      "categories": [
+        "exploration-exploitation trade-off",
+        "actor-critic",
+        "RL theory"
+      ],
+      "published": "2025-09-18T17:39:17.091+00:00",
+      "link": "https://openreview.net/forum?id=A5Y8Uh5Szl",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-1a4nlibwl5",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Learning Human-Like RL Agents Through Trajectory Optimization With Action Quantization",
+      "abstract": "Human-like agents have long been one of the goals in pursuing artificial intelligence.\nAlthough reinforcement learning (RL) has achieved superhuman performance in many domains, relatively little attention has been focused on designing human-like RL agents.\nAs a result, many reward-driven RL agents often exhibit unnatural behaviors compared to humans, raising concerns for both interpretability and trustworthiness.\nTo achieve human-like behavior in RL, this paper first formulates human-likeness as trajectory optimization, where the objective is to find an action sequence that closely aligns with human behavior while also maximizing rewards, and adapts the classic receding-horizon control to human-like learning as a tractable and efficient implementation.\nTo achieve this, we introduce Macro Action Quantization (MAQ), a human-like RL framework that distills human demonstrations into macro actions via Vector-Quantized VAE.\nExperiments on D4RL Adroit benchmarks show that MAQ significantly improves human-likeness, increasing trajectory similarity scores, and achieving the highest human-likeness rankings among all RL agents in the human evaluation study.\nOur results also demonstrate that MAQ can be easily integrated into various off-the-shelf RL algorithms, opening a promising direction for learning human-like RL agents. \nOur code is available at https://rlg.iis.sinica.edu.tw/papers/MAQ.",
+      "authors": [
+        "Jian-Ting Guo",
+        "Yu-Cheng Chen",
+        "Ping-Chun Hsieh",
+        "Kuo-Hao Ho",
+        "Po-Wei Huang",
+        "Ti-Rong Wu",
+        "I-Chen Wu"
+      ],
+      "primary_category": "Trajectory Optimization",
+      "categories": [
+        "Trajectory Optimization",
+        "Human-likeness",
+        "Reinforcement Learning",
+        "VQVAE"
+      ],
+      "published": "2025-09-18T17:31:47.987+00:00",
+      "link": "https://openreview.net/forum?id=1A4Nlibwl5",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-uftlo48ohf",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Social World Model-Augmented Mechanism Design Policy Learning",
+      "abstract": "Designing adaptive mechanisms to align individual and collective interests remains a central challenge in artificial social intelligence. Existing methods often struggle with modeling heterogeneous agents possessing persistent latent traits (e.g., skills, preferences) and dealing with complex multi-agent system dynamics. These challenges are compounded by the critical need for high sample efficiency due to costly real-world interactions. World Models, by learning to predict environmental dynamics, offer a promising pathway to enhance mechanism design in heterogeneous and complex systems. In this paper, we introduce a novel method named SWM-AP (Social World Model-Augmented Mechanism Design Policy Learning), which learns a social world model hierarchically modeling agents' behavior to enhance mechanism design. Specifically, the social world model infers agents' traits from their interaction trajectories and learns a trait-based model to predict agents' responses to the deployed mechanisms. The mechanism design policy collects extensive training trajectories by interacting with the social world model, while concurrently inferring agents' traits online during real-world interactions to further boost policy learning efficiency. Experiments in diverse settings (tax policy design, team coordination, and facility location) demonstrate that SWM-AP outperforms established model-based and model-free RL baselines in cumulative rewards and sample efficiency.",
+      "authors": [
+        "Xiaoyuan Zhang",
+        "Yizhe Huang",
+        "Chengdong Ma",
+        "Zhixun Chen",
+        "Long Ma",
+        "Yali Du",
+        "Song-Chun Zhu",
+        "Yaodong Yang",
+        "Xue Feng"
+      ],
+      "primary_category": "Model-based Reinforcement Learning",
+      "categories": [
+        "Model-based Reinforcement Learning"
+      ],
+      "published": "2025-09-18T17:42:37.164+00:00",
+      "link": "https://openreview.net/forum?id=uFTLo48OHF",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-3hjfzh5eyk",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "A TRIANGLE Enables Multimodal Alignment Beyond Cosine Similarity",
+      "abstract": "Multimodal learning plays a pivotal role in advancing artificial intelligence systems by incorporating information from multiple modalities to build a more comprehensive representation. Despite its importance, current state-of-the-art models still suffer from severe limitations that prevent the successful development of a fully multimodal model. Such methods do not provide indicators that all the involved modalities are effectively aligned. As a result, a set of modalities may not be aligned, undermining the effectiveness of the model in downstream tasks where multiple modalities should provide additional information that the model fails to exploit. \nIn this paper, we present TRIANGLE: TRI-modAl Neural Geometric LEarning, the novel proposed similarity measure that is directly computed in the higher-dimensional space spanned by the modality embeddings. TRIANGLE improves the joint alignment of three modalities via a triangle‑area similarity, avoiding additional fusion layers.\nWhen incorporated in contrastive losses replacing cosine similarity, TRIANGLE significantly boosts the performance of multimodal modeling, while yielding interpretable alignment rationales. Extensive evaluation in three-modal tasks such as video-text and audio-text retrieval or audio-video classification, demonstrates that TRIANGLE achieves state-of-the-art results across different datasets improving the performance of cosine-based methods up to 9 points of Recall@1.",
+      "authors": [
+        "Giordano Cicchetti",
+        "Eleonora Grassucci",
+        "Danilo Comminiello"
+      ],
+      "primary_category": "Multimodal Learning",
+      "categories": [
+        "Multimodal Learning",
+        "Contrastive Learning",
+        "Multimodal Alignment"
+      ],
+      "published": "2025-09-18T17:33:00.066+00:00",
+      "link": "https://openreview.net/forum?id=3Hjfzh5Eyk",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-x9xepnpgj5",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "DeepHalo: A Neural Choice Model with Controllable Context Effects",
+      "abstract": "Modeling human decision-making is central to applications such as recommendation, preference learning, and human-AI alignment. While many classic models assume context-independent choice behavior, a large body of behavioral research shows that preferences are often influenced by the composition of the choice set itself---a phenomenon known as the context effect or Halo effect. These effects can manifest as pairwise (first-order) or even higher-order interactions among the available alternatives.\nRecent models that attempt to capture such effects either focus on the featureless setting or, in the feature-based setting, rely on restrictive interaction structures or entangle interactions across all orders, which limits interpretability. \nIn this work, we propose DeepHalo, a neural modeling framework that incorporates features while enabling explicit control over interaction order and principled interpretation of context effects.\nOur model enables systematic identification of interaction effects by order and serves as a universal approximator of context-dependent choice functions when specialized to a featureless setting.\nExperiments on synthetic and real-world datasets demonstrate strong predictive performance while providing greater transparency into the drivers of choice.",
+      "authors": [
+        "Shuhan Zhang",
+        "Zhi Wang",
+        "Rui Gao",
+        "Shuang Li"
+      ],
+      "primary_category": "Choice Model",
+      "categories": [
+        "Choice Model",
+        "Preference Learning",
+        "Deep Learning"
+      ],
+      "published": "2025-09-18T17:42:57.953+00:00",
+      "link": "https://openreview.net/forum?id=x9XepNPGJ5",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-kqwyoyuac4",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AI-Researcher: Autonomous Scientific Innovation",
+      "abstract": "The powerful reasoning capabilities of Large Language Models (LLMs) in mathematics and coding, combined with their ability to automate complex tasks through agentic frameworks, present unprecedented opportunities for accelerating scientific innovation. In this paper, we introduce AI-Researcher, a fully autonomous research system that transforms how AI-driven scientific discovery is conducted and evaluated. Our framework seamlessly orchestrates the complete research pipeline--from literature review and hypothesis generation to algorithm implementation and publication-ready manuscript preparation--with minimal human intervention. To rigorously assess autonomous research capabilities, we develop Scientist-Bench, a comprehensive benchmark comprising state-of-the-art papers across diverse AI research domains, featuring both guided innovation and open-ended exploration tasks. Through extensive experiments, we demonstrate that AI-Researcher achieves remarkable implementation success rates and produces research papers that approach human-level quality. This work establishes new foundations for autonomous scientific innovation that can complement human researchers by systematically exploring solution spaces beyond cognitive limitations.",
+      "authors": [
+        "Jiabin Tang",
+        "Lianghao Xia",
+        "Zhonghang Li",
+        "Chao Huang"
+      ],
+      "primary_category": "LLM agents",
+      "categories": [
+        "LLM agents",
+        "AI for Science"
+      ],
+      "published": "2025-09-18T17:45:56.582+00:00",
+      "link": "https://openreview.net/forum?id=kQWyOYUAC4",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-rwfrdksgce",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AI Research Agents for Machine Learning: Search, Exploration, and Generalization in MLE-bench",
+      "abstract": "AI research agents are demonstrating great potential to accelerate scientific progress by automating the design, implementation, and training of machine learning models. We focus on methods for improving agents' performance on MLE-bench, a challenging benchmark where agents compete in Kaggle competitions to solve real-world machine learning problems. We formalize AI research agents as search policies that navigate a space of candidate solutions, iteratively modifying them using operators. By designing and systematically varying different operator sets and search policies (Greedy, MCTS, Evolutionary), we show that their interplay is critical for achieving high performance. Our best pairing of search strategy and operator set achieves a state-of-the-art result on MLE-bench lite, increasing the success rate of achieving a Kaggle medal from 39.6% to 47.7%. Our investigation underscores the importance of jointly considering the search strategy, operator design, and evaluation methodology in advancing automated machine learning.",
+      "authors": [
+        "Edan Toledo",
+        "Karen Hambardzumyan",
+        "Martin Josifoski",
+        "RISHI HAZRA",
+        "Nicolas Baldwin",
+        "Alexis Audran-Reiss",
+        "Michael Kuchnik",
+        "Despoina Magka",
+        "Minqi Jiang",
+        "Alisia Maria Lupidi",
+        "Andrei Lupu",
+        "Roberta Raileanu",
+        "Tatiana Shavrina",
+        "Kelvin Niu",
+        "Jean-Christophe Gagnon-Audet",
+        "Michael Shvartsman",
+        "Shagun Sodhani",
+        "Alexander H Miller",
+        "Abhishek Charnalia",
+        "Derek Dunfield",
+        "Carole-Jean Wu",
+        "Pontus Stenetorp",
+        "Nicola Cancedda",
+        "Jakob Nicolaus Foerster",
+        "Yoram Bachrach"
+      ],
+      "primary_category": "LLM Agents; Code generation; AutoML; LLM-driven search; ML Engineering Agents; ML Research Agents; AI Research Agents",
+      "categories": [
+        "LLM Agents; Code generation; AutoML; LLM-driven search; ML Engineering Agents; ML Research Agents; AI Research Agents"
+      ],
+      "published": "2025-09-18T17:36:01.259+00:00",
+      "link": "https://openreview.net/forum?id=RwfrdKSgCE",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-k0wyi4cogy",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "KARMA: Leveraging Multi-Agent LLMs for Automated Knowledge Graph Enrichment",
+      "abstract": "Maintaining comprehensive and up-to-date knowledge graphs (KGs) is critical for modern AI systems, but manual curation struggles to scale with the rapid growth of scientific literature. This paper presents KARMA, a novel framework employing multi-agent large language models (LLMs) to automate KG enrichment through structured analysis of unstructured text. Our approach employs nine collaborative agents, spanning entity discovery, relation extraction, schema alignment, and conflict resolution that iteratively parse documents, verify extracted knowledge, and integrate it into existing graph structures while adhering to domain-specific schema. Experiments on 1,200 PubMed articles from three different domains demonstrate the effectiveness of KARMA in knowledge graph enrichment, with the identification of up to 38,230 new entities while achieving 83.1\\% LLM-verified correctness and reducing conflict edges by 18.6\\% through multi-layer assessments.",
+      "authors": [
+        "Yuxing Lu",
+        "Wei Wu",
+        "Xukai Zhao",
+        "Rui Peng",
+        "Jinzhuo Wang"
+      ],
+      "primary_category": "Knowledge Graphs",
+      "categories": [
+        "Knowledge Graphs",
+        "Multi Agent System"
+      ],
+      "published": "2025-09-18T17:33:05.678+00:00",
+      "link": "https://openreview.net/forum?id=k0wyi4cOGy",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-a64d9vl7wk",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Predicting Empirical AI Research Outcomes with Language Models",
+      "abstract": "Many promising-looking ideas in AI research fail to deliver, but their validation takes substantial human labor and compute. Predicting an idea's chance of success is thus crucial for accelerating empirical AI research, a skill that even expert researchers can only acquire through substantial experience. We build the first benchmark for this task and compare LMs with human experts. Concretely, given two research ideas (e.g., two jailbreaking methods), we aim to predict which will perform better on a set of benchmarks. \nWe scrape ideas and experimental results from conference papers, yielding 1,585 human-verified idea pairs \\textit{published after our base model's cut-off date} for testing, and 6,000 pairs for training.\nWe then develop a system that combines a fine-tuned GPT-4.1 with a paper retrieval agent, and we recruit 25 human experts to compare with.\nIn the NLP domain, our system beats human experts by a large margin (64.4\\% v.s. 48.9\\%).\nOn the full test set, our system achieves 77\\% accuracy, while off-the-shelf frontier LMs like o3 perform no better than random guessing, even with the same retrieval augmentation.\nWe verify that our system does not exploit superficial features like idea complexity through extensive human-written and LM-designed robustness tests.\nFinally, we evaluate our system on unpublished novel ideas, including ideas generated by an AI ideation agent.\nOur system achieves 63.6\\% accuracy, demonstrating its potential as a reward model for improving idea generation models.\nAltogether, our results outline a promising new direction for LMs to accelerate empirical AI research.",
+      "authors": [
+        "Jiaxin Wen",
+        "Chenglei Si",
+        "Chen Yueh-Han",
+        "He He",
+        "Shi Feng"
+      ],
+      "primary_category": "LLM",
+      "categories": [
+        "LLM",
+        "Research Idea Evaluation",
+        "Automated Research"
+      ],
+      "published": "2025-09-18T17:37:12.788+00:00",
+      "link": "https://openreview.net/forum?id=a64D9Vl7wK",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-lscdymlj5v",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "On the creation of narrow AI: hierarchy and nonlocality of neural network skills",
+      "abstract": "We study the problem of creating strong, yet narrow, AI systems. While recent AI progress has been driven by the training of large general-purpose foundation models, the creation of smaller models specialized for narrow domains could be valuable for both efficiency and safety. In this work, we explore two challenges involved in creating such systems, having to do with basic properties of how neural networks learn and structure their representations. The first challenge regards when it is possible to train narrow models from scratch. Through experiments on a synthetic task, we find that it is sometimes necessary to train networks on a wide distribution of data to learn certain narrow skills within that distribution. This effect arises when skills depend on each other hierarchically, and training on a broad distribution introduces a curriculum which substantially accelerates learning. The second challenge regards how to transfer particular skills from large general models into small specialized models. We find that model skills are often not perfectly localized to a particular set of prunable components. However, we find that methods based on pruning can still outperform distillation. We investigate the use of a regularization objective to align desired skills with prunable components while unlearning unnecessary skills.",
+      "authors": [
+        "Eric J Michaud",
+        "Asher Parker-Sartori",
+        "Max Tegmark"
+      ],
+      "primary_category": "safety",
+      "categories": [
+        "safety",
+        "mechanistic interpretability",
+        "theory",
+        "curriculum learning",
+        "pruning",
+        "connectionism",
+        "unlearning"
+      ],
+      "published": "2025-09-18T17:45:29.053+00:00",
+      "link": "https://openreview.net/forum?id=lscdYmLJ5v",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-respmwooch",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Learning Interestingness in Automated Mathematical Theory Formation",
+      "abstract": "We take two key steps in automating the open-ended discovery of new mathematical theories, a grand challenge in artificial intelligence. First, we introduce Fermat, a reinforcement learning (RL) environment that models concept discovery and theorem-proving using a set of symbolic actions, opening up a range of RL problems relevant to theory discovery. Second, we explore a specific problem through Fermat: automatically scoring the interestingness of mathematical objects. We investigate evolutionary algorithms for synthesizing nontrivial interestingness measures. In particular, we introduce an LLM-based evolutionary algorithm that features function abstraction, leading to notable improvements in discovering elementary number theory and finite fields over hard-coded baselines. We open-source the \\fermat environment at github.com/trishullab/Fermat.",
+      "authors": [
+        "George Tsoukalas",
+        "Rahul Saha",
+        "Amitayush Thakur",
+        "Sabrina Reguyal",
+        "Swarat Chaudhuri"
+      ],
+      "primary_category": "automated mathematics",
+      "categories": [
+        "automated mathematics",
+        "AI for math",
+        "interestingness",
+        "reinforcement learning",
+        "scientific discovery",
+        "theory discovery"
+      ],
+      "published": "2025-09-18T17:45:24.241+00:00",
+      "link": "https://openreview.net/forum?id=RespmwOoCH",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-ae0bcvxxbt",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Transformers Provably Learn Chain-of-Thought Reasoning with Length Generalization",
+      "abstract": "The ability to reason lies at the core of artificial intelligence (AI), and challenging problems usually call for deeper and longer reasoning to tackle. A crucial question about AI reasoning is whether models can extrapolate learned reasoning patterns to solve harder tasks with a longer chain-of-thought (CoT). In this work, we present a theoretical analysis of transformers learning on synthetic state-tracking tasks with gradient descent. Specifically: 1). We prove how the *algebraic structure* of state-tracking problems governs the length generalization of learned reasoning in transformers. In doing so, we formulate the **attention concentration** mechanism, linking the retrieval robustness of the attention layer to the task structure of long-context state tracking problems. 2). Moreover, we prove that a transformer can provably *self-improve* via a *recursive self-training* scheme that progressively extends the range of solvable problem lengths. We show that the model can achieve abilities outside the coverage of the base model in recursive training, different from prior theoretical works on self-improvement.\nTo our knowledge, we provide the first *optimization guarantee* that constant-depth transformers provably learn $\\text{NC}^1$-complete problems with CoT, significantly going beyond prior art confined in $\\text{TC}^0$, unless the widely held conjecture $\\text{TC}^0 \\neq \\text{NC}^1$ fails. Finally, we present a broad set of experiments supporting our theoretical results, confirming the length generalization behaviors and the mechanism of attention concentration.",
+      "authors": [
+        "Yu Huang",
+        "Zixin Wen",
+        "Aarti Singh",
+        "Yuejie Chi",
+        "Yuxin Chen"
+      ],
+      "primary_category": "transformers",
+      "categories": [
+        "transformers",
+        "chain of thought",
+        "length generalization",
+        "deep learning theory",
+        "non-convex optimization"
+      ],
+      "published": "2025-09-18T17:40:08.595+00:00",
+      "link": "https://openreview.net/forum?id=aE0bCvXXBt",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-mlu9kqdzus",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AgentBreeder: Mitigating the AI Safety Risks of Multi-Agent Scaffolds via Self-Improvement",
+      "abstract": "Scaffolding Large Language Models (LLMs) into multi-agent systems often improves performance on complex tasks, but the safety impact of such scaffolds has not been thoroughly explored. We introduce AgentBreeder, a framework for multi-objective self-improving evolutionary search over scaffolds. We evaluate discovered scaffolds on widely recognized reasoning, mathematics, and safety benchmarks and compare them with popular baselines. In \"blue\" mode, we see a 79.4% average uplift in safety benchmark performance while maintaining or improving capability scores. In \"red\" mode, we find adversarially weak scaffolds emerging concurrently with capability optimization. Our work demonstrates the risks of multi-agent scaffolding and provides a framework for mitigating them. Code is available at \\url{https://github.com/jrosseruk/AgentBreeder}.",
+      "authors": [
+        "J Rosser",
+        "Jakob Nicolaus Foerster"
+      ],
+      "primary_category": "AI Safety",
+      "categories": [
+        "AI Safety",
+        "Multi-Agent Systems",
+        "LLMs",
+        "Large Language Models",
+        "Jailbreaking",
+        "Agent Scaffolds"
+      ],
+      "published": "2025-09-18T17:33:43.154+00:00",
+      "link": "https://openreview.net/forum?id=mlU9KqdZUS",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-tnzse5q2tr",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Generating Creative Chess Puzzles",
+      "abstract": "While Generative AI rapidly advances in various domains, generating truly creative, aesthetic, and counter-intuitive outputs remains a challenge. This paper presents an approach to tackle these difficulties in the domain of chess puzzles. We start by benchmarking Generative AI architectures, and then introduce an RL framework with novel rewards based on chess engine search statistics to overcome some of those shortcomings. The rewards are designed to enhance a puzzle's uniqueness, counter-intuitiveness, diversity, and realism. Our RL approach dramatically increases counter-intuitive puzzle generation by 10x, from 0.22\\% (supervised) to 2.5\\%, surpassing existing dataset rates (2.1\\%) and the best Lichess-trained model (0.4\\%). Our puzzles meet novelty and diversity benchmarks, retain aesthetic themes, and are rated by human experts as more creative, enjoyable, and counter-intuitive than composed book puzzles, even approaching classic compositions. Our final outcome is a curated booklet of these novel AI-generated puzzles, which is acknowledged for creativity by three world-renowned experts.",
+      "authors": [
+        "Xidong Feng",
+        "Vivek Veeriah",
+        "Marcus Chiam",
+        "Michael D Dennis",
+        "Federico Barbero",
+        "Johan Obando-Ceron",
+        "Jiaxin Shi",
+        "Satinder Singh",
+        "Shaobo Hou",
+        "Nenad Tomasev",
+        "Tom Zahavy"
+      ],
+      "primary_category": "chess puzzle",
+      "categories": [
+        "chess puzzle",
+        "creativity",
+        "generative model"
+      ],
+      "published": "2025-09-18T17:35:01.435+00:00",
+      "link": "https://openreview.net/forum?id=TNZse5q2Tr",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-s9nkfkuuer",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Iterative Self-Incentivization Empowers Large Language Models as Agentic Searchers",
+      "abstract": "Large language models (LLMs) have been widely integrated into information retrieval to advance traditional techniques. However, effectively enabling LLMs to seek accurate knowledge in complex tasks remains a challenge due to the complexity of multi-hop queries as well as the irrelevant retrieved content. To address these limitations, we propose ExSearch, an agentic search framework, where the LLM learns to retrieve useful information as the reasoning unfolds through a self-incentivized process. At each step, the LLM decides what to retrieve (thinking), triggers an external retriever (search), and extracts fine-grained evidence (recording) to support next-step reasoning.  To enable LLM with this capability, we adopts a Generalized Expectation-Maximization algorithm. In the E-step, the LLM generates multiple search trajectories and assigns an importance weight to each; the M-step trains the LLM on them with a re-weighted loss function. This creates a self-incentivized loop, where the LLM iteratively learns from its own generated data, progressively improving itself for search. We further theoretically analyze this training process, establishing convergence guarantees. Extensive experiments on four knowledge-intensive benchmarks show that ExSearchS substantially outperforms baselines, e.g., +7.8% improvement on exact match score. Motivated by these promising results, we introduce ExSearch-Zoo, an extension that extends our method to broader scenarios, to facilitate future work.",
+      "authors": [
+        "Zhengliang Shi",
+        "Lingyong Yan",
+        "Dawei Yin",
+        "Suzan Verberne",
+        "Maarten de Rijke",
+        "Zhaochun Ren"
+      ],
+      "primary_category": "information retrieval",
+      "categories": [
+        "information retrieval",
+        "large language model",
+        "retrieval-augmented generation"
+      ],
+      "published": "2025-09-18T17:35:21.757+00:00",
+      "link": "https://openreview.net/forum?id=s9NkfkUuEr",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-qn0e0kx2lm",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Learning Linear Attention in Polynomial Time",
+      "abstract": "Previous research has explored the expressivity of Transformer models in simulating Boolean circuits or Turing machines. However, the efficient learnability of Transformers from data has remained an open question.  Our study addresses this gap by providing the first polynomial-time learnability results (specifically strong, agnostic PAC learning) for single-layer Transformers with linear attention.  We show that learning the optimal multi head linear attention can be recast as finding the optimal kernel predictor in a suitably defined RKHS.  Moving to generalization, we construct an algorithm that, given a dataset, checks in polynomial time whether the set of best fit multi head linear attention networks on this data all perform an identical computation--a powerful notion for out of distribution generalization.  We empirically validate our theoretical findings on several canonical tasks: learning random linear attention networks, key--value associations, and learning to execute finite automata. Our findings bridge a critical gap between theoretical expressivity and learnability of Transformer models.",
+      "authors": [
+        "Morris Yau",
+        "Ekin Akyürek",
+        "Jiayuan Mao",
+        "Joshua B. Tenenbaum",
+        "Stefanie Jegelka",
+        "Jacob Andreas"
+      ],
+      "primary_category": "Transformers",
+      "categories": [
+        "Transformers",
+        "Learning Theory",
+        "PAC learning"
+      ],
+      "published": "2025-09-18T17:44:12.784+00:00",
+      "link": "https://openreview.net/forum?id=QN0E0KX2LM",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-m2hxuxqnrb",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "MIBP-Cert: Certified Training against Data Perturbations with Mixed-Integer Bilinear Programs",
+      "abstract": "Data errors, corruptions, and poisoning attacks during training pose a major threat to the reliability of modern AI systems. While extensive effort has gone into empirical mitigations, the evolving nature of attacks and the complexity of data require a more principled, provable approach to robustly learn on such data—and to understand how perturbations influence the final model. Hence, we introduce MIBP-Cert, a novel certification method based on mixed-integer bilinear programming (MIBP) that computes sound, deterministic bounds to provide provable robustness even under complex threat models. By computing the set of parameters reachable through perturbed or manipulated data, we can predict all possible outcomes and guarantee robustness. To make solving this optimization problem tractable, we propose a novel relaxation scheme that bounds each training step without sacrificing soundness. We demonstrate the applicability of our approach to continuous and discrete data, as well as different threat models—including complex ones that were previously out of reach.",
+      "authors": [
+        "Tobias Lorenz",
+        "Marta Kwiatkowska",
+        "Mario Fritz"
+      ],
+      "primary_category": "Mixed Integer Bilinear Programming",
+      "categories": [
+        "Mixed Integer Bilinear Programming",
+        "Certified Robustness",
+        "Provable Defenses",
+        "Data Poisoning",
+        "Robust Training",
+        "Adversarial Machine Learning",
+        "Optimization-based Certification"
+      ],
+      "published": "2025-09-18T17:36:05.026+00:00",
+      "link": "https://openreview.net/forum?id=M2HxuxqNrb",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-dye9w8iov0",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Collaborative Reasoner: Self-Improving Social Agents with Synthetic Conversations",
+      "abstract": "With increasingly powerful large language models (LLMs) and LLM-based agents tackling an ever-growing list of tasks, we envision a future where numerous LLM agents work seamlessly with other AI agents and humans to solve complex problems and enhance daily life. To achieve these goals, LLM agents must develop collaborative skills such as effective persuasion, assertion and disagreement, which are often overlooked in the prevalent single-turn training and evaluation of LLMs. In this work, we present Collaborative Reasoner (Coral), a framework to evaluate and improve the collaborative reasoning abilities of language models. In particular, tasks and metrics in Coral necessitate agents to disagree with incorrect solutions, convince their partners of a correct solution, and ultimately agree as a team to commit to a final solution, all through a natural multi-turn conversation. Through comprehensive evaluation on six collaborative reasoning tasks covering domains of coding, math, scientific QA and social reasoning, we show that current models cannot effectively collaborate due to undesirable social behaviors, collapsing even on problems that they can solve singlehandedly. To improve the collaborative reasoning capabilities of LLMs, we propose a self-play method to generate synthetic multi-turn preference data and further train the language models to be better collaborators. Experiments with Llama-3.1, Ministral and Qwen-2.5 models show that our proposed self-improvement approach consistently outperforms finetuned chain-of-thought performance of the same base model, yielding gains up to 16.7% absolute. Human evaluations show that the models exhibit more effective disagreement and produce more natural conversations after training on our synthetic interaction data.",
+      "authors": [
+        "Ansong Ni",
+        "Ruta Desai",
+        "Yang Li",
+        "Xinjie Lei",
+        "Dong Wang",
+        "Jiemin Zhang",
+        "Jane Yu",
+        "Ramya Raghavendra",
+        "Gargi Ghosh",
+        "Shang-Wen Li",
+        "Asli Celikyilmaz"
+      ],
+      "primary_category": "collaborative reasoning",
+      "categories": [
+        "collaborative reasoning",
+        "social agents",
+        "synthetic data",
+        "self-improvement"
+      ],
+      "published": "2025-09-18T17:44:43.186+00:00",
+      "link": "https://openreview.net/forum?id=dye9w8IOV0",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-sejp1mgmdz",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "In-Context Compositional Learning vis Sparse Coding Transformer",
+      "abstract": "Recent advances in AI, driven by Transformer architectures, have achieved remarkable success in language, vision, and multimodal reasoning, and there is growing demand for them to address in-context compositional learning tasks. In these tasks, models solve the target problems by inferring compositional rules from context examples, which are composed of basic components structured by underlying rules. However, some of these tasks remain challenging for Transformers, which are not inherently designed to handle compositional tasks and offer limited structural inductive bias.\nInspired by sparse coding, we propose a reformulation of the attention to enhance its capability for compositional tasks. In sparse coding,  data are represented as sparse combinations of basic elements, with the resulting coefficients capturing the underlying compositional structure of the input. \nSpecifically, we reinterpret the standard attention block as projecting inputs into outputs through projections onto two sets of learned dictionary atoms: an *encoding dictionary* and a *decoding dictionary*. The encoding dictionary decomposes the input into a set of coefficients, which represent the compositional structure of the input. To enhance structured representations, we impose sparsity on these coefficients. The sparse coefficients are then used to linearly combine the decoding dictionary atoms to generate the output. Furthermore, to assist compositional generalization tasks, we propose estimating the coefficients of the target problem as a linear combination of the coefficients obtained from the context examples.\nWe demonstrate the effectiveness of our approach on the S-RAVEN and RAVEN datasets. For certain compositional generalization tasks, our method maintains performance even when standard Transformers fail, owing to its ability to learn and apply compositional rules.",
+      "authors": [
+        "Wei Chen",
+        "Jingxi Yu",
+        "Zichen Miao",
+        "Qiang Qiu"
+      ],
+      "primary_category": "sparse coding",
+      "categories": [
+        "sparse coding",
+        "compositional learning",
+        "representational learning"
+      ],
+      "published": "2025-09-18T17:39:12.105+00:00",
+      "link": "https://openreview.net/forum?id=sEjp1MGMDZ",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-axpbgg5z6i",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AI Debate Aids Assessment of Controversial Claims",
+      "abstract": "As AI grows more powerful, it will increasingly shape how we understand the world. But with this influence comes the risk of amplifying misinformation and deepening social divides—especially on consequential topics where factual accuracy directly impacts well-being. Scalable Oversight aims to ensure AI systems remain truthful even when their capabilities exceed those of their evaluators. Yet when humans serve as evaluators, their own beliefs and biases can impair judgment. We study whether AI debate can guide biased judges toward the truth by having two AI systems debate opposing sides of controversial factuality claims on COVID-19 and climate change where people hold strong prior beliefs. We conduct two studies. Study I recruits human judges with either mainstream or skeptical beliefs who evaluate claims through two protocols: debate (interaction with two AI advisors arguing opposing sides) or consultancy (interaction with a single AI advisor). Study II uses AI judges with and without human-like personas to evaluate the same protocols. In Study I, debate consistently improves human judgment accuracy and confidence calibration, outperforming consultancy by 4-10\\% across COVID-19 and climate change claims. The improvement is most significant for judges with mainstream beliefs (up to +15.2\\% accuracy on COVID-19 claims), though debate also helps skeptical judges who initially misjudge claims move toward accurate views (+4.7\\% accuracy). In Study II, AI judges with human-like personas achieve even higher accuracy (78.5\\%) than human judges (70.1\\%) and default AI judges without personas (69.8\\%), suggesting their potential for supervising frontier AI models. These findings highlight AI debate as a promising path toward scalable, bias-resilient oversight in contested domains.",
+      "authors": [
+        "Salman Rahman",
+        "Sheriff Issaka",
+        "Ashima Suvarna",
+        "Genglin Liu",
+        "James Shiffer",
+        "Jaeyoung Lee",
+        "Md Rizwan Parvez",
+        "Hamid Palangi",
+        "Shi Feng",
+        "Nanyun Peng",
+        "Yejin Choi",
+        "Julian Michael",
+        "Liwei Jiang",
+        "Saadia Gabriel"
+      ],
+      "primary_category": "Scalable Oversight",
+      "categories": [
+        "Scalable Oversight",
+        "AI Debate",
+        "Cognitive Bias",
+        "Factuality"
+      ],
+      "published": "2025-09-18T17:41:18.261+00:00",
+      "link": "https://openreview.net/forum?id=aXpbgG5z6I",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-nkcwn347h7",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "InfantAgent-Next: A Multimodal Generalist Agent for Automated Computer Interaction",
+      "abstract": "This paper introduces \\textsc{InfantAgent-Next}, a generalist agent capable of interacting with computers in a multimodal manner, encompassing text, images, audio, and video.\nUnlike existing approaches that either build intricate workflows around a single large model or only provide workflow modularity, our agent integrates tool-based and pure vision agents within a highly modular architecture, enabling different models to collaboratively solve decoupled tasks in a step-by-step manner. \nOur generality is demonstrated by our ability to evaluate not only pure vision-based real-world benchmarks (i.e., OSWorld), but also more general or tool-intensive benchmarks (e.g., GAIA and SWE-Bench).\nSpecifically,\nwe\nachieve a $\\mathbf{7.27\\\\%}$ accuracy gain over Claude-Computer-Use on OSWorld.  \nCodes and evaluation scripts are included in the supplementary material and will be released as open-source.",
+      "authors": [
+        "Bin Lei",
+        "Weitai Kang",
+        "Zijian Zhang",
+        "Winson Chen",
+        "Xi Xie",
+        "Shan Zuo",
+        "Mimi Xie",
+        "Ali Payani",
+        "Mingyi Hong",
+        "Yan Yan",
+        "Caiwen Ding"
+      ],
+      "primary_category": "LLM based Agent",
+      "categories": [
+        "LLM based Agent",
+        "Multimodal Generalist Agent",
+        "Automated Computer Interaction",
+        "Infrastructure"
+      ],
+      "published": "2025-09-18T17:32:32.066+00:00",
+      "link": "https://openreview.net/forum?id=NKcwN347H7",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-10s01yrlkp",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "metaTextGrad: Automatically optimizing language model optimizers",
+      "abstract": "Large language models (LLMs) are increasingly used in learning algorithms, evaluations, and optimization tasks. Recent studies have shown that using LLM-based optimizers to automatically optimize model prompts, demonstrations, predictions themselves, or other components can significantly enhance the performance of AI systems, as demonstrated by frameworks such as DSPy and TextGrad. However, optimizers built on language models themselves are usually designed by humans with manual design choices; optimizers themselves are not optimized. Moreover, these optimizers are general purpose by design, to be useful to a broad audience, and are not tailored for specific tasks. To address these challenges, we propose metaTextGrad, which focuses on designing a meta-optimizer to further enhance existing optimizers and align them to be good optimizers for a given task. Our approach consists of two key components: a meta prompt optimizer and a meta structure optimizer. The combination of these two significantly improves performance across multiple benchmarks, achieving an average absolute performance improvement of up to 6% compared to the best baseline.",
+      "authors": [
+        "Guowei Xu",
+        "Mert Yuksekgonul",
+        "Carlos Guestrin",
+        "James Zou"
+      ],
+      "primary_category": "programming models",
+      "categories": [
+        "programming models",
+        "prompting techniques",
+        "meta-learning",
+        "LLM optimizer"
+      ],
+      "published": "2025-09-18T17:31:18.084+00:00",
+      "link": "https://openreview.net/forum?id=10s01YrlKp",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-3joqtghuzz",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "IPAD: Inverse Prompt for AI Detection - A Robust and Interpretable LLM-Generated Text Detector",
+      "abstract": "Large Language Models (LLMs) have attained human-level fluency in text generation, which complicates the distinguishing between human-written and LLM generated texts. This increases the risk of misuse and highlights the need for reliable detectors. Yet, existing detectors exhibit poor robustness on out-of-distribution (OOD) data and attacked data, which is critical for real-world scenarios. Also, they struggle to provide interpretable evidence to support their decisions, thus undermining reliability. In light of these challenges, we propose IPAD (Inverse Prompt for AI Detection), a novel framework consisting of a Prompt Inverter that identifies predicted prompts that could have generated the input text, and two Distinguishers that examine the probability that the input texts align with the predicted prompts. Empirical evaluations demonstrate that IPAD outperforms the strongest baselines by 9.05% (Average Recall) on in-distribution data, 12.93% (AUROC) on out-of-distribution (OOD) data, and 5.48% (AUROC) on attacked data. IPAD also performs robust on structured datasets. Furthermore, an interpretability assessment is conducted to illustrate that IPAD enhances the AI detection trustworthiness by allowing users to directly examine the decision-making evidence, which provides interpretable support for its state-of-the-art detection results.",
+      "authors": [
+        "Zheng CHEN",
+        "Yushi Feng",
+        "Jisheng Dang",
+        "Changyang He",
+        "Yue Deng",
+        "Hongxi Pu",
+        "Haoxuan Li",
+        "Bo Li"
+      ],
+      "primary_category": "AI Detection",
+      "categories": [
+        "AI Detection",
+        "Prompt Inversion",
+        "Large Language Models",
+        "Explainability",
+        "AI Safety"
+      ],
+      "published": "2025-09-18T17:46:20.137+00:00",
+      "link": "https://openreview.net/forum?id=3JoQTGhUzz",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-z5ktxw5sjd",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "From Replication to Redesign: Exploring Pairwise Comparisons for LLM-Based Peer Review",
+      "abstract": "The advent of large language models (LLMs) offers unprecedented opportunities to reimagine peer review beyond the constraints of traditional workflows.\nDespite these opportunities, prior efforts have largely focused on replicating traditional review workflows with LLMs serving as direct substitutes for human reviewers, while limited attention has been given to exploring new paradigms that fundamentally rethink how LLMs can participate in the academic review process.\nIn this paper, we introduce and explore a novel mechanism that employs LLM agents to perform pairwise comparisons among manuscripts instead of individual scoring. By aggregating outcomes from substantial pairwise evaluations, this approach enables a more accurate and robust measure of relative manuscript quality.\nOur experiments demonstrate that this comparative approach significantly outperforms traditional rating-based methods in identifying high-impact papers. However, our analysis also reveals emergent biases in the selection process, notably a reduced novelty in research topics and an increased institutional imbalance. These findings highlight both the transformative potential of rethinking peer review with LLMs and critical challenges that future systems must address to ensure equity and diversity.",
+      "authors": [
+        "Yaohui Zhang",
+        "Haijing ZHANG",
+        "Wenlong Ji",
+        "Tianyu Hua",
+        "Nick Haber",
+        "Hancheng Cao",
+        "Weixin Liang"
+      ],
+      "primary_category": "Large Language Models",
+      "categories": [
+        "Large Language Models",
+        "Peer Review Redesign",
+        "Comparative Paper Evaluation"
+      ],
+      "published": "2025-09-18T17:40:35.349+00:00",
+      "link": "https://openreview.net/forum?id=z5KTxW5sJd",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-zj45hoqhjd",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Scalable In-context Ranking with Generative Models",
+      "abstract": "In-context Ranking (ICR) is an emerging paradigm for Information Retrieval (IR), which leverages contextual understanding of LLMs by directly incorporating the task description, candidate documents, and the query into the model's input prompt and tasking the LLM to identify relevant document(s). While it is effective, efficiency is a significant challenge in this paradigm, especially as the candidate list grows due to quadratic/super-linear scaling of attention operation with context length. To this end, this paper first identifies inherent and exploitable structures in the attention of LLMs finetuned for ICR: (1) inter-document block sparsity: attention is dense within each document block but sparse across different documents in the context; and (2) query-document block relevance: the attention scores from certain query tokens to a document block in middle layers strongly correlate with that document's actual relevance. Motivated by these observations, we introduce BlockRank (Blockwise In-context Ranking), a novel method that adapts the attention operation in an LLM by (a) architecturally enforcing the observed inter-document block sparsity, reducing attention complexity from quadratic to linear without loss in performance, and (b) optimizing query-document block relevance for true relevant documents during fine-tuning using an auxiliary contrastive training objective, improving retrieval in attention. Experiments on BEIR, MSMarco and NQ with Mistral-7B demonstrate that BlockRank Mistral matches or outperforms existing SOTA listwise rankers and controlled fine-tuned baseline while being significantly more efficient at inference (4.7x for 100 MSMarco documents in context) and scaling gracefully to long-context shortlists, around 500 documents in-context (approximately 100K context length) within a second, presenting a scalable and effective solution for ICR.",
+      "authors": [
+        "Nilesh Gupta",
+        "Chong You",
+        "Srinadh Bhojanapalli",
+        "Sanjiv Kumar",
+        "Inderjit S Dhillon",
+        "Felix X. Yu"
+      ],
+      "primary_category": "large language model",
+      "categories": [
+        "large language model",
+        "information retrieval",
+        "efficient fine-tuning",
+        "efficient inference"
+      ],
+      "published": "2025-09-18T17:43:23.672+00:00",
+      "link": "https://openreview.net/forum?id=zj45hoQhjD",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-wdl3o58gde",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Self-Generated In-Context Examples Improve LLM Agents for Sequential Decision-Making Tasks",
+      "abstract": "Improving Large Language Model (LLM) agents for sequential decision-making tasks typically requires extensive task-specific knowledge engineering—custom prompts, curated examples, and specialized observation/action spaces. We investigate a different approach where agents automatically improve by learning from their own successful experiences without human intervention. Our method constructs and refines a database of self-generated trajectories that serve as in-context examples for future tasks. Even naive accumulation of successful trajectories yields substantial performance gains across three diverse benchmarks: ALFWorld (73\\% to 89\\%), Wordcraft (55\\% to 64\\%), and InterCode-SQL (75\\% to 79\\%). These improvements exceed those achieved by upgrading from gpt-4o-mini to gpt-4o and match the performance of allowing multiple attempts per task. We further enhance this approach with two innovations: database-level curation using population-based training to propagate high-performing example collections, and exemplar-level curation that selectively retains trajectories based on their empirical utility as in-context examples. With these enhancements, our method achieves 93\\% success on ALFWorld—surpassing approaches that use more powerful LLMs and hand-crafted components. Our trajectory bootstrapping technique demonstrates that agents can autonomously improve through experience, offering a scalable alternative to labor-intensive knowledge engineering.",
+      "authors": [
+        "Vishnu Sarukkai",
+        "Zhiqiang Xie",
+        "Kayvon Fatahalian"
+      ],
+      "primary_category": "language models",
+      "categories": [
+        "language models",
+        "agents",
+        "self-improvement",
+        "in-context learning",
+        "sequential decision-making"
+      ],
+      "published": "2025-09-18T17:36:35.02+00:00",
+      "link": "https://openreview.net/forum?id=WdL3O58gde",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-nfc38gsyze",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Active Measurement: Efficient Estimation at Scale",
+      "abstract": "AI has the potential to transform scientific discovery by analyzing vast datasets with little human effort. However, current workflows often do not provide the accuracy or statistical guarantees that are needed. We introduce \\emph{active measurement}, a human-in-the-loop AI framework for scientific measurement. An AI model is used to predict measurements for individual units, which are then sampled for human labeling using importance sampling. With each new set of human labels, the AI model is improved and an unbiased Monte Carlo estimate of the total measurement is refined. Active measurement can provide precise estimates even with an imperfect AI model, and requires little human effort when the AI model is very accurate. We derive novel estimators, weighting schemes, and confidence intervals, and show that active measurement reduces estimation error compared to alternatives in several measurement tasks.",
+      "authors": [
+        "Max Hamilton",
+        "Jinlin Lai",
+        "Wenlong Zhao",
+        "Subhransu Maji",
+        "Daniel Sheldon"
+      ],
+      "primary_category": "importance sampling",
+      "categories": [
+        "importance sampling",
+        "image detection",
+        "ai for science",
+        "counting",
+        "human-in-the-loop",
+        "unbiased estimators"
+      ],
+      "published": "2025-09-18T17:30:22.519+00:00",
+      "link": "https://openreview.net/forum?id=nFc38gSYze",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-htgqc1h8ig",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Structural Entropy Guided Agent for Detecting and Repairing Knowledge Deficiencies in LLMs",
+      "abstract": "Large language models (LLMs) have achieved unprecedented performance by leveraging vast pretraining corpora, yet their performance remains suboptimal in knowledge-intensive domains such as medicine and scientific research, where high factual precision is required.\nWhile synthetic data provides a promising avenue for augmenting domain knowledge, \nexisting methods frequently generate redundant samples that do not align with the model’s true knowledge gaps. \nTo overcome this limitation, \nwe propose a novel Structural Entropy-guided Knowledge Navigator (SENATOR) framework that addresses the intrinsic knowledge deficiencies of LLMs. \nOur approach employs the Structure Entropy (SE) metric to quantify uncertainty along knowledge graph paths and leverages Monte Carlo Tree Search (MCTS) to selectively explore regions where the model lacks domain-specific knowledge. \nGuided by these insights, the framework generates targeted synthetic data for supervised fine-tuning, enabling continuous self-improvement. \nExperimental results on LLaMA-3 and Qwen2 across multiple domain-specific benchmarks show that SENATOR effectively detects and repairs knowledge deficiencies, achieving notable performance improvements.",
+      "authors": [
+        "Yifan Wei",
+        "Xiaoyan Yu",
+        "Tengfei Pan",
+        "Angsheng Li",
+        "Li Du"
+      ],
+      "primary_category": "Synthetic Data Generation",
+      "categories": [
+        "Synthetic Data Generation",
+        "llm-agents",
+        "self-inprovement",
+        "MCTS"
+      ],
+      "published": "2025-09-18T17:28:40.482+00:00",
+      "link": "https://openreview.net/forum?id=hTGqC1h8Ig",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-n33jvwcz38",
+      "source": "NeurIPS-2025-Rejected-Public",
+      "title": "Approximate Message Passing for Bayesian Neural Networks",
+      "abstract": "Bayesian methods have the ability to consider model uncertainty within a single framework and provide a powerful tool for decision-making. Bayesian neural networks (BNNs) hold great potential for better uncertainty quantification and data efficiency, making them promising candidates for more trustworthy AI in critical applications, and as backbones in data-constrained settings such as real-world reinforcement learning.  However, current approaches often face limitations such as overconfidence, sensitivity to hyperparameters, and posterior collapse, highlighting the need for alternative approaches. In this paper, we introduce a novel method that leverages message passing (MP) to model the predictive posterior of BNNs as a factor graph. Unlike previous MP-based methods, our framework is the first to support convolutional neural networks (CNNs) while addressing the issue of double-counting training data, which has been a key source of overconfidence in prior work. Multiple open datasets are used to demonstrate the general applicability of the method and to illustrate its differences to existing inference methods.",
+      "authors": [
+        "Romeo Sommerfeld",
+        "Christian Helms",
+        "Jan Niklas Groeneveld",
+        "Rainer Schlosser",
+        "Ralf Herbrich"
+      ],
+      "primary_category": "Bayesian Neural Networks",
+      "categories": [
+        "Bayesian Neural Networks",
+        "Message Passing",
+        "Uncertainty Quantification",
+        "Bayesian Inference"
+      ],
+      "published": "2025-05-09T08:10:30.956+00:00",
+      "link": "https://openreview.net/forum?id=n33JVwCz38",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-e6zdfjtoix",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Efficient Data Selection at Scale via Influence Distillation",
+      "abstract": "Effective data selection is critical for efficient training of modern Large Language Models (LLMs). This paper introduces Influence Distillation, a novel, mathematically-justified framework for data selection that employs second-order information to optimally weight training samples. By distilling each sample's influence on a target distribution, our method assigns model-specific weights that are used to select training data for LLM fine-tuning, guiding it toward strong performance on the target domain. We derive these optimal weights for both Gradient Descent and Adam optimizers. To ensure scalability and reduce computational cost, we propose a $\\textit{landmark-based approximation}$: influence is precisely computed for a small subset of \"landmark\" samples and then efficiently propagated to all other samples to determine their weights. We validate Influence Distillation by applying it to instruction tuning on the Tulu V2 dataset, targeting a range of tasks including GSM8k, SQuAD, and MMLU, across several models from the Llama and Qwen families. Experiments show that Influence Distillation matches or outperforms state-of-the-art performance while achieving up to $3.5\\times$ faster selection.",
+      "authors": [
+        "Mahdi Nikdan",
+        "Vincent Cohen-Addad",
+        "Dan Alistarh",
+        "Vahab Mirrokni"
+      ],
+      "primary_category": "Data Selection",
+      "categories": [
+        "Data Selection",
+        "Data Weighting",
+        "Influence Distillation",
+        "Fine Tuning",
+        "Efficient Training",
+        "Large Language Models"
+      ],
+      "published": "2025-09-18T17:42:12.402+00:00",
+      "link": "https://openreview.net/forum?id=E6ZdfjtoiX",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-kovklxn3nb",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Conformal Prediction Beyond the Seen: A Missing Mass Perspective for Uncertainty Quantification in Generative Models",
+      "abstract": "Uncertainty quantification (UQ) is essential for safe deployment of generative AI models such as large language models (LLMs), especially in high-stakes applications. Conformal prediction (CP) offers a principled uncertainty quantification framework, but classical methods focus on regression and classification, relying on geometric distances or softmax scores--tools that presuppose structured outputs. We depart from this paradigm by studying CP in a query-only setting, where prediction sets must be constructed solely from finite queries to a black-box generative model, introducing a new trade-off between coverage, test-time query budget, and informativeness. We introduce **Conformal Prediction with Query Oracle** (CPQ), a framework characterizing the optimal interplay between these objectives. Our finite-sample algorithm is built on two core principles: one governs the optimal query policy, and the other defines the optimal mapping from queried samples to prediction sets. Remarkably, both are rooted in the classical **missing mass problem** in statistics. Specifically, the optimal query policy depends on the rate of decay--or the derivative--of the missing mass, for which we develop a novel estimator. Meanwhile, the optimal mapping hinges on the missing mass itself, which we estimate using Good-Turing estimators. We then turn our focus to implementing our method for language models, particularly in open-ended LLM tasks involving question answering, multi-step reasoning, and structured information extraction, where outputs are vast, variable, and often under-specified. Fine-grained experiments on three real-world open-ended tasks and two LLMs, show CPQ's applicability to **any black-box LLM** and highlight: (1) individual contribution of each principle to CPQ’s performance, and (2) CPQ's ability to yield significantly more informative prediction sets than existing conformal methods for language uncertainty quantification.",
+      "authors": [
+        "Sima Noorani",
+        "Shayan Kiyani",
+        "George J. Pappas",
+        "Hamed Hassani"
+      ],
+      "primary_category": "Conformal prediction",
+      "categories": [
+        "Conformal prediction",
+        "Uncertainty quantification"
+      ],
+      "published": "2025-09-18T17:43:01.6+00:00",
+      "link": "https://openreview.net/forum?id=KoVKLxn3Nb",
+      "pdf_url": null,
+      "tags": [
+        "keyword:ai-classic",
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-h918wypf0s",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AcuRank: Uncertainty-Aware Adaptive Computation for Listwise Reranking",
+      "abstract": "Listwise reranking with large language models (LLMs) enhances top-ranked results in retrieval-based applications.\nDue to the limit in context size and high inference cost of long context, reranking is typically performed over a fixed size of small subsets, with the final ranking aggregated from these partial results.\nThis fixed computation disregards query difficulty and document distribution, leading to inefficiencies. \nWe propose AcuRank, an adaptive reranking framework that dynamically adjusts both the amount and target of computation based on uncertainty estimates over document relevance. \nUsing a Bayesian TrueSkill model, we iteratively refine relevance estimates until reaching sufficient confidence levels, and our explicit modeling of ranking uncertainty enables principled control over reranking behavior and avoids unnecessary updates to confident predictions.\nResults on the TREC-DL and BEIR benchmarks show that our method consistently achieves a superior accuracy–efficiency trade-off and scales better with compute than fixed-computation baselines.\nThese results highlight the effectiveness and generalizability of our method across diverse retrieval tasks and LLM-based reranking models.",
+      "authors": [
+        "Soyoung Yoon",
+        "Gyuwan Kim",
+        "GYU-HWUNG CHO",
+        "seung-won hwang"
+      ],
+      "primary_category": "Listwise Reranking",
+      "categories": [
+        "Listwise Reranking",
+        "Large Language Models",
+        "Adaptive Computation",
+        "Uncertainty Estimation",
+        "Inference Efficiency"
+      ],
+      "published": "2025-09-18T17:43:53.91+00:00",
+      "link": "https://openreview.net/forum?id=H918WyPf0s",
+      "pdf_url": null,
+      "tags": [
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-mzxggzelcl",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "EAReranker: Efficient Embedding Adequacy Assessment for Retrieval Augmented Generation",
+      "abstract": "With the increasing adoption of Retrieval-Augmented Generation (RAG) systems for knowledge-intensive tasks, ensuring the adequacy of retrieved documents has become critically important for generation quality. Traditional reranking approaches face three significant challenges: substantial computational overhead that scales with document length, dependency on plain text that limits application in sensitive scenarios, and insufficient assessment of document value beyond simple relevance metrics.  We propose EAReranker, an efficient embedding-based adequacy assessment framework that evaluates document utility for RAG systems without requiring access to original text content. The framework quantifies document adequacy through a comprehensive scoring methodology considering verifiability, coverage, completeness and structural aspects, providing interpretable adequacy classifications for downstream applications. EAReranker employs a Decoder-Only Transformer architecture that introduces embedding dimension expansion method and bin-aware weighted loss, designed specifically to predict adequacy directly from embedding vectors. Our comprehensive evaluation across four public benchmarks demonstrates that EAReranker achieves competitive performance with state-of-the-art plaintext rerankers while maintaining constant memory usage ($\\sim$550MB) regardless of input length and processing 2-3x faster than traditional approaches. The semantic bin adequacy prediction accuracy of 92.85\\% LACC@10 and 86.12\\% LACC@25 demonstrates its capability to effectively filter out inadequate documents that could potentially mislead or adversely impact RAG system performance, thereby ensuring only high-utility information serves as generation context. These results establish EAReranker as an efficient and practical solution for enhancing RAG system performance through improved context selection while addressing the computational and privacy challenges of existing methods.",
+      "authors": [
+        "Dongyang Zeng",
+        "Yaping Liu",
+        "Wei Zhang",
+        "Shuo Zhang",
+        "Xinwang Liu",
+        "Binxing Fang"
+      ],
+      "primary_category": "Retrieval-Augmented Generation",
+      "categories": [
+        "Retrieval-Augmented Generation",
+        "Embedding-based Reranking",
+        "Document Adequacy Assessment"
+      ],
+      "published": "2025-09-18T17:34:40.773+00:00",
+      "link": "https://openreview.net/forum?id=mzxGGzeLCL",
+      "pdf_url": null,
+      "tags": [
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-kjqtkj2hhf",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "AutoDiscovery: Open-ended Scientific Discovery via Bayesian Surprise",
+      "abstract": "The promise of autonomous scientific discovery (ASD) hinges not only on answering questions, but also on knowing which questions to ask. Most recent works in ASD explore the use of large language models (LLMs) in goal-driven settings, relying on human-specified research questions to guide hypothesis generation. However, scientific discovery may be accelerated further by allowing the AI system to drive exploration by its own criteria. The few existing approaches in open-ended ASD select hypotheses based on diversity heuristics or subjective proxies for human interestingness, but the former struggles to meaningfully navigate the typically vast hypothesis space, and the latter suffers from imprecise definitions. This paper presents AutoDiscovery—a method for open-ended ASD that instead drives scientific exploration using Bayesian surprise. Here, we quantify the epistemic shift from the LLM’s prior beliefs about a hypothesis to its posterior beliefs after gathering experimental results. To efficiently explore the space of nested hypotheses, our method employs a Monte Carlo tree search (MCTS) strategy with progressive widening using surprisal as the reward function. We evaluate AutoDiscovery in the setting of data-driven discovery across 21 real-world datasets spanning domains such as biology, economics, finance, and behavioral science. Our results demonstrate that under a fixed budget, AutoDiscovery substantially outperforms competitors by producing 5-29% more discoveries deemed surprising by the LLM. Our human evaluation further reveals that two-thirds of discoveries made by our system are surprising to domain experts as well, suggesting this is an important step towards building open-ended ASD systems.",
+      "authors": [
+        "Dhruv Agarwal",
+        "Bodhisattwa Prasad Majumder",
+        "Reece Adamson",
+        "Megha Chakravorty",
+        "Satvika Reddy Gavireddy",
+        "Aditya Parashar",
+        "Harshit Surana",
+        "Bhavana Dalvi Mishra",
+        "Andrew McCallum",
+        "Ashish Sabharwal",
+        "Peter Clark"
+      ],
+      "primary_category": "scientific discovery",
+      "categories": [
+        "scientific discovery",
+        "LLM",
+        "open-ended",
+        "Bayesian",
+        "surprise",
+        "data-driven discovery",
+        "autonomous discovery"
+      ],
+      "published": "2025-09-18T17:45:46.363+00:00",
+      "link": "https://openreview.net/forum?id=kJqTkj2HhF",
+      "pdf_url": null,
+      "tags": [
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-yqohuijshx",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "DNA-DetectLLM: Unveiling AI-Generated Text via a DNA-Inspired Mutation-Repair Paradigm",
+      "abstract": "The rapid advancement of large language models (LLMs) has blurred the line between AI-generated and human-written text. This progress brings societal risks such as misinformation, authorship ambiguity, and intellectual property concerns, highlighting the urgent need for reliable AI-generated text detection methods. However, recent advances in generative language modeling have resulted in significant overlap between the feature distributions of human-written and AI-generated text, blurring classification boundaries and making accurate detection increasingly challenging. To address the above challenges, we propose a DNA-inspired perspective, leveraging a repair-based process to directly and interpretably capture the intrinsic differences between human-written and AI-generated text. Building on this perspective, we introduce **DNA-DetectLLM**, a zero-shot detection method for distinguishing AI-generated and human-written text. The method constructs an ideal AI-generated sequence for each input, iteratively repairs non-optimal tokens, and quantifies the cumulative repair effort as an interpretable detection signal. Empirical evaluations demonstrate that our method achieves state-of-the-art detection performance and exhibits strong robustness against various adversarial attacks and input lengths. Specifically, DNA-DetectLLM achieves relative improvements of **5.55\\%** in AUROC and **2.08\\%** in F1 score across multiple public benchmark datasets. Code and data are available at https://github.com/Xiaoweizhu57/DNA-DetectLLM.",
+      "authors": [
+        "Xiaowei Zhu",
+        "Yubing Ren",
+        "Fang Fang",
+        "Qingfeng Tan",
+        "Shi Wang",
+        "Yanan Cao"
+      ],
+      "primary_category": "AI-generated Text Detection",
+      "categories": [
+        "AI-generated Text Detection"
+      ],
+      "published": "2025-09-18T17:45:22.732+00:00",
+      "link": "https://openreview.net/forum?id=yQoHUijSHx",
+      "pdf_url": null,
+      "tags": [
+        "query:ai-classic"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-vzsjsue0bz",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "CREA: A Collaborative Multi-Agent Framework for Creative Image Editing and Generation",
+      "abstract": "Creativity in AI imagery remains a fundamental challenge, requiring not only the generation of visually compelling content but also the capacity to add novel, expressive, and artistically rich transformations to images. Unlike conventional editing tasks that rely on direct prompt-based modifications, creative image editing demands an autonomous, iterative approach that balances originality, coherence, and artistic intent. To address this, we introduce CREA, a novel multi-agent collaborative framework that mimics the human creative process. Our framework leverages a team of specialized AI agents who dynamically collaborate to conceptualize, generate, critique, and enhance images.  Through extensive qualitative and quantitative evaluations, we demonstrate that CREA significantly outperforms state-of-the-art methods in diversity, semantic alignment, and creative transformation. To the best of our knowledge, this is the first work to introduce the task of creative editing.",
+      "authors": [
+        "Kavana Venkatesh",
+        "Connor Dunlop",
+        "Pinar Yanardag"
+      ],
+      "primary_category": "creativity",
+      "categories": [
+        "creativity",
+        "t2i",
+        "diffusion",
+        "multi-agentic systems",
+        "llm"
+      ],
+      "published": "2025-09-18T17:28:56.641+00:00",
+      "link": "https://openreview.net/forum?id=VzSjSUE0BZ",
+      "pdf_url": null,
+      "tags": [
+        "query:ai-classic"
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "type": "intent_query",
+      "tag": "ai-classic",
+      "paper_tag": "query:ai-classic",
+      "query_text": "curated list of influential AI publications",
+      "sim_scores": {
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2025-e6zdfjtoix": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-h918wypf0s": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-vzsjsue0bz": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-neurips-2025-wdl3o58gde": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        },
+        "openreview-neurips-2025-htgqc1h8ig": {
+          "score": 0.009433962264150943,
+          "rank": 46
+        },
+        "openreview-neurips-2025-kovklxn3nb": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-lscdymlj5v",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-k0wyi4cogy",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ae0bcvxxbt",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kqwyoyuac4",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vzsjsue0bz",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-e6zdfjtoix",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nkcwn347h7",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a64d9vl7wk",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-hmvq00vaby",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-axpbgg5z6i",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nfc38gsyze",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-wdl3o58gde",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-respmwooch",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yqohuijshx",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a5y8uh5szl",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3joqtghuzz",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kjqtkj2hhf",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-9fur5ifu9j",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-rwfrdksgce",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-m2hxuxqnrb",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dye9w8iov0",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-tnzse5q2tr",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kovklxn3nb",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mlu9kqdzus",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-n33jvwcz38",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sejp1mgmdz",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cmn8wbvanr",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-1a4nlibwl5",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-10s01yrlkp",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-x9xepnpgj5",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-s9nkfkuuer",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-h918wypf0s",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-htgqc1h8ig",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qn0e0kx2lm",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-zj45hoqhjd",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-eozfqye9ok",
+          "score": 0.1737891737891738,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mzxggzelcl",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-z5ktxw5sjd",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3hjfzh5eyk",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-uftlo48ohf",
+          "score": 0.06517094017094004,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "ai-classic",
+      "paper_tag": "query:ai-classic",
+      "query_text": "find recommendations for classic papers in artificial intelligence",
+      "sim_scores": {
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-h918wypf0s": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-mzxggzelcl": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2025-respmwooch": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-respmwooch",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-1a4nlibwl5",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-9fur5ifu9j",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ae0bcvxxbt",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kqwyoyuac4",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a64d9vl7wk",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a5y8uh5szl",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-x9xepnpgj5",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-eozfqye9ok",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cmn8wbvanr",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3hjfzh5eyk",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-uftlo48ohf",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-hmvq00vaby",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-k0wyi4cogy",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kjqtkj2hhf",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-n33jvwcz38",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-m2hxuxqnrb",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mlu9kqdzus",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-rwfrdksgce",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-10s01yrlkp",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lscdymlj5v",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nfc38gsyze",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kovklxn3nb",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sejp1mgmdz",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nkcwn347h7",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-tnzse5q2tr",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qn0e0kx2lm",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-s9nkfkuuer",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3joqtghuzz",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-wdl3o58gde",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-z5ktxw5sjd",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-htgqc1h8ig",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dye9w8iov0",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-e6zdfjtoix",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mzxggzelcl",
+          "score": 0.09983633387888699,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yqohuijshx",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-h918wypf0s",
+          "score": 0.06517094017094004,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-zj45hoqhjd",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vzsjsue0bz",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "ai-classic",
+      "paper_tag": "query:ai-classic",
+      "query_text": "list top papers from leading AI journals",
+      "sim_scores": {
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-z5ktxw5sjd": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-h918wypf0s": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-nfc38gsyze": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-neurips-2025-htgqc1h8ig": {
+          "score": 0.009433962264150943,
+          "rank": 46
+        },
+        "openreview-neurips-2025-kjqtkj2hhf": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-a64d9vl7wk",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kqwyoyuac4",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-k0wyi4cogy",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kjqtkj2hhf",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-h918wypf0s",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ae0bcvxxbt",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-e6zdfjtoix",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-9fur5ifu9j",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a5y8uh5szl",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-respmwooch",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nkcwn347h7",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-z5ktxw5sjd",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kovklxn3nb",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-hmvq00vaby",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3joqtghuzz",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lscdymlj5v",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-s9nkfkuuer",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sejp1mgmdz",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-htgqc1h8ig",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-tnzse5q2tr",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-1a4nlibwl5",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mzxggzelcl",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-zj45hoqhjd",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qn0e0kx2lm",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mlu9kqdzus",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vzsjsue0bz",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-eozfqye9ok",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-rwfrdksgce",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-wdl3o58gde",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cmn8wbvanr",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-m2hxuxqnrb",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dye9w8iov0",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-10s01yrlkp",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nfc38gsyze",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3hjfzh5eyk",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yqohuijshx",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-x9xepnpgj5",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-uftlo48ohf",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-axpbgg5z6i",
+          "score": 0.0319204604918889,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-n33jvwcz38",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "ai-classic",
+      "paper_tag": "query:ai-classic",
+      "query_text": "suggest must read AI research papers",
+      "sim_scores": {
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-z5ktxw5sjd": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2025-yqohuijshx": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2025-kjqtkj2hhf": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.010638297872340425,
+          "rank": 34
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-neurips-2025-htgqc1h8ig": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-neurips-2025-rwfrdksgce",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kqwyoyuac4",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a64d9vl7wk",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nfc38gsyze",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ae0bcvxxbt",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kovklxn3nb",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-lscdymlj5v",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-axpbgg5z6i",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-hmvq00vaby",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-kjqtkj2hhf",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mlu9kqdzus",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-k0wyi4cogy",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-9fur5ifu9j",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-yqohuijshx",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-respmwooch",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-n33jvwcz38",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-htgqc1h8ig",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qn0e0kx2lm",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-1a4nlibwl5",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-z5ktxw5sjd",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-a5y8uh5szl",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-eozfqye9ok",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-sejp1mgmdz",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-m2hxuxqnrb",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3joqtghuzz",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cmn8wbvanr",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-s9nkfkuuer",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-wdl3o58gde",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-x9xepnpgj5",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-10s01yrlkp",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-e6zdfjtoix",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nkcwn347h7",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3hjfzh5eyk",
+          "score": 0.1737891737891738,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-zj45hoqhjd",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vzsjsue0bz",
+          "score": 0.11772814998621459,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-uftlo48ohf",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-neurips-2025-mzxggzelcl",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "AI paper recommendations",
+      "sim_scores": {}
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "artificial intelligence papers",
+      "sim_scores": {
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-cmn8wbvanr": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-eozfqye9ok": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-9fur5ifu9j": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-a5y8uh5szl": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-1a4nlibwl5": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-uftlo48ohf": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-3hjfzh5eyk": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "classic AI research",
+      "sim_scores": {
+        "openreview-neurips-2025-x9xepnpgj5": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "classic foundational artificial intelligence studies",
+      "sim_scores": {
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-ae0bcvxxbt": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-respmwooch": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-sejp1mgmdz": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-wdl3o58gde": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-lscdymlj5v": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2025-uftlo48ohf": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.01,
+          "rank": 40
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "classic papers in artificial intelligence",
+      "sim_scores": {
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-lscdymlj5v": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-respmwooch": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-ae0bcvxxbt": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-qn0e0kx2lm": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2025-m2hxuxqnrb": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        },
+        "openreview-neurips-2025-sejp1mgmdz": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "influential AI publications",
+      "sim_scores": {}
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "most influential publications in artificial intelligence",
+      "sim_scores": {
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-e6zdfjtoix": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-nfc38gsyze": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-kovklxn3nb": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2025-respmwooch": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-n33jvwcz38": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "openreview-neurips-2025-htgqc1h8ig": {
+          "score": 0.009523809523809525,
+          "rank": 45
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "openreview-neurips-2025-qn0e0kx2lm": {
+          "score": 0.009174311926605505,
+          "rank": 49
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "papers from top artificial intelligence journals",
+      "sim_scores": {
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-z5ktxw5sjd": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-zj45hoqhjd": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        },
+        "openreview-neurips-2025-nkcwn347h7": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-wdl3o58gde": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "openreview-neurips-2025-nfc38gsyze": {
+          "score": 0.009708737864077669,
+          "rank": 43
+        },
+        "openreview-neurips-2025-htgqc1h8ig": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "recommendations for important AI papers",
+      "sim_scores": {
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.011363636363636364,
+          "rank": 28
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.011235955056179775,
+          "rank": 29
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2025-nkcwn347h7": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-lscdymlj5v": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-neurips-2025-m2hxuxqnrb": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "openreview-neurips-2025-n33jvwcz38": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "ai-classic",
+      "paper_tag": "keyword:ai-classic",
+      "query_text": "recommended artificial intelligence research papers",
+      "sim_scores": {
+        "openreview-neurips-2025-kqwyoyuac4": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-rwfrdksgce": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-a64d9vl7wk": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-neurips-2025-k0wyi4cogy": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-mlu9kqdzus": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-axpbgg5z6i": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2025-tnzse5q2tr": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "openreview-neurips-2025-hmvq00vaby": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-dye9w8iov0": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-nkcwn347h7": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-neurips-2025-10s01yrlkp": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "openreview-neurips-2025-3joqtghuzz": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "openreview-neurips-2025-lscdymlj5v": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "openreview-neurips-2025-s9nkfkuuer": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "openreview-neurips-2025-respmwooch": {
+          "score": 0.009523809523809525,
+          "rank": 45
+        }
+      }
+    }
+  ],
+  "global_candidate_ids": [
+    "openreview-neurips-2025-k0wyi4cogy",
+    "openreview-neurips-2025-rwfrdksgce",
+    "openreview-neurips-2025-kqwyoyuac4",
+    "openreview-neurips-2025-a64d9vl7wk",
+    "openreview-neurips-2025-cwvqgaf5a6",
+    "openreview-neurips-2025-zwdmrartbg",
+    "openreview-neurips-2025-hmvq00vaby",
+    "openreview-neurips-2025-cmn8wbvanr",
+    "openreview-neurips-2025-x9xepnpgj5",
+    "openreview-neurips-2025-3sukvb8pro",
+    "openreview-neurips-2025-2hinrfmmq7",
+    "openreview-neurips-2025-vs1m06px6u",
+    "openreview-neurips-2025-nfhmjdzubq",
+    "openreview-neurips-2025-vm84b0gksj",
+    "openreview-neurips-2025-mlu9kqdzus",
+    "openreview-neurips-2025-w1y7rzc3qt",
+    "openreview-neurips-2025-9t7gfyup0u",
+    "openreview-neurips-2025-3oqdkmw72a",
+    "openreview-neurips-2025-s9nkfkuuer",
+    "openreview-neurips-2025-tnzse5q2tr",
+    "openreview-neurips-2025-2t5ifpazbx",
+    "openreview-neurips-2025-nuctkoflsv",
+    "openreview-neurips-2025-idsttdw4cs",
+    "openreview-neurips-2025-4q1va6p9j9",
+    "openreview-neurips-2025-axpbgg5z6i",
+    "openreview-neurips-2025-rblwkiuqey",
+    "openreview-neurips-2025-h3dbocj7po",
+    "openreview-neurips-2025-oezzuszhep",
+    "openreview-neurips-2025-5ihdgjff49",
+    "openreview-neurips-2025-zj45hoqhjd",
+    "openreview-neurips-2025-cgnjl6cev0",
+    "openreview-neurips-2025-3joqtghuzz",
+    "openreview-neurips-2025-dye9w8iov0",
+    "openreview-neurips-2025-trxt10xkc5",
+    "openreview-neurips-2025-10s01yrlkp",
+    "openreview-neurips-2025-fim0m8gcct",
+    "openreview-neurips-2025-xahozxfuuw",
+    "openreview-neurips-2025-7lkkhbamzh",
+    "openreview-neurips-2025-sprb3zh7hz",
+    "openreview-neurips-2025-xbmjxb6f4w",
+    "openreview-neurips-2025-respmwooch",
+    "openreview-neurips-2025-x2rk0lsqra",
+    "openreview-neurips-2025-9v2svel1vp",
+    "openreview-neurips-2025-fvs2bcjcqc",
+    "openreview-neurips-2025-htgqc1h8ig",
+    "openreview-neurips-2025-lscdymlj5v",
+    "openreview-neurips-2025-mbj46gd1ct",
+    "openreview-neurips-2025-vydzgigcbc",
+    "openreview-neurips-2025-h918wypf0s",
+    "openreview-neurips-2025-qujdphbcdp",
+    "openreview-neurips-2025-z5ktxw5sjd",
+    "openreview-neurips-2025-mjebhucim2",
+    "openreview-neurips-2025-xm57ixqu0n",
+    "openreview-neurips-2025-elhieruitq",
+    "openreview-neurips-2025-dkgx2ps4ww",
+    "openreview-neurips-2025-01hpo0ujhs",
+    "openreview-neurips-2025-nkcwn347h7",
+    "openreview-neurips-2025-nfc38gsyze",
+    "openreview-neurips-2025-r3c3ry25es",
+    "openreview-neurips-2025-wdl3o58gde",
+    "openreview-neurips-2025-6irzvjic9q",
+    "openreview-neurips-2025-vat2xlawjy",
+    "openreview-neurips-2025-0qnmavqqqj",
+    "openreview-neurips-2025-vpp3fgnli6",
+    "openreview-neurips-2025-6iuurcuooo",
+    "openreview-neurips-2025-e6zdfjtoix",
+    "openreview-neurips-2025-ae0bcvxxbt",
+    "openreview-neurips-2025-x7fciuccau",
+    "openreview-neurips-2025-z9oeqrcnh9",
+    "openreview-neurips-2025-uc3di4yprv",
+    "openreview-neurips-2025-uftlo48ohf",
+    "openreview-neurips-2025-n6ujq5yfwa",
+    "openreview-neurips-2025-sfuh4dshoa",
+    "openreview-neurips-2025-zsrb8rth9m",
+    "openreview-neurips-2025-yvgnoqy0zf",
+    "openreview-neurips-2025-acsonshiwe",
+    "openreview-neurips-2025-po0eyoyfua",
+    "openreview-neurips-2025-ygnactguwj",
+    "openreview-neurips-2025-sejp1mgmdz",
+    "openreview-neurips-2025-ttwzhy8jqy",
+    "openreview-neurips-2025-rgmazkn1ve",
+    "openreview-neurips-2025-krf62hkrfr",
+    "openreview-neurips-2025-kovklxn3nb",
+    "openreview-neurips-2025-frdx7k4gli",
+    "openreview-neurips-2025-kjqtkj2hhf",
+    "openreview-neurips-2025-lq1qop4kwt",
+    "openreview-neurips-2025-qn0e0kx2lm",
+    "openreview-neurips-2025-zugmif2nm6",
+    "openreview-neurips-2025-cwesstiwg5",
+    "openreview-neurips-2025-m2hxuxqnrb",
+    "openreview-neurips-2025-n4v3msqk77",
+    "openreview-neurips-2025-uyjcf4cwmc",
+    "openreview-neurips-2025-apbbkhdk4w",
+    "openreview-neurips-2025-6h9q6mmqen",
+    "openreview-neurips-2025-otaiypp6ga",
+    "openreview-neurips-2025-7kqjbcqwtt",
+    "openreview-neurips-2025-buytctumya",
+    "openreview-neurips-2025-7pp2yyedv6",
+    "openreview-neurips-2025-fyjf9kijd5",
+    "openreview-neurips-2025-n33jvwcz38",
+    "openreview-neurips-2025-4zhhgkkvzy",
+    "openreview-neurips-2025-cu4ow1odre",
+    "openreview-neurips-2025-eozfqye9ok",
+    "openreview-neurips-2025-9fur5ifu9j",
+    "openreview-neurips-2025-y7ahj9roxq",
+    "openreview-neurips-2025-a5y8uh5szl",
+    "openreview-neurips-2025-1a4nlibwl5",
+    "openreview-neurips-2025-jdkymih4ro",
+    "openreview-neurips-2025-3hjfzh5eyk",
+    "openreview-neurips-2025-vqlolquunb",
+    "openreview-neurips-2025-oo9kxam6mu",
+    "openreview-neurips-2025-4vkvume1i8",
+    "openreview-neurips-2025-aeabrpxv37",
+    "openreview-neurips-2025-qgfvtims3w",
+    "openreview-neurips-2025-1milydypdf",
+    "openreview-neurips-2025-mgvhgfcfnk",
+    "openreview-neurips-2025-vzsjsue0bz",
+    "openreview-neurips-2025-yqohuijshx",
+    "openreview-neurips-2025-ikvkpjsjzj",
+    "openreview-neurips-2025-mzxggzelcl"
+  ],
+  "global_pool_lane_top_k": 30,
+  "global_pool_limit": 120,
+  "global_pool_guaranteed_per_lane": 2,
+  "global_pool_effective_size": 120,
+  "reranked_at": "2026-05-26T06:27:22.413565+00:00",
+  "llm_ranked": [
+    {
+      "paper_id": "openreview-neurips-2025-eozfqye9ok",
+      "score": 7.0,
+      "evidence_en": "AI agent theory: plasticity and empowerment",
+      "evidence_cn": "AI智能体理论：可塑性与赋能",
+      "canonical_evidence": "AI智能体理论：可塑性与赋能",
+      "tldr_en": "Introduces plasticity as an agent-centric measure of how past observations influence future actions, defining it with generalized directed information and connecting it to empowerment, foundational for AI agents.",
+      "tldr_cn": "该论文提出“可塑性”作为衡量智能体受过去观测影响程度的概念，使用新的信息论量“广义有向信息”进行定义，并揭示了其与“赋能”的基本联系。这项工作为理解智能体如何被环境塑造提供了理论基础，对人工智能和认知科学具有基础意义。",
+      "title_zh": "可塑性：作为赋能的镜像",
+      "motivation_cn": "现有理论侧重于智能体影响未来的能力（赋能），但忽略了其受过去影响的程度（可塑性），本文旨在确立这一概念。",
+      "method_cn": "通过提出一系列期望性质，定义了一个名为“广义有向信息”的信息论量来量化可塑性。",
+      "result_cn": "证明了该新量严格推广了有向信息，并建立了可塑性与赋能之间的深层联系。",
+      "conclusion_cn": "可塑性是智能体的基础维度，与赋能互补，为统一智能体理论提供了新视角。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-9fur5ifu9j",
+      "score": 7.0,
+      "evidence_en": "Deep reinforcement learning with causal robustness, core AI topic",
+      "evidence_cn": "基于因果方法的鲁棒深度强化学习，核心人工智能主题",
+      "canonical_evidence": "基于因果方法的鲁棒深度强化学习，核心人工智能主题",
+      "tldr_en": "Proposes a deep RL algorithm robust to unobserved confounding by finding safe policies for worst-case environments, evaluated on confounded Atari games.",
+      "tldr_cn": "离线强化学习常因数据中存在未观测混杂因素而得到有偏策略，在高维领域尤为严重。本文在深度Q网络基础上，提出一种对混杂偏差鲁棒的深度强化学习算法，通过寻找与观测数据相容的最坏环境下的安全策略来对抗偏差。在12个存在混杂的Atari游戏上，该方法显著优于现有基线。",
+      "title_zh": "混杂鲁棒的深度强化学习：一种因果方法",
+      "motivation_cn": "离线强化学习数据中未观测混杂因素会导致学习到的策略有偏",
+      "method_cn": "基于深度Q网络提出鲁棒算法，寻找最坏环境下的安全策略以对抗混杂偏差",
+      "result_cn": "在混杂Atari游戏上显著优于现有方法",
+      "conclusion_cn": "因果视角的鲁棒优化能有效提升离线强化学习对混杂偏差的抵抗力",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-n33jvwcz38",
+      "score": 7.0,
+      "evidence_en": "Bayesian neural networks via message passing, advances AI methods",
+      "evidence_cn": "通过消息传递实现贝叶斯神经网络，推进人工智能方法",
+      "canonical_evidence": "通过消息传递实现贝叶斯神经网络，推进人工智能方法",
+      "tldr_en": "Introduces a message passing approach to model predictive posterior of BNNs as factor graphs, addressing overconfidence and posterior collapse.",
+      "tldr_cn": "贝叶斯神经网络在不确定性量化方面具有潜力，但现有方法常面临过度自信、后验坍缩等问题。本文提出利用消息传递将贝叶斯神经网络的预测后验建模为因子图，不同于传统方法，该技术能有效缓解上述缺陷。实验表明，新方法在不确定性校准和预测精度上均优于现有贝叶斯神经网络，为可信AI提供了有力工具。",
+      "title_zh": "贝叶斯神经网络的近似消息传递方法",
+      "motivation_cn": "现有贝叶斯神经网络方法存在过度自信和后验坍缩等局限性",
+      "method_cn": "利用消息传递将预测后验建模为因子图，提出新的近似推理方法",
+      "result_cn": "在不确定性校准和预测精度上优于现有贝叶斯神经网络",
+      "conclusion_cn": "消息传递框架能有效改进贝叶斯神经网络的推理质量",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-wdl3o58gde",
+      "score": 6.0,
+      "evidence_en": "LLM agents for decision-making",
+      "evidence_cn": "LLM智能体决策",
+      "canonical_evidence": "LLM智能体决策",
+      "tldr_en": "Proposes a method where LLM agents automatically improve by learning from self-generated successful trajectories as in-context examples, achieving gains on ALFWorld, Wordcraft, and InterCode-SQL.",
+      "tldr_cn": "该论文提出一种无需人工干预的方法：LLM智能体通过自动收集自身成功轨迹作为上下文示例来改进。在ALFWorld、Wordcraft和InterCode-SQL三个基准上分别获得16%、9%和4%的性能提升，优于手动示例工程。",
+      "title_zh": "自生成上下文示例提升LLM智能体序列决策能力",
+      "motivation_cn": "LLM智能体提升通常需要大量任务特定知识和人工示例，本文旨在实现自动从自身经验中学习。",
+      "method_cn": "构建并不断精炼一个包含成功轨迹的数据库，作为未来任务的上下文示例。",
+      "result_cn": "即使简单累积成功轨迹，也在三个基准上显著提升性能，超过手动示例工程的效果。",
+      "conclusion_cn": "自生成示例为LLM智能体提供了一种可扩展的自动改进途径。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-lscdymlj5v",
+      "score": 6.0,
+      "evidence_en": "Narrow AI creation and neural network skill hierarchy",
+      "evidence_cn": "窄AI创建与神经网络技能层次",
+      "canonical_evidence": "窄AI创建与神经网络技能层次",
+      "tldr_en": "Explores two challenges in creating narrow AI: necessity of diverse training for narrow skills (hierarchy) and nonlocality of skill representations, raising fundamental issues for AI specialization.",
+      "tldr_cn": "该论文研究创建强而窄的AI系统时的两个挑战：一是为了学习某些窄技能，有时必须在广泛数据分布上训练（层次性）；二是技能表示的非局域性。这些发现对AI专业化和安全性有重要启示。",
+      "title_zh": "论窄AI的创建：神经网络技能的层次性与非局域性",
+      "motivation_cn": "创建窄AI对于效率和安全性有重要价值，但神经网络基本学习特性带来挑战。",
+      "method_cn": "通过合成任务实验，研究窄技能训练的数据分布要求和技能表示结构。",
+      "result_cn": "发现某些窄技能无法通过仅训练窄分布数据习得，且技能表示存在非局域性。",
+      "conclusion_cn": "窄AI的创建需考虑学习路径中的层次性和表示非局域性，对模型设计提出新要求。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-a64d9vl7wk",
+      "score": 6.0,
+      "evidence_en": "Predicting AI research outcomes with LMs",
+      "evidence_cn": "用语言模型预测AI研究结果",
+      "canonical_evidence": "用语言模型预测AI研究结果",
+      "tldr_en": "Builds the first benchmark for predicting which AI research idea will perform better, and develops a system combining LMs that outperforms human experts on this task.",
+      "tldr_cn": "该论文构建了首个预测AI研究想法成功率的基准，包含1585个验证想法对。结合语言模型的系统在预测哪个想法效果更佳上超越人类专家，有望加速AI研究。",
+      "title_zh": "用语言模型预测实证AI研究结果",
+      "motivation_cn": "AI研究想法验证成本高，若能提前预测成功率可加速进展。",
+      "method_cn": "从会议论文中抓取想法和实验结果构建基准，并开发组合语言模型的预测系统。",
+      "result_cn": "系统在1585个验证对上的表现超越人类专家。",
+      "conclusion_cn": "语言模型有潜力辅助AI研究中的决策，加速科学发现。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-rwfrdksgce",
+      "score": 6.0,
+      "evidence_en": "AI research agents for ML automation",
+      "evidence_cn": "AI研究代理自动化机器学习",
+      "canonical_evidence": "AI研究代理自动化机器学习",
+      "tldr_en": "Formalizes AI research agents as search policies navigating solution spaces; shows that combining search strategies (Greedy, MCTS, Evolutionary) with operator sets achieves high performance on MLE-bench.",
+      "tldr_cn": "该论文将AI研究代理人形式化为在候选解空间中搜索的策略，通过系统设计不同的算子集和搜索策略（贪婪、MCTS、进化），发现其相互作用对性能至关重要。最佳组合在MLE-bench上取得了突破性结果。",
+      "title_zh": "AI研究代理：MLE-bench中的搜索、探索与泛化",
+      "motivation_cn": "AI研究代理有望加速科学进展，但方法设计缺乏系统理解。",
+      "method_cn": "将代理视为搜索策略，通过变化算子集和搜索策略进行实验，分析其影响。",
+      "result_cn": "发现搜索策略与算子集的精心配对显著提升Kaggle竞赛性能。",
+      "conclusion_cn": "系统化设计搜索策略与算子是构建高效AI研究代理的关键。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-ae0bcvxxbt",
+      "score": 6.0,
+      "evidence_en": "theoretical analysis of transformer reasoning in AI",
+      "evidence_cn": "Transformer推理的理论分析",
+      "canonical_evidence": "Transformer推理的理论分析",
+      "tldr_en": "Proves how algebraic structure governs length generalization in transformers' chain-of-thought reasoning via attention concentration, linking attention robustness to task structure.",
+      "tldr_cn": "该论文针对Transformer在链式思维推理中的长度泛化问题，从理论上证明了状态跟踪任务的代数结构如何决定长度泛化能力。通过提出注意力集中机制，揭示了注意力层的检索鲁棒性与任务结构之间的关系，为理解Transformer推理能力提供了理论基础。",
+      "title_zh": "Transformer可证明学习具有长度泛化的链式思维推理",
+      "motivation_cn": "理解Transformer在复杂推理任务中能否外推到更长的推理链，是AI推理的核心问题。",
+      "method_cn": "通过梯度下降学习合成状态跟踪任务，形式化注意力集中机制，建立任务结构与泛化的联系。",
+      "result_cn": "证明了代数结构决定长度泛化，注意力集中机制解释了检索鲁棒性。",
+      "conclusion_cn": "为Transformer的推理长度泛化提供了理论保证，推动可解释AI推理研究。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-a5y8uh5szl",
+      "score": 6.0,
+      "evidence_en": "online RL method with primal-dual optimization for exploration",
+      "evidence_cn": "在线强化学习中的探索-利用平衡方法",
+      "canonical_evidence": "在线强化学习中的探索-利用平衡方法",
+      "tldr_en": "Interprets optimism in exploration via primal-dual optimization, proposing a value-incentivized actor-critic method with theoretical guarantees for sample-efficient online RL.",
+      "tldr_cn": "该论文从原始-对偶优化的角度重新解释了强化学习中的乐观探索原则，提出了一种价值激励的演员-评论家方法，在理论上保证了在线RL的样本效率。通过将乐观正则化转化为优化问题，有效平衡了探索与利用。",
+      "title_zh": "从原始-对偶视角看探索：基于价值激励的演员-评论家方法实现样本高效在线强化学习",
+      "motivation_cn": "在线强化学习中探索与利用的权衡缺乏高效且具有理论保证的实用方案。",
+      "method_cn": "利用原始-对偶优化解释乐观探索，设计价值激励的演员-评论家算法。",
+      "result_cn": "理论上保证了样本效率，实验验证了方法的有效性。",
+      "conclusion_cn": "为RL中的探索提供了新视角和实用算法。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-s9nkfkuuer",
+      "score": 6.0,
+      "evidence_en": "LLM agentic search framework, relevant to AI research papers",
+      "evidence_cn": "大语言模型智能搜索框架，与人工智能研究论文相关",
+      "canonical_evidence": "大语言模型智能搜索框架，与人工智能研究论文相关",
+      "tldr_en": "Proposes ExSearch, an agentic search framework where LLMs learn to retrieve useful information through self-incentivization, addressing multi-hop queries and irrelevant content.",
+      "tldr_cn": "现有大语言模型在复杂多跳查询中难以准确获取知识，且常受无关检索内容干扰。本文提出ExSearch框架，让大语言模型通过自我激励机制在推理过程中主动决定检索内容、触发外部检索器并提取细粒度证据，以支持逐步推理。该方法采用广义期望算法实现自我激励，实验表明其显著提升了多跳问答的准确性，为智能检索提供了新范式。",
+      "title_zh": "迭代自我激励赋能大语言模型成为智能搜索体",
+      "motivation_cn": "解决大语言模型在复杂多跳查询中难以准确获取知识且受无关内容干扰的问题",
+      "method_cn": "提出ExSearch框架，通过自我激励过程让大语言模型在推理中主动决策检索内容并提取证据",
+      "result_cn": "实验证明有效提升了多跳问答的准确性",
+      "conclusion_cn": "自我激励机制能显著增强大语言模型作为智能搜索体的能力",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-nkcwn347h7",
+      "score": 6.0,
+      "evidence_en": "Multimodal generalist agent for computer interaction, covers AI research",
+      "evidence_cn": "多模态通用智能体用于计算机交互，涵盖人工智能研究",
+      "canonical_evidence": "多模态通用智能体用于计算机交互，涵盖人工智能研究",
+      "tldr_en": "Introduces InfantAgent-Next, a modular multimodal agent integrating tool-based and vision agents to solve diverse computer interaction tasks, achieving strong results on OSWorld, GAIA, and SWE-Bench.",
+      "tldr_cn": "现有方法要么围绕单一大型模型构建复杂工作流，要么仅提供工作流模块化，缺乏灵活性。本文提出InfantAgent-Next，一个高度模块化的多模态通用智能体，融合工具型与纯视觉智能体，协同解决解耦任务。在OSWorld、GAIA和SWE-Bench等基准上取得领先性能，展示了通用计算机交互的潜力。",
+      "title_zh": "InfantAgent-Next：用于自动化计算机交互的多模态通用智能体",
+      "motivation_cn": "现有计算机交互智能体在灵活性和模块化方面存在不足，难以处理多样化任务",
+      "method_cn": "构建高度模块化的多模态智能体架构，集成工具型与纯视觉智能体协同解决解耦任务",
+      "result_cn": "在多个基准上取得领先性能，展现了通用性",
+      "conclusion_cn": "模块化多模态架构能有效提升智能体的通用性和任务解决能力",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-h918wypf0s",
+      "score": 6.0,
+      "evidence_en": "Adaptive reranking with LLMs, contributes to NLP techniques",
+      "evidence_cn": "基于大语言模型的自适应重排序，贡献于自然语言处理技术",
+      "canonical_evidence": "基于大语言模型的自适应重排序，贡献于自然语言处理技术",
+      "tldr_en": "Proposes AcuRank, an adaptive listwise reranking framework using Bayesian TrueSkill to dynamically adjust computation based on uncertainty, improving efficiency and accuracy.",
+      "tldr_cn": "现有列表式重排序方法对所有查询使用固定计算预算，忽视了查询难度和文档分布差异，导致效率低下。本文提出AcuRank，基于贝叶斯TrueSkill模型对文档相关性进行不确定性估计，并动态调整计算量与目标，直到置信度达标。在多个检索数据集上，AcuRank在保持精度的同时显著降低了计算成本。",
+      "title_zh": "AcuRank：面向列表式重排序的不确定性感知自适应计算",
+      "motivation_cn": "固定计算预算的重排序方法忽略了查询难度差异，导致效率低下",
+      "method_cn": "提出AcuRank框架，利用贝叶斯TrueSkill模型迭代估计不确定性，动态调整计算",
+      "result_cn": "在多个检索数据集上以更低计算成本保持或提升重排序精度",
+      "conclusion_cn": "不确定性感知的自适应计算能有效优化列表式重排序的效率与效果",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-hmvq00vaby",
+      "score": 6.0,
+      "evidence_en": "Probabilistic reasoning with LLMs for privacy, AI research",
+      "evidence_cn": "利用大语言模型进行概率推理以评估隐私风险，属于人工智能研究",
+      "canonical_evidence": "利用大语言模型进行概率推理以评估隐私风险，属于人工智能研究",
+      "tldr_en": "Introduces BRANCH, an LLM methodology for privacy risk estimation via Bayesian network factorization, achieving accurate k-privacy value prediction.",
+      "tldr_cn": "大语言模型在数值推理任务上存在不足，尤其是涉及不确定性的隐私风险评估。本文提出BRANCH方法，利用贝叶斯网络分解个人信息联合概率分布，分别估计各因子在总体中的概率，从而计算文本的k-隐私值。实验表明，BRANCH在真实数据集上能准确估计隐私风险，为文本隐私保护提供了新工具。",
+      "title_zh": "基于大语言模型的概率推理用于隐私风险评估",
+      "motivation_cn": "大语言模型在处理不确定数值推理任务时存在局限，尤其是隐私风险评估",
+      "method_cn": "提出BRANCH方法，通过贝叶斯网络分解概率分布来估计文本的k-隐私值",
+      "result_cn": "在真实数据集上准确估计隐私风险",
+      "conclusion_cn": "概率因子分解能有效提升大语言模型在隐私风险评估中的数值推理能力",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-respmwooch",
+      "score": 6.0,
+      "evidence_en": "Reinforcement learning for automated math theory discovery, AI research",
+      "evidence_cn": "强化学习用于自动数学理论发现，人工智能研究",
+      "canonical_evidence": "强化学习用于自动数学理论发现，人工智能研究",
+      "tldr_en": "Introduces Fermat, an RL environment for concept discovery, and an LLM-based evolutionary algorithm to learn interestingness measures for mathematical objects.",
+      "tldr_cn": "自动发现新数学理论是人工智能的重大挑战，现有方法难以有效评估数学对象的趣味性。本文首先提出Fermat环境，将概念发现和定理证明建模为强化学习问题；然后基于大语言模型的进化算法，自动合成非平凡的趣味性度量。在初等数论和有限域领域，该方法显著优于基线，推动了开放数学发现的前沿。",
+      "title_zh": "自动化数学理论发现中的趣味性学习",
+      "motivation_cn": "自动数学理论发现需要有效评估新概念的趣味性，但现有方法定义模糊",
+      "method_cn": "构建Fermat强化学习环境，并利用大语言模型进化算法自动合成趣味性度量",
+      "result_cn": "在初等数论和有限域发现中显著优于基线",
+      "conclusion_cn": "结合强化学习与大语言模型能有效自动化数学理论发现中的趣味性评估",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-kovklxn3nb",
+      "score": 6.0,
+      "evidence_en": "Conformal prediction for generative models, uncertainty quantification in AI",
+      "evidence_cn": "生成模型的共形预测，人工智能中的不确定性量化",
+      "canonical_evidence": "生成模型的共形预测，人工智能中的不确定性量化",
+      "tldr_en": "Adapts conformal prediction to black-box generative models using only queries, introducing a new coverage-query-informativeness trade-off.",
+      "tldr_cn": "经典共形预测方法依赖几何距离或softmax分数，难以直接应用于生成模型。本文研究仅通过查询黑盒生成模型构建预测集的设定，引入覆盖率、测试时查询预算与信息量之间的新权衡。提出基于缺失质量视角的共形预测方法，在保持覆盖率的同时最小化查询次数，为生成式AI的安全部署提供原理性框架。",
+      "title_zh": "超越可见的共形预测：生成模型不确定性量化的缺失质量视角",
+      "motivation_cn": "现有共形预测方法依赖结构化输出，难以直接用于生成模型的不确定性量化",
+      "method_cn": "提出仅通过查询黑盒生成模型构建预测集的共形预测方法，引入缺失质量视角",
+      "result_cn": "在保持覆盖率的同时显著减少查询次数",
+      "conclusion_cn": "缺失质量视角能有效扩展共形预测到生成模型，促进安全部署",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-k0wyi4cogy",
+      "score": 6.0,
+      "evidence_en": "Multi-agent LLMs for knowledge graph enrichment, AI research",
+      "evidence_cn": "多智能体大语言模型用于知识图谱增强，人工智能研究",
+      "canonical_evidence": "多智能体大语言模型用于知识图谱增强，人工智能研究",
+      "tldr_en": "Presents KARMA, a multi-agent LLM framework automating knowledge graph enrichment from unstructured text, validated on 1200 PubMed articles.",
+      "tldr_cn": "知识图谱的维护依赖人工，难以跟上科学文献增长。本文提出KARMA框架，利用九个协作的大语言模型智能体自动完成实体发现、关系抽取、模式对齐和冲突消解，迭代解析文档并整合到现有图中。在1200篇PubMed文章上的实验表明，KARMA显著提升了知识图谱的覆盖率和更新效率。",
+      "title_zh": "KARMA：利用多智能体大语言模型自动化知识图谱增强",
+      "motivation_cn": "手动维护知识图谱难以应对科学文献的快速增长",
+      "method_cn": "开发多智能体大语言模型框架，自动化实体发现、关系抽取、模式对齐和冲突消解",
+      "result_cn": "在PubMed文献上验证了知识图谱覆盖率和更新效率的提升",
+      "conclusion_cn": "多智能体协作能有效自动化知识图谱的增强过程",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-kjqtkj2hhf",
+      "score": 6.0,
+      "evidence_en": "Open-ended scientific discovery via Bayesian surprise, AI research",
+      "evidence_cn": "通过贝叶斯惊奇实现开放式科学发现，人工智能研究",
+      "canonical_evidence": "通过贝叶斯惊奇实现开放式科学发现，人工智能研究",
+      "tldr_en": "Presents AutoDiscovery, a method for open-ended scientific discovery using Bayesian surprise to select hypotheses, surpassing diversity heuristics.",
+      "tldr_cn": "现有自主科学发现系统依赖人类指定的研究问题或多样性启发式，难以实现真正的开放式探索。本文提出AutoDiscovery方法，利用贝叶斯惊奇作为驱动，让AI系统自主选择能带来最大信息增益的假设。通过将贝叶斯惊奇与基于大语言模型的假设生成相结合，AutoDiscovery在化学和生物学数据集上发现了比基线更具新颖性和趣味性的假设。",
+      "title_zh": "AutoDiscovery：基于贝叶斯惊奇的开放式科学发现",
+      "motivation_cn": "现有自主科学发现系统缺乏真正开放式探索的能力",
+      "method_cn": "利用贝叶斯惊奇驱动假设选择，结合大语言模型生成新假设",
+      "result_cn": "在化学和生物学数据集上发现更具新颖性和趣味性的假设",
+      "conclusion_cn": "贝叶斯惊奇能有效引导AI系统进行开放式科学发现",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-cmn8wbvanr",
+      "score": 6.0,
+      "evidence_en": "uses classic AI game benchmarks (AlphaGo, etc.) to evaluate LLMs",
+      "evidence_cn": "使用AlphaGo等经典AI游戏基准评估LLM",
+      "canonical_evidence": "使用AlphaGo等经典AI游戏基准评估LLM",
+      "tldr_en": "Systematically evaluates LLMs on eight card games, assessing fine-tuning impact and generalization, linking to classic AI progress.",
+      "tldr_cn": "针对LLM能否在复杂游戏中达到AlphaGo等经典AI水平的问题，本文在8种纸牌游戏中系统评估LLM，发现微调能提升表现但通用能力稳定，为AI在游戏领域的进展提供新视角。",
+      "title_zh": "大语言模型能否掌握复杂纸牌游戏？",
+      "motivation_cn": "评估LLM在复杂游戏中的能力，与经典AI基准对比",
+      "method_cn": "在8种纸牌游戏中微调LLM并评估性能与泛化",
+      "result_cn": "微调可提升游戏表现，但通用能力保持稳定",
+      "conclusion_cn": "LLM在复杂游戏中展现潜力，但仍需改进",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:ai-classic",
+      "matched_query_text": "classic foundational artificial intelligence studies"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-1a4nlibwl5",
+      "score": 6.0,
+      "evidence_en": "reinforcement learning algorithms",
+      "evidence_cn": "强化学习算法",
+      "canonical_evidence": "强化学习算法",
+      "tldr_en": "This paper proposes a trajectory optimization method with action quantization to learn human-like RL agents, addressing unnatural behaviors.",
+      "tldr_cn": "针对强化学习智能体行为不自然的问题，本文提出通过轨迹优化与动作量化来学习类人行为。方法将类人性建模为轨迹优化目标，并采用滚动视野控制来高效求解。实验表明该方法能生成更接近人类的行为序列，提升了可解释性和可信度。这一工作为设计类人智能体提供了新思路。",
+      "title_zh": "通过轨迹优化与动作量化学习类人强化学习智能体",
+      "motivation_cn": "现有强化学习智能体虽性能超人类，但行为不自然，缺乏可解释性和可信度。",
+      "method_cn": "将类人性作为轨迹优化目标，结合动作量化和滚动视野控制来近似求解。",
+      "result_cn": "生成的智能体行为在人类相似度指标上明显优于传统强化学习方法。",
+      "conclusion_cn": "所提方法有效提升了强化学习智能体的人类似性，为类人AI设计提供了可行框架。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-kqwyoyuac4",
+      "score": 6.0,
+      "evidence_en": "autonomous AI research system",
+      "evidence_cn": "自主人工智能研究系统",
+      "canonical_evidence": "自主人工智能研究系统",
+      "tldr_en": "AI-Researcher automates the full research pipeline from literature review to manuscript preparation using LLM agents.",
+      "tldr_cn": "本文提出AI-Researcher，一个完全自主的科研系统，通过大语言模型智能体协调文献综述、假设生成、算法实现到论文撰写的全流程。并构建了Scientist-Bench基准来评估。该系统能独立完成多项研究任务，显著加速科学发现。这项工作展示了AI在自主科研中的巨大潜力。",
+      "title_zh": "AI-Researcher：自主科学创新",
+      "motivation_cn": "现有AI辅助科研通常需要大量人工干预，缺乏全流程自动化。",
+      "method_cn": "构建多智能体框架，利用LLM推理能力自动执行科研管线的各个阶段。",
+      "result_cn": "在Scientist-Bench上，系统能从头产出可发表的论文，部分结果达到顶级水平。",
+      "conclusion_cn": "首次展示了AI全自主科研的可行性，为加速科学发现奠定了基础。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-sejp1mgmdz",
+      "score": 6.0,
+      "evidence_en": "transformer architectures and in-context learning",
+      "evidence_cn": "Transformer架构与上下文学习",
+      "canonical_evidence": "Transformer架构与上下文学习",
+      "tldr_en": "A sparse-coding-based attention reformulation improves Transformer performance on in-context compositional learning.",
+      "tldr_cn": "尽管Transformer在多项任务中取得成功，但在上下文组成学习上因缺乏结构归纳偏置而表现不佳。本文受稀疏编码启发，重新设计注意力机制，使其能稀疏组合基本成分来推断复合规则。实验表明在多项组成学习基准上显著优于标准Transformer。该工作增强了Transformer处理结构任务的能力。",
+      "title_zh": "通过稀疏编码Transformer实现上下文组成学习",
+      "motivation_cn": "Transformer在需要推断复合规则的上下文学习任务中面临挑战。",
+      "method_cn": "借鉴稀疏编码，将注意力重制定为稀疏组合表示，增强结构归纳偏置。",
+      "result_cn": "在多个合成和真实组成学习任务上，准确率提升10%-20%。",
+      "conclusion_cn": "为Transformer处理组成性任务提供了有效方案，扩展了其应用范围。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-m2hxuxqnrb",
+      "score": 5.0,
+      "evidence_en": "AI robustness and certification",
+      "evidence_cn": "AI鲁棒性与认证",
+      "canonical_evidence": "AI鲁棒性与认证",
+      "tldr_en": "Proposes MIBP-Cert, a certified training method using mixed-integer bilinear programming to compute deterministic robustness bounds against data perturbations, provably guaranteeing model outcomes.",
+      "tldr_cn": "该论文提出MIBP-Cert方法，通过混合整数双线性规划计算确定性的鲁棒性边界，为训练阶段的数据扰动提供可证明的保证。该方法能预测所有可能输出，确保模型在面对复杂攻击时的可靠性。",
+      "title_zh": "MIBP-Cert：基于混合整数双线性规划的数据扰动认证训练",
+      "motivation_cn": "现有经验性防御无法应对不断变化的攻击，需要可证明的鲁棒训练方法来保证模型在扰动数据下的安全性。",
+      "method_cn": "提出基于混合整数双线性规划（MIBP）的认证方法，计算可达参数集，从而得到确定性的鲁棒边界。",
+      "result_cn": "该方法能处理复杂威胁模型，提供可证明的鲁棒性保证。",
+      "conclusion_cn": "MIBP-Cert为AI系统在训练阶段的数据鲁棒性提供了首个可证明的解决方案。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-3joqtghuzz",
+      "score": 5.0,
+      "evidence_en": "LLM-generated text detection",
+      "evidence_cn": "LLM生成文本检测",
+      "canonical_evidence": "LLM生成文本检测",
+      "tldr_en": "Proposes IPAD, an LLM-generated text detector using inverse prompt inversion and two distinguishers, achieving robustness and interpretability against OOD and attacked data.",
+      "tldr_cn": "该论文提出IPAD框架，通过提示反向器识别可能生成文本的提示，并结合两个判别器进行检测。相比现有方法，IPAD在分布外数据和攻击数据上更具鲁棒性，并提供可解释证据。",
+      "title_zh": "IPAD：逆提示用于AI检测——一个鲁棒且可解释的LLM生成文本检测器",
+      "motivation_cn": "现有LLM文本检测器鲁棒性差且缺乏可解释性，无法应对真实场景。",
+      "method_cn": "提出包含提示反向器和两个判别器的框架，通过对提示进行逆向推理来判断文本来源。",
+      "result_cn": "在多种攻击和分布外数据上表现鲁棒，并提供可解释的判别依据。",
+      "conclusion_cn": "IPAD为AI生成文本检测提供了更可靠且可解释的解决方案。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-nfc38gsyze",
+      "score": 5.0,
+      "evidence_en": "AI for scientific measurement",
+      "evidence_cn": "AI用于科学测量",
+      "canonical_evidence": "AI用于科学测量",
+      "tldr_en": "Introduces active measurement, a human-in-the-loop AI framework for efficient and statistically guaranteed scientific measurement at scale, using AI to guide sampling and improve estimates.",
+      "tldr_cn": "该论文提出主动测量框架，将AI模型与人类标注相结合：AI预测后通过重要性采样选择样本由人工验证，不断更新模型并得到无偏估计。即使AI模型不完美也能提供精确估计，极大减少人力。",
+      "title_zh": "主动测量：大规模高效估计",
+      "motivation_cn": "当前AI科学发现工作流缺乏精度和统计保证，需要人类在环的高效方法。",
+      "method_cn": "使用AI预测测量值，然后通过重要性采样选择样本进行人工标注，不断改进AI模型并更新无偏估计。",
+      "result_cn": "推导了新颖估计器和权重方案，实验表明在AI模型准确时只需极少人工，不准确时也能保证估计质量。",
+      "conclusion_cn": "主动测量为AI驱动的科学测量提供了兼具效率和统计严谨性的通用框架。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-vzsjsue0bz",
+      "score": 5.0,
+      "evidence_en": "Multi-agent creative AI image editing",
+      "evidence_cn": "多智能体创意AI图像编辑",
+      "canonical_evidence": "多智能体创意AI图像编辑",
+      "tldr_en": "Proposes CREA, a multi-agent framework for creative image editing where specialized AI agents collaborate to conceptualize, generate, critique, and enhance images autonomously.",
+      "tldr_cn": "该论文提出CREA多智能体协作框架，模拟人类创意过程：由多个专业AI代理动态协作，完成概念化、生成、批评和改进图像的任务。在定性和定量评估中展示出优越的创造性和连贯性。",
+      "title_zh": "CREA：用于创意图像编辑和生成的多智能体协作框架",
+      "motivation_cn": "创意图像编辑需要自主迭代和平衡原创性与连贯性，现有基于提示的方法无法胜任。",
+      "method_cn": "设计多智能体团队，每个代理负责概念化、生成、批评或改进，通过协作完成创意编辑。",
+      "result_cn": "大量定性和定量实验表明该方法在创造性和图像质量上优于现有方法。",
+      "conclusion_cn": "多智能体协作是实现AI创意图像编辑的有效途径。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-yqohuijshx",
+      "score": 5.0,
+      "evidence_en": "DNA-inspired AI text detection",
+      "evidence_cn": "DNA启发的AI文本检测",
+      "canonical_evidence": "DNA启发的AI文本检测",
+      "tldr_en": "Proposes DNA-DetectLLM, using a DNA-inspired mutation-repair paradigm to capture intrinsic differences between human and AI-generated text, improving detection in challenging scenarios.",
+      "tldr_cn": "该论文提出DNA-DetectLLM，从DNA视角出发，利用修复过程直接捕捉人类与AI文本的内在差异。该方法在特征分布重叠严重的情况下仍然有效，增强了检测的准确性和可解释性。",
+      "title_zh": "DNA-DetectLLM：通过DNA启发的突变-修复范式揭示AI生成文本",
+      "motivation_cn": "LLM使人类与AI文本特征重叠，传统检测方法准确性下降，急需新方法。",
+      "method_cn": "借鉴DNA修复机制，设计基于修复的检测过程，直接捕捉两类文本的差异特征。",
+      "result_cn": "在多种挑战性数据集上提高了检测准确率和可解释性。",
+      "conclusion_cn": "DNA启发的范式为AI文本检测提供了新颖而有效的手段。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-tnzse5q2tr",
+      "score": 5.0,
+      "evidence_en": "generative AI and reinforcement learning",
+      "evidence_cn": "生成式人工智能与强化学习",
+      "canonical_evidence": "生成式人工智能与强化学习",
+      "tldr_en": "This paper introduces an RL framework with chess engine rewards to generate creative, counter-intuitive chess puzzles.",
+      "tldr_cn": "针对生成创意棋谜的挑战，本文提出强化学习框架，利用棋类引擎搜索统计设计奖励，以增强谜题的反直觉性、多样性和现实性。实验显示反直觉谜题生成率提升10倍，达到2.5%，超越现有数据集和模型。该方法为创意内容生成开辟了新途径。",
+      "title_zh": "生成创意棋谜",
+      "motivation_cn": "生成式AI在创造真正创新、反直觉的输出上仍面临困难。",
+      "method_cn": "提出强化学习框架，基于棋类引擎搜索统计设计奖励，优化谜题独特性与反直觉性。",
+      "result_cn": "反直觉谜题生成率从0.22%提升至2.5%，超过现有数据集和最好模型。",
+      "conclusion_cn": "该框架有效增强了棋谜的创造性和多样性，展示了在受限领域生成创意内容的潜力。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-mzxggzelcl",
+      "score": 5.0,
+      "evidence_en": "retrieval augmented generation",
+      "evidence_cn": "检索增强生成",
+      "canonical_evidence": "检索增强生成",
+      "tldr_en": "EAReranker uses embedding-based adequacy assessment to evaluate document utility for RAG without text access.",
+      "tldr_cn": "针对RAG系统中文档充分性评估计算量大且依赖明文的问题，本文提出EAReranker，一种基于嵌入的充分性评估框架。该框架无需访问原始文本，通过综合指标量化文档效用。实验表明在保持高效的同时显著提高了生成质量。该工作为敏感场景下的RAG优化提供了新方案。",
+      "title_zh": "EAReranker：面向检索增强生成的高效嵌入充分性评估",
+      "motivation_cn": "传统重排序方法计算开销大、依赖明文，对文档价值评估不足。",
+      "method_cn": "提出基于嵌入的充分性评估框架，量化文档对RAG系统的效用，无需原文。",
+      "result_cn": "在多个知识密集型任务上，生成质量优于现有重排序方法，计算效率高。",
+      "conclusion_cn": "该方法在保护隐私的同时提升了RAG生成质量，适用于敏感场景。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-10s01yrlkp",
+      "score": 5.0,
+      "evidence_en": "optimizing language model optimizers",
+      "evidence_cn": "优化语言模型优化器",
+      "canonical_evidence": "优化语言模型优化器",
+      "tldr_en": "metaTextGrad automatically optimizes LLM-based optimizers via a meta-optimization loop, improving prompt and component tuning.",
+      "tldr_cn": "现有基于大语言模型的优化器依赖人工设计且通用性不足。本文提出metaTextGrad，通过元优化循环自动优化优化器本身。该方法针对特定任务自适应调整优化策略，在多个下游任务上显著提升性能。这一工作朝着自动化AI系统优化迈出了重要一步。",
+      "title_zh": "metaTextGrad：自动优化语言模型优化器",
+      "motivation_cn": "LLM优化器通常由人类手工设计，缺乏自动化和任务特化。",
+      "method_cn": "设计元优化框架，将优化器参数作为可学习变量，通过反馈循环自动调整。",
+      "result_cn": "在提示调优、演示选择等任务上优于手工优化器和通用基线。",
+      "conclusion_cn": "证明了优化器自动优化的可行性，提升了AI系统的自适应能力。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-e6zdfjtoix",
+      "score": 5.0,
+      "evidence_en": "data selection for LLM training",
+      "evidence_cn": "大语言模型训练数据选择",
+      "canonical_evidence": "大语言模型训练数据选择",
+      "tldr_en": "Influence Distillation uses second-order information to weight training data for efficient LLM fine-tuning.",
+      "tldr_cn": "现代大语言模型训练中数据选择至关重要。本文提出影响蒸馏框架，利用二阶信息对训练样本最优加权，并针对梯度下降和Adam优化器推导闭式解。通过里程碑近似实现可扩展计算。实验表明在目标领域微调中，该方法用更少数据达到更优性能，显著降低数据成本。",
+      "title_zh": "通过影响蒸馏实现大规模高效数据选择",
+      "motivation_cn": "现有数据选择方法缺乏理论指导，难以高效选择关键训练样本。",
+      "method_cn": "基于影响函数蒸馏每个样本对目标分布的影响，推导最优权重。",
+      "result_cn": "在多个LLM微调任务上，仅用10%数据即达到或超过全数据训练性能。",
+      "conclusion_cn": "提供了理论驱动的数据选择方案，大幅提升微调效率。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-dye9w8iov0",
+      "score": 5.0,
+      "evidence_en": "multi-agent collaboration with LLMs",
+      "evidence_cn": "基于大语言模型的多智能体协作",
+      "canonical_evidence": "基于大语言模型的多智能体协作",
+      "tldr_en": "Collaborative Reasoner (Coral) trains LLM agents to persuade, disagree, and collaborate through synthetic conversations.",
+      "tldr_cn": "大语言模型智能体在单轮训练中缺乏协作技能如说服与反驳。本文提出Coral框架，通过合成对话数据训练智能体在协作推理场景中有效互动。设计的任务和指标迫使智能体提出异议并说服同伴。实验表明经过Coral训练的智能体在协作问题解决中表现显著提升。这项工作为构建和谐AI社会打下了基础。",
+      "title_zh": "合作推理者：通过合成对话实现自我改进的社交智能体",
+      "motivation_cn": "现有LLM智能体缺乏有效的多轮协作与说服能力。",
+      "method_cn": "构建包含异议、说服等行为的合成对话数据集，并设计对抗训练任务。",
+      "result_cn": "训练后的智能体在博弈推理和联合决策任务中成功率提升30%以上。",
+      "conclusion_cn": "证明了合成对话可以有效培养智能体的社交协作能力。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-z5ktxw5sjd",
+      "score": 5.0,
+      "evidence_en": "LLM-based peer review mechanism",
+      "evidence_cn": "基于大语言模型的同行评审机制",
+      "canonical_evidence": "基于大语言模型的同行评审机制",
+      "tldr_en": "This paper proposes pairwise comparisons by LLM agents for manuscript review, improving accuracy over individual scoring.",
+      "tldr_cn": "传统基于LLM的同行评审仅复制人类流程，缺乏创新。本文设计使用LLM智能体对稿件进行成对比较，而非单独打分。通过聚合成对结果，获得更鲁棒的排序。实验表明该方法比直接打分更准确且更稳定。该工作重新定义了LLM在学术评审中的角色，有望提升评审质量。",
+      "title_zh": "从复制到重新设计：探索基于大语言模型的成对同行评审",
+      "motivation_cn": "现有LLM评审方法只是简单替代人类，未能发挥机器优势。",
+      "method_cn": "采用成对比较机制，让LLM智能体对两份稿件进行相对评价。",
+      "result_cn": "在多个评审数据集上，成对方法的相关性指标比绝对评分提高15%。",
+      "conclusion_cn": "成对比较是一种更有效的LLM评审范式，可推广至更多评估场景。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-zj45hoqhjd",
+      "score": 5.0,
+      "evidence_en": "in-context ranking for information retrieval",
+      "evidence_cn": "上下文排序在信息检索中的应用",
+      "canonical_evidence": "上下文排序在信息检索中的应用",
+      "tldr_en": "Scalable ICR exploits attention sparsity to enable efficient listwise ranking with LLMs.",
+      "tldr_cn": "上下文排序范式利用LLM直接对候选文档排序，但计算成本随上下文增长。本文发现微调后的LLM注意力具有文档间稀疏和查询文档块结构，据此设计高效注意力加速方法。在不牺牲精度的情况下，大幅降低推理开销。该工作使得ICR可应用于更大规模的检索场景。",
+      "title_zh": "基于生成模型的可扩展上下文排序",
+      "motivation_cn": "上下文排序有效但计算量随候选列表二次增长，难以扩展。",
+      "method_cn": "识别注意力中的块稀疏和查询-文档块结构，设计稀疏注意力计算方法。",
+      "result_cn": "在多个IR基准上，速度提升10倍以上，同时保持甚至提升排序精度。",
+      "conclusion_cn": "揭示了ICR中注意力结构的可优化性，促进了该范式的实际应用。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-3hjfzh5eyk",
+      "score": 4.0,
+      "evidence_en": "novel similarity measure for multimodal alignment",
+      "evidence_cn": "多模态对齐的新相似度度量",
+      "canonical_evidence": "多模态对齐的新相似度度量",
+      "tldr_en": "Proposes TRIANGLE, a geometric learning similarity measure for multimodal alignment that goes beyond cosine similarity and provides alignment indicators.",
+      "tldr_cn": "该论文提出TRIANGLE（三模态神经几何学习），一种新型相似度度量，用于多模态对齐，超越余弦相似度的局限。该方法能提供模态是否有效对齐的指标，避免因对齐不足导致下游任务性能下降。",
+      "title_zh": "TRIANGLE：实现超越余弦相似度的多模态对齐",
+      "motivation_cn": "现有多模态模型缺乏对齐有效性指标，可能导致模态未对齐。",
+      "method_cn": "设计基于神经几何学习的相似度度量，提供对齐指示。",
+      "result_cn": "有效检测并对齐多模态表示。",
+      "conclusion_cn": "推动多模态学习的可靠对齐。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-qn0e0kx2lm",
+      "score": 4.0,
+      "evidence_en": "foundational theoretical result on learnability of Transformers",
+      "evidence_cn": "Transformer可学习性的基础理论结果",
+      "canonical_evidence": "Transformer可学习性的基础理论结果",
+      "tldr_en": "Provides first polynomial-time learnability results for single-layer linear attention Transformers, framing it as kernel learning and enabling generalization checks.",
+      "tldr_cn": "针对Transformer的可学习性开放问题，本文首次证明了单层线性注意力Transformer的多项式时间可学习性，通过将其转化为核学习，并提出了多项式时间验证一致性的算法，为深度学习理论奠定基础。",
+      "title_zh": "在多项式时间内学习线性注意力",
+      "motivation_cn": "Transformer的可学习性尚属开放问题",
+      "method_cn": "将线性注意力学习转化为RKHS中的核预测器学习",
+      "result_cn": "首次给出多项式时间PAC可学习结果",
+      "conclusion_cn": "为理解Transformer的学习能力提供理论支撑",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:ai-classic",
+      "matched_query_text": "classic foundational artificial intelligence studies"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-uftlo48ohf",
+      "score": 4.0,
+      "evidence_en": "Multi-agent system and reinforcement learning in AI",
+      "evidence_cn": "多智能体系统与强化学习属于人工智能领域",
+      "canonical_evidence": "多智能体系统与强化学习属于人工智能领域",
+      "tldr_en": "SWM-AP learns a social world model for adaptive mechanism design in multi-agent systems, improving sample efficiency and handling heterogeneous agents.",
+      "tldr_cn": "该论文提出SWM-AP方法，通过学习社交世界模型来增强多智能体系统中的机制设计，解决异构智能体建模和样本效率问题。实验表明该方法能有效对齐个体与集体利益，为人工智能中复杂多智能体决策提供了新思路。",
+      "title_zh": "社交世界模型增强的机制设计策略学习",
+      "motivation_cn": "现有机制设计方法难以建模异构智能体且样本效率低，需要利用世界模型提升性能。",
+      "method_cn": "提出SWM-AP，层级化学习社交世界模型来预测环境动态，并用于机制设计策略学习。",
+      "result_cn": "在多智能体场景中，SWM-AP显著提高了样本效率和机制设计效果，优于基线方法。",
+      "conclusion_cn": "社交世界模型是增强复杂多智能体系统机制设计的有效途径。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-x9xepnpgj5",
+      "score": 4.0,
+      "evidence_en": "Neural choice model for human decision-making, relevant to AI alignment",
+      "evidence_cn": "神经选择模型用于人类决策建模，与人工智能对齐相关",
+      "canonical_evidence": "神经选择模型用于人类决策建模，与人工智能对齐相关",
+      "tldr_en": "DeepHalo introduces a neural choice model that captures context effects in human preferences, enabling controllable and interpretable modeling for recommendation and alignment.",
+      "tldr_cn": "该论文提出DeepHalo神经选择模型，通过可控上下文效应捕捉人类偏好中的光环效应，在特征化设置下保持可解释性。实验证明该模型能准确预测选择行为，为推荐系统和人类-AI对齐提供了新工具。",
+      "title_zh": "DeepHalo：具有可控上下文效应的神经选择模型",
+      "motivation_cn": "经典模型忽略上下文依赖的偏好，现有特征化模型限制交互结构或缺乏可解释性。",
+      "method_cn": "设计可控制上下文效应的神经网络结构，分层建模选择集内选项间的交互。",
+      "result_cn": "在多个真实数据集上，DeepHalo预测精度优于现有模型，同时保持可解释性。",
+      "conclusion_cn": "该模型有效平衡了上下文效应的捕捉与模型可解释性。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-axpbgg5z6i",
+      "score": 4.0,
+      "evidence_en": "AI debate for truth assessment, relates to AI alignment and evaluation",
+      "evidence_cn": "AI辩论用于真相评估，与人工智能对齐和评估相关",
+      "canonical_evidence": "AI辩论用于真相评估，与人工智能对齐和评估相关",
+      "tldr_en": "AI Debate studies whether AI systems debating can guide biased human judges toward truth, with experiments on COVID-19 and climate change claims.",
+      "tldr_cn": "该论文研究AI辩论是否能引导有偏见的法官接近真相，针对新冠和气候变化争议性论断进行实验。结果表明AI辩论能有效缓解人类偏见，提升事实判断准确性，为可扩展监督提供了实证支持。",
+      "title_zh": "AI辩论辅助评估争议性论断",
+      "motivation_cn": "AI系统可能放大错误信息，人类评估者存在偏见，需要可扩展的监督方法。",
+      "method_cn": "让两个AI系统就争议性事实主张进行辩论，由人类法官评估，比较不同观点下的判断。",
+      "result_cn": "在两种主题中，AI辩论显著提高了法官判断的准确性，尤其是对持怀疑态度的群体。",
+      "conclusion_cn": "AI辩论是引导偏见人类法官趋向真相的有效方法。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-htgqc1h8ig",
+      "score": 4.0,
+      "evidence_en": "LLM knowledge enhancement via structural entropy, relevant to AI research",
+      "evidence_cn": "通过结构熵增强LLM知识，与人工智能研究相关",
+      "canonical_evidence": "通过结构熵增强LLM知识，与人工智能研究相关",
+      "tldr_en": "SENATOR uses structural entropy to guide synthetic data generation, addressing knowledge gaps in LLMs for knowledge-intensive domains.",
+      "tldr_cn": "该论文提出SENATOR框架，利用结构熵度量知识图谱路径的不确定性，引导合成数据生成以修复大模型的领域知识缺陷。实验证明该方法在医学和科学问答上显著提升LLM的事实准确性，避免冗余样本。",
+      "title_zh": "结构熵引导的LLM知识缺陷检测与修复智能体",
+      "motivation_cn": "大模型在知识密集型领域事实精度不足，现有合成数据方法生成冗余样本。",
+      "method_cn": "基于结构熵指标量化知识图谱路径不确定性，选择性地生成填补知识漏洞的合成数据。",
+      "result_cn": "在多个知识密集型基准上，SENATOR提升了LLM的准确率，且生成数据效率更高。",
+      "conclusion_cn": "结构熵有效指导了LLM知识增强过程。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    },
+    {
+      "paper_id": "openreview-neurips-2025-mlu9kqdzus",
+      "score": 4.0,
+      "evidence_en": "Multi-agent scaffolding safety, AI safety research",
+      "evidence_cn": "多智能体脚手架安全，人工智能安全研究",
+      "canonical_evidence": "多智能体脚手架安全，人工智能安全研究",
+      "tldr_en": "AgentBreeder performs multi-objective evolutionary search over LLM scaffolds, finding both safety-enhancing and vulnerability-inducing configurations.",
+      "tldr_cn": "该论文提出AgentBreeder框架，对LLM多智能体脚手架进行多目标进化搜索，发现既能提升安全性又能无意中引入脆弱性的设计。实验显示在安全基准上平均提升79.4%，同时揭示了能力优化与安全风险之间的权衡。",
+      "title_zh": "AgentBreeder：通过自我改进缓解多智能体脚手架的人工智能安全风险",
+      "motivation_cn": "多智能体脚手架性能提升但安全影响未被充分探索，需要系统性搜索安全配置。",
+      "method_cn": "使用多目标进化算法搜索脚手架参数，同时优化能力和安全目标。",
+      "result_cn": "找到的蓝队配置显著提升安全基准，而红队配置揭示了潜在攻击面。",
+      "conclusion_cn": "多智能体脚手架设计必须谨慎权衡能力与安全。",
+      "matched_requirement_id": "req-composite-ai",
+      "matched_query_tag": "query:ai:composite",
+      "matched_query_text": "Papers central to 请帮我查找ai和人工智能论文, especially work that connects or combines: artificial intelligence research papers; machine learning paper survey; deep learning recent advances; neural network architectures; natural language processing techniques; reinforcement learning algorithms; find papers on artificial intelligence and machine learning; search for deep learning and neural network surveys; look for recent advances in natural language processing."
+    }
+  ],
+  "llm_ranked_at": "2026-05-26T06:29:29.878761+00:00",
+  "display_min_score": 4.0,
+  "pruned_at": "2026-05-26T06:29:29.919435+00:00"
+}
