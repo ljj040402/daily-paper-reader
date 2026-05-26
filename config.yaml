@@ -189,49 +189,44 @@ subscriptions:
           note: ''
       updated_at: '2026-05-26T04:26:45.424Z'
       paused: true
-    - tag: ai-top
-      description: AI和人工智能顶刊论文推荐
+    - tag: AI-top-confs
+      description: 帮我查找AI和人工智能，大模型方向的顶刊或者顶会论文，如AAAI,NEURIPS,ICML,IJCAI,ACL等
       enabled: true
       paper_sources:
         - arxiv
       keywords:
-        - keyword: artificial intelligence classic papers
-          keyword_cn: 人工智能经典论文
-          query: classic papers in artificial intelligence
-        - keyword: artificial intelligence papers
-          keyword_cn: 人工智能论文
-          query: recommended artificial intelligence research papers
-        - keyword: top AI journals
-          keyword_cn: 顶级AI期刊
-          query: papers from top artificial intelligence journals
-        - keyword: classic AI research
-          keyword_cn: 经典AI研究
-          query: classic foundational artificial intelligence studies
-        - keyword: AI paper recommendations
-          keyword_cn: AI论文推荐
-          query: recommendations for important AI papers
+        - keyword: artificial intelligence
+          keyword_cn: 人工智能
+          query: artificial intelligence research papers from top conferences
+        - keyword: large language model
+          keyword_cn: 大语言模型
+          query: large language model papers from leading machine learning conferences
+        - keyword: machine learning
+          keyword_cn: 机器学习
+          query: machine learning conference proceedings and papers
+        - keyword: deep learning
+          keyword_cn: 深度学习
+          query: deep learning papers from major AI conferences
+        - keyword: natural language processing
+          keyword_cn: 自然语言处理
+          query: natural language processing conference papers like ACL
+        - keyword: neural network
+          keyword_cn: 神经网络
+          query: neural network models presented at top AI venues
       intent_queries:
-        - query: find recommendations for classic papers in artificial intelligence
-          query_cn: 寻找人工智能经典论文推荐
+        - query: >-
+            Find cutting edge artificial intelligence and large language model papers from AAAI, NeurIPS, ICML, IJCAI,
+            and ACL conferences
+          query_cn: 查找来自AAAI、NeurIPS、ICML、IJCAI和ACL会议的人工智能和大语言模型前沿论文
           enabled: true
           source: manual
           note: ''
-        - query: list top papers from leading AI journals
-          query_cn: 列出顶级AI期刊的顶级论文
+        - query: Search for top cited papers on AI and LLMs published in premier machine learning and NLP conferences
+          query_cn: 搜索发表在顶级机器学习和NLP会议上的高被引人工智能和大语言模型论文
           enabled: true
           source: manual
           note: ''
-        - query: suggest must read AI research papers
-          query_cn: 建议必读的AI研究论文
-          enabled: true
-          source: manual
-          note: ''
-        - query: curated list of influential AI publications
-          query_cn: 精选有影响力的AI出版物列表
-          enabled: true
-          source: manual
-          note: ''
-      updated_at: '2026-05-26T06:13:34.709Z'
+      updated_at: '2026-05-26T06:18:10.585Z'
       paused: true
 source_backends:
   arxiv:
