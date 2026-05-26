@@ -189,7 +189,7 @@ subscriptions:
           note: ''
       updated_at: '2026-05-26T04:26:45.424Z'
       paused: true
-    - tag: ai-classic
+    - tag: ai-top
       description: AI和人工智能顶刊论文推荐
       enabled: true
       paper_sources:
@@ -234,7 +234,7 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-05-26T06:00:13.131Z'
+      updated_at: '2026-05-26T06:03:13.555Z'
       paused: true
 source_backends:
   arxiv:
