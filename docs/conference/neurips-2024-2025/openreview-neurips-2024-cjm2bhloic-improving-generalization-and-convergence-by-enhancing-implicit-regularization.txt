@@ -1,0 +1,3182 @@
+Title: 16809_Improving_Generalization.pdf
+
+URL Source: https://openreview.net/pdf?id=cjM2bhLOiC
+
+Number of Pages: 44
+
+Markdown Content:
+# Improving Generalization and Convergence by Enhancing Implicit Regularization 
+
+Mingze Wang 1,3,† Jinbo Wang 1,3 Haotian He 1,3 Zilin Wang 1 Guanhua Huang 5,6
+
+Feiyu Xiong 3 Zhiyu Li 3 Weinan E 1,2,3,4 Lei Wu 1,2,†
+
+> 1
+
+School of Mathematical Sciences, Peking University 
+
+> 2
+
+Center for Machine Learning Research, Peking University 
+
+> 3
+
+Institute for Advanced Algorithms Research (Shanghai) 4AI for Science Institute 
+
+> 5
+
+School of Data Science, University of Science and Technology of China 6ByteDance Research 
+
+{mingzewang, wangjinbo, haotianhe, wangzilin }@stu.pku.edu.cn guanhuahuang@mail.ustc.edu.cn {xiongfy, lizy }@iaar.ac.cn 
+
+{weinan, leiwu }@math.pku.edu.cn 
+
+## Abstract 
+
+In this work, we propose an Implicit Regularization Enhancement (IRE) framework to accelerate the discovery of flat solutions in deep learning, thereby improving generalization and convergence. Specifically, IRE decouples the dynamics of flat and sharp directions, which boosts the sharpness reduction along flat directions while maintaining the training stability in sharp directions. We show that IRE can be practically incorporated with generic base optimizers without introduc-ing significant computational overload. Experiments show that IRE consistently improves the generalization performance for image classification tasks across a variety of benchmark datasets (CIFAR-10/100, ImageNet) and models (ResNets and ViTs). Surprisingly, IRE also achieves a 2× speed-up compared to AdamW in the pre-training of Llama models (of sizes ranging from 60M to 229M) on datasets including Wikitext-103, Minipile, and Openwebtext. Moreover, we provide theo-retical guarantees, showing that IRE can substantially accelerate the convergence towards flat minima in sharpness-aware minimization (SAM). 
+
+## 1 Introduction 
+
+Deep learning has achieved remarkable success across a variety of fields, including computer vision, scientific computing, and artificial intelligence. The core challenge in deep learning lies in how to train deep neural networks (DNNs) efficiently to achieve superior performance. Understanding and improving the generalization and convergence of commonly-used optimizers, such stochastic gradient descent (SGD) (Robbins and Monro, 1951; Rumelhart et al., 1986), in deep learning is crucial for both theoretical research and practical applications. Notably, optimizers often exhibit a preference for certain solutions in training DNNs. For instance, SGD and its variants consistently converge to solutions that generalize well, even when DNNs are highly over-parameterized and there are many solutions that generalize poorly. This phenomenon is referred to as implicit regularization in the literature (Neyshabur et al., 2014; Zhang et al., 2017). The most popular explanation for implicit regularization is that SGD and its variants tend to converge to flat minima (Keskar et al., 2016; Wu et al., 2017), and flat minima generalize better (Hochreiter and 
+
+† Correspondence to: Mingze Wang and Lei Wu. 38th Conference on Neural Information Processing Systems (NeurIPS 2024). Schmidhuber, 1997; Jiang et al., 2019). However, the process of this implicit sharpness regularization 
+
+occurs at a very slow pace, as demonstrated in works such as Blanc et al. (2020), Li et al. (2022), and Ma et al. (2022). Consequently, practitioners often use a large learning rate (LR) and extend the training time even when the loss no longer decreases, ensuring the convergence to flatter minima (He et al., 2016; Goyal et al., 2017; Hoffer et al., 2017). Nevertheless, the largest allowable LR is constrained by the need to maintain training stability. In addition, Foret et al. (2021) proposed SAM, which aims to explicitly regularize sharpness during training and has achieved superior performance across a variety of tasks. 
+
+Our contributions can be summarized as follows: • We propose an Implicit Regularization Enhancement (IRE) framework to speed up the con-vergence towards flatter minima. As suggested by works like Blanc et al. (2020), Li et al. (2022) and Ma et al. (2022), the implicit sharpness reduction often occurs at a very slow pace, along flat directions. Inspired by this picture, IRE particularly accelerates the dynamics along flat directions, while keeping sharp directions’ dynamics unchanged. As such, IRE can boost the implicit sharpness reduction substantially without hurting training stability. For a detailed illustration of this mechanism, we refer to Section 2. • We then provide a practical IRE framework, which can be efficiently incorporated with generic base optimizers. We evaluate the performance of this practical IRE in both vision and language tasks. For vision tasks, IRE consistently improves the generalization performance of popular optimizers like SGD, Adam, and SAM in classifying the CIFAR-10/100 and ImageNet datasets with ResNets (He et al., 2016) and vision transformers (ViTs) (Dosovitskiy et al., 2020). For language modelling, we consider the pre-training of Llama models (Touvron et al., 2023) of various sizes, finding that IRE surprisingly can accelerate the pre-training convergence. Specifically, we observe a remarkable 2.0× speedup compared to AdamW in the scenarios we examined, despite IRE being primarily motivated to speed up the convergence to flat solutions. • Lastly, we provide theoretical guarantees showing that IRE can achieves a Θ(1 /ρ )-time acceler-ation over the base SAM algorithm in minimizing the trace of Hessian, where ρ ∈ (0 , 1) is a small hyperparameter in SAM. 
+
+1.1 Related works Implicit sharpness regularization. There have been extensive attempts to explain the mystery of implicit regularization in deep learning (see the survey by Vardi (2023) and references therein). Here, we focus on works related to implicit sharpness regularization. Wu et al. (2018; 2022) and Ma and Ying (2021) provided an explanation of implicit sharpness regularization from a dynamical stability perspective. Moreover, in-depth analysis of SGD dynamics near global minima shows that the SGD noise (Blanc et al., 2020; Li et al., 2022; Ma et al., 2022; Damian et al., 2021) and the edge of stability (EoS)-driven (Wu et al., 2018; Cohen et al., 2021) oscillations (Even et al., 2024) can drive SGD/GD towards flatter minima. Additional studies explored how training components, including learning rate and batch size (Jastrz˛ ebski et al., 2017), normalization (Lyu et al., 2022), cyclic LR (Wang and Wu, 2023), influence this sharpness regularization. Furthermore, some works have provided theoretical evidence explaining the superior generalization of flat minima for neural networks (Ma and Ying, 2021; Mulayoff et al., 2021; Wu and Su, 2023; Gatmiry et al., 2023; Wen et al., 2023b). Our work is inspired by this line of research, aiming to boost implicit sharpness regularization by decoupling the dynamics along flat and sharp directions. 
+
+Sharpness-aware minimization. IRE shares the same motivation as SAM in enhancing sharpness regularization, although their specific approaches differ significantly. It is worth noting that the per-step computational cost of SAM is twice that of base optimizers. Consequently, there have been numerous attempts to reduce the computational cost of SAM (Kwon et al., 2021; Liu et al., 2022; Du et al., 2021; Mi et al., 2022; Mueller et al., 2024). In contrast, the per-step computational cost of IRE is only approximately 1.1 times that of base optimizers (see Table 5). Moreover, we provide both theoretical and experimental evidence demonstrating that the mechanism of IRE in boosting sharpness regularization is nearly orthogonal to that of SAM. 
+
+Optimizers for large language model (LLM) pre-training. (Momentum) SGD (Sutskever et al., 2013; Nesterov, 1983) and its adaptive variants like Adagrad (Duchi et al., 2011), RMSProp (Tieleman, 2012), and Adam (Kingma and Ba, 2014) have been widely used in DNN training. Despite the efforts 2in designing better adaptive gradient methods (Liu et al., 2019a; Luo et al., 2019; Heo et al., 2020; Zhuang et al., 2020; Xie et al., 2022b;a), AdamW(Adam+decoupled weight decay) (Loshchilov and Hutter, 2017) has become the default optimizer in LLM pre-training. Recently, Chen et al. (2024) discovered Lion by searching the space of adaptive first-order optimizers; Liu et al. (2024) introduced Sophia, a scalable second-order optimizer. In this paper, we instead empirically demonstrate that IRE can accelerate the convergence of AdamW in the pre-training of Llama models. 
+
+1.2 Notations 
+
+Throughout this paper, let L : Rp 7 → R⩾0 be the function of total loss, where p denotes the number of model parameters. For a C2-submanifold M in Rp, we denote the tangent space of M at θ ∈ M as 
+
+Tθ M, which is a linear subspace in Rp. For f ∈ C 1(M) and θ ∈ M , let ∇Mf (θ) := QTθ M∇f (θ)
+
+denote the Riemannian gradient, where QTθ M : Rp 7 → Rp denotes the orthogonal projection to 
+
+Tθ M. For a symmetric matrix A ∈ Rp×p, its eigen pairs are denoted as {(λi, ui)}i∈[p] with the order λ1 ⩾ · · · ⩾ λp. We use Pi:j (A) = Pjk=i uku⊤ 
+
+> k
+
+to denote the projection operator onto 
+
+span {ui, . . . , uj }. Denote N (μ, Σ) as the Gaussian distribution with mean μ and covariance matrix Σ, and U(S) as the uniform distribution over a set S. Given a vector h = ( h1, . . . , h p), let 
+
+|h| = ( |h1|, . . . , |hp|). We denote by 1 the all-ones vector. We will use standard big-O notations like 
+
+O(·), Ω( ·), and Θ( ·) to hide constants. 
+
+## 2 An Illustrative Example Motivating IRE 
+
+In this section, we provide an illustration of how the dynamics along flat directions can reduce the sharpness (curvatures along sharp directions) and how IRE can accelerate this sharpness reduction. To this end, we consider the following phenomenological problem: 
+
+min  
+
+> θ∈Rp
+
+L(θ) := v⊤H(u)v/2, (1) where v ∈ Rm, u ∈ Rp−m, and θ = vec (u, v) ∈ Rp. We assume H(·) ∈ C 2(Rp−m) and 
+
+inf u λmin (H(u)) > 0. Then, the minimizers of L(·) form a m-dim manifold M = {(u, v) : v = 0}
+
+and the Hessian at any θ ∈ M is given by ∇2L(θ) = 
+
+0 00 H(u)
+
+
+
+. For clarity, we shall call u and 
+
+v the flat and sharp directions, respectively. 
+
+Example 2.1. The loss landscape of fitting zero labels with two-layer neural networks (2LNNs) exhibits exactly the form (1) . Let f (x; θ) = a⊤ϕ(x; W ) be a 2LNN with θ = vec (W, a). Then 
+
+L(θ) = E(x,y )[( f (x; θ) − y)2]/2 = a⊤Ex[ϕ(x; W )ϕ(x; W )⊤]a/2 =: a⊤H(W )a/2.
+
+For breviety, we further assume H(u) = diag( λ(u)) with λ(u) = ( λ1(u), · · · , λ m(u)) . In this case, the GD dynamics can be naturally decomposed into the flat and sharp directions as follows 
+
+ut+1 = ut − η
+
+2
+
+> m
+
+X
+
+> i=1
+
+v2
+
+> t,i
+
+∇λi(ut),
+
+vt+1 = ( 1 − ηλ(ut)) ⊙ vt,
+
+(2) where ⊙ denotes the element-wise multiplication of two vectors. 
+
+The implicit sharpness regularization. From Eq. (2) , we can see that 1) the flat direction ut’s dynamics monotonically reduces the sharpness λ(u) as long as vt is nonzero; 2) the sharp direction 
+
+vt’s dynamics determines the speed of sharpness reduction. The larger |vt| is, the faster the curvature 
+
+λ(u) decreases. Particularly, when near convergence, we have |vt| = o(1) and thus the implicit sharpness reduction is very slow during the late phase of GD. Figure 1a provides a visualization of this slow implicit sharpness reduction. 
+
+Accelerating the sharpness reduction. Inspired by the above analysis, we can accelerate the sharp-ness reduction by speeding up the flat directions’ dynamics. To this end, there are two approaches: • Naively increasing the global learning rate η (fail). Increasing η accelerates the dynamics of 
+
+ut, but the largest allowed η is constrained by curvatures of sharpest directions. In GD (2) , to 30.990 0.995 1.000     
+
+> −0.01 0.00 0.01 minima manifold M
+> GD ( η= 1 )the flattest minimum initialization θ0
+
+(a) GD with η = 1 .−0.5 0.0 0.5 1.0 1.5   
+
+> −0.50.00.5GD ( η= 2 )
+
+(b) GD with η = 2 .0.0 0.2 0.4 0.6 0.8 1.0 1.2      
+
+> −0.01 0.00 0.01 IRE ( κ= 9 e1)IRE ( κ= 9 e2)IRE ( κ= 9 e3)GD ( η= 1 )the flattest minimum
+
+(c) IRE with various κ’s v.s. GD with η = 1 .
+
+Figure 1: A 2-d example of (1) : L(u, v ) = (1 + u2)v2/2. The gray arrows denote to the minima manifold 
+
+M = {(u, v ) : v = 0 }, where the smaller the |u|, the flatter the minimizer. The red marker highlights the flattest minimizer (0 , 0) . (a) The dynamics of GD ( η = 1 ), which moves slowly towards flatter minima as it converges. (b) The dynamics of GD ( η = 2 ), which diverges due to the excessively large η. (c) The behavior of our IRE approach with varying κ’s v.s. GD ( η = 1 ). Is is shown that IRE can significantly accelerate the ut’s dynamics, almost reaching the flattest minimum (0 , 0) when taking a very large κ.
+
+maintain training stability, η must be smaller than 2/ max i λi(ut). Otherwise, vt’s dynamics will blow up. As illustrated in Figure 1b, setting η = 2 leads to divergence, whereas η = 1 
+
+ensures convergence. • Increasing only the flat directions’ learning rate (our approach, IRE) . Specifically, for GD (2), the GD-IRE dynamics is given by 
+
+ut+1 = ut − (1 + κ) η
+
+2
+
+> m
+
+X
+
+> i=1
+
+v2
+
+> t,i
+
+∇λi(ut),
+
+vt+1 = ( 1 − ηλ(ut)) ⊙ vt,
+
+(3) where κ > 0 controls the enhancement strength. In GD-IRE (3) , ut’s dynamics is (1 + κ) faster 
+
+than that of GD (2) . Notably, the sharp directions’ dynamics ( vt) are unchanged. The choice of 
+
+κ only needs to maintain the stability of flat directions’ dynamics, for which, we can always take a significantly large κ to enhance the sharpness regularization. As demonstrated in Figure 1c, IRE with larger κ always find flatter minima. 
+
+Remark 2.2 (The generality) . It is worth noting that similar implicit sharpness regularization also holds for SGD (Ma et al., 2022; Li et al., 2022) and SAM (Wen et al., 2023a). In this section, we focus on the above toy model and GD mainly for illustration. In Appendix B, we provide an analogous illustrative analysis of how IRE accelerates the sharpness reduction of SGD. In Section 5, we further provide theoretical evidence to show that IRE can boost the implicit sharpness regularization of SAM. 
+
+## 3 A Practical Framework of Implementing IRE 
+
+Although the preceding illustration of IRE is for GD, in practice, we can incorporate IRE with 
+
+any base optimizers . Specifically, for a generic update: θt+1 = θt − ηgt, the corresponding IRE modification is given by 
+
+θt+1 = θt − η(gt + κPtgt), (4) where κ denotes the enhancement strength and Pt : Rp → Rp projects gt into the flat directions of the landscape. The flat directions and corresponding projection operator Pt can be estimated using the Hessian information. However, estimating the full Hessian matrix ∇2L(θt) ∈ Rp×p is computationally infeasible. Con-sequently, we propose to use only the diagonal Hessian diag( ∇2L(θt)) ∈ Rp to estimate Pt. Let 
+
+ht ∈ Rp be an estimate of the diagonal Hessian. Then, we perform the projection as follows 
+
+Ptgt = nt ⊙ gt, with (nt)i =
+
+1 if (|ht|)i ⩽ Top small (|ht|, γ )0 otherwise , (5) where γ ∈ (0 , 1) and Top small (|ht|, γ ) returns the ⌊p · γ⌋-th smallest value in |ht|. Note that nt ∈ Rp
+
+denotes a mask vector and the above approximate projection essentially masks the top-(1 − γ) sharp coordinates out. As such, the projection (5) will retain the top-γ flat coordinates . Noticing that in DNNs, there are much more flat directions than sharp directions (Yao et al., 2020), we thus often use 
+
+γ > 0.5 in practice. 4Algorithm 1: Practical IRE (A practical framework of implementing IRE) 
+
+Input: θ0, T , K, learning rate {ηt}t, warm-up time Tw, IRE hyperparams: κ ⩾ 0 and γ ∈ (0 .5, 1) ;
+
+for t = Tw, · · · , T − 1 do 
+
+Compute the original update direction gt according to the base optimizer; 
+
+if (t − Tw) mod K = 0 then 
+
+Estimate the diagonal Hessian ht ∈ Rp using Eq. (6); Update the mask nt ∈ Rp using Eq. (5); 
+
+else nt = nt−1
+
+θt+1 = θt − ηt
+
+ gt+ κnt ⊙ gt
+
+;
+
+Output: θT .
+
+A light-weight estimator of the diagonal Hessian. Let ℓ(·, ·) be the cross-entropy loss. Given an input data x ∈ Rdx and label y ∈ Rdy , let the model’s prediction be f (x; θ) ∈ Rdy . The Fisher (Gauss-Newton) matrix F (θ) is widely acknowledged to be a good approximation of the Hessian, particularly near minima. Thus, we can estimate the diagonal Hessian by ht = diag( F (θt)) ,which has been widely used in deep learning optimization (Martens and Grosse, 2015; Grosse and Martens, 2016; George et al., 2018; Mi et al., 2022; Liu et al., 2024). Given an input batch 
+
+{(xb, yb)}Bb=1 , the empirical diagonal Fisher is given by diag( ˆF (θ)) = 1
+
+> B
+
+PBb=1 ∇ℓ(f (xb; θ); ˆ yb)⊙∇ℓ(f (xb; θ); ˆ yb), where ˆyb ∼ softmax( f (θ; xb)) . However, as noted by Liu et al. (2024), imple-menting this estimator is computationally expensive due to the need to calculate B single-batch gradi-ents. Liu et al. (2024) proposed a more convenient estimator diag( ˆFeff (θ)) , only requires computing the mini-batch gradient ∇ ˆLB (θ) = 1
+
+> B
+
+PBb=1 ∇ℓ(f (xb; θ); ˆ yb) with ˆyb ∼ softmax( f (xb; θ)) :
+
+ht = diag( ˆFeff (θ)) = B · ∇ ˆLB (θ) ⊙ ∇ ˆLB (θ). (6) According to Liu et al. (2024), this estimator is an unbiased estimate of the empirical diagonal Fisher, i.e., Eˆy [diag( ˆFeff (θ))] = Eˆy [diag( ˆF (θ))] . For more discussions on the efficiency of this estimator, please refer to (Liu et al., 2024, Section 2). Additionally, for squared loss, one can simply use Fisher as the estimator (Liu et al., 2024). 
+
+The practical IRE and computational efficiency. The practical IRE is summarized in Algorithm 1, which is notably lightweight. The estimation of ht using (6) requires computational resources roughly equivalent to one back-propagation. Consequently, by setting K = 10 in Algorithm 1 (estimating the projection every 10 steps), the average per-step computational load of IRE is only 1.1 times that of the base optimizer. This claim can be empirically validated as shown in Table 5. 
+
+## 4 Experiments 
+
+In this section, we evaluate how IRE performs when incorporating with various base optimizers. Specifically, we examine the incorporation of IRE with SGD (SGD-IRE), SAM (SAM-IRE), and AdamW (AdmIRE) across vision and language tasks. 
+
+4.1 Image classification 4.1.1 Validating our motivation 
+
+To show that IRE can accelerate the sharpness reduction, we train WideResNet-16-8 (Zagoruyko and Komodakis, 2016) on CIFAR-10 dataset (Krizhevsky and Hinton, 2009) by SAM-IRE (with 
+
+K = 10 , varying κ and γ). Here, we incoporate IRE into SAM starting from the 30 -th epochs. We vary γ ∈ { 0.8, 0.9, 0.95 } and κ ∈ { 0, 2, 5, 10 }. Regarding the learning rate (LR), both constant LR and decayed LR are considered. The sharpness is measured by Tr( ∇2L(θ)) . Further experimental details can be found in Appendix C. As depicted in Fig. 2(a), SAM-IRE (with constant LR) consistently finds flatter solutions compared to SAM and higher κ always leads to flatter minima. Additionally, SAM-IRE also shows robustness to 5variations of γ. For SAM-IRE with decayed LR (Fig. 2(b)), SAM-IRE still consistently finds flatter solutions than SAM. Notably, flatter solutions correlate positively with lower training loss and higher test accuracy (Fig. 2(c,d)). 0.0 2.0 5.0 10.0          
+
+> κ
+> 80% 90% 95%
+> γ
+> 1768 1685 1478 1428 1768 1610 1392 1214 1768 1602 1241 1206
+> sharpness
+
+(a) sharpness, constant LR. 0.0 2.0 5.0 10.0           
+
+> κ
+> 80% 90% 95%
+> γ
+> 2774 2760 2626 2581 2774 2758 2609 2553 2774 2735 2588 2365
+> sharpness
+
+(b) sharpness, decayed LR. 0.0 2.0 5.0 10.0           
+
+> κ
+> 80% 90% 95%
+> γ
+> 0.066 0.037 0.023 0.016 0.066 0.035 0.021 0.014 0.066 0.033 0.019 0.013
+> training loss
+
+(c) train loss, decayed LR. 0.0 2.0 5.0 10.0           
+
+> κ
+> 80% 90% 95%
+> γ
+> 93.48 94.06 94.55 94.97 93.48 94.12 94.74 95.10 93.48 94.19 94.71 95.27
+> test accuracy ( %)
+
+(d) test acc, decayed LR. 
+
+Figure 2: Training WRN-16-8 on CIFAR-10 by SAM-IRE with varying γ, κ . Particularly, the case of κ = 0 
+
+correspond to the standard SAM. 
+
+4.1.2 IRE can consistently improve generalization Convolutional Neural Networks (CNNs). In this experiment, we first consider the classification of CIFAR-{10,100} with WideResNet-28-10 (Zagoruyko and Komodakis, 2016) and ResNet-56 (He et al., 2016). Both SGD and SAM optimizers are adopted. All the experiments use base data augmen-tation and label smoothing. For SGD-IRE/SAM-IRE, we fix K = 10 , and tune hyperparameters γ
+
+and κ via a grid search over γ ∈ { 0.99 , 0.9, 0.8} and κ ∈ { 1, 2}. The total epochs are set to 100 for CIFAR-10 and 200 for CIFAR-100, and we switch from SGD/SAM to SGD-IRE/SAM-IRE when the training loss approaches 0.1. The other experimental details are deferred to Appendix C and the results are shown in Table 1. Secondly, we evaluate IRE for training ResNet-50 on ImageNet (Deng et al., 2009). The experimental details are deferred to Appendix C and the results are shown in Table 2. 
+
+Vision Transformers (ViTs). We also examine the impact of IRE on generalization of ViT-T and ViT-S (Dosovitskiy et al., 2020) on CIFAR100. The default optimizers used are AdamW and SAM (Mueller et al., 2024). Strong data augmentations (basic + AutoAugment) are utilized. The total epochs are set to 200 and we switch from AdamW/SAM to AdmIRE/SAM-IRE when the training loss approaches 0.5. For AdmIRE/SAM-IRE, we fix K = 10 , and tune hyperparameters γ and κ via a grid search over γ ∈ { 0.99 , 0.9, 0.8} and κ ∈ { 20 , 50 }. Other experimental details are deferred to Appendix C. The results are shown in Table 3. Additionally, we evaluate IRE for training ViT-S on ImageNet. The experimental details are deferred to Appendix C and the results are shown in Table 4. As demonstrated in Table 1, 2, 3, and 4, IRE consistently improves generalization of SGD, AdamW and SAM across all settings examined. Table 1: WRN-28-10/ResNet-56 on CIFAR-10/100. WRN-28-10 ResNet-56 CIFAR-10 CIFAR-100 CIFAR-10 CIFAR-100 SGD 95.84 80.81 93.49 72.81 SGD-IRE 96.24 (+0.40 ) 81.49 (+0.68 ) 93.78 (+0.29 ) 73.78 (+0.97 )SAM 96.58 83.05 94.05 75.54 SAM-IRE 96.70 (+0.12 ) 83.50 (+0.45 ) 94.46 (+0.41 ) 75.86 (+0.32 )
+
+Table 2: ResNet-50 on ImageNet. Top-1 Top-5 SGD 76.81 93.31 SGD-IRE 77.04 (+0.23 ) 93.58 (+0.27 )SAM 77.47 93.90 SAM-IRE 77.92 (+0.45 ) 94.12 (+0.22 )
+
+Table 3: ViT-T/S on CIFAR-100. ViT-T ViT-S AdamW 63.90 65.43 AdmIRE 67.05 (+3.15 ) 68.39 (+2.96 )SAM 64.25 66.93 SAM-IRE 67.33 (+3.08 ) 70.47 (+3.54 )
+
+6Table 4: ViT-S on ImageNet. Top-1 Top-5 AdamW 78.7 94.0 AdmIRE ( κ = 2 , γ = 0 .6) 79.0 (+0.3 ) 94.3 (+0.3 )AdmIRE ( κ = 2 , γ = 0 .8) 79.1 (+0.4 ) 94.2 (+0.2 )
+
+4.2 Large language model pre-training 
+
+We now evaluate IRE in the pre-training of decoder-only large language models (LLMs). Following the training protocol of Llama models, we employ the AdamW optimizer with hyperparameters 
+
+β1 = 0 .9, β 2 = 0 .95 and weight decay λ = 0 .1 (Touvron et al., 2023). The learning rate strategy includes a warm-up phase followed by a cosine decay scheduler, capped at lr_max . In each experiment, we tune lr_max only for AdamW and use it also for AdmIRE, for which the IRE is activated at the end of warm-up phase. 
+
+4.2.1 Computational efficiency and hyperparameter robustness 
+
+The first experiment is conducted to verify both the computational efficiency and the robustness of hyperparameters ( γ, κ ) in IRE for pre-training tasks. Specifically, we train a 2-layer decoder-only Transformer (8M) on the Wikitext-2 dataset (4.3M) (Merity et al., 2016) by AdamW and AdmIRE (with K = 10 and varying γ, κ ). The total training duration is 100k steps, including a 3k-step warm-up phase. Table 5: Wall-clock time on 1 A800. Algorithm time (/step) AdamW 0.165s AdmIRE 0.185s 
+
+First, we tune lr_max in AdamW, identifying the optimal 
+
+lr_max =6e-4 . Subsequently, we train both AdamW and Ad-mIRE using this lr_max .
+
+Computational efficiency. As shown in Table 5, AdmIRE with K = 10 (estimating the projection mask every 10 steps) is computationally efficient: the average time per step of Ad-mIRE is only 1.12 times that of AdamW, corresponding to the theoretical estimation ( 1.1 times). 3k 25k 50k 75k 100k Num of steps              
+
+> 2.5
+> 3.0
+> training loss  5.4×Speedup
+> AdamW AdmIRE ( κ= 2 ,γ = 0 .99 )AdmIRE ( κ= 2 ,γ = 0 .9)AdmIRE ( κ= 2 ,γ = 0 .8)AdmIRE ( κ= 5 ,γ = 0 .99 )AdmIRE ( κ= 5 ,γ = 0 .9)AdmIRE ( κ= 5 ,γ = 0 .8)
+
+Figure 3: Transformer on wikitext-2. 
+
+Robustness to hyperparameters. Figure 3 shows that Ad-mIRE, with varying γ and κ, consistently speeds up the pre-training. Remarkably, with the best configuration, AdmIRE can achieves 5.4 × speedup than well-tuned AdamW. More experimental details and results are deferred to Ap-pendix C. 
+
+4.2.2 Experiments on Llama models 
+
+Llama (Touvron et al., 2023), a popular open LLM, exhibits remarkable capabilities across general domains. In this section, we examine the performance of AdmIRE in training Llama models of various sizes across various datasets: • Llama (60M) on wikitext-103 (0.5G). Wikitext-103 (Merity et al., 2016) serves as a standard language modeling benchmark for pre-training, which contains 103M training tokens from 28K articles, with an average length of 3.6K tokens per article. • Llama (119M) on minipile (6G). Minipile (Kaddour, 2023), a 6GB subset of the deduplicated Pile (825GB) (Gao et al., 2020) presents a highly diverse text corpus. Given its diversity, training on minipile poses more challenges and potential instabilities for optimizers compared to Wikitext-103. • Llama (229M) on openwebtext (38G). Openwebtext (Gokaslan and Cohen, 2019), an open-source recreation of the WebText corpus, is extensively utilized for LLM pre-training such as RoBERTa (Liu et al., 2019b) and GPT-2 (Radford et al., 2019). Additionally, gradient clipping is adopted to maintain the training stability (Pascanu et al., 2012). First, we tune lr_max in AdamW for each of the three experiments, separately. The optimal lr_max 
+
+7identified for these three experiments is all 6e-4 . Then, both AdamW and AdmIRE are trained using this optimal lr_max . For more details, please refer to Appendix C. 
+
+AdmIRE is 2× faster than AdamW . The results are reported in Figure 4. We can see that AdmIRE consistently achieves a 2.1× speedup compared with well-tuned AdamW for all three cases. 0 25k 50k 75k 100k 
+
+num of steps  
+
+> 2.4
+> 2.6
+> 2.8
+> 3.0
+> 3.2
+> validation loss
+> 2.1×Speedup
+
+Llama (60M) on wikitext-103           
+
+> AdamW (50k) AdamW (100k) AdmIRE (50k) ( κ= 2 ,γ = 0 .7)AdmIRE (50k) ( κ= 3 ,γ = 0 .6)
+> 050k 100k 06e-4
+> lr scheduler 50k 100k 015k 30k 45k 60k
+
+num of steps  
+
+> 2.70
+> 2.75
+> 2.80
+> 2.85
+> 2.90
+> 2.95
+> 3.00
+> validation loss
+> 2.3×Speedup
+
+Llama (119M) on minipile             
+
+> AdamW (30k) AdamW (60k) AdmIRE (30k) ( κ= 2 ,γ = 0 .6)AdmIRE (30k) ( κ= 5 ,γ = 0 .5)AdmIRE (30k) ( κ= 4 ,γ = 0 .6)
+> 030k 60k 06e-4
+> lr scheduler 30k 60k 025k 50k 75k 100k
+
+num of steps  
+
+> 2.8
+> 2.9
+> 3.0
+> 3.1
+> 3.2
+> validation loss
+> 2.1×Speedup
+
+Llama (229M) on openwebtext     
+
+> AdamW (50k) AdamW (100k) AdmIRE (50k) ( κ= 4 ,γ = 0 .6)
+> 050k 100k 06e-4
+> lr scheduler 50k 100k
+
+Figure 4: AdmIRE outperforms AdamW in the pre-training of Llama models. Notice that the primary motivation behind IRE is to speed up the sharpness reduction, which only requires to increase learning rate along completely flat (zero-curvature) directions. However, practical implementation may also increase the learning rate along directions with small but non-zero curvatures, which can further speed up loss convergence. A thorough explanation for the significant acceleration provided by this approach is left for future research. Table 6: Comparison of the sharpness of the solu-tions found by AdamW/AdmIRE. AdamW AdmIRE training steps 100k 50k final L(θ) 2.47 2.47 final Tr( ∇2L(θ)) 120.41 88.86 
+
+We further assess the sharpness reduction capability of IRE for LLM pre-training. Specifically, we com-pare the sharpness of solutions, Tr( ∇2L(θ)) , found by AdamW/AdmIRE during pre-training of Llama (60M) on wiki-103 dataset (corresponding to Figure 4 (left)). The results shown in Table 6 demonstrate that AdamIRE not only achieves the same loss in only half the iterations required by AdamW, but also the solutions found by AdmIRE are significantly flatter 
+
+than that found by AdamW. Recently, Liu et al. (2023) revealed a strong correlation between the sharpness and downstream task performance, suggesting that for models with the same pre-training loss, flatter solutions yield better performance on downstream tasks. Based on this, we hypothesize that the solutions found by IRE may also have better performance in downstream tasks, which we leave to future work. 
+
+## 5 Theoretical Guarantees for IRE on SAMs 
+
+Both empirical (Foret et al., 2021) and theoretical (Wen et al., 2023a) studies have validated that SAM algorithms exhibit superior sharpness regularization compared to (S)GD. In this section, we provide a theoretical analysis demonstrating that IRE can further enhance the sharpness regularization of SAM algorithms substantially. 
+
+5.1 Theoretical setups 
+
+Recall that L(θ) := 1
+
+> n
+
+Pni=1 Li(θ) denote the total loss, where Li(θ) is the loss on the i-th data. Without loss of generality, we assume min θ L(θ) = 0 . We further make the following assumption: 
+
+Assumption 5.1 (Manifold of minimizers) . Assume that L ∈ C 4(Rp), M := arg min θ L(θ) is a (p − m)-dim C2-submanifold in Rp for some m ∈ [p], and rank( ∇2L(θ)) = m for any θ ∈ M .The above connectivity assumption on the manifold of minimizers M has been empirically veri-fied in works such as Draxler et al. (2018) and Garipov et al. (2018), and theoretically supported in Cooper (2018). This assumption is also widely used in the theoretical analysis of implicit regular-ization (Fehrman et al., 2020; Li et al., 2022; Arora et al., 2022; Wen et al., 2023a). Besides, we introduce the following definitions to characterize the dynamics of gradient flow (GF) near the minima manifold M, which is also used in the related works above. 8Definition 5.2 (Limiting map of GF) . Consider the GF: dθ(t) 
+
+> dt
+
+= −∇L (θ(t)) starting from θ(0) = θ.Denote by Φ( θ) := lim t→∞ θ(t) the limiting map of this GF. 
+
+Definition 5.3 (Attraction set of M). Let U be the attraction set of M under GF, i.e., GF starting in 
+
+U converges to some point in M. Formally, U := {θ ∈ Rp : Φ( θ) ∈ M} .As proven in (Arora et al., 2022, Lemma B.15), Assumption 5.1 ensures that U (in Definition 5.3) is open and Φ( ·) (in Definition 5.2) is C2 on U .
+
+5.2 Theoretical results 
+
+The stochastic SAM (Foret et al., 2021) is given by standard SAM: θt+1 = θt − η∇L it
+
+
+
+θt + ρ ∇L it (θt)
+
+∥∇L it (θt)∥
+
+
+
+, where it ∼ U([ n]) . (7) The generalization capability of standard SAM can be bounded by the average sharpness, Lavg (θ) := 
+
+Eξ∼N (0,I )L (θ + ρξ/∥ξ∥) (Foret et al., 2021). This leads researchers to also explore average SAM (Wen et al., 2023a; Zhu et al., 2023; Ujváry et al., 2022), which minimizes Lavg :average SAM: θt+1 = θt − η∇L (θt + ρξt/∥ξt∥) , where ξt ∼ N (0, I ). (8) 
+
+Two-phase algorithms. Our theoretical focus is on how IRE accelerates the sharpness reduction of SAM (7) and (8) near the minima manifold M. Thus, we analyze the two-phase algorithms. Specifically, let the initialization θ0 ∈ U . In Phase I (t ⩽ TI), we employ GF dθt 
+
+> dt
+
+= −∇L (θt) to ensure that the loss decreases sufficiently; then in Phase II (TI < t ⩽ TI + TII := T ), we incorporate IRE into the standard / average SAM. minima manifold M  
+
+> tangent space
+> TztM−∇ Tr[ ∇2L(zt)/2]
+> −∇ MTr[ ∇2L(zt)/2]
+> θt
+> zt= Φ( θt)
+
+Effective dynamics: sharpness regularization. The implicit reg-ularization of SAMs can be modeled using effective dynamics. In Phase II, θt are close the manifold of minimizers M and let 
+
+zt := Φ( θt) ∈ M . Then, the effective dynamics is given by 
+
+{zt}Tt=TI+1 , revealing how SAMs explore the manifold of mini-mizers M. Particularly, Wen et al. (2023a) showed that the effective dynamics of standard/average SAM are both 
+
+E [zt+1 ] = zt − ηeff ∇MTr ∇2L(zt)/2 + o(ηeff ), (9) which minimizes the trace of Hessian on M. The difference between the standard SAM (7) and average SAM (8) lies in the effective learning rate (LR) ηeff ’s. A visual illustration of some quantities in (9) is provided in the figure above. 
+
+Summary of our theoretical results. In this section, we show that incorporating IRE into SAMs can significantly increase the effective LR ηeff in (9) while maintaining the same training stability as SAMs. In Table 7, we present the effective LR for SAMs and the SAM-IREs. We see clearly that IRE can accelerate the sharpness reduction by a non-trivial factor for both standard and average SAM. Table 7: Comparison of the implicit regularization strength of SAMs w/o IRE. Algorithm Effective LR: ηeff 
+
+average SAM (8) η2/p (Thm 5.5) IRE + average SAM (8) η1.5/p (Thm 5.5) standard SAM (7) ηρ 2 (Thm 5.6; Wen et al. (2023a)) IRE + standard SAM (7) ηρ (Thm 5.6) 
+
+Remark 5.4 (The mechanism of IRE’s success) . The success of SAM-IRE follows the same mecha-nism illustrated in Section 2. The key fact that IRE only increases the LR along flat directions has two implications: 1) It does not change the trend of implicit regularization in Eq. (9) but accelerates SAMs’ effective dynamics by a factor of (1 + κ); 2) Since the LR is only increased along flat directions, κ can be set substantially large without hurting the training stability, because the dynamics in sharp directions remain unchanged. Specifically, we theoretically justify in SAM-IRE, κ can be selected as large as 1/ρ .95.2.1 IRE on average SAM: An Ω(1 /η 0.5) acceleration 
+
+We first consider IRE on average SAM. Let TI be the hitting time: TI := inf {t ⩾ 0 : ∥θt − Φ( θt)∥ =
+
+O(√ηρ )}. When running GF in Phase I, Definition 5.3 guarantees TI < ∞. Thus, at the starting of Phase II, ∥θt − Φ( θt)∥ = O(√ηρ ). Furthermore, the following result holds for Phase II. 
+
+Theorem 5.5 (IRE on average SAM) . Suppose Assumption 5.1 holds. If η = O(1) and ρ = O(√η)
+
+in SAM (8) , κ ⩽ 1/ρ , and Pt = Pm+1: p(∇2L(θt)) in IRE (4) , then with high probability at least 
+
+1−T 2II exp  −Ω  1/  η + p−1 , ∥θt − Φ( θt)∥ = O(√ηρ ) holds for all TI ⩽ t ⩽ T . Furthermore, the effective dynamics of zt := Φ( θt) ∈ M satisfies: 
+
+Eξt [zt+1 ] = zt − (1 + κ)ηρ 2
+
+p ∇M Tr ∇2L(zt)/2 + O(η3/2ρ2).
+
+Note that ρ = O(√η) and κ can be as large as 1/ρ . Consequently, the effective LR of minimizing the trace of Hessian can be selected as large as ηeff = ( κ + 1) ηρ 2/p = O(η1.5/p ). In contrast, that of average SAM is at most O(η2/p ). The proof of Theorem 5.5 can be found in Appendix D. 
+
+5.2.2 IRE on standard SAM: An Ω(1 /ρ ) acceleration 
+
+This subsection delves into IRE on standard SAM (7) , which is more widely used and often yields better performance than average SAM (8) . However, since standard SAM (7) requires stochastic gradients ∇L i(θ) (i ∈ [n]), we need an additional assumption regarding the features on the manifold (see Setting E.1), which is commonly used in the literature (Du et al., 2018; 2019; Li et al., 2022; Arora et al., 2022; Wen et al., 2023a). We defer it to Appendix E due to space constraints. Under this Setting, Assumption 5.1 holds naturally with m = n.During Phase I of GF, Definition 5.3 ensures that there exists t < ∞ such that ∥θt − Φ( θt)∥ =
+
+O(η1−αρ) for any α ∈ [0 , 1) . We define TI as the hitting time: TI := inf {t ⩾ 0 : ∥θt − Φ( θt)∥ =
+
+O(η1−αρ)}. Then the following result holds for Phase II, whose proof can be founded in Appendix E. 
+
+Theorem 5.6 (IRE on standard SAM) . Under Setting E.1, if η, ρ = O(1) in SAM (7) , κ ⩽ 1/ρ ,and Pt = Pn+1: p(∇2L(θt)) in IRE (4) , then with high probability at least 1 − T 2II exp ( −Ω(1 /η α)) ,
+
+∥θt − Φ( θt)∥ = O(η1−αρ) holds for all TI ⩽ t ⩽ T . Moreover, the effective dynamics zt =Φ( θt) ∈ M satisfies: 
+
+Eit [zt+1 ] = zt − (1 + κ)ηρ 2∇M Tr ∇2L(zt)/2 + O  (κ + 1) ηρ 2(ρ + η1−α) .
+
+Taking κ = 0 and α = 0 recovers the result established in Wen et al. (2023a). However, κ can be as large as 1/ρ , where IRE provides a Θ(1 /ρ )-time acceleration over the standard SAM. 
+
+## 6 Conclusion 
+
+In this work, we propose a novel IRE framework to enhance the implicit sharpness regularization of base optimizers. Experiments demonstrate that IRE not only consistently improves generalization but also accelerates loss convergence in the pre-training of Llama models of various sizes. The code is available at https://github.com/wmz9/IRE-algorithm-framework .For future work, there are two urgent directions: 1) understanding why IRE can accelerate conver-gence, which may require studying the interplay between IRE and the Edge of Stability (EoS) (Wu et al., 2018; Jastrz˛ ebski et al., 2017; Cohen et al., 2021); and 2) conducting a larger-scale investi-gation into the acceleration of AdmIRE compared to AdamW in LLM pre-training, as well as the downstream performance of the LLMs pre-trained by AdmIRE. 
+
+## Acknowledgments 
+
+Lei Wu is supported by the National Key R&D Program of China (No. 2022YFA1008200) and National Natural Science Foundation of China (No. 12288101). Mingze Wang is supported in part by the National Key Basic Research Program of China (No. 2015CB856000). We thank Dr. Hongkang Yang, Liu Ziyin, Liming Liu, Zehao Lin, Hao Wu, and Kai Chen for helpful discussions and anonymous reviewers for their valuable suggestions. 10 References 
+
+Sanjeev Arora, Zhiyuan Li, and Abhishek Panigrahi. Understanding gradient descent on the edge of stability in deep learning. In International Conference on Machine Learning , pages 948–1024. PMLR, 2022. 8, 9, 10, 21, 22, 23 Guy Blanc, Neha Gupta, Gregory Valiant, and Paul Valiant. Implicit regularization for deep neural networks driven by an Ornstein-Uhlenbeck like process. In Conference on learning theory , pages 483–513. PMLR, 2020. 2 Xiangning Chen, Chen Liang, Da Huang, Esteban Real, Kaiyuan Wang, Hieu Pham, Xuanyi Dong, Thang Luong, Cho-Jui Hsieh, Yifeng Lu, et al. Symbolic discovery of optimization algorithms. 
+
+Advances in Neural Information Processing Systems , 36, 2024. 3, 20 Lenaic Chizat and Francis Bach. Implicit bias of gradient descent for wide two-layer neural networks trained with the logistic loss. In Conference on Learning Theory , pages 1305–1338. PMLR, 2020. 17 Jeremy M Cohen, Simran Kaur, Yuanzhi Li, J Zico Kolter, and Ameet Talwalkar. Gradient descent on neural networks typically occurs at the edge of stability. International Conference on Learning Representations , 2021. 2, 10 Yaim Cooper. The loss landscape of overparameterized neural networks. arXiv preprint arXiv:1804.10200 , 2018. 8 Zihang Dai, Zhilin Yang, Yiming Yang, Jaime Carbonell, Quoc V Le, and Ruslan Salakhutdi-nov. Transformer-XL: Attentive language models beyond a fixed-length context. arXiv preprint arXiv:1901.02860 , 2019. 21 Alex Damian, Tengyu Ma, and Jason D Lee. Label noise SGD provably prefers flat global minimizers. 
+
+Advances in Neural Information Processing Systems , 34:27449–27461, 2021. 2, 18 Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. Imagenet: A large-scale hierarchical image database. In 2009 IEEE conference on computer vision and pattern recognition ,pages 248–255. Ieee, 2009. 6 Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, et al. An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929 , 2020. 2, 6 Felix Draxler, Kambis Veschgini, Manfred Salmhofer, and Fred Hamprecht. Essentially no barriers in neural network energy landscape. In International conference on machine learning , pages 1309–1318. PMLR, 2018. 8 Jiawei Du, Hanshu Yan, Jiashi Feng, Joey Tianyi Zhou, Liangli Zhen, Rick Siow Mong Goh, and Vincent YF Tan. Efficient sharpness-aware minimization for improved training of neural networks. 
+
+arXiv preprint arXiv:2110.03141 , 2021. 2 Simon Du, Jason Lee, Haochuan Li, Liwei Wang, and Xiyu Zhai. Gradient descent finds global minima of deep neural networks. In International Conference on Machine Learning , pages 1675–1685. PMLR, 2019. 10 Simon S Du, Xiyu Zhai, Barnabas Poczos, and Aarti Singh. Gradient descent provably optimizes over-parameterized neural networks. arXiv preprint arXiv:1810.02054 , 2018. 10 John Duchi, Elad Hazan, and Yoram Singer. Adaptive subgradient methods for online learning and stochastic optimization. Journal of machine learning research , 12(7), 2011. 2 Mathieu Even, Scott Pesme, Suriya Gunasekar, and Nicolas Flammarion. (S)GD over diagonal linear networks: Implicit regularisation, large stepsizes and edge of stability. arXiv preprint arXiv:2302.08982 , 2023. 18 11 Mathieu Even, Scott Pesme, Suriya Gunasekar, and Nicolas Flammarion. (S) GD over diagonal linear networks: Implicit bias, large stepsizes and edge of stability. Advances in Neural Information Processing Systems , 36, 2024. 2 Benjamin Fehrman, Benjamin Gess, and Arnulf Jentzen. Convergence rates for the stochastic gradient descent method for non-convex objective functions. Journal of Machine Learning Research , 21, 2020. 8 Pierre Foret, Ariel Kleiner, Hossein Mobahi, and Behnam Neyshabur. Sharpness-aware minimization for efficiently improving generalization. International Conference on Learning Representations ,2021. 2, 8, 9, 19, 20 Leo Gao, Stella Biderman, Sid Black, Laurence Golding, Travis Hoppe, Charles Foster, Jason Phang, Horace He, Anish Thite, Noa Nabeshima, et al. The Pile: An 800GB dataset of diverse text for language modeling. arXiv preprint arXiv:2101.00027 , 2020. 7 Timur Garipov, Pavel Izmailov, Dmitrii Podoprikhin, Dmitry P Vetrov, and Andrew G Wilson. Loss surfaces, mode connectivity, and fast ensembling of dnns. Advances in neural information processing systems , 31, 2018. 8 Khashayar Gatmiry, Zhiyuan Li, Ching-Yao Chuang, Sashank Reddi, Tengyu Ma, and Stefanie Jegelka. The inductive bias of flatness regularization for deep matrix factorization. arXiv preprint arXiv:2306.13239 , 2023. 2 Thomas George, César Laurent, Xavier Bouthillier, Nicolas Ballas, and Pascal Vincent. Fast approximate natural gradient descent in a Kronecker-factored eigenbasis. Advances in Neural Information Processing Systems , 31, 2018. 5 Aaron Gokaslan and Vanya Cohen. Openwebtext corpus. http://Skylion007.github.io/ OpenWebTextCorpus , 2019. 7 Priya Goyal, Piotr Dollár, Ross Girshick, Pieter Noordhuis, Lukasz Wesolowski, Aapo Kyrola, Andrew Tulloch, Yangqing Jia, and Kaiming He. Accurate, large minibatch SGD: Training ImageNet in 1 hour. arXiv preprint arXiv:1706.02677 , 2017. 2 Roger Grosse and James Martens. A Kronecker-factored approximate Fisher matrix for convolution layers. In International Conference on Machine Learning , pages 573–582. PMLR, 2016. 5 Suriya Gunasekar, Jason D Lee, Daniel Soudry, and Nati Srebro. Implicit bias of gradient descent on linear convolutional networks. Advances in neural information processing systems , 31, 2018. 17 Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition ,pages 770–778, 2016. 2, 6 Byeongho Heo, Sanghyuk Chun, Seong Joon Oh, Dongyoon Han, Sangdoo Yun, Gyuwan Kim, Youngjung Uh, and Jung-Woo Ha. Adamp: Slowing down the slowdown for momentum optimizers on scale-invariant weights. arXiv preprint arXiv:2006.08217 , 2020. 3 Sepp Hochreiter and Jürgen Schmidhuber. Flat minima. Neural computation , 9(1):1–42, 1997. 1 Elad Hoffer, Itay Hubara, and Daniel Soudry. Train longer, generalize better: closing the general-ization gap in large batch training of neural networks. arXiv preprint arXiv:1705.08741 , 2017. 2Stanisław Jastrz˛ ebski, Zachary Kenton, Devansh Arpit, Nicolas Ballas, Asja Fischer, Yoshua Bengio, and Amos Storkey. Three factors influencing minima in SGD. arXiv preprint arXiv:1711.04623 ,2017. 2, 10 Ziwei Ji and Matus Telgarsky. Gradient descent aligns the layers of deep linear networks. International Conference on Learning Representations , 2019a. 17 Ziwei Ji and Matus Telgarsky. Risk and parameter convergence of logistic regression. Conference on Learning Theory , 2019b. 17 12 Ziwei Ji and Matus Telgarsky. Directional convergence and alignment in deep learning. Advances in Neural Information Processing Systems , 33:17176–17186, 2020. 17 Ziwei Ji and Matus Telgarsky. Characterizing the implicit bias via a primal-dual analysis. In 
+
+Algorithmic Learning Theory , pages 772–804. PMLR, 2021. 17 Ziwei Ji, Miroslav Dudík, Robert E Schapire, and Matus Telgarsky. Gradient descent follows the regularization path for general losses. In Conference on Learning Theory , pages 2109–2136. PMLR, 2020. 17 Ziwei Ji, Nathan Srebro, and Matus Telgarsky. Fast margin maximization via dual acceleration. In 
+
+International Conference on Machine Learning , pages 4860–4869. PMLR, 2021. 17 Yiding Jiang, Behnam Neyshabur, Hossein Mobahi, Dilip Krishnan, and Samy Bengio. Fantas-tic generalization measures and where to find them. In International Conference on Learning Representations , 2019. 2 Jean Kaddour. The MiniPile challenge for data-efficient language models. arXiv preprint arXiv:2304.08442 , 2023. 7 Nitish Shirish Keskar, Dheevatsa Mudigere, Jorge Nocedal, Mikhail Smelyanskiy, and Ping Tak Peter Tang. On large-batch training for deep learning: Generalization gap and sharp minima. In 
+
+International Conference on Learning Representations , 2016. 1 Diederik P Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980 , 2014. 2 Alex Krizhevsky and Geoffrey Hinton. Learning multiple layers of features from tiny images, 2009. URL https://www.cs.toronto.edu/~kriz/cifar.html . 5 Daniel Kunin, Atsushi Yamamura, Chao Ma, and Surya Ganguli. The asymmetric maximum margin bias of quasi-homogeneous neural networks. International Conference on Learning Representations , 2023. 17 Jungmin Kwon, Jeongseop Kim, Hyunseo Park, and In Kwon Choi. ASAM: Adaptive sharpness-aware minimization for scale-invariant learning of deep neural networks. In International Confer-ence on Machine Learning , pages 5905–5914. PMLR, 2021. 2, 20 Qianxiao Li, Cheng Tai, and E Weinan. Stochastic modified equations and adaptive stochastic gradient algorithms. In International Conference on Machine Learning , pages 2101–2110. PMLR, 2017. 18 Qianxiao Li, Cheng Tai, and E Weinan. Stochastic modified equations and dynamics of stochastic gradient algorithms I: Mathematical foundations. The Journal of Machine Learning Research , 20 (1):1474–1520, 2019. 18 Zhiyuan Li, Tianhao Wang, and Sanjeev Arora. What happens after SGD reaches zero loss?–a mathematical framework. International Conference on Learning Representations , 2022. 2, 4, 8, 10, 18 Hong Liu, Sang Michael Xie, Zhiyuan Li, and Tengyu Ma. Same pre-training loss, better downstream: Implicit bias matters for language models. In International Conference on Machine Learning ,pages 22188–22214. PMLR, 2023. 8 Hong Liu, Zhiyuan Li, David Hall, Percy Liang, and Tengyu Ma. Sophia: A scalable stochastic second-order optimizer for language model pre-training. International Conference on Learning Representations , 2024. 3, 5, 21 Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao, and Jiawei Han. On the variance of the adaptive learning rate and beyond. arXiv preprint arXiv:1908.03265 ,2019a. 3 Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692 , 2019b. 7 13 Yong Liu, Siqi Mai, Xiangning Chen, Cho-Jui Hsieh, and Yang You. Towards efficient and scalable sharpness-aware minimization. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 12360–12370, 2022. 2 Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 , 2017. 3 Liangchen Luo, Yuanhao Xiong, Yan Liu, and Xu Sun. Adaptive gradient methods with dynamic bound of learning rate. arXiv preprint arXiv:1902.09843 , 2019. 3 Kaifeng Lyu and Jian Li. Gradient descent maximizes the margin of homogeneous neural networks. 
+
+arXiv preprint arXiv:1906.05890 , 2019. 17 Kaifeng Lyu, Zhiyuan Li, Runzhe Wang, and Sanjeev Arora. Gradient descent on two-layer nets: Margin maximization and simplicity bias. Advances in Neural Information Processing Systems ,34, 2021. 17 Kaifeng Lyu, Zhiyuan Li, and Sanjeev Arora. Understanding the generalization benefit of normal-ization layers: Sharpness reduction. Advances in Neural Information Processing Systems , 35: 34689–34708, 2022. 2 Chao Ma and Lexing Ying. On linear stability of SGD and input-smoothness of neural networks. 
+
+Advances in Neural Information Processing Systems , 34:16805–16817, 2021. 2 Chao Ma, Daniel Kunin, Lei Wu, and Lexing Ying. Beyond the quadratic approximation: The multiscale structure of neural network loss landscapes. Journal of Machine Learning , 1(3): 247–267, 2022. 2, 4, 18 James Martens and Roger Grosse. Optimizing neural networks with Kronecker-factored approximate curvature. In International conference on machine learning , pages 2408–2417. PMLR, 2015. 5 Stephen Merity, Caiming Xiong, James Bradbury, and Richard Socher. Pointer sentinel mixture models. arXiv preprint arXiv:1609.07843 , 2016. 7 Peng Mi, Li Shen, Tianhe Ren, Yiyi Zhou, Xiaoshuai Sun, Rongrong Ji, and Dacheng Tao. Make sharpness-aware minimization stronger: A sparsified perturbation approach. Advances in Neural Information Processing Systems , 35:30950–30962, 2022. 2, 5 Maximilian Mueller, Tiffany Vlaar, David Rolnick, and Matthias Hein. Normalization layers are all that sharpness-aware minimization needs. Advances in Neural Information Processing Systems ,36, 2024. 2, 6, 20 Rotem Mulayoff, Tomer Michaeli, and Daniel Soudry. The implicit bias of minima stability: A view from function space. Advances in Neural Information Processing Systems , 34:17749–17761, 2021. 2Mor Shpigel Nacson, Suriya Gunasekar, Jason Lee, Nathan Srebro, and Daniel Soudry. Lexicographic and depth-sensitive margins in homogeneous and non-homogeneous deep models. In International Conference on Machine Learning , pages 4683–4692. PMLR, 2019a. 17 Mor Shpigel Nacson, Jason Lee, Suriya Gunasekar, Pedro Henrique Pamplona Savarese, Nathan Srebro, and Daniel Soudry. Convergence of gradient descent on separable data. In The 22nd International Conference on Artificial Intelligence and Statistics , pages 3420–3428. PMLR, 2019b. 17 Mor Shpigel Nacson, Nathan Srebro, and Daniel Soudry. Stochastic gradient descent on separable data: Exact convergence with a fixed learning rate. In The 22nd International Conference on Artificial Intelligence and Statistics , pages 3051–3059. PMLR, 2019c. 17 Mor Shpigel Nacson, Kavya Ravichandran, Nathan Srebro, and Daniel Soudry. Implicit bias of the step size in linear diagonal neural networks. In International Conference on Machine Learning ,pages 16270–16295. PMLR, 2022. 18 Yurii Nesterov. A method of solving a convex programming problem with convergence rate o(1 /k 2).
+
+Doklady Akademii Nauk SSSR , 269(3):543, 1983. 2 14 Behnam Neyshabur, Ryota Tomioka, and Nathan Srebro. In search of the real inductive bias: On the role of implicit regularization in deep learning. arXiv preprint arXiv:1412.6614 , 2014. 1 Razvan Pascanu, Tomas Mikolov, and Yoshua Bengio. Understanding the exploding gradient problem. 
+
+CoRR, abs/1211.5063 , 2(417):1, 2012. 7 Scott Pesme and Nicolas Flammarion. Saddle-to-saddle dynamics in diagonal linear networks. 
+
+Advances in Neural Information Processing Systems , 2023. 18 Scott Pesme, Loucas Pillaud-Vivien, and Nicolas Flammarion. Implicit bias of SGD for diagonal linear networks: a provable benefit of stochasticity. Advances in Neural Information Processing Systems , 34:29218–29230, 2021. 18 Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya Sutskever. Language models are unsupervised multitask learners. OpenAI blog , 1(8):9, 2019. 7 Herbert Robbins and Sutton Monro. A stochastic approximation method. The annals of mathematical statistics , pages 400–407, 1951. 1 David E Rumelhart, Geoffrey E Hinton, and Ronald J Williams. Learning representations by back-propagating errors. Nature , 323(6088):533–536, 1986. 1 Noam Shazeer. GLU variants improve transformer. arXiv preprint arXiv:2002.05202 , 2020. 21 Daniel Soudry, Elad Hoffer, Mor Shpigel Nacson, Suriya Gunasekar, and Nathan Srebro. The implicit bias of gradient descent on separable data. The Journal of Machine Learning Research , 19(1): 2822–2878, 2018. 17 Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. Neurocomputing , 568:127063, 2024. 21 Ilya Sutskever, James Martens, George Dahl, and Geoffrey Hinton. On the importance of initialization and momentum in deep learning. In International conference on machine learning , pages 1139– 1147. PMLR, 2013. 2 Tijmen Tieleman. Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude. COURSERA: Neural networks for machine learning , 4(2):26, 2012. 2 Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al. LLaMA: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971 , 2023. 2, 7, 20, 21 Szilvia Ujváry, Zsigmond Telek, Anna Kerekes, Anna Mészáros, and Ferenc Huszár. Rethinking sharpness-aware minimization as variational inference. arXiv preprint arXiv:2210.10452 , 2022. 9 Gal Vardi. On the implicit bias in deep-learning algorithms. Communications of the ACM , 66(6): 86–93, 2023. 2, 17 Gal Vardi, Ohad Shamir, and Nati Srebro. On margin maximization in linear and ReLU networks. 
+
+Advances in Neural Information Processing Systems , 35:37024–37036, 2022. 17 Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. Advances in neural information processing systems , 30, 2017. 20 Roman Vershynin. High-dimensional probability: An introduction with applications in data science ,volume 47. Cambridge university press, 2018. 38 Guanghui Wang, Rafael Hanashiro, Etash Guha, and Jacob Abernethy. On accelerated perceptrons and beyond. arXiv preprint arXiv:2210.09371 , 2022. 17 Mingze Wang and Chao Ma. Understanding multi-phase optimization dynamics and rich nonlinear behaviors of ReLU networks. Advances in Neural Information Processing Systems , 2023. 17 15 Mingze Wang and Lei Wu. The noise geometry of stochastic gradient descent: A quantitative and analytical characterization. arXiv preprint arXiv:2310.00692 , 2023. 2 Mingze Wang, Zeping Min, and Lei Wu. Achieving margin maximization exponentially fast via progressive norm rescaling. International Conference on Machine Learning , 2024. 17 Kaiyue Wen, Tengyu Ma, and Zhiyuan Li. How sharpness-aware minimization minimizes sharpness? In The Eleventh International Conference on Learning Representations , 2023a. 4, 8, 9, 10, 32, 33, 34 Kaiyue Wen, Tengyu Ma, and Zhiyuan Li. Sharpness minimization algorithms do not only minimize sharpness to achieve better generalization. Advances in Neural Information Processing Systems ,2023b. 2 Blake Woodworth, Suriya Gunasekar, Jason D Lee, Edward Moroshko, Pedro Savarese, Itay Golan, Daniel Soudry, and Nathan Srebro. Kernel and rich regimes in overparametrized models. In 
+
+Conference on Learning Theory , pages 3635–3673. PMLR, 2020. 18 Lei Wu and Weijie J Su. The implicit regularization of dynamical stability in stochastic gradient descent. In The 40th International Conference on Machine Learning , volume 202 of Proceedings of Machine Learning Research , pages 37656–37684. PMLR, 2023. 2 Lei Wu, Zhanxing Zhu, and Weinan E. Towards understanding generalization of deep learning: Perspective of loss landscapes. arXiv preprint arXiv:1706.10239 , 2017. 1 Lei Wu, Chao Ma, and Weinan E. How SGD selects the global minima in over-parameterized learning: A dynamical stability perspective. Advances in Neural Information Processing Systems ,31:8279–8288, 2018. 2, 10 Lei Wu, Mingze Wang, and Weijie J Su. The alignment property of SGD noise and how it helps select flat minima: A stability analysis. Advances in Neural Information Processing Systems , 35: 4680–4693, 2022. 2 Xingyu Xie, Pan Zhou, Huan Li, Zhouchen Lin, and Shuicheng Yan. Adan: Adaptive nesterov momentum algorithm for faster optimizing deep models. arXiv preprint arXiv:2208.06677 , 2022a. 3Zeke Xie, Xinrui Wang, Huishuai Zhang, Issei Sato, and Masashi Sugiyama. Adaptive inertia: Disentangling the effects of adaptive learning rate and momentum. In International conference on machine learning , pages 24430–24459. PMLR, 2022b. 3 Zhewei Yao, Amir Gholami, Kurt Keutzer, and Michael W Mahoney. Pyhessian: Neural networks through the lens of the Hessian. In 2020 IEEE international conference on big data (Big data) ,pages 581–590. IEEE, 2020. 4 Sergey Zagoruyko and Nikos Komodakis. Wide residual networks. arXiv preprint arXiv:1605.07146 ,2016. 5, 6 Biao Zhang and Rico Sennrich. Root mean square layer normalization. Advances in Neural Information Processing Systems , 32, 2019. 21 Chiyuan Zhang, Samy Bengio, Moritz Hardt, Benjamin Recht, and Oriol Vinyals. Understand-ing deep learning requires rethinking generalization. In International Conference on Learning Representations , 2017. 1 Tongtian Zhu, Fengxiang He, Kaixuan Chen, Mingli Song, and Dacheng Tao. Decentralized SGD and average-direction SAM are asymptotically equivalent. In International Conference on Machine Learning , pages 43005–43036. PMLR, 2023. 9 Juntang Zhuang, Tommy Tang, Yifan Ding, Sekhar C Tatikonda, Nicha Dvornek, Xenophon Pa-pademetris, and James Duncan. Adabelief optimizer: Adapting stepsizes by the belief in observed gradients. Advances in neural information processing systems , 33:18795–18806, 2020. 3 16 Appendix 
+
+A Other Related Works 17 B Proofs for SGD in Section 2 18 C Experimental Details 19 
+
+C.1 Experimental details in Section 4.1 . . . . . . . . . . . . . . . . . . . . . . . . . . 19 C.2 Experimental details in Section 4.2 . . . . . . . . . . . . . . . . . . . . . . . . . . 20 
+
+D Proofs in Section 5.2.1 21 
+
+D.1 Preliminary Lemmas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21 D.2 Proof of Theorem 5.5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 
+
+E Proofs in Section 5.2.2 32 
+
+E.1 Preliminary Lemmas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 E.2 Proof of Theorem 5.6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34 
+
+F Useful Inequalities 37 
+
+## A Other Related Works 
+
+Other Implicit Biases. Beyond the implicit sharpness regularization, numerous other attempts have explored implicit biases in deep learning algorithms Vardi (2023). Among these, a popular research line is the max-margin bias , which suggests that optimizers favor the solutions with large margin, which generalizes well. Soudry et al. (2018) showed that GD converges to max-margin solutions under exponentially-tailed loss on linearly separable data, albeit with an extremely slow rate 
+
+O(1 / log t). Furthermore, Nacson et al. (2019c) studied this bias for SGD, Ji and Telgarsky (2019b) investigated linearly non-separable data, and Ji et al. (2020) analyzed the effects of the tail behavior of loss functions. To achieve faster margin maximization, Nacson et al. (2019b); Ji and Telgarsky (2021) demonstrated that GD with aggressively loss-scaled step sizes can achieve a faster polynomial rate of O(1 /t ).Building on this, Ji et al. (2021); Wang et al. (2022) proposed momentum-based gradient methods which achieve a rate of O(1 /t 2). Recently, Wang et al. (2024) established that the polynomial rates for most previous algorithms are tight, and proposed a progressive rescaling gradient descent method that achieves margin maximization exponentially fast O(e−Ω( t)).The margin-maximization bias has also been studied for nonlinear models. Ji and Telgarsky (2019a); Gunasekar et al. (2018) examined deep linear networks, while Chizat and Bach (2020) focused on wide two-layer ReLU networks. Notably, Nacson et al. (2019a); Lyu and Li (2019); Ji and Telgarsky (2020) demonstrated that for general homogeneous networks, Gradient Flow (GF) and GD converge to solutions corresponding the KKT point of the max-margin problem. Recently, Kunin et al. (2023) extended this analysis to quasi-homogeneous networks. For two-layer (leaky-)ReLU neural networks, Lyu et al. (2021); Vardi et al. (2022); Wang and Ma (2023) examined whether the convergent KKT point of GF correspond to global optima of the max-margin problem. 17 Future work could investigate whether the IRE framework can also enhance the margin maximization bias, although it is primarily designed for enhancing the implicit sharpness regularization. Additionally, Woodworth et al. (2020); Pesme et al. (2021); Nacson et al. (2022); Pesme and Flam-marion (2023); Even et al. (2023) conducted fine-grained analyses of training dynamics, examining how initialization and step size impact (S)GD’s minima selection in linear diagonal networks. 
+
+## B Proofs for SGD in Section 2 
+
+For the example in Section 2, we have studied the implicit sharpness regularization of GD dynamics and how IRE enhances the implicit regularization of GD. In this Section, we illustrate that, for this example, similar results hold for SGD dynamics. 
+
+SDE Modelling of SGD. We consider SGD approximated by SDE (Li et al., 2017; 2019; 2022) with noise covariance Σ: dθt = −∇L (θt)dt + pηΣ( θt)dWt. We consider that the noise covariance aligns with the Hessian near minima, i.e., Σ( θ) = 
+
+0d 00 σ2h(u)
+
+
+
+(where σ > 0 is a scalar), such as the label noise (Damian et al., 2021; Li et al., 2022). Then, the SDE above can be rewritten as d
+
+ut
+
+vt
+
+
+
+= −
+
+v2 
+
+> t
+
+∇h(ut)/2
+
+vth(ut)
+
+
+
+dt +
+
+ 0pησ 2h(ut)dWt
+
+
+
+. (10) 
+
+Implicit Sharpness Regularization. Intuitively, when vt is close to 0, the speed of ut is much slower than vt due to v2 
+
+> t
+
+≪ vt. Following Ma et al. (2022), when this speed separation is large, vt
+
+is always at equilibrium given ut. Solving the Ornstein–Uhlenbeck process about vt, we know the equilibrium distribution of vt is v∞ ∼ N (0 , ησ 2), and hence the dynamics ut (along the manifold) is dut/dt = −Ev∞
+
+v2
+
+> ∞
+
+∇h(ut)/2 = −∇ h(ut)/2. (11) This derivation clearly shows the slow “effective dynamics” ut along the manifold is a gradi-ent flow minimizing the sharpness h(·). When SGD minimizes the loss, it also minimzes the sharpness implicitly, that is to say, SGD has the following implicit sharpness regularization :
+
+min θ Tr( ∇2L(θ)) s .t.L(θ) ≈ 0.
+
+Generalization and Optimization benefits of the sharpness regularization. In terms of generalization, as discussed in related works, a common view is that flat minima generalize well , which has been proved in a large number of previous works. In addition, in terms of optimization, after SGD reaches the equilibrium v∞ ∼ N (0 , ησ 2), the loss near the flat minimum is smaller because Ev∞ [L(θ)] = 
+
+Ev∞ [h(u)v2
+
+> ∞
+
+/2] = ησ 2h(u)/2 ∝ Tr( ∇2L(u)) .
+
+Q. How can we enhance the implicit sharpness regularization of SGD? 
+
+A. Accelerating SGD’s slow “effective dynamics” ut along the minima manifold. 
+
+Implicit Regularization Enhancement (IRE) by accelerating the effective dynamics along minima manifold. First, it is worth noting that naively increasing the learning rate η cannot achieve our aim, because increasing η will influence the dynamic stability of vt and the equilibrium v∞. Therefore, we need to accelerate the effective dynamics ut without affecting the dynamics of vt. Another main point is that SGD’s effective dynamics ut can naturally minimize the sharpness implicitly, so we only need to enhance this property. To achieve this, we only need to correct the update direction in (10) from −∇L (θt) to −(∇L (θt) + κP M∇L (θt)) , where PM is the projection matrix to the manifold 
+
+M and κ is a scalar. Using this new algorithm, the SDE dynamics corresponds to d
+
+ut
+
+vt
+
+
+
+= −
+
+(1 + κ)v2 
+
+> t
+
+∇h(ut)/2
+
+vth(ut)
+
+
+
+dt +
+
+ 0pησ 2h(ut)dWt
+
+
+
+. (12) Comparing (10) and (12) , the dynamics of vt are the same, so they attain the same equilibrium distribution v∞ ∼ N (0 , ησ 2). As for the effective dynamics along manifold, (10) corresponds to the form: dut/dt = −Ev∞
+
+(1 + κ)v2
+
+> ∞
+
+∇h(ut)/2 = −(1 + κ)∇h(ut)/2. (13) 18 (1 + κ) times Enhancement. Comparing (13) and (11) , it is clear that our new algorithm can enhance implicit sharpness regularization (1 + κ) times faster than the original SGD. 
+
+## C Experimental Details 
+
+This section describes the experimental details in Section 4. 
+
+C.1 Experimental details in Section 4.1 C.1.1 Experimental details in Section 4.1.1 
+
+We train WideResNet-16-8 on CIFAR-10 dataset by SAM-IRE (with K = 10 , varying κ and γ). The experiments employ basic data augmentations and 0.1 label smoothing, as outlined by Foret et al. (2021). The mini-batch size is set to 128, the weight decay is set to 5e-4, and the ρ in SAM is to 0.05, as in Foret et al. (2021). To evaluate the implicit flatness regularization of SAM itself, the momentum is set to 0.0. Regarding the learning rate (lr), we evaluate for both constant lr (within our theoretical framework) and decayed lr (common in practice though not covered by our theory). In the experiment in Fig 2 (a), a fixed lr 0.1 is used. In the experiment in Fig 2 (b)(c)(d), a step-decayed lr schedule is employed, starting at 0.1 and reducing lr by a factor of 5 at epoch 20, 50, 80. We transit from SAM to SAM-IRE at the 30th epoch out of 100 total epochs. We test γ in 0.8, 0.9, 0.95 , and κ
+
+in 0 (original SAM), 2, 5, 10 .The flatness measure, Tr( ∇2L(θ)) , is approximated by the trace of Fisher Tr( F (θ)) . Specifically, we use diag( ˆFeff (θ)) in (6) for the estimate because Eˆy [diag( ˆFeff (θ))] = Eˆy [diag( ˆF (θ))] and thus, 
+
+Tr( ∇2L(θ)) ≈ Eˆy [Tr( ˆF (θ))] = Eˆy [Tr(diag( ˆF (θ)))] = Eˆy [diag( ˆFeff (θ))] .
+
+Moreover, the first “ ≈” above takes “ =” when L(θ) = 0 .In this section, all experiments were conducted using a single A800 GPU. 
+
+C.1.2 Experimental details in Section 4.1.2 Experiments for CNNs on CIFAR-10/CIFAR-100. We first evaluate the impact of IRE on general-ization of baseline models (WideResNet-28-10 and ResNet-56) and default optimizers (SGD and SAM) on CIFAR-{10,100}. For the base optimizers, SGD and SAM, cosine learning rate decay is adopted with an initial lr 0.1. For other training components, we follow the settings in Foret et al. (2021): basic data augmentations and 0.1 label smoothing; for both SGD and SAM, the momentum is set to 0.9, the batch size is set to 128 , and the weight decay is set to 5e-4; for SAM, ρ is set to 0.05 for CIFAR-10 and 0.1 for CIFAR-100. The total epochs is set to 100 for CIFAR-10 and 200 for CIFAR-100, and we switch from SGD/SAM to SGD-IRE/SAM-IRE when the training loss approaches 0.1. For SGD-IRE/SAM-IRE, we fix K = 10 , and tune hyperparameters γ and κ via a grid search over γ ∈ { 0.99 , 0.9, 0.8} and κ ∈ { 1, 2}. The results are reported in Table 1. 
+
+Experiments without finely tuned hyperparameters. A high sensitivity to the choice of hyperpa-rameters would make a method less practical. To demonstrate that our IRE performs even when κ, γ 
+
+are not finely tuned , we conduct experiments using fixed γ = 0 .99 , κ = 1 , under the same settings as described above.. The results (averaged over 3 random seeds) are reported in Table 8. Table 8: Results for SGD-IRE and SAM-IRE on {WideResNet-28-10, ResNet-56} on CIFAR-{10, 100}, using fixed γ = 0 .99 , κ = 1 in IRE. WideResNet-28-10 ResNet-56 CIFAR-10 CIFAR-100 CIFAR-10 CIFAR-100 SGD 95.93 80.77 93.80 72.72 SGD-IRE 96.13 (+0.20 ) 81.12 (+0.35 ) 93.94 (+0.14 ) 72.93 (+0.21 )SAM 96.73 83.22 94.58 75.25 SAM-IRE 96.75 (+0.02 ) 83.40 (+0.19 ) 94.65 (+0.07 ) 75.49 (+0.24 )
+
+19 Experiments for CNNs on ImageNet. We also examine the impact of IRE on generalization of ResNet-50 and default optimizers (SGD and SAM) on on ImageNet. Following Foret et al. (2021) and Kwon et al. (2021), we use basic data augmentations and 0.1 label smoothing. For the base optimizers, SGD and SAM, we also follow the settings in Kwon et al. (2021): the momentum is set to 0.9; cosine learning rate decay is adopted with an initial lr 0.2; the batch size is set to 1024; the weight decay is set to 1e-4; for SAM, ρ is set to 0.05 . The total epochs is set to 200, and we switch from SGD/SAM to SGD-IRE/SAM-IRE when the training loss approaches 1.5. For SGD-IRE/SAM-IRE, we fix 
+
+K = 10 , and tune hyperparameters γ and κ via a grid search over γ ∈ { 0.8, 0.6} and κ ∈ { 2, 4}.The results are reported in Table 2. 
+
+Experiments for ViTs on CIFAR-100. We examine the impact of IRE on generalization of ViT-T and ViT-S on CIFAR-100. We follow the settings in Mueller et al. (2024): the default optimizers used are AdamW and SAM, with cosine lr decay to 0 starting from an initial lr 1e-4; the weight decay is 5e-4; batch size is 64 ; strong data augmentations (basic + AutoAugment) are utilized; ρ = 0 .1 for SAM. The total epochs are set to 200 , and we switch from AdamW/SAM to AdmIRE/SAM-IRE when the training loss approaches 0.5. For AdmIRE/SAM-IRE, we fix K = 10 , and tune hyperparameters 
+
+γ and κ via a grid search over γ ∈ { 0.99 , 0.9, 0.8} and κ ∈ { 20 , 50 }. The results are reported in Table 3. 
+
+Experiments for ViTs on ImageNet. We also examine the impact of IRE on generalization of ViT-S/16 on ImageNet. We follow the settings in Chen et al. (2024): RandAugment and Mixup with 
+
+α = 0 .5 are utilized; the default optimizer used is AdamW with hyperparameters β1 = 0 .9, β 2 =0.999 and weight decay λ = 1 .0; the learning rate strategy integrates a warm-up phase followed by a cosine decay scheduler with lr_max =3e-3; batch size is 4096 ; the total training duration is 300 epochs, including 30 warm-up epochs; For AdmIRE, we switch from AdamW to AdmIRE at epoch 100 and examine different γ, κ . The results are reported in Table 4. In this section, the experiments on CIFAR-10/CIFAR-100 were conducted using a single A800 GPU, and the experiments on ImageNet were conducted using 4 A800 GPUs. 
+
+C.2 Experimental details in Section 4.2 C.2.1 Experimental details in Section 4.2.1 
+
+We train a 2-layer decoder-only Transformer (8M parameters) using absolute positional encod-ings (Vaswani et al., 2017), with 8 heads in each layer and a hidden size of 128, on the wikitext-2 
+
+dataset (4.3M) by AdamW and AdmIRE (with K = 10 and varying γ, κ ). The (max) sequence length is set to 512, and the batch size is set to 32. The experiments in this section are conducted on 1 A800. For the optimizer AdamW, we use the hyperparameters β1 = 0 .9, β 2 = 0 .95 and weight decay 
+
+λ = 0 .1, as suggested in Touvron et al. (2023). The total training duration is 100,000 steps, including 3,000 warm-up steps followed by a cosine decay scheduler with lr_max and lr_min =lr_max /20 .First, we tune lr_max in AdamW from {1.5e-4 , 3e-4 , 6e-4 , 1.2e-3 , 1.8e-3 , 3e-3 }. The results, shown in Figure 5 (left), identify the optimal lr_max =6e-4 . We also use the optimal lr_max of 
+
+6e-4 for AdmIRE, for which the IRE is enable at the end of warm-up phase. The results are reported in Figure 3. 0k 25k 50k 75k 100k   
+
+> Num of steps
+> 4
+> 6
+> 8
+> 10
+> training loss
+> Transformer (8M) on wikitext-2
+> lr_max =1.5e-4 lr_max =3.0e-4 lr_max =6.0e-4 lr_max =1.2e-3 lr_max =1.8e-3 lr_max =3.0e-3 025k 50k
+> num of steps
+> 4
+> 6
+> 8
+> 10
+> validation loss
+> Llama (60M) on wikitext-103
+> lr_max =3.0e-4
+> lr_max =6.0e-4
+> lr_max =1.2e-3
+> lr_max =1.8e-3
+
+Figure 5: The results for tuning lr_max in AdamW. 20 C.2.2 Experimental details in Section 4.2.2 
+
+Llama (Touvron et al., 2023) is a decode-only Transformer architecture using Rotary Positional Encoding (RoPE) (Su et al., 2024), Swish-Gated Linear Unit (SwiGLU) (Shazeer, 2020), and Root mean square layer normalization (RMSNorm) (Zhang and Sennrich, 2019). The experiments in this section examine the performance of AdmIRE in training Llama models with different sizes. For implementation, we utilize the Llama code available on huggingface. The experiments are conducted on 4 H800. For the optimizer AdamW, we use the well-tuned hyperparameters β1 = 0 .9, β 2 = 0 .95 and weight decay λ = 0 .1 for LLama (Touvron et al., 2023). The learning rate strategy integrates a warm-up phase followed by a cosine decay scheduler with lr_max and lr_min =lr_max /20 . Additionally, it is used with gradient clipping 1.0 to maintain the training stability. In each experiment, we tune the optimal lr_max for AdamW and then use it also for AdmIRE, for which the IRE is enable at the end of warm-up phase. 
+
+Llama (60M) on wikitext-103 (0.5G). We train a 16-layer Llama model, with 10 heads in each layer and a hidden size of 410, on the wikitext-103 dataset. The (max) sequence length is set to 150, and the batch size is set to 240, following Dai et al. (2019). The total training duration is 50,000 or 100,000 steps, including 500 warm-up steps. First, we tune lr_max in AdamW from {3e-4 , 6e-4 ,
+
+1.2e-3 , 1.8e-3 }, identifying the optimal lr_max 6e-4 . The experimental results are very similar to Figure 5 (right), so we will not show them again. Then, both AdamW and AdmIRE are trained using the optimal lr_max .
+
+Llama (119M) on minipile (6G). We train a 6-layer Llama model, with 12 heads in each layer and a hidden size of 768, on the minipile dataset. The (max) sequence length is set to 512, and the batch size is set to 300. The total training duration is 30,000 or 60,000 steps, including 300 warm-up steps. First, we tune lr_max in AdamW from {3e-4 , 6e-4 , 1.2e-3 , 1.8e-3 }, identifying the optimal 
+
+lr_max 6e-4 . (The results are very similar to Figure 5 (right), so we do not show them repeatly.) Then, both AdamW and AdmIRE are trained using the optimal lr_max .
+
+Llama (229M) on openwebtext (38G). We train a 16-layer Llama model, with 12 heads in each layer and a hidden size of 768, on the openwebtext dataset. The (max) sequence length is set to 1024, and the batch size is set to 480, following nanoGPT and Liu et al. (2024). The total training duration is 50,000 or 100,000 steps, including 1,000 warm-up steps. First, we tune lr_max in AdamW from 
+
+{3e-4 , 6e-4 , 1.2e-3 , 1.8e-3 }, identifying the optimal lr_max 6e-4 . (The results are very similar to Figure 5 (right), so we do not show them repearly.) Then, both AdamW and AdmIRE are trained using the optimal lr_max .
+
+## D Proofs in Section 5.2.1 
+
+Additional Notations. For the proofs in Section 5, some additional notations are used. For any set 
+
+K ⊂ Rp and a constant R > 0, we denote B(K; R) := {θ ∈ Rp : dist( θ; K) ⩽ R}. ⟨· , ·⟩ represents the standard Euclidean inner product between two vectors. ∥·∥ denotes the ℓ2 norm of a vector or the spectral norm of a matrix, whereas ∥ · ∥ F denotes the Frobenius norm of a matrix. 
+
+D.1 Preliminary Lemmas Lemma D.1 (Arora et al. (2022), Lemma B.2) . Under Assumption 5.1, for any compact set K ⊂ Γ,there exist absolute constants R1, μ > 0 such that 
+
+• (i) B(K; R1) ⊂ U ;
+
+• (ii) L(·) is μ-PL (defined in Def F.1) on B(K; R1);
+
+• (iii) inf  
+
+> θ∈B(K;R1)
+
+λm
+
+ ∇2L(θ) ⩾ μ.
+
+21 We further define the following absolute constants on B(K; R1):
+
+β2 := sup 
+
+> θ∈B(K;R1)
+
+∇2L(θ) ; β3 := sup 
+
+> θ∈B(K;R1)
+
+∇3L(θ) ; β4 := sup 
+
+> θ∈B(K;R1)
+
+∇4L(θ) ;
+
+ν := inf  
+
+> θ∈B(K;R1)
+
+λm
+
+ ∇2L(θ) ; ζΦ := sup 
+
+> θ∈B(K;R1)
+
+∇2Φ( θ) .
+
+Lemma D.2 (Key properties of Φ( ·) (Arora et al., 2022)) . Under Assumption 5.1, 
+
+• For any θ ∈ U , ∂Φ( θ)∇L (θ) = 0.
+
+• For any θ ∈ Γ, ∂Φ( θ) = Pm+1: p(∇2L(θ)) .
+
+Lemma D.3 (Continuity of Pm+1: p). Under Assumption 5.1, there exists absolute constants R2, ζ P >
+
+0 such that for any θ ∈ B(K; R2),
+
+Pm+1: p(∇2L(θ)) − Pm+1: p(∇2L(Φ( θ))) ⩽ ζP ∥θ − Φ( θ)∥ .
+
+Proof of Lemma D.3. 
+
+Let the orthogonal decomposition of ∇2L(θ) and ∇2L(Φ( θ)) be ∇2L(θ) = Ppk=1 λkuku⊤ 
+
+> k
+
+(λ1 ⩾
+
+· · · ⩾ λp) and ∇2L(Φ( θ)) = Ppk=1 μkvkv⊤ 
+
+> k
+
+(μ1 ⩾ · · · ⩾ μp), respectively. By Lemma D.1, for any θ ∈ B(K; R1), it holds that ∇2L(θ) − ∇ 2L(Φ( θ)) ⩽ β3 ∥θ − Φ( θ)∥.We choose R2 := R1 ∧ μ 
+
+> 4β3
+
+. Then for any θ ∈ B(K; R2),
+
+∇2L(θ) − ∇ 2L(Φ( θ)) ⩽ β3 ∥θ − Φ( θ)∥ ⩽ μ
+
+4 .
+
+Consequently, by Lemma F.2, we can bound the gap of eigenvalues: for any k ∈ [p],
+
+|λk − μk| ⩽ ∇2L(θ) − ∇ 2L(Φ( θ)) ⩽ μ
+
+4 .
+
+Noticing Φ( θ) ∈ Γ, by Lemma D.1, it holds that μ1 ⩾ μm ⩾ μ and μm+1 = · · · = μp = 0 . Thus, we can obtain the bounds of {λk}k:for all k ⩽ m, λk ⩾ λm ⩾ μm − | λm − μm| ⩾ 3μ
+
+4 ;
+
+for all k ⩾ m + 1 , λk ⩽ λm+1 ⩽ μm+1 + |λm+1 − μm+1 | ⩽ μ
+
+4 .
+
+For simplicity, we denote Utop := (u1, · · · , um), Ubottom := (um+1 , · · · , up), Vtop := (v1, · · · , vm), Vbottom := ( vm+1 , · · · , vp).By Lemma F.3, we can bound the gap between the subspaces: 
+
+U ⊤
+
+> bottom
+
+Vtop F ⩽ U ⊤
+
+> bottom
+
+(∇2L(θ) − ∇ 2L(Φ( θ))) Vtop F3μ 
+
+> 4
+
+− μ
+
+> 4
+> Lemma F.6
+
+⩽
+
+( 2 
+
+> μ
+
+U ⊤ 
+
+> bottom
+
+∇2L(θ) − ∇ 2L(Φ( θ)) ∥Vtop ∥F2 
+
+> μ
+
+U ⊤  
+
+> bottom F
+
+∇2L(θ) − ∇ 2L(Φ( θ)) ∥Vtop ∥
+
+= 2 ( m ∧ (p − m)) 
+
+μ ∇2L(θ) − ∇ 2L(Φ( θ)) .
+
+According to the definition of Pm+1: p(·), it holds that 
+
+Pm+1: p(∇2L(θ)) = 
+
+> p
+
+X
+
+> k=m+1
+
+uku⊤ 
+
+> k
+
+= Ubottom U ⊤
+
+> bottom
+
+,Pm+1: p(∇2L(Φ( θ))) = 
+
+> p
+
+X
+
+> k=m+1
+
+vkv⊤ 
+
+> k
+
+= Vbottom V ⊤
+
+> bottom
+
+.
+
+22 Noticing the relationship 
+
+Pm+1: p(∇2L(θ)) − Pm+1: p(∇2L(Φ( θ))) 2 ⩽ Pm+1: p(∇2L(θ)) − Pm+1: p(∇2L(Φ( θ))) 2F
+
+= Ubottom U ⊤ 
+
+> bottom
+
+− Vbottom V ⊤ 
+
+> bottom
+> 2F
+
+= 2( p − m) − 2 Tr  Ubottom U ⊤
+
+> bottom
+
+Vbottom V ⊤
+
+> bottom
+
+
+
+=2 Tr  Ubottom U ⊤
+
+> bottom
+
+ I − Vbottom V ⊤
+
+> bottom
+
+ = 2 Tr  Ubottom U ⊤
+
+> bottom
+
+Vtop V ⊤
+
+> top
+
+
+
+=2 U ⊤
+
+> bottom
+
+Vtop  
+
+> 2F
+
+,
+
+we obtain the bound: 
+
+Pm+1: p(∇2L(θ)) − Pm+1: p(∇2L(Φ( θ))) ⩽ √2 U ⊤
+
+> bottom
+
+Vtop F
+
+⩽ 2√2 ( m ∧ (p − m)) 
+
+μ ∇2L(θ) − ∇ 2L(Φ( θ)) ⩽ 2√2 ( m ∧ (p − m)) β3
+
+μ ∥θ − Φ( θ)∥ .
+
+To summarize, we only need to choose the constants R2 = R1 ∧ μ 
+
+> 4β3
+
+and ζP = 2√2( m∧(p−m)) β3 
+
+> μ
+
+to ensure this lemma holds. 
+
+Proof Notations. Now we introduce some additional useful notations in the proof in this section. First, we choose R := ( R1 ∧ R2)/2, where R1 is defined in Lemma D.1 and R2 is defined in Lemma D.3. Let μ be the PL constant on B(K; R). Moreover, we use the following notations: 
+
+β2 := sup 
+
+> θ∈B(K;R)
+
+∇2L(θ) ; β3 := sup 
+
+> θ∈B(K;R)
+
+∇3L(θ) ; β4 := sup 
+
+> θ∈B(K;R)
+
+∇4L(θ) ;
+
+ν := inf  
+
+> θ∈B(K;R)
+
+λm
+
+ ∇2L(θ) ; ζΦ := sup 
+
+> θ∈B(K;R)
+
+∇2Φ( θ) ;
+
+ζP := sup 
+
+> θ∈B(K;R)−Γ
+
+Pm+1: p(∇2L(θ)) − Pm+1: p(∇2L(Φ( θ))) 
+
+∥θ − Φ( θ)∥ .
+
+(14) Ensured by Lemma D.1 and D.3, these quantities are all absolute constants in (0 , +∞). Moreover, without loss of generality, we can assume that β1, β 2, β 3, ζ Φ, ζ P > 1 and μ ⩽ ν < 1.
+
+Lemma D.4 (Connections between para norm, grad norm, and loss) . For any θ ∈ B(K; R) > 0, it holds that: 
+
+• (para norm v.s. grad norm) μ ∥∇L (θ)∥ ⩽ ∥θ − Φ( θ)∥ ⩽ β2 ∥∇L (θ)∥;
+
+• (grad norm v.s. loss) 2μL(θ) ⩽ ∥∇L (θ)∥2 ⩽ 2β22 
+
+> μ
+
+L(θ);
+
+• (loss v.s. para norm) μ 
+
+> 2
+
+∥θ − Φ( θ)∥2 ⩽ L(θ) ⩽ β22 
+
+> 2μ
+
+∥θ − Φ( θ)∥2.Proof of Lemma D.4. This lemma is a corollary of local PL and smoothness (Lemma D.1). For the three lower bounds, please refer to the proof of Lemma B.6 in Arora et al. (2022). Then utilizing these lower bounds and the smoothness β2, the upper bounds hold naturally. 
+
+Lemma D.5. For all θ ∈ B(K; R),
+
+• Pm+1: p(∇2L(θ)) ∇2L(θ) ⩽ O (∥θ − Φ( θ)∥);
+
+• Pm+1: p(∇2L(θ)) ∇L (θ) ⩽ O
+
+
+
+∥θ − Φ( θ)∥2
+
+;
+
+• Let ρ > 0 and v ∈ Sp−1. If θ + ρv ∈ B(K; R), then 
+
+∥∇L (θ + ρv)∥ ⩽ ∥∇L (θ)∥ + ρβ 2;
+
+Pm+1: p(∇2L(θ)) ∇L (θ + ρv) ⩽ O
+
+
+
+∥θ − Φ( θ)∥2
+
++ O (ρ ∥θ − Φ( θ)∥) + ρ2β3
+
+2 .
+
+23 Proof of Lemma D.5. 
+
+Pm+1: p(∇2L(θ)) ∇2L(θ) ⩽ Pm+1: p(∇2L(Φ( θ))) ∇2L(Φ( θ)) + ζP β2 ∥θ − Φ( θ)∥ + β3 ∥θ − Φ( θ)∥
+
+=0 + O (∥θ − Φ( θ)∥) ; 
+
+Pm+1: p(∇2L(θ)) ∇L (θ) ⩽ Pm+1: p(∇2L(θ)) ∇2L(Φ( θ))(Φ( θ) − θ) + O
+
+
+
+∥θ − Φ( θ)∥2
+
+⩽ Pm+1: p(∇2L(Φ( θ))) ∇2L(Φ( θ))(Φ( θ) − θ) + O
+
+
+
+∥θ − Φ( θ)∥2
+
+= O
+
+
+
+∥θ − Φ( θ)∥2
+
+;
+
+∥∇L (θ + ρv)∥ ⩽ ∥∇L (θ)∥ + ρβ 2;
+
+Pm+1: p(∇2L(θ)) ∇L (θ + ρv)
+
+⩽ Pm+1: p(∇2L(θ)) ∇L (θ) + ρ Pm+1: p(∇2L(θ)) ∇2L(θ)v + ρ2β3
+
+2
+
+⩽O
+
+
+
+∥θ − Φ( θ)∥2
+
++ O (ρ ∥θ − Φ( θ)∥) + ρ2β3
+
+2 .
+
+D.2 Proof of Theorem 5.5 D.2.1 Proof of Keeping Moving Near Minimizers for SAM 
+
+We first give the proof for SAM about “keeping moving near minimizers”, which provides important insights into the proof for SAM-IRE. Recalling (8), the update rule of average SAM is: 
+
+θt+1 = θt − η∇L 
+
+
+
+θt + ρ ξt
+
+∥ξt∥
+
+
+
+, where ξt ∼ N (0, I ).
+
+Let the ρ in SAM satisfy: 
+
+ρ = O(√η).
+
+For simplicity, we denote 
+
+vt := ξt
+
+∥ξt∥ , C1 := 4β32
+
+μ , C2 := β32 .
+
+Notice L(θTI ) < C 1ηρ 2, we have the following upper bound for the probability 
+
+P  ∃ t ∈ [TI, T I + TII ], L(θt) ⩾ 2C1ηρ 2
+
+⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+P  L(θt+1 ) ⩾ 2C1ηρ 2; ∀ s ∈ [TI, t ], L(θs) < 2C1ηρ 2 .
+
+For each term t ∈ [TI, T I + TII − 1] , it can be bounded by: 
+
+P  L(θt+1 ) ⩾ 2C1ηρ 2; ∀ s ∈ [TI, t ], L(θs) < 2C1ηρ 2
+
+⩽P  L(θt+1 ) ⩾ 2C1ηρ 2; L(θt) < C 1ηρ 2
+
++
+
+> t−1
+
+X
+
+> s=TI
+
+P  L(θt+1 ) ⩾ 2C1ηρ 2; L(θs) < C 1ηρ 2; ∀ τ ∈ [s + 1 , t ], C 1ηρ 2 ⩽ L(θτ ) < 2C1ηρ 2
+
+⩽P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2 L(θt) < C 1ηρ 2
+
++
+
+> t−1
+
+X
+
+> s=TI
+
+P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2; ∀ τ ∈ [s + 1 , t ], C 1ηρ 2 ⩽ L(θτ ) < 2C1ηρ 2 L(θs) < C 1ηρ 2
+
+.
+
+24 For simplicity, we denote 
+
+Pt+1 ,t := P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2 L(θt) < C 1ηρ 2
+
+,
+
+Pt+1 ,s := P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2; ∀ τ ∈ [s + 1 , t ], C 1ηρ 2 ⩽ L(θτ ) < 2C1ηρ 2 L(θs) < C 1ηρ 2
+
+, s ∈ [TI, t − 1] .
+
+• Step I. Bounding Pt+1 ,t .From L(θt) ⩽ C1ηρ 2, we have ∥θt − Φ( θt)∥ ⩽
+
+q 2 
+
+> μ
+
+L(θt) = O( √ηρ μ ), thus 
+
+∥θt + ρvt − Φ( θt)∥ ⩽ ∥θt − Φ( θt)∥ + ρ = O(√ηρ ) + O(ρ) < R, 
+
+which means θt + ρvt ∈ B(K; R). Furthermore, 
+
+∥θt+1 − Φ( θt)∥ ⩽ ∥θt − Φ( θt)∥ + η ∥∇L (θt + ρvt)∥
+
+⩽O(√ηρ ) + η ∥∇L (θt + ρvt)∥ ⩽ O(√ηρ ) + η ∥∇L (θt)∥ + β2ηρ 
+
+⩽O(√ηρ ) + η
+
+s
+
+2β22
+
+μ L(θt) + β2ηρ ⩽ O(√ηρ ) + O(η3/2ρ) + O(ηρ ) ⩽ R, 
+
+which implies θt+1 ∈ B(K; R). Consequently, we have the following quadratic upper bound: 
+
+L(θt+1 ) = L (θt − η∇L (θt + ρvt)) 
+
+⩽L(θt) − η ⟨∇L (θt), ∇L (θt + ρvt)⟩ + η2β2
+
+2 ∥∇L (θt + ρvt)∥2
+
+⩽L(θt) − η ∥∇L (θt)∥2 − ηρ ∇L (θt), ∇2L(θt)vt + ηρ 2β3
+
+2 ∥∇L (θ)∥ + η2β2
+
+2 (∥∇L (θt)∥ + ρβ 2)2
+
+⩽L(θt) − η ∥∇L (θt)∥2 − ηρ ∇L (θt), ∇2L(θt)vt + ηρ 2β3
+
+2 ∥∇L (θ)∥ + η2β2
+
+
+
+∥∇L (θt)∥2 + ρ2β22
+
+
+
+⩽L(θt) + ηρ ∇2L(θt)∇L (θt) + ηρ 2β3
+
+2 ∥∇L (θt)∥ + η2β2ρ2β22
+
+⩽L(θt) + 
+
+
+
+ηρβ 2 + ηρ 2β3
+
+2
+
+
+
+∥∇L (θt)∥ + O(η2ρ2)
+
+⩽L(θt) + 
+
+
+
+ηρβ 2 + ηρ 2β3
+
+2
+
+ s
+
+2β22
+
+μ
+
+pL(θt) + O(η2ρ2)
+
+⩽C1ηρ 2 + O(η3/2ρ2) + O(η2ρ2) < 3C1ηρ 2/2.
+
+Thus, we obtain 
+
+Pt+1 ,t = P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2 L(θt) < C 1ηρ 2
+
+= 0 .
+
+• Step II. Bounding Pt+1 ,s for s ∈ [TI, t − 1] .We prove this step under the condition L(θs) < C 1ηρ 2. Define a process {Xτ }t+1  
+
+> τ=s
+
+: Xs+1 =
+
+L(θs+1 ),
+
+Xτ +1 =
+
+L(θτ +1 ), if C1ηρ 2 ⩽ Xτ = L(θτ ) ⩽ 2C1ηρ 2
+
+Xτ − C2η2ρ2, else .
+
+It is clear that 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2C1ηρ 2 .
+
+Then our key step is to prove the following two claims about the process {Xτ }.
+
+– Claim I. Xτ − C2τ ηρ 2 is a super-martingale. From the definition of Xτ , we only need to prove that if C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, then E [L(θτ +1 )] ⩽ L(θτ ) − C2η2ρ2.If C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, similar to Step I, it is clear that θτ +1 ∈ B(K; R). Applying the quadratic upper bound, it holds that: 
+
+L(θτ +1 ) = L (θτ − η∇L (θτ + ρvτ )) 
+
+25 ⩽L(θτ ) − η ⟨∇L (θτ ), ∇L (θτ + ρvτ )⟩ + η2β2
+
+2 ∥∇L (θτ + ρvτ )∥2
+
+⩽L(θτ ) − η ∥∇L (θτ )∥2 − ηρ ∇L (θτ ), ∇2L(θτ )vt
+
++ ηρ 2β3
+
+2 ∥∇L (θτ )∥ + η2β2
+
+
+
+∥∇L (θτ )∥2 + ρ2β22
+
+
+
+.
+
+Taking the expectation, we have: 
+
+E [L(θτ +1 )] ⩽L(θτ ) − η ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + η2β2
+
+
+
+∥∇L (θτ )∥2 + ρ2β22
+
+
+
+⩽L(θτ ) − 34 η ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + η2ρ2β32
+
+⩽L(θτ ) − η ∥∇L (θτ )∥
+
+ 34 ∥∇L (θτ )∥ − ρ2β3
+
+2
+
+
+
++ η2ρ2β32 .
+
+From L(θτ ) ⩾ C1ηρ 2 and ρ = O(√η), it holds that 
+
+∥∇L (θτ )∥ ⩾ p2μL(θt) ⩾ p2C1μ√ηρ ⩾ 4β3ρ2.
+
+Therefore, we have: 
+
+E [L(θτ +1 )] ⩽L(θτ ) − 58 η ∥∇L (θτ )∥2 + η2ρ2β32
+
+⩽L(θτ ) − 10 8 ημ L(θτ ) + η2ρ2β32 ⩽ L(θτ ) − 10 8 C1μη 2ρ2 + η2ρ2β32
+
+⩽L(θτ ) − β32 η2ρ2 = L(θτ ) − C2η2ρ2.
+
+– Claim II. Xτ +1 − Xτ + C2η2ρ2 is O(η2ρ2 + η3/2ρ2/p 1/2)-sub-Gaussian. From the defi-nition of Xτ , we only need to prove for the case C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2.If C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, then Xτ = L(θτ ) and Xτ +1 = L(θτ +1 ). Similar to Step I, it is clear that θτ +1 ∈ B(K; R).Applying the smoothness, we have: 
+
+L(θτ +1 ) = L (θτ − η∇L (θτ + ρvτ )) =L(θτ ) − η ⟨∇L (θτ ), ∇L (θτ + ρvτ )⟩ + O
+
+
+
+η2 ∥∇L (θτ + ρvτ )∥2
+
+=L(θτ ) − η ∥∇L (θτ )∥2 − ηρ ∇L (θτ ), ∇2L(θτ )vt
+
++ O  ηρ 2 ∥∇L (θτ )∥ + O
+
+
+
+η2 ∥∇L (θτ )∥2 + η2ρ2
+
+=L(θτ ) + O  η2ρ2 − ηρ ∇L (θτ ), ∇2L(θτ )vt + O  ηρ 2√ηρ  + O  η3ρ2 + η2ρ2
+
+=L(θτ ) − ηρ ∇L (θτ ), ∇2L(θτ )vt + O(η2ρ2),
+
+which implies: 
+
+Xτ +1 − Xτ − C2η2ρ2 
+
+> ψ2
+
+⩽ ∥L (θτ +1 ) − L (θτ )∥ψ2 + C2η2ρ2
+
+> ψ2
+
+⩽ ηρ ∇L (θτ ), ∇2L(θτ )vt ψ2 + O(η2ρ2)
+
+⩽ηρ ∇2L(θτ )∇L (θτ )
+
+ ∇2L(θτ )∇L (θτ )
+
+∥∇ 2L(θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
++ O(η2ρ2)
+
+⩽O η3/2ρ2
+
+ ∇2L(θτ )∇L (θτ )
+
+∥∇ 2L(θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
+!
+
++ O(η2ρ2)
+
+> Lemma F.5
+
+⩽ O
+
+
+
+η3/2ρ2/√p
+
+
+
++ O(η2ρ2).
+
+With the preparation of Claim I and Claim II, we can use the Azuma-Hoeffding inequality (Lemma F.4 (ii)): for any Q > 0, it holds that 
+
+P  Xt+1 − Xs+1 + ( t − s)C2η2ρ2 > Q  ⩽ 2 exp − Q2
+
+2( t − s)  O(η3/2ρ2/p 1/2 + η2ρ2)2
+
+!
+
+.
+
+26 As proved in Claim I, Xs+1 = L(θs+1 ) ⩽ 32 C1ηρ 2 due to L(θs) ⩽ C1ηρ 2. Therefore, by choosing Q = ( t − s)C2η2ρ2 − 32 C1ηρ 2 + 2 C1ηρ 2 = ( t − s)C2η2ρ2 + 12 C1ηρ 2, we have 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2C1ηρ 2
+
+⩽P
+
+
+
+Xt+1 − Xs+1 + ( t − s)C2η2ρ2 > (t − s)C2η2ρ2 + 12 C1ηρ 2
+
+
+
+⩽2 exp −
+
+ (t − s)C2η2ρ2 + 12 C1ηρ 22
+
+2( t − s)  O(η3/2ρ2/p 1/2 + η2ρ2)2
+
+!
+
+⩽2 exp 
+
+
+
+− 4( t − s)C2η2ρ2 · 12 C1ηρ 2
+
+4( t − s) ( O(η3ρ4/p + η4ρ4)) 
+
+
+
+⩽ 2 exp 
+
+
+
+−Ω
+
+ 1
+
+η + p−1
+
+ 
+
+.
+
+Therefore, we obtain the union bound: 
+
+P  ∃ t ∈ [TI, T I + TII ], L(θt) ⩾ 2C1ηρ 2 ⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+Pt+1 ,t +
+
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s 
+
+!
+
+⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s ⩽ T 2II exp 
+
+
+
+−Ω
+
+ 1
+
+η + p−1
+
+ 
+
+.
+
+Hence, with probability at least 1 − T 2II exp 
+
+
+
+−Ω
+
+ 1
+
+> η+p−1
+
+ 
+
+, for any t ∈ [TI, T I + TII ],
+
+∥θt − Φ( θt)∥ ⩽
+
+r 2
+
+μ L(θt) ⩽ 2
+
+s
+
+C1
+
+μ
+
+√ηρ = 4β3/22
+
+μ
+
+√ηρ = O(√ηρ ).
+
+D.2.2 Proof of Moving Near Minimizers for SAM-IRE 
+
+We prove “keeping moving near minimizers” for SAM-IRE. The proof outline for SAM-IRE is the same as SAM. However, the key non-trivial difference is that the IRE term will hardly cause loss instability since IRE only perturbs the parameters in the flat directions. Under the conditions in Theorem 5.5, the update rule of IRE on average SAM is: 
+
+θt+1 = θt − η∇L 
+
+
+
+θt + ρ ξt
+
+∥ξt∥
+
+
+
+− ηκP m+1: p(∇2L(θt)) ∇L 
+
+
+
+θt + ρ ξt
+
+∥ξt∥
+
+
+
+, where ξt ∼ N (0, I ).
+
+Let the ρ in SAM and the κ in IRE satisfy: 
+
+ρ = O(√η), κ ⩽ 1
+
+ρ . (15) For simplicity, we denote 
+
+vt := ξt
+
+∥ξt∥ , P (θt) := Pm+1: p(∇2L(θt)) , C1 = 4β32
+
+μ ∨ 4β2β23
+
+μ , C2 = β32
+
+Following the proof for SAM, we denote 
+
+Pt+1 ,t := P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2 L(θt) < C 1ηρ 2
+
+,
+
+Pt+1 ,s := P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2;
+
+∀ τ ∈ [s + 1 , t ], C 1ηρ 2 ⩽ L(θτ ) < 2C1ηρ 2 L(θs) < C 1ηρ 2
+
+, s ∈ [TI, t − 1] .
+
+and it holds that 
+
+P  ∃ t ∈ [TI, T I + TII ], L(θt) ⩾ 2C1ηρ 2 ⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+Pt+1 ,t +
+
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s 
+
+!
+
+.
+
+27 • Step I. Bounding Pt+1 ,t .From L(θt) ⩽ C1ηρ 2, we have ∥θt − Φ( θt)∥ ⩽
+
+q 2 
+
+> μ
+
+L(θt) = O(√ηρ ), thus 
+
+∥θt + ρvt − Φ( θt)∥ ⩽ ∥θt − Φ( θt)∥ + ρ = O(√ηρ ) + O(ρ) < R, 
+
+which means θt + ρvt ∈ B(K; R). Furthermore, 
+
+∥θt+1 − Φ( θt)∥
+
+⩽ ∥θt − Φ( θt)∥ + η ∥∇L (θt + ρvt)∥ + ηκ ∥P (θt)∇L (θt + ρvt)∥
+
+> Lemma D.5
+
+⩽ O(√ηρ ) + η ∥∇L (θt)∥ + β2ηρ + O  ηκρ 2
+
+⩽O(√ηρ ) + O(η3/2ρ) + O (ηρ ) + O (ηρ )
+
+⩽O(√ηρ ) + O(η3/2ρ) + O (ηρ ) ⩽ R, 
+
+which implies θt+1 ∈ B(K; R). Consequently, we have the following quadratic upper bound: 
+
+L(θt+1 ) = L (θt − η∇L (θt + ρvt) − ηκP (θt)∇L (θt + ρvt)) 
+
+⩽L(θt) − η ⟨∇L (θt), ∇L (θt + ρvt) + κP (θt)∇L (θt + ρvt)⟩
+
++ η2β2
+
+2 ∥∇L (θt + ρvt) + κP (θt)∇L (θt + ρvt)∥2
+
+⩽L(θt) − η ⟨∇L (θt), ∇L (θt + ρvt)⟩ − κη ⟨∇L (θt), P (θt)∇L (θt + ρvt)⟩
+
++ η2β2
+
+
+
+∥∇L (θt + ρvt)∥2 + κ2 ∥P (θt)∇L (θt + ρvt)∥2
+
+⩽L(θt) − η ∥∇L (θt)∥2 + ηρβ 2 ∥∇L (θt)∥ − κη ⟨∇L (θt), P (θt)∇L (θt)⟩− κηρ ∇L (θt), P (θt)∇2L(θt)vt + κη β3ρ2
+
+2 ∥P (θt)∇L (θt)∥
+
++ η2β2
+
+
+
+(∥∇L (θt)∥ + ρβ 2)2 + κ2 ∥P (θt)∇L (θt + ρvt)∥2
+
+⩽L(θt) + ηρβ 2 ∥∇L (θt)∥ + κηρ P (θt)∇2L(θt)∇L (θt)
+
++ κηρ 2β3
+
+2 ∥P (θt)∇L (θt)∥ + η2β2
+
+
+
+(∥∇L (θt)∥ + ρβ 2)2 + κ2 ∥P (θt)∇L (θt + ρvt)∥2
+
+> Lemma D.5
+
+⩽ L(θt) + O(ηρ ∥∇L (θt)∥) + O(κηρ ∥θt − Φ( θt)∥ ∥∇L (θt)∥)+ O
+
+
+
+κηρ 2 ∥θt − Φ( θt)∥2
+
++ O  η2ρ2 + O  η2κ2ρ4
+
+⩽C1ηρ 2 + o(ηρ 2) ⩽ 32 C1ηρ 2.
+
+Thus, we obtain 
+
+Pt+1 ,t = P
+
+
+
+L(θt+1 ) ⩾ 2C1ηρ 2 L(θt) < C 1ηρ 2
+
+= 0 .
+
+• Step II. Bounding Pt+1 ,s for s ∈ [TI, t − 1] .We prove this step under the condition L(θs) < C 1ηρ 2. Define a process {Xτ }t+1  
+
+> τ=s
+
+: Xs+1 =
+
+L(θs+1 ),
+
+Xτ +1 =
+
+L(θτ +1 ), if C1ηρ 2 ⩽ Xτ = L(θτ ) ⩽ 2C1ηρ 2
+
+Xτ − C2η2ρ2, else .
+
+It is clear that 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2C1ηρ 2 .
+
+Then our key step is to prove the following two claims about the process {Xτ }.
+
+– Claim I. Xτ − C2τ ηρ 2 is a super-martingale. From the definition of Xτ , we only need to prove that if C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, then E[L(θτ +1 )] ⩽ L(θτ ) − C2η2ρ2.28 If C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, similar to Step I, it is clear that θτ +1 ∈ B(K; R). Applying the quadratic upper bound, it holds that: 
+
+L(θτ +1 ) = L (θτ − η∇L (θτ + ρvτ ) − ηκP (θτ )∇L (θτ + ρvτ )) 
+
+⩽L(θτ ) − η ⟨∇L (θτ ), ∇L (θτ + ρvτ ) + κP (θt)∇L (θτ + ρvτ )⟩
+
++ η2β2
+
+2 ∥∇L (θτ + ρvτ ) + κP (θτ )∇L (θτ + ρvτ )∥2
+
+⩽L(θτ ) − η ⟨∇L (θτ ), ∇L (θτ + ρvτ )⟩ − κη ⟨∇L (θτ ), P (θt)∇L (θτ + ρvτ )⟩
+
++ η2β2
+
+
+
+∥∇L (θτ + ρvτ )∥2 + κ2 ∥P (θτ )∇L (θτ + ρvτ )∥2
+
+⩽L(θτ ) − η ∥∇L (θτ )∥2 − ηρ ∇L (θτ ), ∇2L(θt)vτ + ηρ 2β3
+
+2 ∥∇L (θτ )∥− κη ⟨∇L (θτ ), P (θτ )∇L (θτ )⟩ − κηρ ∇L (θτ ), P (θτ )∇2L(θτ )vτ + κη β3ρ2
+
+2 ∥P (θτ )∇L (θτ )∥
+
++ η2β2
+
+
+
+(∥∇L (θτ )∥ + ρβ 2)2 + κ2 ∥P (θτ )∇L (θτ + ρvτ )∥2
+
+.
+
+Taking the expectation, we have: 
+
+E[L(θτ +1 )] 
+
+⩽L(θτ ) − η ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ − κη ⟨∇L (θτ ), P (θτ )∇L (θτ )⟩
+
++ κη β3ρ2
+
+2 ∥P (θτ )∇L (θτ )∥ + η2β2
+
+
+
+(∥∇L (θτ )∥ + ρβ 2)2 + κ2 ∥P (θτ )∇L (θτ + ρvτ )∥2
+
+⩽L(θτ ) − η ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + κη β3ρ2
+
+2 ∥P (θτ )∇L (θτ )∥
+
++ 2 η2β2 ∥∇L (θτ )∥2 + 2 β32 η2ρ2 + β2η2κ2 ∥P (θτ )∇L (θτ + ρvτ )∥2
+
+> Lemma D.5
+
+⩽ L(θτ ) − 3η
+
+4 ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + O  κηρ 2 · ηρ 2
+
++ 2 β32 η2ρ2 + β2η2κ2
+
+
+
+O(√ηρ 2) + β3
+
+2 ρ2
+
+2
+
+⩽L(θτ ) − 3η
+
+4 ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + 2 β32 η2ρ2 + β2β23 η2κ2ρ4 + o(η2ρ2).
+
+From C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2 and ρ = O(√η), it holds that 
+
+∥∇L (θτ )∥ ⩾ p2μL(θτ ) ⩾ p2C1μ√ηρ ⩾ 4β3ρ2.
+
+Moreover, recall κ ⩽ 1/ρ . Therefore, we have the upper bound: 
+
+E[L(θτ +1 )] 
+
+⩽L(θτ ) − 3η
+
+4 ∥∇L (θτ )∥2 + ηρ 2β3
+
+2 ∥∇L (θτ )∥ + 2 β32 η2ρ2 + β2β23 η2κ2ρ4 + o(η2ρ2)
+
+⩽L(θτ ) − 5η
+
+8 ∥∇L (θτ )∥2 + 2 β32 η2ρ2 + β2β23 η2κ2ρ4 + o(η2ρ2)
+
+⩽L(θτ ) − 10 8 ημ L(θτ ) + 2 β32 η2ρ2 + β2β23 η2ρ2 + o(η2ρ2).
+
+⩽L(θτ ) − 10 2
+
+ β32
+
+μ ∨ β2β23
+
+μ
+
+
+
+η2ρ2 + 2 β32 η2ρ2 + β2β23 η2ρ2 + o(η2ρ2)
+
+⩽L(θτ ) − β32 η2ρ2 = L(θτ ) − C2η2ρ2.
+
+– Claim II. Xτ +1 − Xτ + C2η2ρ2 is O(η2ρ2 + η3/2ρ2/p 1/2)-sub-Gaussian. From the defi-nition of Xτ , we only need to prove for the case C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2.If C1ηρ 2 ⩽ L(θτ ) ⩽ 2C1ηρ 2, then Xτ = L(θτ ) and Xτ +1 = L(θτ +1 ). Similar to Step I, it is clear that θτ +1 ∈ B(K; R).29 Applying the smoothness, we have: 
+
+L(θτ +1 ) = L (θτ − η∇L (θτ + ρvτ ) − ηκP (θτ )∇L (θτ + ρvτ )) =L(θτ ) − η ⟨∇L (θτ ), ∇L (θτ + ρvτ ) + κP (θt)∇L (θτ + ρvτ )⟩
+
++
+
+
+
+η2 ∥∇L (θτ + ρvτ ) + κP (θτ )∇L (θτ + ρvτ )∥2
+
+=L(θτ ) − η ∥∇L (θτ )∥2 − ηρ ∇L (θτ ), ∇2L(θτ )vτ + O  ηρ 2 ∥∇L (θτ )∥
+
+− ηκ ⟨∇L (θτ ), P (θτ )∇L (θτ )⟩ − ηκρ ∇L (θτ ), P (θτ )∇2L(θτ )vt + O  ηκρ 2 ∥P (θτ )∇L (θτ )∥
+
++
+
+
+
+η2 ∥∇L (θτ + ρvτ ) + κP (θτ )∇L (θτ + ρvτ )∥2
+
+.
+
+In the same way as the proof of Claim I, it holds that 
+
+η ∥∇L (θτ )∥2 = O(η2ρ2), ηρ 2 ∥∇L (θτ )∥ = O(η2ρ2), ηκρ 2 ∥P (θτ )∇L (θτ )∥ = O  η2ρ3 ,η2 ∥∇L (θτ + ρvτ ) + κP (θτ )∇L (θτ + ρvτ )∥2 = O  η2ρ2
+
+Thus, 
+
+L(θτ +1 ) − L (θτ )= − ηρ ∇L (θτ ), ∇2L(θτ )vt − ηκρ ∇L (θτ ), P (θτ )∇2L(θτ )vt + O(η2ρ2),
+
+which implies: 
+
+Xτ +1 − Xτ − C2η2ρ2 
+
+> ψ2
+
+⩽ ∥L (θτ +1 ) − L (θτ )∥ψ2 + C2η2ρ2
+
+> ψ2
+
+⩽ηρ ∇L (θτ ), ∇2L(θτ )vt ψ2 + ηκρ ∇L (θτ ), P (θτ )∇2L(θτ )vt ψ2 + O(η2ρ2)
+
+⩽ηρ ∇2L(θτ )∇L (θτ )
+
+ ∇2L(θτ )∇L (θτ )
+
+∥∇ 2L(θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
++ ηκρ ∇2L(θτ )P (θτ )∇L (θτ )
+
+ ∇2L(θτ )P (θτ )∇L (θτ )
+
+∥∇ 2L(θτ )P (θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
++ O(η2ρ2)
+
+> Lemma D.5
+
+⩽ O η3/2ρ2
+
+ ∇2L(θτ )∇L (θτ )
+
+∥∇ 2L(θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
+!
+
++ O η3/2ρ2
+
+ ∇2L(θτ )P (θτ )∇L (θτ )
+
+∥∇ 2L(θτ )P (θτ )∇L (θτ )∥ , vt
+
+
+
+> ψ2
+
+!
+
++ O(η2ρ2)
+
+> Lemma F.5
+
+⩽ O
+
+
+
+η3/2ρ2/√p
+
+
+
++ O(η2ρ2).
+
+With the preparation of Claim I and Claim II, we can use the Azuma-Hoeffding inequality (Lemma F.4 (ii)): for any Q > 0, it holds that 
+
+P  Xt+1 − Xs+1 + ( t − s)C2η2ρ2 > Q  ⩽ 2 exp − Q2
+
+2( t − s)  O(η3/2ρ2/p 1/2 + η2ρ2)2
+
+!
+
+.
+
+As proved in Claim I, Xs+1 = L(θs+1 ) ⩽ 32 C1ηρ 2 due to L(θs) ⩽ C1ηρ 2. Therefore, by choosing Q = ( t − s)C2η2ρ2 − 32 C1ηρ 2 + 2 C1ηρ 2 = ( t − s)C2η2ρ2 + 12 C1ηρ 2, we have 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2C1ηρ 2
+
+⩽P
+
+
+
+Xt+1 − Xs+1 + ( t − s)C2η2ρ2 > (t − s)C2η2ρ2 + 12 C1ηρ 2
+
+
+
+⩽2 exp −
+
+ (t − s)C2η2ρ2 + 12 C1ηρ 22
+
+2( t − s)  O(η3/2ρ2/p 1/2 + η2ρ2)2
+
+!
+
+⩽2 exp 
+
+
+
+− 4( t − s)C2η2ρ2 · 12 C1ηρ 2
+
+4( t − s) ( O(η3ρ4/p + η4ρ4)) 
+
+
+
+⩽ 2 exp 
+
+
+
+−Ω
+
+ 1
+
+η + p−1
+
+ 
+
+.
+
+30 Therefore, we obtain the union bound: 
+
+P  ∃ t ∈ [TI, T I + TII ], L(θt) ⩾ 2C1ηρ 2 ⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+Pt+1 ,t +
+
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s 
+
+!
+
+⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s ⩽ T 2II exp 
+
+
+
+−Ω
+
+ 1
+
+η + p−1
+
+ 
+
+.
+
+Hence, with probability at least 1 − T 2II exp 
+
+
+
+−Ω
+
+ 1
+
+> η+p−1
+
+ 
+
+, for any t ∈ [TI, T I + TII ],
+
+∥θt − Φ( θt)∥ ⩽
+
+r 2
+
+μ L(θt) ⩽ 2
+
+s
+
+C1
+
+μ
+
+√ηρ = 4β3/22
+
+μ
+
+√ηρ = O(√ηρ ).
+
+D.2.3 Proof of the Effective Dynamics 
+
+We have proved that with high probability at least 1 − T 2II exp 
+
+
+
+−Ω
+
+ 1
+
+> η+p−1
+
+ 
+
+, for any t ∈ [TI, T I +
+
+TII ], ∥θt − Φ( θt)∥ = O(√ηρ ). Then we prove this theorem when the above event occurs. For any t ∈ [TI, T I + TII ],
+
+∥θt+1 − θt∥
+
+⩽η ∥∇L (θt + ρvt)∥ + ηκ ∥P (θt)∇L (θt + ρvt)∥
+
+⩽η ∥∇L (θt)∥ + O(ηρ ) + ηκ ∥P (θt)∇L (θt)∥ + ηκρ P (θt)∇2L(θt) + O(ηκρ 2)
+
+> Lemma D.5
+
+⩽ O(η3/2ρ) + O(ηρ ) + O(η3/2ρ) + O(η3/2ρ2) + O(ηρ 2) + O(ηρ ) = O(ηρ ).
+
+Then by Taylor’s expansion, 
+
+Φ( θt+1 ) − Φ( θt) = ∂Φ( θt) ( θt+1 − θt) + O
+
+
+
+∥θt+1 − θt∥2
+
+= − η∂ Φ( θt)∇L (θt + ρvt) − ηκ∂ Φ( θt)P (θt)∇L (θt + ρvt) + O(η2ρ2).
+
+For the term ∂Φ( θt)∇L (θt + ρvt) and ∂Φ( θt)P (θt)∇L (θt + ρvt), using Taylor’s expansion, we have 
+
+∂Φ( θt)∇L (θt + ρvt)=∂Φ( θt)∇L (θt) + ρ∂ Φ( θt)∇2L(θt)vt + ρ2
+
+2 ∂Φ( θt)∇ Tr  vt∇2L(θt)v⊤
+
+> t
+
+ + O(ρ3)=∂Φ( θt)∇L (θt) + ρ∂ Φ( θt)∇2L(θt)vt + ρ2
+
+2 ∂Φ( θt)∇  v⊤ 
+
+> t
+
+∇2L(θt)vt
+
+ + O(ρ3),∂Φ( θt)P (θt)∇L (θt + ρvt)=∂Φ( θt)P (θt)∇L (θt) + ρ∂ Φ( θt)P (θt)∇2L(θt)vt + ρ2
+
+2 ∂Φ( θt)P (θt)∇ Tr  vt∇2L(θt)v⊤
+
+> t
+
+ + O(ρ3)=∂Φ( θt)P (θt)∇L (θt) + ρ∂ Φ( θt)P (θt)∇2L(θt)vt + ρ2
+
+2 ∂Φ( θt)P (θt)∇  v⊤ 
+
+> t
+
+∇2L(θt)vt
+
+ + O(ρ3).
+
+Taking the expectation (about vt), we have 
+
+E[vt] = 0 , E v⊤ 
+
+> t
+
+∇2L(θt)vt
+
+ = Tr  ∇2L(θt)
+
+p .
+
+Additionally, using Lemma D.2 and Taylor’s expansion, we have: 
+
+∂Φ( θt)∇L (θt) = 0;
+
+∂Φ( θt) = ∂Φ(Φ( θt)) + ∥θt − Φ( θt)∥ = ∂Φ(Φ( θt)) + O(√ηρ ); 
+
+31 ∂Φ( θt)P (θt) = ∂Φ(Φ( θt)) P (Φ( θt)) + ∥θt − Φ( θt)∥ = ∂Φ(Φ( θt)) + O(√ηρ ); 
+
+∇ Tr  ∇2L(θt) = ∇ Tr  ∇2L(Φ( θt))  + ∥θt − Φ( θt)∥ = ∇ Tr  ∇2L(Φ( θt))  + O(√ηρ ); 
+
+∂Φ( θt)P (θt)∇L (θt) = ∂Φ(Φ( θt)) P (Φ( θt)) ∇L (θt) + O (∥θt − Φ( θt)∥ ∥∇L (θt)∥)=∂Φ(Φ( θt)) ∇L (θt) + O  ηρ 2 = 0 + O(ηρ 2).
+
+Combining the results above, we obtain: 
+
+E[Φ( θt+1 )] =Φ( θt) − η∂ Φ( θt)∇L (θt) − ηκ∂ Φ( θt)P (θt)∇L (θt)
+
+− ηρ 2
+
+2p ∂Φ( θt)∇ Tr  ∇2L(θt) − κηρ 2
+
+2p ∂Φ( θt)P (θt)∇ Tr  ∇2L(θt) + O(ηρ 3)=Φ( θt) + O  η2κρ 2 − (κ + 1) ηρ 2
+
+2p ∂Φ( θt)∇ Tr  ∇2L(θt) + O(η3/2ρ3) + O(κη 3/2ρ3) + O(ηρ 3)=Φ( θt) + O  η2κρ 2 − (κ + 1) ηρ 2
+
+2p ∂Φ( θt)∇ Tr  ∇2L(Φ( θt))  + O(η3/2ρ3) + O(κη 3/2ρ3) + O(ηρ 3)=Φ( θt) − (κ + 1) ηρ 2∂Φ( θt)∇ Tr  ∇2L(Φ( θt)) /2p + O(η3/2ρ2).
+
+## E Proofs in Section 5.2.2 
+
+Setting E.1. Consider the empirical risk minimization min : L(θ) = 1
+
+> n
+
+Pni=1 Li(θ), where Li(θ) = 
+
+ℓ(fi(θ), y i) is the loss on the i-th data (xi, y i). Let fi(·) and ℓ(·, ·) be C4. Suppose all global minimizers interpolate the training dataset, i.e., L(θ⋆) = min θ L(θ) implies fi(θ⋆) = yi for all 
+
+i ∈ [n]. We denote the minima manifold by M = {θ : fi(θ) = yi, ∀i ∈ [n]}. Moreover, we assume that ∂2ℓ(ˆ y,y )  
+
+> ∂ˆy2
+
+|ˆy=y > 0 and the feature matrix (∇fi(θ), · · · , ∇fn(θ)) ∈ Rp×n is full-rank at θ ∈ M .
+
+Lemma E.2 (Theorem 5.2 in Wen et al. (2023a)) . Under Setting E.1, Assumption 5.1 holds with 
+
+m = n.
+
+E.1 Preliminary Lemmas 
+
+Similar to the proofs for Section 5.2.1, we need the following similar preliminary lemmas. 
+
+Lemma E.3. Under Setting E.1, for any compact set K ∈ Γ, there exist absolute constants R1, μ > 0
+
+such that 
+
+• (i) B(K; R1) ⊂ U ;
+
+• (ii) Li(·) (i ∈ [n]) and L(·) are μ-PL on B(K; R1);
+
+• (iii) inf  
+
+> θ∈B(K;R1)
+
+λn
+
+ ∇2L(θ) ⩾ μ; inf  
+
+> θ∈B(K;R1)
+
+λ1
+
+ ∇2Li(θ) ⩾ μ, ∀i ∈ [n].We further define the following absolute constants on B(K; R):
+
+β2 := sup 
+
+> θ∈B(K;R1)
+
+∇2L(θ)
+
+!
+
+∨ max  
+
+> i∈[n]
+
+sup 
+
+> θ∈B(K;R1)
+
+∇2Li(θ)
+
+!
+
+;
+
+β3 := sup 
+
+> θ∈B(K;R1)
+
+∇3L(θ)
+
+!
+
+∨ max  
+
+> i∈[n]
+
+sup 
+
+> θ∈B(K;R1)
+
+∇3Li(θ)
+
+!
+
+;
+
+ν := 
+
+
+
+inf  
+
+> θ∈B(K;R1)
+
+λm
+
+ ∇2L(θ)
+
+∧
+
+
+
+min  
+
+> i∈[n]
+
+inf  
+
+> θ∈B(K;R1)
+
+λ1
+
+ ∇2Li(θ)
+
+;
+
+ζΦ1 := sup 
+
+> θ∈B(K;R1)
+
+∥∇ Φ( θ)∥ , ζΦ2 := sup 
+
+> θ∈B(K;R1)
+
+∇2Φ( θ) .
+
+32 Lemma E.4 (Wen et al. (2023a)) . Under Assumption 5.1, 
+
+• For any θ ∈ U , ∂Φ( θ)∇L (θ) = 0.
+
+• For any θ ∈ Γ, ∂Φ( θ) = Pn+1: p(∇2L(θ)) and ∂Φ( θ)∇2L(θ) = 0 .
+
+• For any θ ∈ Γ, ∂Φ( θ)∇2Li(θ) = 0 , ∀i ∈ [n].
+
+Lemma E.5. Under Setting E.1, there exists absolute constants R2, ζ P > 0 such that for any 
+
+θ ∈ B(K; R2),
+
+Pn+1: p(∇2L(θ)) − Pn+1: p(∇2L(Φ( θ))) ⩽ ζP ∥θ − Φ( θ)∥ .
+
+Proof Notations. Now we introduce some additional useful notations in the proof in this section. First, we choose R := ( R1 ∧ R2)/2, where R1 is defined in Lemma E.3 and R2 is defined in Lemma E.5. Let μ be the PL constant on B(K; R). Moreover, we use the following notations: 
+
+β2 := sup 
+
+> θ∈B(K;R)
+
+∇2L(θ)
+
+!
+
+∨ max  
+
+> i∈[n]
+
+sup 
+
+> θ∈B(K;R)
+
+∇2Li(θ)
+
+!
+
+;
+
+β3 := sup 
+
+> θ∈B(K;R)
+
+∇3L(θ)
+
+!
+
+∨ max  
+
+> i∈[n]
+
+sup 
+
+> θ∈B(K;R)
+
+∇3Li(θ)
+
+!
+
+;
+
+β4 := sup 
+
+> θ∈B(K;R)
+
+∇3L(θ)
+
+!
+
+∨ max  
+
+> i∈[n]
+
+sup 
+
+> θ∈B(K;R)
+
+∇4Li(θ)
+
+!
+
+;
+
+ν := 
+
+
+
+inf  
+
+> θ∈B(K;R)
+
+λm
+
+ ∇2L(θ)
+
+∧
+
+
+
+min  
+
+> i∈[n]
+
+inf  
+
+> θ∈B(K;R)
+
+λ1
+
+ ∇2Li(θ)
+
+;
+
+ζΦ := sup 
+
+> θ∈B(K;R)
+
+∇2Φ( θ) ; ζP := sup 
+
+> θ∈B(K;R)−Γ
+
+Pn+1: p(∇2L(θ)) − Pn+1: p(∇2L(Φ( θ))) 
+
+∥θ − Φ( θ)∥ .
+
+(16) Ensured by Lemma D.1 and D.3, these quantities are all absolute constants in (0 , +∞). Moreover, without loss of generality, we can assume that β1, β 2, β 3, ζ Φ, ζ P > 1 and μ ⩽ ν < 1.Then we have the following two lemmas, similar to Lemma D.4 and D.5. 
+
+Lemma E.6. For any θ ∈ B(K; R), it holds that: 
+
+• (para norm v.s. grad norm) μ ∥∇L (θ)∥ ⩽ ∥θ − Φ( θ)∥ ⩽ β2 ∥∇L (θ)∥; μ ∥∇L i(θ)∥ ⩽
+
+∥θ − Φ( θ)∥ ⩽ β2 ∥∇L i(θ)∥, ∀i ∈ [n].
+
+• (grad norm v.s. loss) 2μL(θ) ⩽ ∥∇L (θ)∥2 ⩽ 2β22 
+
+> μ
+
+L(θ); 2μLi(θ) ⩽ ∥∇L i(θ)∥2 ⩽ 2β22 
+
+> μ
+
+Li(θ),
+
+∀i ∈ [n].
+
+• (loss v.s. para norm) μ 
+
+> 2
+
+∥θ − Φ( θ)∥2 ⩽ L(θ) ⩽ β22 
+
+> 2μ
+
+∥θ − Φ( θ)∥2; μ 
+
+> 2
+
+∥θ − Φ( θ)∥2 ⩽ Li(θ) ⩽ 
+
+> β22
+> 2μ
+
+∥θ − Φ( θ)∥2, ∀i ∈ [n].
+
+Lemma E.7. For all θ ∈ B(K; R), ∀i ∈ [n],
+
+•
+
+Pn+1: p(∇2L(θ)) ∇2L(θ) , Pn+1: p(∇2L(θ)) ∇2Li(θ) , ∂Φ( θ)∇2Li(θ) ⩽ O (∥θ − Φ( θ)∥) ; 
+
+•
+
+Pn+1: p(∇2L(θ)) ∇L (θ) , Pn+1: p(∇2L(θ)) ∇L i(θ) , ∥∂Φ( θ)∇L i(θ)∥ ⩽ O
+
+
+
+∥θ − Φ( θ)∥2
+
+;
+
+• Let ρ > 0 and v ∈ Sp−1. If θ + ρv ∈ B(K; R), then 
+
+∥∇L i(θ + ρv)∥ ⩽ ∥∇L i(θ)∥ + ρβ 2, ∀i ∈ [n]; ; 
+
+Pn+1: p(∇2L(θ)) ∇L i(θ + ρv) ⩽ O
+
+
+
+∥θ − Φ( θ)∥2
+
++ O (ρ ∥θ − Φ( θ)∥) + ρ2β3
+
+2 , ∀i ∈ [n]; 
+
+33 Lemma E.8 (Lemma H.9 in Wen et al. (2023a)) . For any absolute constant C > 0, there exist absolute constant C1, C 2 > 0 such that: if θt ∈ B(K; R) and C1ηρ ⩽ ∥θt − Φ( θt)∥ ⩽ Cρ , then it holds that: 
+
+Eit
+
+ θt+1 /2 − Φ( θt+1 /2)  ⩽ ∥θt − Φ( θt)∥ − C2ηρ. 
+
+Lemma E.9 (Lemma H.10 in Wen et al. (2023a)) . For any absolute constant C > 0, there exists absoulte constant C3 such that: if θt ∈ B(K; R) and ∥θt − Φ( θt)∥ ⩽ Cρ , then we have that 
+
+θt+1 /2 − Φ( θt+1 /2) − ∥ θt − Φ( θt)∥ ⩽ C3ηρ. 
+
+Now we fix the positive number C = 1 and use the absolute constants C2, C 3, defined in Lemma E.8 and Lemma E.9. 
+
+E.2 Proof of Theorem 5.6 E.2.1 Proof of Moving Near Minimizers for SAM-IRE 
+
+This proof is similar to the proof for Section 5.2.1. Under the conditions in Theorem 5.6, the update rule of IRE on standard SAM is 
+
+θt+1 =θt − η∇L it
+
+
+
+θt + ρ ∇L it (θt)
+
+∥∇L it (θt)∥
+
+
+
+− ηκP n+1: p
+
+ ∇2L(θt) ∇L it
+
+
+
+θt + ρ ∇L it (θt)
+
+∥∇L it (θt)∥
+
+
+
+, where it ∼ U([ n]) .
+
+Let the κ in IRE satisfy 
+
+κ ⩽ 1/ρ. 
+
+Additionally, we fix a constant α ∈ (0 , 1) in the proof. For simplicity, we denote 
+
+vt := ∇L it (θt)
+
+∥∇L it (θt)∥ , P (θt) := Pn+1: p
+
+ ∇2L(θt) ;
+
+and 
+
+θt+1 /2 =θt − ∇L it (θt + ρvt) ; 
+
+θt+1 =θt+1 /2 − κηP (θt)∇L it (θt + ρvt) .
+
+Additionally, we denote 
+
+Pt+1 ,t := P
+
+
+
+∥θt+1 − Φ( θt+1 )∥ ⩾ 2Cη 1−αρ ∥θt − Φ( θt)∥ < Cη 1−αρ
+
+
+
+,
+
+Pt+1 ,s := P
+
+
+
+∥θt+1 − Φ( θt+1 )∥ ⩾ 2Cη 1−αρ;
+
+∀τ ∈ [s + 1 , t ], Cη 1−αρ ⩽ ∥θτ − Φ( θτ )∥ < 2Cη 1−αρ ∥θs − Φ( θs)∥ < C √ηρ 
+
+
+
+, s ∈ [TI, t − 1] .
+
+Then the following bound holds naturally: 
+
+P  ∃ t ∈ [TI, T I + TII ], ∥θt − Φ( θt)∥ ⩾ 2Cη 1−αρ ⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+Pt+1 ,t +
+
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s 
+
+!
+
+.
+
+• Step I. Bounding Pt+1 ,t .From ∥θt − Φ( θt)∥ = O(η1−αρ), thus 
+
+∥θt + ρvt − Φ( θt)∥ ⩽ ∥θt − Φ( θt)∥ + ρ = O(η1−αρ) + O(ρ) < R, 
+
+34 which means θt + ρvt ∈ B(K; R). Using Lemma E.7 and κ ⩽ 1/ρ , we can estimate: 
+
+θt+1 − θt+1 /2 = ηκ ∥∇ P (θt)∇L it (θt + ρvt)∥
+
+⩽ηκ 
+
+
+
+∥∇ P (θt)∇L it (θt)∥ + ρ ∇P (θt)∇2Lit (θt) + β3
+
+2 ρ2
+
+
+
+⩽ηκ 
+
+
+
+ηρ 2 + η1−αρ2 + β3
+
+2 ρ2
+
+
+
+⩽ β3ηκρ 2 ⩽ C2
+
+2(1 + ζΦ1 ) ηρ, 
+
+θt+1 − Φ( θt+1 ) − (θt+1 /2 − Φ( θt+1 /2)) 
+
+⩽(1 + ζΦ1 ) θt+1 − θt+1 /2 ⩽ C2
+
+2 ηρ. 
+
+Then we have the following bound: 
+
+∥θt+1 − Φ( θt+1 )∥
+
+⩽ ∥θt − Φ( θt)∥ + θt+1 /2 − Φ( θt+1 /2) − (θt − Φ( θt)) 
+
++ θt+1 − Φ( θt+1 ) − (θt+1 /2 − Φ( θt+1 /2)) 
+
+> Lemma E.9
+
+⩽ C1η1−αρ + O(ηρ ) + θt+1 − Φ( θt+1 ) − (θt+1 /2 − Φ( θt+1 /2)) 
+
+⩽C1η1−αρ + O(ηρ ) + O(ηρ ) < 3C1
+
+2 η1−αρ. 
+
+Thus, we obtain 
+
+Pt+1 ,t = P
+
+
+
+∥θτ +1 − Φ( θτ +1 )∥ ⩾ 2Cη 1−αρ ∥θt − Φ( θt)∥ < Cη 1−αρ
+
+
+
+= 0 .
+
+• Step II. Bounding Pt+1 ,s for s ∈ [TI, t − 1] .We prove this step under the condition ∥θs − Φ( θs)∥ < Cη 1−αρ. Define a process {Xτ }t+1  
+
+> τ=s
+
+:
+
+Xs+1 = ∥θs+1 − Φ( θs+1 )∥,
+
+Xτ +1 =
+
+∥θτ +1 − Φ( θτ +1 )∥ , if Cη 1−αρ ⩽ Xτ = ∥θτ − Φ( θτ )∥ ⩽ 2Cη 1−αρXτ − C2ηρ/ 2, else .
+
+It is clear that 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2Cη 1−αρ .
+
+Then our key step is to prove the following two claims about the process {Xτ }.
+
+– Claim I. Xτ − C2τ ηρ/ 2 is a super-martingale. From the definition of Xτ , we only need to prove that if Cη 1−αρ ⩽ Xτ = ∥θτ − Φ( θτ )∥ ⩽ 2Cη 1−αρ, then E ∥θτ +1 − Φ( θτ +1 )∥ ⩽
+
+∥θτ − Φ( θτ )∥ − C2ηρ/ 2.If Cη 1−αρ ⩽ Xτ = ∥θτ − Φ( θτ )∥ ⩽ 2Cη 1−αρ, similar to Step I, it holds that θτ +1 ∈
+
+B(K; R) and θt+1 − Φ( θτ +1 ) − (θτ +1 /2 − Φ( θτ +1 /2)) ⩽ C2 
+
+> 2
+
+ηρ . Moreover, 
+
+∥θτ +1 − Φ( θτ +1 )∥
+
+⩽ θτ +1 /2 − Φ( θτ +1 /2) + θτ +1 − Φ( θτ +1 ) − (θτ +1 /2 − Φ( θτ +1 /2)) 
+
+⩽ θτ +1 /2 − Φ( θτ +1 /2) + C2
+
+2 ηρ. 
+
+Taking the expectation and using Lemma E.8, we have 
+
+E ∥θτ +1 − Φ( θτ +1 )∥ ⩽ E θτ +1 /2 − Φ( θτ +1 /2) + C2
+
+2 ηρ 
+
+⩽ ∥θτ − Φ( θτ )∥ − C2ηρ + C2
+
+2 ηρ = ∥θτ − Φ( θτ )∥ − C2
+
+2 ηρ. 
+
+35 – Claim II. Xτ +1 − Xτ + C2ηρ/ 2 is O(ηρ )-bounded. From the definition of Xτ , we only need to prove for the case Cη 1−αρ ⩽ Xτ = ∥θτ − Φ( θτ )∥ ⩽ 2Cη 1−αρ.If Cη 1−αρ ⩽ Xτ = ∥θτ − Φ( θτ )∥ ⩽ 2Cη 1−αρ, we have θτ +1 ∈ B(K; R)
+
+and θt+1 − Φ( θt+1 ) − (θt+1 /2 − Φ( θt+1 /2)) ⩽ C2 
+
+> 2
+
+ηρ . Combining this result and Lemma E.9, we have 
+
+|∥ θτ +1 − Φ( θτ +1 )∥ − ∥ θτ − Φ( θτ )∥| 
+
+⩽ ∥θτ +1 − Φ( θτ +1 )∥ − θτ +1 /2 − Φ( θτ +1 /2) + θτ +1 /2 − Φ( θτ +1 /2) − ∥ θτ − Φ( θτ )∥
+
+⩽ (θτ +1 − Φ( θτ +1 )) − (θτ +1 /2 − Φ( θτ +1 /2)) + θτ +1 /2 − Φ( θτ +1 /2) − ∥ θτ − Φ( θτ )∥
+
+⩽ C2
+
+2 ηρ + C3ηρ = O(ηρ ).
+
+With the preparation of Claim I and Claim II, we can use the Azuma-Hoeffeding inequality: for any Q > 0, it holds that 
+
+P (Xt+1 − Xs+1 + ( t − s)C2ηρ/ 2 > Q ) ⩽ 2 exp 
+
+
+
+− Q2
+
+2( t − s)O(η2ρ2)
+
+
+
+.
+
+As proved in Claim I, Xs+1 = ∥θs+1 − Φ( θs+1 )∥ ⩽ 32 Cη 1−αρ due to ∥θs − Φ( θs)∥ ⩽
+
+Cη 1−αρ. Therefore, by choosing Q = ( t − s)C2ηρ/ 2 − 32 Cη 1−αρ + 2 Cη 1−αρ = ( t −
+
+s)C2ηρ/ 2 + Cη 1−αρ/ 2, we have 
+
+Pt+1 ,s ⩽ P  Xt+1 ⩾ 2Cη 1−αρ
+
+⩽P
+
+
+
+Xt+1 − Xs+1 + ( t − s)C2ηρ/ 2 > (t − s) C2
+
+2 ηρ + C
+
+2 η1−αρ
+
+
+
+⩽2 exp −
+
+ (t − s)C2ηρ/ 2 + Cη 1−αρ/ 22
+
+2( t − s)O(η2ρ2)
+
+!
+
+⩽2 exp 
+
+
+
+− (t − s)C2ηρ · Cη 1−αρ
+
+4( t − s)O(η2ρ2)
+
+
+
+⩽ 2 exp 
+
+
+
+−Ω
+
+ 1
+
+ηα
+
+ 
+
+.
+
+Therefore, we obtain the union bound: 
+
+P  ∃ t ∈ [TI, T I + TII ], ∥θt − Φ( θt)∥ ⩾ 2Cη 1−αρ ⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+
+Pt+1 ,t +
+
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s 
+
+!
+
+⩽
+
+> TI+TII −1
+
+X
+
+> t=TI
+> t−1
+
+X
+
+> s=TI
+
+Pt+1 ,s ⩽ T 2II exp ( −Ω (1 /η α)) .
+
+E.2.2 Proof of the Effective Dynamics 
+
+By our proof above, with probability at least 1 − T 2II exp ( −Ω (1 /η α)) , for any t ∈ [TI, T I + TII ],
+
+∥θt − Φ( θt)∥ = O(η1−αρ). Then we prove this theorem when the above event occurs. Due to ∥θt − Φ( θt)∥ = O(η1−αρ), we have: 
+
+∥θt+1 − θt∥
+
+⩽η ∥∇L it (θt + ρvt)∥ + ηκ ∥P (θt)∇L it (θt + ρvt)∥
+
+> Lemma E.7
+
+⩽ η ∥∇L it (θt)∥ + O(ηρ ) + O(ηκρ 2) ⩽ O(ηρ ).
+
+Then by Taylor’s expansion, 
+
+Φ( θt+1 ) − Φ( θt) = ∂Φ( θt)( θt+1 − θt) + O
+
+
+
+∥θt+1 − θt∥2
+
+= − η∂ Φ( θt)∇L it (θt + ρvt) − ηκ∂ Φ( θt)P (θt)∇L it (θt + ρvt) + O(η2ρ2).
+
+For the term ∂Φ( θt)∇L it (θt + ρvt) and ∂Φ( θt)P (θt)∇L it (θt + ρvt), using Taylor’s expansion and Lemma E.7, we have 
+
+∂Φ( θt)∇L it (θt + ρvt)
+
+36 =∂Φ( θt)∇L it (θt) + ρ∂ Φ( θt)∇2Lit (θt)vt + ρ2
+
+2 ∂Φ( θt)∇ Tr  vt∇2Lit (θt)v⊤
+
+> t
+
+ + O(ρ3)=∂Φ( θt)∇L it (θt) + ρ∂ Φ( θt)∇2Lit (θt)vt + ρ2
+
+2 ∂Φ( θt)∇  v⊤ 
+
+> t
+
+∇2Lit (θt)vt
+
+ + O(ρ3)=O(∥θt − Φ( θt)∥2) + ρ∂ Φ(Φ( θt)) ∇2Lit (Φ( θt)) ∇L it (Φ( θt)) 
+
+∥∇L it (Φ( θt)) ∥ + O(ρ ∥θt − Φ( θt)∥)+ ρ2
+
+2 ∂Φ(Φ( θt)) ∇ ∇L it (Φ( θt)) 
+
+∥∇L it (Φ( θt)) ∥
+
+> ⊤
+
+∇2Lit (Φ( θt)) ∇L it (Φ( θt)) 
+
+∥∇L it (Φ( θt)) ∥
+
+!
+
++ O(ρ2 ∥θt − Φ( θt)∥) + O(ρ3)= ρ2
+
+2 ∂Φ(Φ( θt)) ∇λ1
+
+ ∇2Lit (Φ( θt))  + O(η1−αρ2 + ρ3),
+
+and 
+
+∂Φ( θt)P (θt)∇L it (θt + ρvt)=∂Φ( θt)P (θt)∇L it (θt) + ρ∂ Φ( θt)P (θt)∇2Lit (θt)vt
+
++ ρ2
+
+2 ∂Φ( θt)P (θt)∇ Tr  vt∇2Lit (θt)v⊤
+
+> t
+
+ + O(ρ3)=O(∥θt − Φ( θt)∥2) + O(ρ ∥θt − Φ( θt)∥) + ρ2
+
+2 ∂Φ( θt)P (θt)∇  v⊤ 
+
+> t
+
+∇2Lit (θt)vt
+
+ + O(ρ3)=O(η1−αρ2) + ρ2
+
+2 ∂Φ(Φ( θt)) ∇ ∇L it (Φ( θt)) 
+
+∥∇L it (Φ( θt)) ∥
+
+> ⊤
+
+∇2Lit (Φ( θt)) ∇L it (Φ( θt)) 
+
+∥∇L it (Φ( θt)) ∥
+
+!
+
++ O(ρ2 ∥θt − Φ( θt)∥) + O(ρ3)= ρ2
+
+2 ∂Φ(Φ( θt)) ∇λ1
+
+ ∇2Lit (Φ( θt))  + O(η1−αρ2 + ρ3), . 
+
+Combining the results above, we obtain: 
+
+Φ( θt+1 ) =Φ( θt) − (1 + κ) ηρ 2
+
+2 ∂Φ(Φ( θt)) ∇λ1
+
+ ∇2Lit (Φ( θt))  + O(κη 2−αρ2 + κηρ 3).
+
+Additionally, taking the expectation, we have: 
+
+Eit
+
+∂Φ(Φ( θt)) ∇λ1
+
+ ∇2Lit (Φ( θt))  = ∂Φ(Φ( θt)) ∇ Tr  ∇2L(Φ( θt))  .
+
+Therefore, we obtain 
+
+Eit [Φ( θt+1 )] =Φ( θt) − (1 + κ) ηρ 2
+
+2 ∂Φ(Φ( θt)) ∇ Tr  ∇2L(Φ( θt))  + O(κη 2−αρ2 + κηρ 3)=Φ( θt) − (1 + κ) ηρ 2
+
+2 ∂Φ(Φ( θt)) ∇ Tr  ∇2L(Φ( θt))  + h.o.t.. 
+
+## F Useful Inequalities 
+
+Definition F.1 (μ-PL) . Let μ > 0 be a constant. A function L is μ-PL in a set U iff ∥∇L (θ)∥2 ⩾
+
+2μ(L(θ) − inf  
+
+> θ∈U
+
+L(θ)) , ∀θ ∈ U .
+
+Lemma F.2 (Weyl Theorem) . Let A, B ∈ Rp×p be symmetric with eigenvalues λ1 ⩾ · · · ⩾ λp and 
+
+μ1 ⩾ · · · ⩾ μp respectively, then for any k ∈ [p], it holds that 
+
+|λk − μk| ⩽ ∥A − B∥ .
+
+37 Lemma F.3 (Davis-Kahan sin(Θ) theorem) . Let A, B ∈ Rp×p be symmetric matrices. Denote their orthogonal decomposition as A = E1Λ1E⊤ 
+
+> 1
+
++ E2Λ2E⊤ 
+
+> 2
+
+and B = F1Γ1F ⊤ 
+
+> 1
+
++ F2Γ2F ⊤ 
+
+> 2
+
+with 
+
+(E1, E2) and (D1, D2) orthogonal. If the eigenvalues in Λ1 are contained in an interval (a, b ), and the eigenvalues of Γ2 are excluded from the interval (a − δ, b + δ) for some δ > 0, then for any unitarily invariant norm ∥·∥ ⋆,
+
+F ⊤ 
+
+> 2
+
+E1 ⋆ ⩽ F ⊤ 
+
+> 2
+
+(A − B)E1 ⋆
+
+δ .
+
+Lemma F.4 (Azuma-Hoeffding Inequality) . Suppose {Xn}n∈N is a super-martingale. 
+
+• (i) (Bounded martingale difference). If −α ⩽ Xi+1 − Xi ⩽ β, then for any n, t > 0, we have: 
+
+P (Xn − X0 ⩾ t) ⩽ 2 exp 
+
+
+
+− t2
+
+2n(α + β)2
+
+
+
+.
+
+• (ii) (Sub-Gaussian martingale difference). If Xi+1 − Xi is σ2 
+
+> i
+
+-sub-Gaussian, then for any 
+
+n, t > 0, we have: 
+
+P (Xn − X0 ⩾ t) ⩽ 2 exp 
+
+
+
+− t2
+
+2 Pni=1 σ2
+
+> i
+
+
+
+.
+
+Lemma F.5. Let v ∈ Rp. Let g ∼ N (0, I). Then there exists an absolute constant c > 0 such that for any t > 0,
+
+P
+
+  v
+
+∥v∥ , g
+
+∥g∥
+
+
+
+⩾ t
+
+
+
+⩽ 4e−cpt 2
+
+.
+
+Proof of Lemma F.5. From P54 in Vershynin (2018), there exists an absolute constant c > 0 such that for any t > 0, P
+
+ |⟨ e1,g⟩| ∥g∥ ⩾ t
+
+
+
+⩽ 4e−cpt 2
+
+. Without loss of generality, we can assume v̸ = 0.Then we have: 
+
+P
+
+  v
+
+∥v∥ , g
+
+∥g∥
+
+
+
+⩾ t
+
+√p
+
+
+
+= P
+
+ ⟨e1, g⟩∥g∥ ⩾ t
+
+
+
+⩽ 4e−cpt 2
+
+.
+
+Lemma F.6. ∥AB ∥F ⩽ ∥A∥ ∥ B∥F.
+
+38 NeurIPS Paper Checklist 
+
+1. Claims 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? Answer: [Yes] Justification: We believe that the abstract and introduction reflect the contributions and scope of the paper. Guidelines: • The answer NA means that the abstract and introduction do not include the claims made in the paper. • The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers. • The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings. • It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper. 2. Limitations 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? Answer: [Yes] Justification: In Section 6. Guidelines: • The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper. • The authors are encouraged to create a separate "Limitations" section in their paper. • The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (e.g., independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be. • The authors should reflect on the scope of the claims made, e.g., if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated. • The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon. • The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size. • If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness. • While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren’t acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an impor-tant role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations. 3. Theory Assumptions and Proofs 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof? Answer: [Yes] 39 Justification: In Section 2 and 5; Appendix B, D, E, and F. Guidelines: • The answer NA means that the paper does not include theoretical results. • All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced. • All assumptions should be clearly stated or referenced in the statement of any theorems. • The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition. • Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material. • Theorems and Lemmas that the proof relies upon should be properly referenced. 4. Experimental Result Reproducibility 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-perimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)? Answer: [Yes] Justification: We believe that all of the experimental results are reproducible in our work. Guidelines: • The answer NA means that the paper does not include experiments. • If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not. • If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable. • Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (e.g., in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed. • While NeurIPS does not require releasing code, the conference does require all submis-sions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example (a) If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm. (b) If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully. (c) If the contribution is a new model (e.g., a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (e.g., with an open-source dataset or instructions for how to construct the dataset). (d) We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (e.g., to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results. 5. Open access to data and code 
+
+Question: Does the paper provide open access to the data and code, with sufficient instruc-tions to faithfully reproduce the main experimental results, as described in supplemental material? 40 Answer: [Yes] Justification: In https://github.com/wmz9/IRE-algorithm-framework .Guidelines: • The answer NA means that paper does not include experiments requiring code. • Please see the NeurIPS code and data submission guidelines ( https://nips.cc/ public/guides/CodeSubmissionPolicy ) for more details. • While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (e.g., for a new open-source benchmark). • The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines ( https: //nips.cc/public/guides/CodeSubmissionPolicy ) for more details. • The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc. • The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why. • At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable). • Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted. 6. Experimental Setting/Details 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-parameters, how they were chosen, type of optimizer, etc.) necessary to understand the results? Answer: [Yes] Justification: In Section 4 and Appendix C. Guidelines: • The answer NA means that the paper does not include experiments. • The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them. • The full details can be provided either with the code, in appendix, or as supplemental material. 7. Experiment Statistical Significance 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments? Answer: [Yes] Justification: In Appendix C. Guidelines: • The answer NA means that the paper does not include experiments. • The authors should answer "Yes" if the results are accompanied by error bars, confi-dence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper. • The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions). • The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.) • The assumptions made should be given (e.g., Normally distributed errors). • It should be clear whether the error bar is the standard deviation or the standard error of the mean. 41 • It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis of Normality of errors is not verified. • For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates). • If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text. 8. Experiments Compute Resources 
+
+Question: For each experiment, does the paper provide sufficient information on the com-puter resources (type of compute workers, memory, time of execution) needed to reproduce the experiments? Answer: [Yes] Justification: In Appendix C. Guidelines: • The answer NA means that the paper does not include experiments. • The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage. • The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute. • The paper should disclose whether the full research project required more compute than the experiments reported in the paper (e.g., preliminary or failed experiments that didn’t make it into the paper). 9. Code Of Ethics 
+
+Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?Answer: [Yes] Justification: We have confirmed that the research is conducted with the NeurIPS Code of Ethics. Guidelines: • The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. • If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics. • The authors should make sure to preserve anonymity (e.g., if there is a special consid-eration due to laws or regulations in their jurisdiction). 10. Broader Impacts 
+
+Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that there is no societal impact of the work performed. • If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact. • Examples of negative societal impacts include potential malicious or unintended uses (e.g., disinformation, generating fake profiles, surveillance), fairness considerations (e.g., deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations. 42 • The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster. • The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology. • If there are negative societal impacts, the authors could also discuss possible mitigation strategies (e.g., gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML). 11. Safeguards 
+
+Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pretrained language models, image generators, or scraped datasets)? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that the paper poses no such risks. • Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters. • Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images. • We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort. 12. Licenses for existing assets 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that the paper does not use existing assets. • The authors should cite the original paper that produced the code package or dataset. • The authors should state which version of the asset is used and, if possible, include a URL. • The name of the license (e.g., CC-BY 4.0) should be included for each asset. • For scraped data from a particular source (e.g., website), the copyright and terms of service of that source should be provided. • If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets, paperswithcode.com/datasets 
+
+has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset. • For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided. 43 • If this information is not available online, the authors are encouraged to reach out to the asset’s creators. 13. New Assets 
+
+Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that the paper does not release new assets. • Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc. • The paper should discuss whether and how consent was obtained from people whose asset is used. • At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file. 14. Crowdsourcing and Research with Human Subjects 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Including this information in the supplemental material is fine, but if the main contribu-tion of the paper involves human subjects, then as much detail as possible should be included in the main paper. • According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector. 15. Institutional Review Board (IRB) Approvals or Equivalent for Research with Human Subjects 
+
+Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained? Answer: [NA] Justification: [NA] Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper. • We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution. • For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review. 44

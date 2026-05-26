@@ -1,0 +1,2274 @@
+Title: 19457_A_Causal_Model_of_Theory.pdf
+
+URL Source: https://openreview.net/pdf?id=ASA2jdKtf3
+
+Number of Pages: 21
+
+Markdown Content:
+# A Causal Model of Theory-of-Mind in AI Agents 
+
+Anonymous Author(s) 
+
+Affiliation Address 
+
+email 
+
+## Abstract 
+
+Agency is a vital concept for understanding and predicting the behaviour of future 1
+
+AI systems. There has been much focus on the goal-directed nature of agency, 2
+
+i.e., the fact that AI agents may capably pursue goals. However, the dynamics of 3
+
+agency become significantly more complex when autonomous agents interact with 4
+
+other agents and humans, necessitating engagement in theory-of-mind , the ability to 5
+
+reason about the beliefs and intentions of others. In this paper, we extend the frame-6
+
+work of multi-agent influence diagrams (MAIDs) to explicitly capture this complex 7
+
+form of reasoning. We also show that our extended framework, MAIDs with in-8
+
+complete information (II-MAIDs), has a strong theoretical connection to dynamic 9
+
+games with incomplete information with no common prior over types. We prove 10 
+
+the existence of important equilibria concepts in these frameworks, and illustrate 11 
+
+the applicability of II-MAIDs using an example from the AI safety literature. 12 
+
+## 1 Introduction 13 
+
+The concept of agency plays a central role in AI, from philosophical discussions of the nature 14 
+
+of artificial agents [ 5 ] to the practical engineering of agent-like systems [ 12 , 39 ]. Existing work 15 
+
+formalising agency typically focuses on its goal-directed nature in a single-agent setting [ 25 , 30 ]. 16 
+
+However, a full picture of agency should describe systems that represent themselves and other systems 17 
+
+as agents , i.e., systems with theory-of-mind (ToM) [7, 8]. 18 
+
+ToM is characterised by multi-agent interactions involving higher-order intentional states [ 7], such 19 
+
+as beliefs about beliefs, or, in the case of deception, intentions to cause false beliefs [ 40 ]. Causality 20 
+
+often plays a key role in philosophical notions of belief [ 38 ], and causal models offer a powerful 21 
+
+representation of beliefs [ 14 , 36 ], intentions [ 41 ], and other intentional states [ 13 ]. Additionally, 22 
+
+causal models have been extended to capture game-theoretic dynamics in the setting of multi-agent 23 
+
+influence diagrams (MAIDs) [ 26 , 16 ]. However, MAIDs assume that all agents in the model have 24 
+
+the same, correct beliefs about the world, each other’s beliefs, each other’s beliefs about beliefs, and 25 
+
+so on. With this assumption in place, MAIDs do not explicitly model agents’ subjective beliefs or 26 
+
+higher-order beliefs. 27 
+
+We generalise MAIDs to the setting of incomplete information with no common prior , wherein agents 28 
+
+may have different and inconsistent beliefs about the world, and each agent may have different 29 
+
+beliefs about the beliefs of other agents. Our framework, incomplete information MAIDs (II-MAIDs) ,30 
+
+includes explicit subjective belief hierarchies, and therefore enables us to model systems of agents 31 
+
+with more complex and realistic ToM. 32 
+
+Contributions and Outline. In Section 2, we discuss formal background on MAIDs and EFGs. We 33 
+
+formally define our framework of MAIDs with incomplete information (II-MAIDs) in Section 3. In 34 
+
+Section 4, we present a variant of an existing formalism for incomplete information games using 35 
+
+EFGs rather than normal-form games, and in Section 5 we prove that it is equivalent to MAIDs with 36 
+
+incomplete information. Finally, we review related literature (Section 6) and conclude (Section 7). 37 
+
+Submitted to 38th Conference on Neural Information Processing Systems (NeurIPS 2024). Do not distribute. 2 Background 38 
+
+In this section, we provide formal definitions of MAIDs and EFGs and explain these game represen-39 
+
+tations using an example. A Bayesian network is a probabilistic graphical model representing a set of 40 
+
+variables and their conditional dependencies via a directed acyclic graph. Influence diagrams (IDs) 41 
+
+generalise Bayesian networks to the decision-theoretic setting by adding decision and utility variables 42 
+
+[ 24 , 33 ], and multi-agent influence diagrams (MAIDs) generalise IDs by introducing multiple agents 43 
+
+[26 ]. A MAID can therefore be viewed as a Bayesian network over a graph without parameters for 44 
+
+the decision variables. Endowing edges in a MAID with causal meaning results in a causal game .45 
+
+Definition 1 (26 , 16 ). A multi-agent influence diagram (MAID) is a structure M = ( G, θ) where 46 
+
+G = ( N, V , E ) specifies a set of agents N = {1, . . . , n } and a directed acyclic graph (V , E ). V47 
+
+is partitioned into chance variables X, decision variables D, and utility variables U ; decision and 48 
+
+utility variables are further partitioned based on which agent they belong to, so D = S 
+
+> i∈N
+
+Di and 49 
+
+U = S 
+
+> i∈N
+
+U i. The parameters θ = {θV }V ∈V \D define the conditional probability distributions 50 
+
+(CPDs) Pr( V | Pa V ; θV ) for each non-decision variable such that for any parameterisation of the 51 
+
+decision variable CPDs, the resulting joint distribution over V induces a Bayesian network. A 52 
+
+MAID is a causal game if its edges represent direct causal relationships, or formally if (once decision 53 
+
+variables are parameterised) the result of an intervention do (X = x) for any X ⊆ V can be computed 54 
+
+using the truncated factorisation formula : P (v | do (X = x); θ) = Π i:vi /∈xP (vi | pa vi ; θi ) if v is 55 
+
+consistent with x, and P (v | do (X = x); θ) = 0 otherwise. 56 
+
+Edges into decisions are information links observed by an agent, and agents choose their decisions to 57 
+
+maximise their expected utility. Causal games refine MAIDs, and as such all results presented here 58 
+
+with application to MAIDs also apply to causal games and further refinements, including structural 59 
+
+causal games (SCGs) [16]. 60 
+
+Example 1. Figure 1 displays two MAIDs. For Figure 1a, suppose a human H is evaluating the 61 
+
+honesty of an AI system A. The AI has a level of capabilities C ∈ { low , high } that the human can 62 
+
+directly observe. Each capability level occurs with probability 0.5. The human also performs an 63 
+
+evaluation in which the AI is asked to demonstrate its capabilities. The AI can demonstrate low or 64 
+
+high capabilities. After the evaluation, the human chooses to deploy or not deploy the AI. The AI 65 
+
+receives utility 1 if deployed and -1 if not deployed. The human receives utility 0 for not deploying 66 
+
+the AI, utility 1 for deploying an honest AI, and utility -5 for deploying a dishonest AI. Figure 1b is 67 
+
+similar, but instead of an honesty evaluation, it is an evaluation of dangerous capabilities. In this case, 68 
+
+the human only learns about the AI’s capabilities from the evaluation. The AI’s utility is the same, 69 
+
+but the human now receives utility 0 for not deploying the AI, utility 1 for deploying an AI with low 70 
+
+dangerous capabilities, and utility -5 for deploying an AI with high dangerous capabilities. 71 
+
+In these examples, a MAID describes the objective world, and it is assumed to be common knowledge 72 
+
+that this MAID describes reality. However, an agent may be uncertain or incorrect about the game 73 
+
+they are playing or the beliefs of other agents. Settings in which agents are uncertain about aspects 74 
+
+of the game structure are known as incomplete information games . Our framework of incomplete 75 
+
+information MAIDs (II-MAIDs), introduced in Section 3, will enable us to explicitly model the varied 76 
+
+subjective beliefs that arise in these settings. We now define EFGs, with our running example in EFG 77 
+
+form in Figure 2. We will also make use of the notions of perfect recall and strategies/policies in 78 
+
+MAIDs and EFGs. 79 
+
+DA
+
+DH
+
+C
+
+U A U H
+
+> (a)
+
+DA
+
+DH
+
+C
+
+U A U H
+
+> (b)
+
+Figure 1: Graphical representations of MAIDs include environment variables (circular), agent deci-sions (square), and utilities (diamond). Decisions and utilities are coloured according to association with particular agents. Solid edges represent causal dependence and dotted edges are information links. Conceptual context and domains and CPDs for the variables are given above the diagrams. 2V 0
+
+high low 
+
+V A
+
+> 1
+
+high 
+
+low 
+
+V A
+
+> 2
+
+high 
+
+low 
+
+V H
+
+> 1
+
+(1 , 1) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 2
+
+(1 , −5) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 3
+
+(1 , 1) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 4
+
+(1 , −5) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+(a) 
+
+IH
+
+> 1
+
+IH
+
+> 2
+
+V 0
+
+high low 
+
+V A
+
+> 1
+
+high 
+
+low 
+
+V A
+
+> 2
+
+high 
+
+low 
+
+V H
+
+> 1
+
+(1 , −5) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 2
+
+(1 , −5) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 3
+
+(1 , 1) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+V H
+
+> 4
+
+(1 , 1) 
+
+deploy 
+
+(−1, 0) 
+
+¬deploy 
+
+(b) 
+
+Figure 2: In (a) and (b), graphical representations of EFGs include environment variables ( V 0), agent decisions ( V A and V H ), utilities (tuples on the top and bottom), and information sets (dotted lines). The EFGs in Figure 2a and Figure 2b are equivalent to the MAIDs in Figure 1a and Figure 1b, respectively. V 0 represents the initial move, made by nature, which determines A’s capability C. V A 
+
+> 1
+
+,
+
+V A 
+
+> 2
+
+and V H 
+
+> 1
+
+, V H 
+
+> 2
+
+, V H 
+
+> 3
+
+, & V H 
+
+> 4
+
+represent moves made by A and H, respectively. I21 and I22 represent 
+
+H’s non-singleton information sets. 
+
+Definition 2 ( 27 ). An extensive form game (EFG) is a structure E = ( N, T, P, A, λ, I, U ). N =80 
+
+{1, . . . , n } is a set of agents. T = ( V , E ) is a game tree with nodes V connected by edges E that 81 
+
+are partitioned into sets V 0, V 1, . . . , V n, L where R ∈ V and L ⊂ V are the root and leaves of 82 
+
+T , respectively, V 0 are chance nodes, and V i are the decision nodes controlled by agent i ∈ N .83 
+
+P = {P1, . . . , P |V 0|} is a set of probability distributions Pj (Ch V 0 
+
+> j
+
+) over the children of each chance 84 
+
+node V 0 
+
+> j
+
+. A is a set of actions, where Aij ⊆ A denotes the set of actions available at each node in 85 
+
+V ij ∈ V i; λ : E → A is a labelling function mapping each edge (V ij , V kl ) to an action a ∈ Aij .86 
+
+I = {I1, . . . , I n} contains a set of of information sets Ii for each agent i ∈ N, where Ii ⊂ 2V i
+
+> 87
+
+partitions the decision nodes Vi belonging to agent i. U : L → Rn is a utility function mapping each 88 
+
+leaf node to a vector that determines the final payoff for each agent. A history h ∈ H is a sequence 89 
+
+of actions (including values of chance variables) leading from the root of the game tree to a particular 90 
+
+node. Each node v ∈ V is associated with a unique history h(v). An observation at decision node 91 
+
+Iij,k in information set Iij ∈ Ii for agent i ∈ N is the intersection of all the histories of the nodes in 92 
+
+that information set, i.e., the common actions in the histories {h(v) : v ∈ Iij }.93 
+
+Definition 3 ([ 26 ]) . Agent i in a MAID M is said to have perfect recall if there exists a total 94 
+
+ordering D1 ≺ · · · ≺ Dm over Di such that (Pa Dj ∪ Dj ) ⊆ Pa Dk for any 1 ≤ j < k ≤ m. M is 95 
+
+a perfect recall game if all agents in M have perfect recall. 96 
+
+Definition 4. An EFG is said to be a perfect recall game if, for each player i ∈ N , and for any two 97 
+
+decision nodes v, v ′ ∈ Vi that belong to the same information set Iij,k , the following two conditions 98 
+
+hold. First, the sequences of actions taken by player i leading to v and v′ must be identical. Second, 99 
+
+the sequences of information sets visited by player i on the paths to v and v′ must be identical. 100 
+
+Definition 5. Given a MAID M = ( G, θ), a decision rule πD for D ∈ D is a CPD πD (D | Pa D )101 
+
+and a partial policy profile πD′ is a set of decision rules πD for each D ∈ D′ ⊆ D. A (behavioural) 102 
+
+policy πi refers to πDi , and a (full, behavioural) policy profile π = ( π1, . . . , πn) is a tuple of 103 
+
+policies. π−i := ( π1, . . . , πi−1, πi+1 , . . . , πn) specifies policies for all agents except i.104 
+
+Definition 6 ([ 15 ]) . Given an EFG E = ( N, T, P, A, λ, I, U ), a (behavioural) strategy σi for a 105 
+
+player i is a set of probability distributions σij : Aij → [0 , 1] over the actions available to the player 106 
+
+at each of their information sets Iij . A strategy profile σ = ( σ1, σ 2, ..., σ n) is a tuple of strategies 107 
+
+for all players i ∈ N . σ−i = ( σ1, ..., σ i−1, σ i+1 , ..., σ n) denotes the partial strategy profile of all 108 
+
+players other than i.109 
+
+By combining π with the partial distribution Pr over the chance and utility variables in a MAID, 110 
+
+we obtain a joint distribution: Pr π (x, d, u) := Q   
+
+> V∈V\D
+
+Pr( v | pa V ) · Q 
+
+> D∈D
+
+πD (d | pa D ), over 111 
+
+3all the variables in M; inducing a Bayesian network. The expected utility for an agent i given a 112 
+
+policy profile π is defined as the expected sum of their utility variables in this Bayesian Network, 113 P   
+
+> U∈Ui
+
+Eπ [U ]. Similarly, in an EFG E, the combination of the distributions in P with a strategy 114 
+
+profile σ defines a full probability distribution over paths in E.115 
+
+Finally, prior work 15 has established an equivalence result between MAIDs and EFGs. This result 116 
+
+takes the form of two transformation procedures converting between MAIDs and EFGs, called 117 
+
+efg2maid and maid2efg . These transformations both imply the existence of a map from strategies 118 
+
+in the EFG to policies in the MAID, such that expected utilities are preserved for all agents. This 119 
+
+means that under either transformations, equilibria in the original game are equilibria in the resulting 120 
+
+game. 121 
+
+## 3 II-MAID Technical Machinery 122 
+
+We start with an informal description of our II-MAIDs framework before presenting the formal 123 
+
+definition. A core component of the framework is a set S containing subjective MAIDs . A subjective 124 
+
+MAID is a self-referential object describing a possible game as envisioned by either the external 125 
+
+modeller (we call this the objective model S∗) or an agent playing the game. A subjective MAID S126 
+
+consists of a MAID M that describes the game being played and beliefs P Si for each agent i in the 127 
+
+game. The notation P Si denotes agent i’s prior over S when the objective model is S, and P Si (S′)128 
+
+denotes the probability ascribed by agent i to subjective MAID S′ given that the objective MAID is S.129 
+
+This framework enables us to model theory-of-mind , which is typically characterised by higher-order 130 
+
+intentional states such as beliefs about beliefs about... ([7]). 131 
+
+Definition 7. An incomplete information MAID (II-MAID) is a tuple S = ( N, S ∗, S), where N
+
+is a set of agents, S is a set of subjective MAIDs, S∗ ∈ S is the correct objective model, and each 
+
+subjective MAID is a tuple S = ( MS , (P Si )i∈N) ∈ S with MS a MAID and P Si a prior over S for agent i such that the following “coherency condition” [17] holds: 
+
+P Si ({S′ ∈ S : P S′ 
+
+> i
+
+= P Si }) = 1 ∀i ∈ N, S ∈ S.
+
+First, notice that the recursive nature of S, with each element S ∈ S including probability distributions 132 
+
+P Si over S, allows us to model belief hierarchies of arbitrary and infinite depth. Next, note that agent i133 
+
+“observes” P S∗ 
+
+> i
+
+at the start of the game, and this justifies the coherency condition: since agent i knows 134 
+
+P S∗ 
+
+> i
+
+, she can rule out all subjective MAIDs S for which P Si̸ = P S∗ 
+
+> i
+
+. Third, note that II-MAIDs are a 135 
+
+strict generalization of MAIDs: a standard MAID is an II-MAID in which P S∗ 
+
+> i
+
+(S∗) = 1 ∀i ∈ N,136 
+
+i.e. all agents assign probability 1 to S∗, the objective model. 137 
+
+Example 2. Suppose a human H is performing an honesty evaluation on an AI A, but A believes that it is undergoing a dangerous capabilities evaluation. This combines Figure 1a and Figure 1b: H
+
+correctly believes that Figure 1a is the true MAID and also knows that A is mistaken. A incorrectly believes that Figure 1a is the true MAID and also incorrectly believes that H believes Figure 1a is the true MAID. We can represent this, including the full infinite belief hierarchy, as an II-MAID as follows: N = {H, A }, S = {SH , S A}, and S∗ = SH , where 
+
+SH = ( MH , (P SH 
+
+> H
+
+(SH ) = 1 , P SH 
+
+> A
+
+(SA) = 1)) , SA = ( MA, (P SA 
+
+> H
+
+(SA) = 1 , P SA 
+
+> A
+
+(SA) = 1)) 
+
+SH is the correct objective model, and is also believed with certainty by H. It specifies the true 138 
+
+MAID MH represented in Figure 1a, and H’s certainty in SH as well as A’s misplaced certainty in 139 
+
+SA. SA represents A’s certainty about the MAID MA in Figure 1b, and A’s mistaken belief that H140 
+
+is also certain about SA. In fact, A believes it is common knowledge that SA is the true II-MAID. 141 
+
+SH and SA concisely convey the objective game and all higher-order beliefs for H and A. It can be 142 
+
+easily verified that the coherency condition holds in this example. 143 
+
+A common assumption in the incomplete information games literature [ 17 , 18 , 19 ] is that agents’ 144 
+
+beliefs can be derived from a common prior, i.e., agents have consistent beliefs . This assumption 145 
+
+means that there exists some common knowledge prior distribution p over the set of subjective 146 
+
+MAIDs S, such that upon arriving in any subjective MAID S ∈ S, agents perform Bayesian updating 147 
+
+to yield their beliefs. This assumption allows for a game with incomplete information to be converted 148 
+
+into a game with imperfect information [ 17 ], but places a strong constraint on the types of belief 149 
+
+4hierarchies that can be modelled; namely, it must hold that 150 
+
+p(S′) = X
+
+> S∈S
+
+P Si (S′)p(S) for all S′ ∈ S, i ∈ N. (1) 
+
+Example 2 (continued) . We see that our running example cannot be modelled with a common prior. 151 
+
+Supposing that the condition in Equation (1) holds, A’s beliefs are only consistent with a prior in p in 152 
+
+which p(SH ) = 0 , which would force H to assign zero probability to SH in both SH and SA.153 
+
+3.1 Information Sets and Policies 154 
+
+When forming a policy at the initialisation of an II-MAID S = ( N, S ∗, S), each agent may have 155 
+
+significant uncertainty about S∗, the objective model, represented by their prior over subjective 156 
+
+MAIDs P S∗ 
+
+> i
+
+. They should certainly plan for every eventuality deemed possible according to this prior. 157 
+
+We argue that they should also produce a plan for what to do in circumstances deemed impossible 158 
+
+under their prior, to avoid situations with undefined actions that might arise for example when 159 
+
+P S∗ 
+
+> i
+
+(S∗) = 0 , and to avoid forcing P Si (S′) > 0 for all i ∈ N, S, S ′ ∈ S.160 
+
+Therefore, a policy should contain a plan for every possible eventuality that may arise were any 161 
+
+subjective MAID to be the objective model. But there may be cases where upon reaching a decision 162 
+
+node D, agent i cannot fully determine the values of certain preceding variables, including cases where 163 
+
+previous actions were unobserved by the agent, but also including cases in which the observations 164 
+
+of the agent do not provide enough information to distinguish between multiple subjective MAIDs. 165 
+
+In these indistinguishable eventualities, a policy must specify the same behaviour, and so we must 166 
+
+define some analogy of information sets in EFGs. 167 
+
+At a decision node D, an agent observes the values of P a D and also observes the action set available 168 
+
+to it, dom (D). A policy should index every possible observation-action set combination (i.e. every 169 
+
+tuple containing a non-null decision and an associated action set) to a mixed action. We define the 170 
+
+information sets in an II-MAID as follows: 171 
+
+Definition 8. Given an II-MAID S = ( N, S ∗, S), we iteratively build the information sets . For each subjective MAID S ∈ S and each agent i ∈ N, denote Di(S) as the set of decision nodes for agent i in MS , P a Di (S) as the set of parents of Di in MS , and Pr πS (·) as the distribution of variables in MS under some policy π. Define 
+
+IS,i := ∪Di∈Di(S){(pa Di , dom (Di)) | pa Di ∈ dom (Pa Di (S)) : Pr πS (pa Di ) > 0 for some π}.
+
+Then agent i’s information sets are defined as Ii(S) := ∪S∈SIS,i . Finally, we can define the set of 172 
+
+information sets as I(S) = ( Ii(S)) i∈N.173 
+
+Definition 9. We define an II-MAID S = ( N, S ∗, S) as having perfect recall if for each S ∈ S,174 
+
+MS is a perfect recall game. 175 
+
+Definition 10. Given an II-MAID S = ( N, S ∗, S), a decision rule πI for I = ( x, d) ∈ I(S), where 176 
+
+x is a context and d is an action set, is a CPD πI (· | x) over d. A partial policy profile πI′ is a set 177 
+
+of decision rules πI for each I ∈ I′ ⊆ I(S), where we write π−I′ for the set of decision rules for 178 
+
+each I ∈ I(S) \ I′. A (behavioural) policy πi refers to πIi(S), a (full, behavioural) policy profile 179 
+
+π = ( π1, . . . , πn) is a tuple of policies, and π−i := ( π1, . . . , πi−1, πi+1 , . . . , πn).180 
+
+We note that unlike in standard MAIDs, in which a decision rule specifies behaviour at a given 181 
+
+decision variable in all contexts, decision rules in II-MAIDs specify a CPD only given a single 182 
+
+context. We can then calculate the subjective expected utility of a joint behaviour policy for agent i183 
+
+according to their beliefs P S∗ 
+
+> i
+
+as UiS∗ (π) := P
+
+> S∈S
+
+P 
+
+> U∈Ui(S)
+
+P  
+
+> u∈dom (U)
+
+u Pr πS (U = u)P S∗ 
+
+> i
+
+(S),184 
+
+where Ui(S) is the set of utility variables associated with agent i in MS and Pr πS is the post-policy 185 
+
+distribution of variables in MS .186 
+
+We note that the game we have described does not satisfy the epistemic conditions that are tightly 187 
+
+sufficient for Nash equilibria [ 2]. The setting of incomplete information we describe means that agents 188 
+
+do not have reliable means by which to predict the actions of their opponents. Our framework allows 189 
+
+for situations with no common knowledge beyond the set of possible worlds S, and in particular 190 
+
+incorrect beliefs about the values placed by opponents on particular outcomes. Although a Nash 191 
+
+equilibrium exists, agents would have to stumble across it. We further discuss solution concepts for 192 
+
+II-MAIDs in Section 5.1. 193 
+
+54 Extensive Form Games with Incomplete Information 194 
+
+We now present a formalisation of EFGs with incomplete information as per [ 32 ]. Our formalisation 195 
+
+modifies the framework from [ 31 ] to use EFGs rather than normal-form games. First, we start with a 196 
+
+definition of belief spaces. 197 
+
+Definition 11 (Adapted from Def 10.1 in [ 31 ]) . Let N be a finite set of agents and (S, S) be a 198 
+
+measurable space of EFGs. A belief space of the set of agents N over the set of states of nature is 199 
+
+an ordered vector Π = ( Y, Y, s, (bi)i∈N), where (Y, Y) is a measurable set of states of the world; 200 
+
+s : Y → S is a measurable function, mapping each state of the world to an EFG. For each agent 201 
+
+i ∈ N, a function bi : Y → ∆( Y ) maps each state of the world ω to a probability distribution over 202 
+
+Y . We will denote the probability that agent i ascribes to event E ⊆ Y , according to their probability 203 
+
+distribution bi(ω), by bi(E | ω). We require the functions (bi)i∈N to satisfy the following conditions: 204 
+
+• Coherency: for each agent i ∈ N and each ω ∈ Y , the set {ω′ ∈ Y : bi(ω′) = bi(ω)} is 205 
+
+measurable in Y and bi({ω′ ∈ Y : bi(ω′) = bi(ω)} | ω) = 1 .206 
+
+• Measurability: for each agent i ∈ N and each measurable set E ∈ Y , the function 207 
+
+bi(E | · ) : Y → [0 , 1] is a measurable function. 208 
+
+A state of the world in a belief space takes the form ω = ( s(ω), b 1(ω), . . . , b n(ω)) , where s(ω) is 209 
+
+the true EFG being played, and bi(ω) is the type of agent i, a distribution over states of the world 210 
+
+representing agent i’s beliefs. When in state of the world ω, agent i has beliefs bi(ω), but does 211 
+
+not necessarily know the state of the world (or s(ω)), since there may be some ω′ ∈ Y such that 212 
+
+bi(ω′) = bi(ω). It is assumed that all agents know bj (ω′) for all j ∈ N and all ω′ ∈ Y , and so bi(ω)213 
+
+defines a full belief hierarchy for agent i. For example, when in state of the world ω, agent i believes 214 
+
+that agent j places P 
+
+> ω′∈Y
+
+bi(ω′ | ω)bj (ω′′ | ω′) probability on the state of the world being ω′′ .215 
+
+Definition 12 (Adapted from Def 10.37 in [ 31 ]) . An incomplete information EFG (II-EFG) is 216 
+
+an ordered vector G = ( N, S, Π) , where N is a finite set of agents, S is a finite set of EFGs 217 
+
+s = ( N, T s, Ps, Ds, λ s, I(s), U s), and Π = ( Y, Y, s, (bi)i∈N) is a belief space of the players N over 218 
+
+the set of EFGs S. An II-EFG G = ( N, S, Π) has perfect recall if for each s ∈ S, s is a perfect 219 
+
+recall EFG. 220 
+
+Definition 13. The meta-information sets Ii for agent i ∈ N in an II-EFG G = ( N, S, Π) are defined 221 
+
+as follows. Let Ii = ∪s∈S Ii(s) be the set of all information sets for agent i across all EFGs s ∈ S.222 
+
+Define an equivalence relation ∼ on elements of Ii such that Ii(s) ∋ Iik(s) ∼ Iil (s′) ∈ Ii(s′) if 223 
+
+and only if: (1) Dis,k = Dis′,l . That is, the nodes in both information sets must have the same set 224 
+
+of available actions. (2) The nodes in Iik(s) and Iil (s′) must have the same observations. Define 225 
+
+the “belief-free” meta-information sets Iibf = Ii/ ∼, the quotient set of Ii by ∼, i.e., the set of 226 
+
+equivalence classes partitioning Ii. Letting T i = {bi(ω) : ω ∈ Y } be the set of possible beliefs for 227 
+
+agent i, we set Ii = Iibf × T i.228 
+
+Intuitively, we can think of a meta-information set for agent i as a belief bi(ω) and a set of information 229 
+
+sets in different games that the agent cannot distinguish between at the point of decision, given beliefs 230 
+
+bi(ω). Arriving at a node in one of these information sets, the agent is unable to distinguish between 231 
+
+some possible histories, and potentially some possible EFGs. Therefore, strategies in this type of 232 
+
+game must define a mixed action at each meta-information set. 233 
+
+This formalisation generalises the better-known Harsanyi game with incomplete information [ 17 ], by 234 
+
+dropping the assumption that agents have as common knowledge a prior over their types (bi)i∈N, i.e. 235 
+
+that they have consistent beliefs. Maschler ([ 31 ]) argues that in most practical settings, it is unrealistic 236 
+
+to expect consistency of beliefs, and Example 2 above supports this argument. 237 
+
+This game has two stages, known as the ex-ante and interim stages. The former takes place before the 238 
+
+state of the world ω ∈ Y is selected. We note that without a common prior, there is no distribution 239 
+
+from which a state of the world can be said to be selected, and so the procedure by which it is 240 
+
+generated is left unspecified. The work we present here concerns the interim stage of the game, which 241 
+
+takes place after the state of the world has been selected. At this stage, all agents i know their type 242 
+
+bi(ω).243 
+
+Example 3. Coming back to our recurring example, we demonstrate how to model the situation 244 
+
+described with an II-EFG (N , S, Π) at interim stage, where Π = ( Y, Y, s, (bi)i∈N ). N = {H, A },245 
+
+6and we let Y = {ω∗, ω a}, where the true state of the world is ω∗, and the state of the world assumed 246 
+
+true by the agent is ωa, set s(ω∗) as the EFG in Figure 2a and s(ωa) as the EFG in Figure 2b. S is a set 247 
+
+containing these two EFGs. All that remains is to specify the beliefs bi(ω) for each ω ∈ Y and each 248 
+
+agent i ∈ N . These are bH (ω∗ | ω∗) = 1 , b H (ωa | ωa) = 1 , b A(ωa | ω∗) = 1 , b A(ωa | ωa) = 1 .249 
+
+In what follows, we define Iti as the set of meta-information sets with belief t ∈ { bi(ω) : ω ∈ Y },250 
+
+and denote by DI the action set at meta-information set I.251 
+
+Definition 14 (Adapted from Def 10.38 in [ 31 ]) . A behaviour strategy of player i in an II-EFG G =(N, S, Π) is a tuple σi = ( σωi )ω∈Y with each element a measurable function σωi ∈×Ii∈Ibi(ω)
+
+> i
+
+∆( DIi )
+
+for some state of the world ω ∈ Y . σωi determines a mixed action for each meta-information set with belief bi(ω). σ ωi is dependent solely on the type of the player bi(ω). In other words, for each 
+
+ω, ω ′ ∈ Y ,
+
+bi(ω) = bi(ω′) = ⇒ σωi = σω′ 
+
+> i
+
+.
+
+A joint behaviour strategy takes the form σ = ( σi)i∈N. Further denote σω = ( σωi )i∈N. We denote 252 
+
+by σi[I] the behaviour of agent i at meta-information set I.253 
+
+Then, given some joint behaviour strategy σ, agent i’s expected utility when in state of the world ω254 
+
+(according to their beliefs bi(ω)) is 255 
+
+γGi (σ | ω) := X
+
+> ω′∈Y
+
+Ui
+
+> s(ω′)
+
+(σω′
+
+)bi(ω′ | ω)= X
+
+> ω′∈{ ω′:bi(ω′)= bi(ω)}
+
+Ui
+
+> s(ω′)
+
+(σωi , σ ω′
+
+> −i
+
+)bi(ω′ | ω) =: γGi (σωi , σ −i | ω).
+
+This follows from the coherency condition bi({ω′ ∈ Y : bi(ω′) = bi(ω)} | ω) = 1 . Under some 256 
+
+assumptions, at the interim stage, we can prove the existence of Nash equilibria. 257 
+
+Definition 15. A Nash equilibrium at the interim stage of an II-EFG G = ( N, S, Π) with state of the world ω is a strategy ˆσ satisfying 
+
+γGi (ˆ σωi , ˆσ−i | ω) ≥ γGi (σωi , ˆσ−i | ω), ∀i ∈ N, ∀σωi ∈ ×
+
+> Ii∈Ibi(ω)
+> i
+
+∆( DIi )
+
+Theorem 16. Let G = ( N, S, Π) be an II-EFG with perfect recall, where Y is a finite set of states of 258 
+
+the world, and each player i has a finite set of actions Di. Then at the interim stage, G has a Nash 259 
+
+equilibrium in behaviour strategies. Pf: A.20 260 
+
+Note that σω has the same expected payoff for agent i in all states of the world ω′ such that 261 
+
+bi(ω′) = bi(ω). Hence, if σωi is a perceived best response to σω 
+
+> −i
+
+in ω, it is also a perceived best 262 
+
+response in ω′.263 
+
+We can also prove the existence of a Bayesian equilibrium at the ex-ante stage of the game. 264 
+
+Definition 17 ([31] 10.39) . A Bayesian equilibrium is a strategy ˆσ = (ˆ σi)i∈N satisfying 
+
+γGi (ˆ σωi , ˆσ−i | ω) ≥ γGi (σωi , ˆσ−i | ω), ∀i ∈ N, ∀σωi ∈ ×
+
+> Ii∈Ibi(ω)
+> i
+
+∆( DIi ), ∀ω ∈ Y. 
+
+Theorem 18 (Adaptation of [ 31 ] Theorem 10.42) . Let G = ( N, S, Π) be an II-EFG with perfect 265 
+
+recall, where Y is a finite set of states of the world, and Di is finite for all agents i ∈ N. Then at 266 
+
+ex-ante stage, G has a Bayesian equilibrium in behaviour strategies. Pf: A.22 267 
+
+## 5 Equivalence of Frameworks 268 
+
+In this section, we show that our framework is “equivalent” to the interim stage of an II-EFG. At 269 
+
+the interim stage of an II-EFG G = ( N, S, Π) where Π = ( Y, Y, s, (bi)i∈N), with state of the 270 
+
+world ω, the true EFG is defined by s(ω), and the belief hierarchies are defined by bi(ω), for each 271 
+
+agent i ∈ N. In an II-MAID S = ( N, S ∗, S) with objective model S∗ = ( MS∗
+
+, (P S∗ 
+
+> i
+
+)i∈N), the 272 
+
+true MAID is MS∗
+
+and the belief hierarchies are defined by P S∗ 
+
+> i
+
+for each agent i ∈ N. In both 273 
+
+7frameworks, the belief hierarchies are probability distributions over objects ( states of the world 274 
+
+ω = ( s(ω), (bi(ω)) i∈N) in the former, subjective MAIDs S = ( MS , (P Si )i∈N) in the latter) that 275 
+
+determine a true game and a belief hierarchy for each agent. Intuitively, the two frameworks are 276 
+
+representing the same things, though our framework takes the games upon which belief hierarchies 277 
+
+are built to be MAIDs, not EFGs. 278 
+
+Building a framework on top of MAIDs rather than EFGs has the benefit we need not describe the 279 
+
+ex-ante stage of the game, as we treat the “objective model” as known by the modeller. II-MAIDs 280 
+
+also have the advantage that games are represented with MAIDs, which can be much more compact 281 
+
+than EFGs, and can also represent causal relationships between variables. Motivated by AI safety, we 282 
+
+see II-MAIDs as a useful means with which to describe multi-agent interactions, as it is likely that 283 
+
+the agents of the future will both reason causally and model the beliefs of other agents. 284 
+
+We now show, using results connecting EFGs to MAIDs that there exists a natural mapping between 285 
+
+strategies in the two frameworks that preserves expected utilities according to the agents’ subjective 286 
+
+models, and therefore preserves Nash equilibria. We first define a notion of equivalence, such that if 287 
+
+an II-MAID S and an II-EFG G are equivalent, then there exists such a natural mapping. 288 
+
+Definition 19 (Equivalence) . We say that an II-MAID S = ( N, S ∗, S) and an II-EFG G = ( N, S, Π) 289 
+
+at interim stage, with state of the world ω, are equivalent if there is a bijection f : Σ → Q/ ∼290 
+
+between the strategies Σ in G’s interim stage, and a partition of the policies Q in S (the quotient 291 
+
+set of Q by an equivalence relation ∼) such that: (1) for π, π ′ ∈ Q, π ∼ π′ only if πi and π′ 
+
+> i
+
+differ 292 
+
+only on null decision contexts according to P S∗ 
+
+> i
+
+, for each agent i ∈ N, and (2) for every π ∈ f (σ)293 
+
+and every agent i ∈ N, Ui 
+
+> S
+
+(π) = γGi (σ | ω), for each σ ∈ Σ. We refer to f as a natural mapping 294 
+
+between G and S.295 
+
+We leverage maid2efg and efg2maid 15 to construct transformations between II-MAIDs and II-296 
+
+EFGs, which we denote maid2efgII and efg2maidII (see Appendix B). These transformations 297 
+
+start by mapping all MAIDs (EFGs) in the belief hierarchy to EFGs (MAIDs) using maid2efg 298 
+
+(efg2maid ), and then match up the corresponding features of the frameworks as detailed above. They 299 
+
+guarantee a one-to-one correspondence between meta-information sets in the II-EFG and information 300 
+
+sets in the II-MAID, allowing for a simple map between strategies and policies. 301 
+
+Theorem 20. If G = maid2efgII (S) or S = efg2maidII (G), G and S are equivalent. Pf: A.24 302 
+
+This result shows that II-MAIDs and II-EFGs at the interim stage have the same representational 303 
+
+capacity, that is, they can both describe the same set of games. 304 
+
+5.1 Difficulties in Solving Incomplete Information MAIDs 305 
+
+The equivalence of II-EFGs and II-MAIDS mean that II-MAIDs inherit theoretical guarantees of 306 
+
+II-EFGs, including the existence of Nash equilibria in the case of perfect recall and finite S and finite 307 
+
+action spaces. (Theorem 18 does not carry over to II-MAIDs, since the equivalence is with the interim 308 
+
+stage of II-EFGs, and Bayesian equilibria exist in the ex-ante stage.) 309 
+
+Theorem 21. Let S = ( N, S ∗, S) be an II-MAID, where S is a finite set of subjective MAIDs, S310 
+
+has perfect recall, and dom (V ) is finite for each V ∈ M S for each S ∈ S. Then S has a Nash 311 
+
+equilibrium in behaviour policies. Pf: A.25 312 
+
+However, Nash Equilibria may not be sensible outcomes in an II-MAID. Let us return to our running 313 
+
+example to see why. 314 
+
+Example 2 (continued) . One Nash Equilibrium in the capabilities evaluation game is when the AI 315 
+
+always honestly reports its true capabilities and the human deploys the AI if and only if it honestly 316 
+
+reports its true capabilities. The outcome in this case is that the human and the AI each receive 1 317 
+
+utility, and they are each playing best responses to each other. However, this is not what the AI 318 
+
+would predict, because it has an incorrect conception of the world. It believes the human only wants 319 
+
+to deploy it if it has low dangerous capabilities, so it would likely believe that the human will not 320 
+
+deploy it if it demonstrates high capabilities. Even though demonstrating truthful capabilities is a 321 
+
+best response to the human’s optimal policy, the AI is unlikely to demonstrate high capabilities when 322 
+
+it has them because doing so is not a best response to the AI’s beliefs. An outcome that intuitively 323 
+
+seems more plausible in this case is that the AI hides its high capabilities, but the human knows that 324 
+
+the AI has been dishonest and decides not to deploy it, yielding -1 utility for the AI and 0 utility for 325 
+
+the human. 326 
+
+8This example suggests that a plausible solution concept should involve every agent playing a best 327 
+
+response to their beliefs at every level in the belief hierarchy, whether or not this ends up being a 328 
+
+best response to the actual policies of other agents. We leave it to future work to flesh out a solution 329 
+
+concept along these lines. This will likely require augmenting agents’ beliefs about the world to 330 
+
+include beliefs about the policies of other agents, and solutions would be policies for all agents along 331 
+
+with a setting for every agent’s beliefs about the policies of other agents at every level of their belief 332 
+
+hierarchy. There may be further restrictions that narrow the range of plausible outcomes; again, we 333 
+
+believe this is a promising direction for future work. 334 
+
+## 6 Related Work 335 
+
+MAIDs [ 26 ] were introduced as a compact means of representing a game. Causal games [ 16 ] refine 336 
+
+MAIDs by attributing a causal meaning to each edge in the DAG, and have been extensively applied 337 
+
+to problems in AI safety [ 10 , 6, 9, 20 , 28 , 36 , 41 , 29 , 40 ]. In his three-part seminal paper [ 17 , 18 , 19 ], 338 
+
+John Harsanyi demonstrated means by which to model situations of incomplete information as 339 
+
+situations of complete but imperfect information, where uncertainty about aspects of the game is 340 
+
+remodelled as failure to observe the types of other agents. His work largely relies on an assumption 341 
+
+of “belief consistency”, i.e., the existence of a common prior over types, which we discard in this 342 
+
+work, although his notion of Bayesian equilibrium continues to apply without this assumption [ 32 ]. A 343 
+
+popular framework called NIDs 11 constructs belief hierarchies upon MAIDs, under the assumption 344 
+
+of a common prior. NIDs are shown to reduce to a single MAID. 345 
+
+A majority of theoretical work on incomplete information games retains the belief consistency 346 
+
+assumption, as discarding it introduces significant complications to the modelling of incomplete 347 
+
+information. Some previous works [ 1 , 34 , 31 ] have proposed means by which to represent these 348 
+
+games. Early work [ 34 ] demonstrates that strategies will converge to equilibria in repeated Bayesian 349 
+
+games, even without a common prior. More recent work [ 1] represented these games with a belief 350 
+
+graph, a graphical structure compactly representing different possible worlds and their connections. 351 
+
+This places a restriction on the game by forcing each information set to have a “corresponding” 352 
+
+information set in each other possible world, representing the same decision. The formalism for 353 
+
+II-EFGs discussed in this paper is a slight adaptation of an existing framework [ 31 ], introducing 354 
+
+‘meta-information sets’ to model dynamic games. This framework can capture any belief hierarchy 355 
+
+for all agents, on a set of EFGs. 356 
+
+We prove that Nash equilibria exist in our framework, under some assumptions. Other works offer 357 
+
+more refined solution concepts for games with incomplete information with no common prior. Mirage 358 
+
+equilibria [ 37 ] assume that agents attribute to their opponents a belief hierarchy one layer shorter 359 
+
+than their own. Belief-free equilibria [ 22 , 21 , 23 ] do not depend on an agent’s belief about the state 360 
+
+of nature, and so obviate the need to update beliefs as the game progresses, but are not guaranteed to 361 
+
+exist. ∆-rationalization [ 4] generalises the notion of rationalization [ 35 , 3 ] to games with incomplete 362 
+
+information. It places a restriction ∆ on the first-order beliefs of each agent, providing a refinement 363 
+
+on the set of Bayesian equilibria. Future work could find analogies to these solution concepts suitable 364 
+
+for II-MAIDs. 365 
+
+## 7 Conclusion and Limitations 366 
+
+Accurately modeling agentic cognition is crucial for understanding, describing, predicting, and 367 
+
+steering agents’ behavior. In this paper, we have introduced the framework of incomplete information 368 
+
+MAIDs (II-MAIDs) for explicitly modeling higher-order beliefs in multi-agent interactions alongside 369 
+
+probabilistic and causal dependencies between variables. We have demonstrated the firm theoretical 370 
+
+grounding of the framework by proving the connections between our work and existing frameworks 371 
+
+for incomplete information games, using incomplete information extensive-form games as a bridge. 372 
+
+We believe this framework will prove useful going forward as a tool for modeling realistic multi-373 
+
+agent interactions, and we are particularly excited about its applications for ensuring the safety of 374 
+
+increasingly agentic AI systems. The main limitation of our work is the lack of a useful solution 375 
+
+concept. Nash equilibria exist, but are in general impossible for agents to identify. We hope that 376 
+
+future work will define useful solution concepts for our framework, so that we can gain a better 377 
+
+understanding of the behaviour we should expect from agents engaging in theory-of-mind. 378 
+
+9References 379 
+
+[1] D. Antos and A. Pfeffer. Representing bayesian games without a common prior. In AAMAS ,380 
+
+pages 1457–1458, 2010. 381 
+
+[2] R. J. Aumann and A. Brandenburger. Epistemic conditions for nash equilibrium. Econometrica ,382 
+
+63(5):1161–1180, 1995. 383 
+
+[3] P. Battigalli. On rationalizability in extensive games. Journal of Economic Theory , 74(1):40–61, 384 
+
+1997. 385 
+
+[4] P. Battigalli and M. Siniscalchi. Rationalization and incomplete information. Advances in 386 
+
+Theoretical Economics , 3(1), 2003. 387 
+
+[5] S. Bringsjord and N. S. Govindarajulu. Artificial Intelligence. In E. N. Zalta and U. Nodel-388 
+
+man, editors, The Stanford Encyclopedia of Philosophy . Metaphysics Research Lab, Stanford 389 
+
+University, Summer 2024 edition, 2024. 390 
+
+[6] R. Carey, E. Langlois, T. Everitt, and S. Legg. The incentives that shape behaviour, 2021. 391 
+
+[7] H. de Weerd, R. Verbrugge, and B. Verheij. Higher-order theory of mind in the tacit communi-392 
+
+cation game. Biologically Inspired Cognitive Architectures , 11:10–21, 2015. 393 
+
+[8] D. Dennett. Conditions of personhood. In What is a person? , pages 145–167. Springer, 1988. 394 
+
+[9] T. Everitt, M. Hutter, R. Kumar, and V. Krakovna. Reward tampering problems and solutions in 395 
+
+reinforcement learning: A causal influence diagram perspective, 2021. 396 
+
+[10] T. Everitt, R. Kumar, V. Krakovna, and S. Legg. Modeling agi safety frameworks with causal 397 
+
+influence diagrams, 2019. 398 
+
+[11] Y. Gal and A. Pfeffer. Networks of influence diagrams: A formalism for representing agents’ 399 
+
+beliefs and decision-making processes. Journal of artificial intelligence research , 33:109–147, 400 
+
+2008. 401 
+
+[12] M. Georgeff, B. Pell, M. Pollack, M. Tambe, and M. Wooldridge. The belief-desire-intention 402 
+
+model of agency. In Intelligent Agents V: Agents Theories, Architectures, and Languages: 5th 403 
+
+International Workshop, ATAL’98 Paris, France, July 4–7, 1998 Proceedings 5 , pages 1–10. 404 
+
+Springer, 1999. 405 
+
+[13] J. Halpern and M. Kleiman-Weiner. Towards formal definitions of blameworthiness, intention, 406 
+
+and moral responsibility. In Proceedings of the AAAI conference on artificial intelligence ,407 
+
+volume 32, 2018. 408 
+
+[14] J. Y. Halpern and E. Piermont. Subjective causality, 2024. 409 
+
+[15] L. Hammond, J. Fox, T. Everitt, A. Abate, and M. Wooldridge. Equilibrium refinements for 410 
+
+multi-agent influence diagrams: Theory and practice, 2021. 411 
+
+[16] L. Hammond, J. Fox, T. Everitt, R. Carey, A. Abate, and M. Wooldridge. Reasoning about 412 
+
+causality in games. Artificial Intelligence , 320:103919, 2023. 413 
+
+[17] J. C. Harsanyi. Games with incomplete information played by “bayesian” players, i–iii part i. 414 
+
+the basic model. Management science , 14(3):159–182, 1967. 415 
+
+[18] J. C. Harsanyi. Games with incomplete information played by “bayesian” players part ii. 416 
+
+bayesian equilibrium points. Management science , 14(5):320–334, 1968. 417 
+
+[19] J. C. Harsanyi. Games with incomplete information played by “bayesian” players part iii. the 418 
+
+basic probability distribution of the game. Management Science , 14(7), 1968. 419 
+
+[20] K. Holtman. Agi agent safety by iteratively improving the utility function, 2020. 420 
+
+[21] J. Hörner and S. Lovo. Belief-free equilibria in games with incomplete information. Economet-421 
+
+rica , 77(2):453–487, 2009. 422 
+
+10 [22] J. Hörner, S. Lovo, and T. Tomala. Belief-free equilibria in games with incomplete information: 423 
+
+the n-player case. Technical report, mimeo, 2008. 424 
+
+[23] J. Hörner, S. Lovo, and T. Tomala. Belief-free equilibria in games with incomplete information: 425 
+
+Characterization and existence. Journal of Economic Theory , 146(5):1770–1795, 2011. 426 
+
+[24] R. A. Howard and J. E. Matheson. Influence diagrams. Decision Analysis , 2(3):127–143, 2005. 427 
+
+[25] Z. Kenton, R. Kumar, S. Farquhar, J. Richens, M. MacDermott, and T. Everitt. Discovering 428 
+
+agents. Artificial Intelligence , 322:103963, 2023. 429 
+
+[26] D. Koller and B. Milch. Multi-agent influence diagrams for representing and solving games. 430 
+
+Games and economic behavior , 45(1):181–221, 2003. 431 
+
+[27] H. W. Kuhn. Extensive games and the problem of information. In Contributions to the Theory 432 
+
+of Games (AM-28) , volume 2, pages 193–216. Princeton University Press, 1953. 433 
+
+[28] E. D. Langlois and T. Everitt. How rl agents behave when their actions are modified, 2021. 434 
+
+[29] M. MacDermott, T. Everitt, and F. Belardinelli. Characterising decision theories with mecha-435 
+
+nised causal graphs, 2023. 436 
+
+[30] M. MacDermott, J. Fox, F. Belardinelli, and T. Everitt. Measuring goal-directedness. 2024. 437 
+
+[31] M. Maschler, E. Solan, and S. Zamir. Game Theory . Cambridge University Press, Cambridge, 438 
+
+2013. Chapter 10. 439 
+
+[32] J. F. Mertens and S. Zamir. Formulation of bayesian analysis for games with incomplete 440 
+
+information. International journal of game theory , 14:1–29, 1985. 441 
+
+[33] A. C. Miller III, M. W. Merkhofer, R. A. Howard, J. E. Matheson, and T. R. Rice. Development 442 
+
+of automated aids for decision analysis. Technical report, 1976. 443 
+
+[34] Y. Nyarko. Bayesian learning and convergence to nash equilibria without common priors. 444 
+
+Economic Theory , 11:643–655, 1998. 445 
+
+[35] D. G. Pearce. Rationalizable strategic behavior and the problem of perfection. Econometrica: 446 
+
+Journal of the Econometric Society , pages 1029–1050, 1984. 447 
+
+[36] J. Richens and T. Everitt. Robust agents learn causal world models, 2024. 448 
+
+[37] J. Sákovics. Games of incomplete information without common knowledge priors. Theory and 449 
+
+decision , 50:347–366, 2001. 450 
+
+[38] E. Schwitzgebel. Belief. In E. N. Zalta and U. Nodelman, editors, The Stanford Encyclopedia 451 
+
+of Philosophy . Metaphysics Research Lab, Stanford University, Spring 2024 edition, 2024. 452 
+
+[39] L. Wang, C. Ma, X. Feng, Z. Zhang, H. Yang, J. Zhang, Z. Chen, J. Tang, X. Chen, Y. Lin, et al. 453 
+
+A survey on large language model based autonomous agents. Frontiers of Computer Science ,454 
+
+18(6):1–26, 2024. 455 
+
+[40] F. R. Ward, F. Belardinelli, F. Toni, and T. Everitt. Honesty is the best policy: Defining and 456 
+
+mitigating ai deception, 2023. 457 
+
+[41] F. R. Ward, M. MacDermott, F. Belardinelli, F. Toni, and T. Everitt. The reasons that agents act: 458 
+
+Intention and instrumental goals, 2024. 459 
+
+11 Appendix 460 
+
+## A Proofs 461 
+
+Theorem 16. Let G = ( N, S, Π) be a game with incomplete information with perfect recall, where 462 
+
+Y is a finite set of states of the world, and each player i has a finite set of actions Di. Then at interim 463 
+
+stage, G has a Nash equilibrium in behaviour strategies. 464 
+
+Proof. Given the finite sets of states of the world Y and actions Di for each player i ∈ N, we can 465 
+
+focus on behavior strategies due to Kuhn’s theorem, which ensures that in games with perfect recall, 466 
+
+mixed strategies are realization-equivalent to behavior strategies. 467 
+
+The expected utility for player i in state of the world ω is: 468 
+
+γGi (σ | ω) = X
+
+> ω′∈{ ω′:bi(ω′)= bi(ω)}
+
+Ui
+
+> s(ω′)
+
+(σω′
+
+)bi(ω′ | ω).
+
+This utility function is continuous and multilinear in the behavior strategies σωi .469 
+
+Given that the strategy space is a compact and convex set of behavior strategies, and the utility 470 
+
+functions are continuous, we apply the Kakutani fixed-point theorem. This theorem guarantees the 471 
+
+existence of a fixed point, which corresponds to a Nash equilibrium in behavior strategies. 472 
+
+Thus, there exists a Nash equilibrium ˆσ in behavior strategies such that: 473 
+
+γGi (ˆ σωi , ˆσ−i | ω) ≥ γGi (σωi , ˆσ−i | ω) ∀i ∈ N, ∀σωi ∈ ×
+
+> Ii∈Ibi(ω)
+> i
+
+∆( DIi ).
+
+> 474
+
+Theorem 18 (Adaptation of [ 31 ] Theorem 10.42) . Let G = ( N, S, Π) be a game with incomplete 475 
+
+information, where Y is a finite set of states of the world, and Di is finite for all agents i ∈ N. Then 476 
+
+at ex-ante stage, G has a Bayesian equilibrium in behaviour strategies. 477 
+
+Proof. Since Y and Di are finite and each EFG in S has perfect recall, Kuhn’s theorem ensures that 478 
+
+mixed strategies can be represented as behavior strategies. The expected utility for player i given a 479 
+
+strategy profile σ is: 480 
+
+γGi (σ | ω) = X
+
+> ω′∈Y
+
+Ui
+
+> s(ω′)
+
+(σω′
+
+)bi(ω′ | ω).
+
+Given the compactness and convexity of the strategy space and the continuity of the utility functions 481 
+
+γGi (σ | ω), we apply the Kakutani fixed-point theorem. This guarantees the existence of a fixed point, 482 
+
+which corresponds to a Bayesian equilibrium in behavior strategies. 483 
+
+Thus, there exists a strategy profile ˆσ such that: 484 
+
+γGi (ˆ σωi , ˆσ−i | ω) ≥ γGi (σωi , ˆσ−i | ω), ∀i ∈ N, ∀σωi ∈ ×
+
+> Ii∈Ibi(ω)
+> i
+
+∆( DIi ), ∀ω ∈ Y. 
+
+Hence, ˆσ is a Bayesian equilibrium. 485 
+
+Theorem 20. If G = maid2efgII (S) or S = efg2maidII (G) then G and S are equivalent. 486 
+
+Proof (follows the proof of Lemma 1 in (15) closely). This follows from the construction of 487 
+
+maid2efgII and efg2maidII .488 
+
+First suppose G = maid2efgII (S). A behaviour policy π in S specifies a distribution over actions 489 
+
+at each information set I in S. Suppose that I has associated action set D. Each information set 490 
+
+in S corresponds to a single meta-information set in G. Supposing that I = ( x, d) corresponds 491 
+
+to meta-information set J, we have that for all nodes Y ∈ J, and each d ∈ dom (D), there exists 492 
+
+a unique Z ∈ Ch Y such that λ(Y, Z ) = d. Thus, we can simply assign σi[J] = πi(d | x). By 493 
+
+construction, if under policy π an information set in S is reached with probability p, then in G under 494 
+
+σ the corresponding meta-information set will also be reached with probability p. It follows that 495 
+
+expected utilities in G and S are the same, under σ and π respectively. 496 
+
+12 Second, suppose S = efg2maidII (G). By our construction, policies defined on S define a mixed 497 
+
+action on each information set, defined as a non-null decision context crossed with an action set. 498 
+
+Again, using our constructed bijection h between meta-information sets and information sets in 499 
+
+our framework, we have a one-to-one mapping. Therefore, for any strategy σ in G, we can assign 500 
+
+πi[h(J)] = σi[J] for each J ∈ Iω∗
+
+(G), and again expected utilities are the same in both models. 501 
+
+Theorem 21. Let S = ( N, S ∗, S) be an II-MAID, where S is a finite set of subjective MAIDs, S502 
+
+has perfect recall, and dom (V ) is finite for each V ∈ M S for each S ∈ S. Then S has a Nash 503 
+
+equilibrium in behaviour policies. 504 
+
+Proof. Applying G = maid2efgII (S) we yield a game with incomplete with perfect recall at 505 
+
+interim stage ω, with finite action spaces. By Theorem 16, we know that G has a Nash equilibrium σ506 
+
+in behaviour strategies. By Theorem 20, we know that G and S are equivalent, and therefore there 507 
+
+exists a utility-preserving map f from strategies in G to policies in S. Therefore and π ∈ f (σ) is a 508 
+
+Nash equilibrium in S.509 
+
+## B efg2maidII and maid2efgII 510 
+
+B.1 maid2efgII 511 
+
+maid2efg transforms a MAID to a set of equivalent EFGs, as per definition 17 in [[ 15 ]]. We are 512 
+
+interested in transforming an II-MAID S = ( N, S ∗, S) into a set of equivalent games with incomplete 513 
+
+information G = ( N, S, Π) at interim stage with state of the world ω∗, as per definition 19. We 514 
+
+describe such a transformation here, which we call maid2efgII :515 
+
+• The set of agents N in G is the same as in S.516 
+
+• The set of states of nature (EFGs) S is formed by {maid2efg (MS ) : s ∈ S}.517 
+
+• We now construct the belief space Π = ( Y, Y, s, (bi)i∈N). Each ω ∈ Y is of the form 518 
+
+(s(ω), (bi(ω)) i∈N). We build a map m : S → Y , noting that each subjective MAID s ∈ S519 
+
+is of the form s = ( MS , (P Si )i∈N).520 
+
+– s(m(s)) ∈ maid2efg (MS ), choosing an arbitrary element. 521 
+
+– bi(m(s′) | m(s)) := P si (s′) for all s′ ∈ S.522 
+
+• ω∗ = mS∗
+
+.523 
+
+• We now verify that information sets in the II-MAID are mapped one-to-one to meta-524 
+
+information sets with belief bi(ω∗) in the game with incomplete information defined by the 525 
+
+above steps. Information sets in S are defined by decision-context-action-set pairs across 526 
+
+MAIDs. For each MAID m ∈ {M S : s ∈ S}, maid2efg (m) is a set of EFGs, each of 527 
+
+which has the same information sets, but potentially different variable orderings. 528 
+
+– For any node Z (corresponding to some variable SZ in m) in the tree T of some EFG 529 
+
+in maid2efg (m), it is labelled with an instantiation μ(Z) corresponding to the values 530 
+
+taken by each EFG node on the path from the tree’s root R to Z. Nodes will only exist 531 
+
+for those paths corresponding to values with non-zero probability according to m. We 532 
+
+can query the values of the parents of SZ at the node Z via μ(Z)[ P a SZ ]. maid2efg 533 
+
+forms information sets by grouping nodes for which this value (and the corresponding 534 
+
+node SZ in the MAID) is the same. 535 
+
+– To form meta-information sets, we simply follow [definition of meta-information sets]. 536 
+
+Letting Iim be the information sets for agent i in any EFG in maid2efg (m), we can 537 
+
+define an equivalence relation ∼ over ∪m∈MIim such that I1 ∼ I2 if and only if 538 
+
+μ(Z1)[ P a SZ1 ] = μ(Z2)[ P a SZ2 ] and dom (SZ1 ) = dom (SZ2 ) for every Z1 ∈ I1 and 539 
+
+every Z2 ∈ I2. Then the set of meta-information sets for player i is the quotient 540 
+
+set ∪m∈MIim/ ∼ - the set of equivalence classes partitioning ∪m∈MIim. To match 541 
+
+notation, for each element of each meta-information set, append the belief bi(ω∗) for 542 
+
+the appropriate agent i ∈ N.543 
+
+– Hence, we have a one-to-one mapping between information sets in S and meta-544 
+
+information sets (restricted to belief bi(ω∗) for each i ∈ N in G, and action sets 545 
+
+are preserved under this mapping. 546 
+
+13 B.2 efg2maidII 547 
+
+efg2maid transforms an EFG into an equivalent MAID, as per definition 17 in [[ 15 ]]. We are 548 
+
+interested in transforming a game with incomplete information G = ( N, S, Π) , at interim stage with 549 
+
+state of the world ω∗, into an equivalent II-MAID S = ( N, S ∗, S), as per Definition 19. We describe 550 
+
+such a transformation here, which we call efg2maidII :551 
+
+• The set of agents N in S is the same as in G.552 
+
+• Given belief space Π = ( Y, Y, s, (bi)i∈N), we can map each state of the world w =553 
+
+(s(ω), (bi(ω)) i∈N) ∈ Y to a subjective MAID s ∈ S with g : Y → S, noting that s is of 554 
+
+the form s = ( MS , (P Si )i∈N).555 
+
+– Mg(ω) := efg2maid (s(ω)) .556 
+
+– P g(ω) 
+
+> i
+
+(g(ω′)) := bi(ω′ | ω) for all w′ ∈ Y .557 
+
+• S∗ = g(ω∗).558 
+
+• Meta-information sets in the game with incomplete information are defined as sets of 559 
+
+information sets, across various EFGs, in which nodes has the same action set and the same 560 
+
+observations, with observations defined as all information available at a given information 561 
+
+set. Since we are at the interim stage of the game, we can restrict our attention to those 562 
+
+information sets with belief bi(ω∗). In the II-MAID resulting from the above operations, 563 
+
+the information sets as per Definition 8 correspond one-to-one with those in the game with 564 
+
+incomplete information, as they are defined by sets of observation-action set pairs, with 565 
+
+observations defined by the values of parents of the given decision variable. efg2maid 566 
+
+determines the parents of a decision variable according to those ancestors of nodes in a 567 
+
+given intervention set that have the same value in paths to each node. As a result, there 568 
+
+is a one-to-one correspondence between meta-information sets in a game with incomplete 569 
+
+information, and the resulting II-MAID, and since action sets of decision variable are 570 
+
+preserved by efg2maid , strategies can easily be mapped to policies. 571 
+
+• More precisely, we can define a bijection between meta-information sets in G and informa-572 
+
+tion sets in S as follows. Given ω∗, we denote the meta-information sets in G corresponding 573 
+
+to beliefs bi(ω∗) for some agent i as Iω∗
+
+(G). Further, for I ∈ Iω∗
+
+(G) denote D(I) as the 574 
+
+associated action set and O(I) the associated observation. O(I) is a potentially empty tuple 575 
+
+containing observed values of previous decisions or chance nodes. For any information set 576 
+
+(p, d ) ∈ I(S), where efg2maidII (G), p is a tuple containing the values of parent nodes, 577 
+
+and d is the associated action set. (p, d ) ∈ I(S) has the same type as (O(I), D (I)) for 578 
+
+I ∈ Iω∗
+
+(G). Since for any I, J ∈ Iω∗
+
+(G), (O(I), D (I)) = ( O(J), D (J)) =⇒ I = J,579 
+
+we can construct a bijection h : Iω∗
+
+(G) → I(S); I 7 → (O(I), D (I)) . We use this construc-580 
+
+tion in the proof of Theorem 20 when converting strategies from one framework to the 581 
+
+other. 582 
+
+14 NeurIPS Paper Checklist 583 
+
+1. Claims 584 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the 585 
+
+paper’s contributions and scope? 586 
+
+Answer: [Yes] 587 
+
+Justification: We claim in the abstract to have developed a new framework with a strong 588 
+
+theoretical connection to dynamic games with incomplete information and no common prior 589 
+
+over types. We also claim to have proven the existence of equilibria concepts. We have done 590 
+
+both of these things, along with the rest of the stated achievements. 591 
+
+Guidelines: 592 
+
+• The answer NA means that the abstract and introduction do not include the claims 593 
+
+made in the paper. 594 
+
+• The abstract and/or introduction should clearly state the claims made, including the 595 
+
+contributions made in the paper and important assumptions and limitations. A No or 596 
+
+NA answer to this question will not be perceived well by the reviewers. 597 
+
+• The claims made should match theoretical and experimental results, and reflect how 598 
+
+much the results can be expected to generalize to other settings. 599 
+
+• It is fine to include aspirational goals as motivation as long as it is clear that these goals 600 
+
+are not attained by the paper. 601 
+
+2. Limitations 602 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? 603 
+
+Answer: [Yes] 604 
+
+Justification: We discuss limitations in the conclusion. 605 
+
+Guidelines: 606 
+
+• The answer NA means that the paper has no limitation while the answer No means that 607 
+
+the paper has limitations, but those are not discussed in the paper. 608 
+
+• The authors are encouraged to create a separate "Limitations" section in their paper. 609 
+
+• The paper should point out any strong assumptions and how robust the results are to 610 
+
+violations of these assumptions (e.g., independence assumptions, noiseless settings, 611 
+
+model well-specification, asymptotic approximations only holding locally). The authors 612 
+
+should reflect on how these assumptions might be violated in practice and what the 613 
+
+implications would be. 614 
+
+• The authors should reflect on the scope of the claims made, e.g., if the approach was 615 
+
+only tested on a few datasets or with a few runs. In general, empirical results often 616 
+
+depend on implicit assumptions, which should be articulated. 617 
+
+• The authors should reflect on the factors that influence the performance of the approach. 618 
+
+For example, a facial recognition algorithm may perform poorly when image resolution 619 
+
+is low or images are taken in low lighting. Or a speech-to-text system might not be 620 
+
+used reliably to provide closed captions for online lectures because it fails to handle 621 
+
+technical jargon. 622 
+
+• The authors should discuss the computational efficiency of the proposed algorithms 623 
+
+and how they scale with dataset size. 624 
+
+• If applicable, the authors should discuss possible limitations of their approach to 625 
+
+address problems of privacy and fairness. 626 
+
+• While the authors might fear that complete honesty about limitations might be used by 627 
+
+reviewers as grounds for rejection, a worse outcome might be that reviewers discover 628 
+
+limitations that aren’t acknowledged in the paper. The authors should use their best 629 
+
+judgment and recognize that individual actions in favor of transparency play an impor-630 
+
+tant role in developing norms that preserve the integrity of the community. Reviewers 631 
+
+will be specifically instructed to not penalize honesty concerning limitations. 632 
+
+3. Theory Assumptions and Proofs 633 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and 634 
+
+a complete (and correct) proof? 635 
+
+15 Answer: [Yes] 636 
+
+Justification: For each of our theorems, we state the assumptions clearly, and all proofs are 637 
+
+in the appendix. 638 
+
+Guidelines: 639 
+
+• The answer NA means that the paper does not include theoretical results. 640 
+
+• All the theorems, formulas, and proofs in the paper should be numbered and cross-641 
+
+referenced. 642 
+
+• All assumptions should be clearly stated or referenced in the statement of any theorems. 643 
+
+• The proofs can either appear in the main paper or the supplemental material, but if 644 
+
+they appear in the supplemental material, the authors are encouraged to provide a short 645 
+
+proof sketch to provide intuition. 646 
+
+• Inversely, any informal proof provided in the core of the paper should be complemented 647 
+
+by formal proofs provided in appendix or supplemental material. 648 
+
+• Theorems and Lemmas that the proof relies upon should be properly referenced. 649 
+
+4. Experimental Result Reproducibility 650 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-651 
+
+perimental results of the paper to the extent that it affects the main claims and/or conclusions 652 
+
+of the paper (regardless of whether the code and data are provided or not)? 653 
+
+Answer: [NA] 654 
+
+Justification: We did not run any experiments. 655 
+
+Guidelines: 656 
+
+• The answer NA means that the paper does not include experiments. 657 
+
+• If the paper includes experiments, a No answer to this question will not be perceived 658 
+
+well by the reviewers: Making the paper reproducible is important, regardless of 659 
+
+whether the code and data are provided or not. 660 
+
+• If the contribution is a dataset and/or model, the authors should describe the steps taken 661 
+
+to make their results reproducible or verifiable. 662 
+
+• Depending on the contribution, reproducibility can be accomplished in various ways. 663 
+
+For example, if the contribution is a novel architecture, describing the architecture fully 664 
+
+might suffice, or if the contribution is a specific model and empirical evaluation, it may 665 
+
+be necessary to either make it possible for others to replicate the model with the same 666 
+
+dataset, or provide access to the model. In general. releasing code and data is often 667 
+
+one good way to accomplish this, but reproducibility can also be provided via detailed 668 
+
+instructions for how to replicate the results, access to a hosted model (e.g., in the case 669 
+
+of a large language model), releasing of a model checkpoint, or other means that are 670 
+
+appropriate to the research performed. 671 
+
+• While NeurIPS does not require releasing code, the conference does require all submis-672 
+
+sions to provide some reasonable avenue for reproducibility, which may depend on the 673 
+
+nature of the contribution. For example 674 
+
+(a) If the contribution is primarily a new algorithm, the paper should make it clear how 675 
+
+to reproduce that algorithm. 676 
+
+(b) If the contribution is primarily a new model architecture, the paper should describe 677 
+
+the architecture clearly and fully. 678 
+
+(c) If the contribution is a new model (e.g., a large language model), then there should 679 
+
+either be a way to access this model for reproducing the results or a way to reproduce 680 
+
+the model (e.g., with an open-source dataset or instructions for how to construct 681 
+
+the dataset). 682 
+
+(d) We recognize that reproducibility may be tricky in some cases, in which case 683 
+
+authors are welcome to describe the particular way they provide for reproducibility. 684 
+
+In the case of closed-source models, it may be that access to the model is limited in 685 
+
+some way (e.g., to registered users), but it should be possible for other researchers 686 
+
+to have some path to reproducing or verifying the results. 687 
+
+5. Open access to data and code 688 
+
+16 Question: Does the paper provide open access to the data and code, with sufficient instruc-689 
+
+tions to faithfully reproduce the main experimental results, as described in supplemental 690 
+
+material? 691 
+
+Answer: [NA] 692 
+
+Justification: We did not present any experimental results. 693 
+
+Guidelines: 694 
+
+• The answer NA means that paper does not include experiments requiring code. 695 
+
+• Please see the NeurIPS code and data submission guidelines ( https://nips.cc/ 696 
+
+public/guides/CodeSubmissionPolicy ) for more details. 697 
+
+• While we encourage the release of code and data, we understand that this might not be 698 
+
+possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not 699 
+
+including code, unless this is central to the contribution (e.g., for a new open-source 700 
+
+benchmark). 701 
+
+• The instructions should contain the exact command and environment needed to run to 702 
+
+reproduce the results. See the NeurIPS code and data submission guidelines ( https: 703 
+
+//nips.cc/public/guides/CodeSubmissionPolicy ) for more details. 704 
+
+• The authors should provide instructions on data access and preparation, including how 705 
+
+to access the raw data, preprocessed data, intermediate data, and generated data, etc. 706 
+
+• The authors should provide scripts to reproduce all experimental results for the new 707 
+
+proposed method and baselines. If only a subset of experiments are reproducible, they 708 
+
+should state which ones are omitted from the script and why. 709 
+
+• At submission time, to preserve anonymity, the authors should release anonymized 710 
+
+versions (if applicable). 711 
+
+• Providing as much information as possible in supplemental material (appended to the 712 
+
+paper) is recommended, but including URLs to data and code is permitted. 713 
+
+6. Experimental Setting/Details 714 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-715 
+
+parameters, how they were chosen, type of optimizer, etc.) necessary to understand the 716 
+
+results? 717 
+
+Answer: [NA] 718 
+
+Justification: We did not present any experimental results. 719 
+
+Guidelines: 720 
+
+• The answer NA means that the paper does not include experiments. 721 
+
+• The experimental setting should be presented in the core of the paper to a level of detail 722 
+
+that is necessary to appreciate the results and make sense of them. 723 
+
+• The full details can be provided either with the code, in appendix, or as supplemental 724 
+
+material. 725 
+
+7. Experiment Statistical Significance 726 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate 727 
+
+information about the statistical significance of the experiments? 728 
+
+Answer: [NA] 729 
+
+Justification: We did not present any experimental results. 730 
+
+Guidelines: 731 
+
+• The answer NA means that the paper does not include experiments. 732 
+
+• The authors should answer "Yes" if the results are accompanied by error bars, confi-733 
+
+dence intervals, or statistical significance tests, at least for the experiments that support 734 
+
+the main claims of the paper. 735 
+
+• The factors of variability that the error bars are capturing should be clearly stated (for 736 
+
+example, train/test split, initialization, random drawing of some parameter, or overall 737 
+
+run with given experimental conditions). 738 
+
+• The method for calculating the error bars should be explained (closed form formula, 739 
+
+call to a library function, bootstrap, etc.) 740 
+
+17 • The assumptions made should be given (e.g., Normally distributed errors). 741 
+
+• It should be clear whether the error bar is the standard deviation or the standard error 742 
+
+of the mean. 743 
+
+• It is OK to report 1-sigma error bars, but one should state it. The authors should 744 
+
+preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis 745 
+
+of Normality of errors is not verified. 746 
+
+• For asymmetric distributions, the authors should be careful not to show in tables or 747 
+
+figures symmetric error bars that would yield results that are out of range (e.g. negative 748 
+
+error rates). 749 
+
+• If error bars are reported in tables or plots, The authors should explain in the text how 750 
+
+they were calculated and reference the corresponding figures or tables in the text. 751 
+
+8. Experiments Compute Resources 752 
+
+Question: For each experiment, does the paper provide sufficient information on the com-753 
+
+puter resources (type of compute workers, memory, time of execution) needed to reproduce 754 
+
+the experiments? 755 
+
+Answer: [NA] 756 
+
+Justification: We did not present any experimental results. 757 
+
+Guidelines: 758 
+
+• The answer NA means that the paper does not include experiments. 759 
+
+• The paper should indicate the type of compute workers CPU or GPU, internal cluster, 760 
+
+or cloud provider, including relevant memory and storage. 761 
+
+• The paper should provide the amount of compute required for each of the individual 762 
+
+experimental runs as well as estimate the total compute. 763 
+
+• The paper should disclose whether the full research project required more compute 764 
+
+than the experiments reported in the paper (e.g., preliminary or failed experiments that 765 
+
+didn’t make it into the paper). 766 
+
+9. Code Of Ethics 767 
+
+Question: Does the research conducted in the paper conform, in every respect, with the 768 
+
+NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?769 
+
+Answer: [Yes] 770 
+
+Justification: We had no research subjects or data, so no harms were caused in this way. We 771 
+
+believe our work is very unlikely to have negative societal impact via the listed categories, 772 
+
+as it is purely a theoretical framework and we did not train any models. Our work does not 773 
+
+touch on any political issues. 774 
+
+Guidelines: 775 
+
+• The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. 776 
+
+• If the authors answer No, they should explain the special circumstances that require a 777 
+
+deviation from the Code of Ethics. 778 
+
+• The authors should make sure to preserve anonymity (e.g., if there is a special consid-779 
+
+eration due to laws or regulations in their jurisdiction). 780 
+
+10. Broader Impacts 781 
+
+Question: Does the paper discuss both potential positive societal impacts and negative 782 
+
+societal impacts of the work performed? 783 
+
+Answer: [Yes] 784 
+
+Justification: We include a few sentences in the conclusion discussing how we feel our paper 785 
+
+could have positive societal impact via a useful model for understanding the behaviour and 786 
+
+reasoning of intelligent systems. We feel it is very unlikely that the theory we present here 787 
+
+could have any negative societal impact. 788 
+
+Guidelines: 789 
+
+• The answer NA means that there is no societal impact of the work performed. 790 
+
+18 • If the authors answer NA or No, they should explain why their work has no societal 791 
+
+impact or why the paper does not address societal impact. 792 
+
+• Examples of negative societal impacts include potential malicious or unintended uses 793 
+
+(e.g., disinformation, generating fake profiles, surveillance), fairness considerations 794 
+
+(e.g., deployment of technologies that could make decisions that unfairly impact specific 795 
+
+groups), privacy considerations, and security considerations. 796 
+
+• The conference expects that many papers will be foundational research and not tied 797 
+
+to particular applications, let alone deployments. However, if there is a direct path to 798 
+
+any negative applications, the authors should point it out. For example, it is legitimate 799 
+
+to point out that an improvement in the quality of generative models could be used to 800 
+
+generate deepfakes for disinformation. On the other hand, it is not needed to point out 801 
+
+that a generic algorithm for optimizing neural networks could enable people to train 802 
+
+models that generate Deepfakes faster. 803 
+
+• The authors should consider possible harms that could arise when the technology is 804 
+
+being used as intended and functioning correctly, harms that could arise when the 805 
+
+technology is being used as intended but gives incorrect results, and harms following 806 
+
+from (intentional or unintentional) misuse of the technology. 807 
+
+• If there are negative societal impacts, the authors could also discuss possible mitigation 808 
+
+strategies (e.g., gated release of models, providing defenses in addition to attacks, 809 
+
+mechanisms for monitoring misuse, mechanisms to monitor how a system learns from 810 
+
+feedback over time, improving the efficiency and accessibility of ML). 811 
+
+11. Safeguards 812 
+
+Question: Does the paper describe safeguards that have been put in place for responsible 813 
+
+release of data or models that have a high risk for misuse (e.g., pretrained language models, 814 
+
+image generators, or scraped datasets)? 815 
+
+Answer: [NA] 816 
+
+Justification: We do not present any experimental results, use any data, or train any models. 817 
+
+Guidelines: 818 
+
+• The answer NA means that the paper poses no such risks. 819 
+
+• Released models that have a high risk for misuse or dual-use should be released with 820 
+
+necessary safeguards to allow for controlled use of the model, for example by requiring 821 
+
+that users adhere to usage guidelines or restrictions to access the model or implementing 822 
+
+safety filters. 823 
+
+• Datasets that have been scraped from the Internet could pose safety risks. The authors 824 
+
+should describe how they avoided releasing unsafe images. 825 
+
+• We recognize that providing effective safeguards is challenging, and many papers do 826 
+
+not require this, but we encourage authors to take this into account and make a best 827 
+
+faith effort. 828 
+
+12. Licenses for existing assets 829 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in 830 
+
+the paper, properly credited and are the license and terms of use explicitly mentioned and 831 
+
+properly respected? 832 
+
+Answer: [NA] 833 
+
+Justification: There are no assets associated with the paper. 834 
+
+Guidelines: 835 
+
+• The answer NA means that the paper does not use existing assets. 836 
+
+• The authors should cite the original paper that produced the code package or dataset. 837 
+
+• The authors should state which version of the asset is used and, if possible, include a 838 
+
+URL. 839 
+
+• The name of the license (e.g., CC-BY 4.0) should be included for each asset. 840 
+
+• For scraped data from a particular source (e.g., website), the copyright and terms of 841 
+
+service of that source should be provided. 842 
+
+19 • If assets are released, the license, copyright information, and terms of use in the 843 
+
+package should be provided. For popular datasets, paperswithcode.com/datasets 844 
+
+has curated licenses for some datasets. Their licensing guide can help determine the 845 
+
+license of a dataset. 846 
+
+• For existing datasets that are re-packaged, both the original license and the license of 847 
+
+the derived asset (if it has changed) should be provided. 848 
+
+• If this information is not available online, the authors are encouraged to reach out to 849 
+
+the asset’s creators. 850 
+
+13. New Assets 851 
+
+Question: Are new assets introduced in the paper well documented and is the documentation 852 
+
+provided alongside the assets? 853 
+
+Answer: [NA] 854 
+
+Justification: There are no assets associated with the paper. 855 
+
+Guidelines: 856 
+
+• The answer NA means that the paper does not release new assets. 857 
+
+• Researchers should communicate the details of the dataset/code/model as part of their 858 
+
+submissions via structured templates. This includes details about training, license, 859 
+
+limitations, etc. 860 
+
+• The paper should discuss whether and how consent was obtained from people whose 861 
+
+asset is used. 862 
+
+• At submission time, remember to anonymize your assets (if applicable). You can either 863 
+
+create an anonymized URL or include an anonymized zip file. 864 
+
+14. Crowdsourcing and Research with Human Subjects 865 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper 866 
+
+include the full text of instructions given to participants and screenshots, if applicable, as 867 
+
+well as details about compensation (if any)? 868 
+
+Answer: [NA] 869 
+
+Justification: We ran no such experiments. 870 
+
+Guidelines: 871 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 872 
+
+human subjects. 873 
+
+• Including this information in the supplemental material is fine, but if the main contribu-874 
+
+tion of the paper involves human subjects, then as much detail as possible should be 875 
+
+included in the main paper. 876 
+
+• According to the NeurIPS Code of Ethics, workers involved in data collection, curation, 877 
+
+or other labor should be paid at least the minimum wage in the country of the data 878 
+
+collector. 879 
+
+15. Institutional Review Board (IRB) Approvals or Equivalent for Research with Human 880 
+
+Subjects 881 
+
+Question: Does the paper describe potential risks incurred by study participants, whether 882 
+
+such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) 883 
+
+approvals (or an equivalent approval/review based on the requirements of your country or 884 
+
+institution) were obtained? 885 
+
+Answer: [NA] 886 
+
+Justification: We ran no such experiments. 887 
+
+Guidelines: 888 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 889 
+
+human subjects. 890 
+
+• Depending on the country in which research is conducted, IRB approval (or equivalent) 891 
+
+may be required for any human subjects research. If you obtained IRB approval, you 892 
+
+should clearly state this in the paper. 893 
+
+20 • We recognize that the procedures for this may vary significantly between institutions 894 
+
+and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the 895 
+
+guidelines for their institution. 896 
+
+• For initial submissions, do not include any information that would break anonymity (if 897 
+
+applicable), such as the institution conducting the review. 898 
+
+21

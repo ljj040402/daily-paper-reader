@@ -1,0 +1,3818 @@
+Title: 18710_Large_Scale_Contextual_M.pdf
+
+URL Source: https://openreview.net/pdf?id=JWF1dN4TOd
+
+Number of Pages: 28
+
+Markdown Content:
+# Large-Scale Contextual Market Equilibrium Computation through Deep Learning 
+
+Anonymous Author(s) 
+
+Affiliation Address 
+
+email 
+
+## Abstract 
+
+Market equilibrium is one of the most fundamental solution concepts in economics 1
+
+and social optimization analysis. Existing works on market equilibrium computa-2
+
+tion primarily focus on settings with a relatively small number of buyers. Motivated 3
+
+by this, our paper investigates the computation of market equilibrium in scenarios 4
+
+with a large-scale buyer population, where buyers and goods are represented by 5
+
+their contexts. Building on this realistic and generalized contextual market model, 6
+
+we introduce MarketFCNet, a deep learning-based method for approximating mar-7
+
+ket equilibrium. We start by parameterizing the allocation of each good to each 8
+
+buyer using a neural network, which depends solely on the context of the buyer 9
+
+and the good. Next, we propose an efficient method to estimate the loss function of 10 
+
+the training algorithm unbiasedly, enabling us to optimize the network parameters 11 
+
+through gradient descent. To evaluate the approximated solution, we introduce 12 
+
+a metric called Nash Gap, which quantifies the deviation of the given allocation 13 
+
+and price pair from the market equilibrium. Experimental results indicate that 14 
+
+MarketFCNet delivers competitive performance and significantly lower running 15 
+
+times compared to existing methods as the market scale expands, demonstrating 16 
+
+the potential of deep learning-based methods to accelerate the approximation of 17 
+
+large-scale contextual market equilibrium. 18 
+
+## 1 Introduction 19 
+
+Market equilibrium is a solution concept in microeconomics theory, which studies how individuals 20 
+
+amongst groups will exchange their goods to get each one better off [ 51 ]. The importance of 21 
+
+market equilibrium is evidenced by the 1972 Nobel Prize awarded to John R. Hicks and Kenneth 22 
+
+J. Arrow “for their pioneering contributions to general economic equilibrium theory and welfare 23 
+
+theory” [ 58 ]. Market equilibrium has wide application in fair allocation [ 32 ], as a few examples, 24 
+
+fairly assigning course seats to students [ 11 ] or dividing estates, rent, fares, and others [ 35 ]. Besides, 25 
+
+market equilibrium are also considered for ad auctions with budget constraints where money has real 26 
+
+value [15, 16]. 27 
+
+Existing works often use traditional optimization method or online learning technique to solve market 28 
+
+equilibrium, which can tackle one market with around 400 buyers and goods in experiments [ 30 , 52 ]. 29 
+
+However, in realistic scenarios, there might be millions of buyers in one market ( e.g. job market, 30 
+
+online shopping market). In these scenarios, the description complexity for the market is O(nm ) and 31 
+
+it needs at least O(nm ) cost to do one optimization step for the market, if there are n buyers and m32 
+
+goods in the market, which is unacceptable when n is extremely large and potentially infinite. In this 33 
+
+case, and traditional optimization methods do not work anymore. 34 
+
+However, contextual models come to the rescue. The success of contextual auctions[ 21 , 5] demon-35 
+
+strate the power of contextual models, in which each bidder and item are represented as context and 36 
+
+Submitted to 38th Conference on Neural Information Processing Systems (NeurIPS 2024). Do not distribute. the value (or the distribution) of item to bidder is determined by the contexts. In this way, auctions 37 
+
+as well as other economic problems can be described in a more memory-efficient way, making it 38 
+
+possible to accelerate the computation on these problems. Inspired by the models of contextual 39 
+
+auctions, we propose the concept of contextual markets in a similar way. We verify that contextual 40 
+
+markets can be useful to model large-scale markets aforementioned, since the real market can be 41 
+
+assumed to be within some low dimension space, and the values of goods to buyers are often not 42 
+
+hard to speculate given the knowledge of goods and buyers [ 46 , 45 ]. Besides, contextual models 43 
+
+never lose expressive power compared with raw models[ 7], giving contextual markets capabilities to 44 
+
+generalize over traditional markets. 45 
+
+This paper initiates the study of deep learning for contextual market equilibrium computation 46 
+
+with a large number of buyers. The description complexity of contextual markets is O(n + m),47 
+
+if there are n buyers and m items in the market, making them memory-efficient and helpful for 48 
+
+follow-up equilibrium computation while holding the market structure. Following the framework of 49 
+
+differentiable economics [ 18 , 26 , 62 ], we propose a deep-learning based approach, MarketFCNet, 50 
+
+in which one optimization step costs only O(m) rather than O(nm ) in traditional methods, greatly 51 
+
+accelerating the computation of market equilibrium. MarketFCNet takes the representations of one 52 
+
+buyer and one good as input, and outputs the allocation of the good to the buyer. The training on 53 
+
+MarketFCNet targets at an unbiased estimator of the objective function of EG-convex program, which 54 
+
+can be formed by independent samples of buyers. By this way, we optimize the allocation function 55 
+
+on “buyer space” implicitly, rather than optimizing the allocation to each buyer directly. Therefore, 56 
+
+MarketFCNet can reduce the algorithm complexity such that it becomes independent of n, i.e. , the 57 
+
+number of buyers. 58 
+
+The effectiveness of MarketFCNet is demonstrated by our experimental results. As the market 59 
+
+scale expands, MarketFCNet delivers competitive performance and significantly lower running times 60 
+
+compared to existing methods in different experimental settings, demonstrating the potential of deep 61 
+
+learning-based methods to accelerate the approximation of large-scale contextual market equilibrium. 62 
+
+The contributions of this paper consist of three parts, 63 
+
+• We proposes a method, MarketFCNet, to approximate the contextual market equilibrium in 64 
+
+which the number of buyers is large. 65 
+
+• We proposes Nash Gap to quantify the deviation of the given allocation and price pair from 66 
+
+the market equilibrium. 67 
+
+• We conduct extensive experiments, demonstrating promising performance on the approxi-68 
+
+mation measure and running time compared with existing methods. 69 
+
+## 2 Related Works 70 
+
+The history of market equilibrium arises from microeconomics theory, where the concept of com-71 
+
+petitive equilibrium [ 51 , §10] was proposed, and the existence of market equilibrium is guaranteed 72 
+
+in a general setting [ 3, 61 ]. Eisenberg and Gale [28] first considered the linear market case, and 73 
+
+proved that the solution of EG-convex program constitutes a market equilibrium, which lays the 74 
+
+polynomial-time algorithmic foundations for market equilibrium computation. Eisenberg [27] later 75 
+
+showed that EG program also works for a class of CCNH utility functions. Shmyrev program later is 76 
+
+also proposed to solve market equilibrium with linear utility with a perspective shift from allocation 77 
+
+to price [ 57 ], while Cole et al. [14] later found that Shmyrev program is the dual problem of EG 78 
+
+program with a change of variables. There are also a branch of literature that consider computational 79 
+
+perspective in more general settings such as indivisible goods [ 54 , 19 , 20 ] and piece-wise linear 80 
+
+utility [60, 33, 34]. 81 
+
+There are abundant of works that present algorithms to solve the market equilibrium and shows 82 
+
+the convergence results theoretically [ 13 ]. Gao and Kroer [30] discusses the convergence rates of 83 
+
+first-order algorithms for EG convex program under linear, quasi-linear and Leontief utilities. Nan 84 
+
+et al. [52] later designs stochastic optimization algorithms for EG convex program and Shmyrev 85 
+
+program with convergence guarantee and show some economic insight. Jalota et al. [42] proposes an 86 
+
+ADMM algorithm for CCNH utilities and shows linear convergence results. Besides, researchers 87 
+
+are more engaged in designing dynamics that possess more economic insight. For example, PACE 88 
+
+2dynamic [ 32 , 48 , 65 ] and proportional response dynamic [ 63 , 66 , 12 ], though the original idea of 89 
+
+PACE arise from auction design [16, 15]. 90 
+
+With the fast growth of machine learning and neural network, many existing works aim at resolving 91 
+
+economic problem by deep learning approach, which falls into the differentiate economy framework 92 
+
+[ 26 ]. A mainstream is to approximate the optimal auction with differentiable models by neural 93 
+
+networks [ 25 , 29 , 36 , 55 ]. The problem of Nash equilibrium computation in normal form games 94 
+
+[22 , 50 , 23 ] and optimal contract design [ 62 ] through deep learning also attracts researchers’ attentions. 95 
+
+Among these methodologies, transformer architecture [ 50 , 21 , 47 ] is widely used in solving economic 96 
+
+problems. 97 
+
+To the best of our knowledge, no existing works try to approximate market equilibrium through deep 98 
+
+learning. Besides, although some literature focuses on low-rank markets and representative markets 99 
+
+[ 46 , 45 ], our works firstly propose the concept of contextual market. We believe that our approach 100 
+
+will pioneer a promising direction for large-scale contextual market equilibrium computation. 101 
+
+## 3 Contextual Market Modelling 102 
+
+In this section, we focus on the model of contextual market equilibrium in which goods are assumed to 103 
+
+be divisible. Let the market consist of n buyers, denoted as 1, ..., n , and m goods, denoted as 1, ..., m .104 
+
+We denote [k] as the abbreviation of the set {1, 2, . . . , k }. Each buyer i ∈ [n] has a representation bi,105 
+
+and each good j ∈ [m] has a representation gj . We assume that bi belongs to the buyer representation 106 
+
+space B, and gj belongs to the good representation space G. For a buyer with representation b ∈ B ,107 
+
+she has budget B(b) > 0. Denote Y (g) > 0 as the supply of good with representation g. Although 108 
+
+many existing works [ 30 ] assume that each good j has unit supply (i.e. Y (g) ≡ 1 for all g ∈ G )109 
+
+without loss of generality, their results can be easily generalized to our settings. 110 
+
+An allocation is a matrix x = ( xij )i∈[n],j ∈[m] ∈ Rn×m 
+
+> +
+
+, where xij is the amount of good j allocated 111 
+
+to buyer i. We denote xi = ( xi1, . . . , x im ) as the vector of bundle of goods that is allocated to buyer 112 
+
+i. The buyers’ utility function is denoted as u : B × Rm 
+
+> +
+
+→ R+, here u(bi; xi) denotes the utility of 113 
+
+buyer i with representation bi when she chooses to buy xi. We denote ui(xi) as an equivalent form 114 
+
+of u(bi; xi) and often refer them as the same thing. Similarly, B(bi), Y (gj ) and Bi, Y j are often 115 
+
+referred to as the same thing, respectively. 116 
+
+Let p = ( p1, . . . , p m) ∈ Rm 
+
+> +
+
+be the prices of the goods, the demand set of buyer with representation 117 
+
+bi is defined as the set of utility-maximizing allocations within budget constraint. 118 
+
+D(bi; p) := arg max 
+
+> xi
+
+u(bi; xi) | xi ∈ Rm 
+
+> +
+
+, ⟨p, xi⟩ ≤ B(bi) . (1) A contextual market is a 4-tuple: M = ⟨n, m, (bi)i∈[n], (gj )j∈[m]⟩, where buyer utility u(bi; xi) is 119 
+
+known given the information of the market. We also assume budget function B : B → R+ represents 120 
+
+the budget of buyers and capacity function Y : G → R+ represents the supply of goods. All of 121 
+
+u, B and Y are assumed to be public knowledge and excluded from a market representation. This 122 
+
+assumption mainly comes from two aspects: (1) these functions can be learned from historical data 123 
+
+and (2) budgets and supplies can be either encoded in b and g in some way. 124 
+
+The market equilibrium is represented as a pair (x, p), x ∈ Rn×m 
+
+> +
+
+, p ∈ Rm 
+
+> +
+
+, which satisfies the 125 
+
+following conditions. 126 
+
+• Buyer optimality : xi ∈ D(bi, p) for all i ∈ [n],127 
+
+• Market clearance : Pni=1 xij ≤ Y (gj ) for all j ∈ [m], and equality must hold if pj > 0.128 
+
+We say that ui is homogeneous (with degree 1) if it satisfies ui(αxi) = αu i(xi) for any xi ≥ 0 and 129 
+
+α > 0 [53 , §6.2]. Following existing works, we assume that uis are CCNH utilities, where CCNH 130 
+
+represents for concave, continuous, non-negative, and homogeneous functions[ 30 ]. For CCNH 131 
+
+utilities, a market equilibrium can be computed using the following Eisenberg-Gale convex program 132 
+
+(EG): 133 
+
+max 
+
+> n
+
+X
+
+> i=1
+
+Bi log ui(xi) s.t.
+
+> n
+
+X
+
+> i=1
+
+xij ≤ Yj , x ≥ 0. (EG) Theorem 3.1 shows that the market equilibrium can be represented as the optimal solution of (EG). 134 
+
+3Theorem 3.1 (Gao and Kroer [30] ). Let ui be concave, continuous, non-negative and homogeneous 135 
+
+(CCNH). Assume ui(1) > 0 for all i. Then, (i) (EG) has an optimal solution and (ii) any optimal 136 
+
+solution x to (EG) together with its optimal Lagrangian multipliers p∗ ∈ Rm 
+
+> +
+
+constitute a market 137 
+
+equilibrium, up to arbitrary assignment of zero-price items. Furthermore, ⟨p∗, x∗ 
+
+> i
+
+⟩ = Bi for all i.138 
+
+Based on Theorem 3.1, it’s easy to find that we can always assume P 
+
+> i∈[n]
+
+xij = Yj while preserving 139 
+
+the existence of market equilibrium, which states as follows. 140 
+
+Proposition 3.2. Following the assumptions in Theorem 3.1. For the following EG convex program 141 
+
+with equality constraints ,142 
+
+max 
+
+> n
+
+X
+
+> i=1
+
+Bi log ui(xi) s.t.
+
+> n
+
+X
+
+> i=1
+
+xij = Yj , x ≥ 0. (2) 
+
+Then, an optimal solution x∗ together with its Lagrangian multipliers p∗ ∈ Rm 
+
+> +
+
+constitute a market 143 
+
+equilibrium. Moreover, assume more that for each good j, there is some buyer i such that ∂u i 
+
+> ∂x ij
+
+> 0144 
+
+always hold whenever ui(xi) > 0, then all prices are strictly positive in market equilibrium. As a 145 
+
+consequence, Equation (EG) and Equation (2) derive the same solution. 146 
+
+We leave all proofs to Appendix B. Since the additional assumption in Proposition 3.2 is fairly weak, 147 
+
+without further clarification, we always assume the conditions in Proposition 3.2 hold and the market 148 
+
+clearance condition becomes P 
+
+> i∈[n]
+
+xij = Y (gj ), ∀j ∈ [m].149 
+
+## 4 MarketFCNet 150 
+
+In this section, we introduce the MarketFCNet (denoted as Market Fully-Connected Network) 151 
+
+approach to solve the market equilibrium when the number of buyers is large and potentially infinite. 152 
+
+MarketFCNet is a sampling-based methodology, and the key point is to design an unbiased estimator 153 
+
+of an objective function whose solution coincides with the market equilibrium. The main advantage 154 
+
+is that it has the potential to fit the infinite-buyer case without scaling the computational complexity. 155 
+
+Therefore, MarketFCNet is scalable with the number of buyers varies. 156 
+
+4.1 Problem Reformulation 157 
+
+Following the idea of differentiable economics [ 26 ], we consider parameterized models to represent 158 
+
+the allocation of good j to buyer i, denoted as xθ (bi, g j ), and call it allocation network, where θ is the 159 
+
+network parameter. Given buyer i and good j, the network can automatically compute the allocation 160 
+
+xij = xθ (bi, g j ). The allocation to buyer i is represented as xi = xθ (bi, g) and the allocation 161 
+
+matrix is represented as x = xθ (b, g). Then the market clearance constraint can be reformulated as 162 P 
+
+> i∈[n]
+
+xθ (bi, g j ) = Y (gj ), ∀j ∈ [m] and the price constraint can be reformulated as xθ (b, g) ≥ 0.163 
+
+Let b be uniformly distributed from B = {bi : i ∈ [n]}, then the EG program (EG) becomes, 164 
+
+max 
+
+> xθ
+
+OBJ( xθ ) = Eb[B(b) log u(b; xθ (b, g))] s.t. Eb[xθ (b, g j )] = Y (gj )/n, ∀j ∈ [m]
+
+xθ (b, g) ≥ 0
+
+(EG-FC) For simplicity, we take Y (gj )/n ≡ 1 for all gj .165 
+
+4.2 Optimization 166 
+
+The second constraint in (EG-FC) can be easily handled by the network architecture (for example, 167 
+
+network with a softplus layer σ(x) = log(1 + exp( x)). As for the first constraint, from Theorem 3.1, 168 
+
+we know the prices of goods are simply the Lagrangian multipliers for the first constraint in (EG-FC) .169 
+
+Therefore, we employ the Augmented Lagrange Multiplier Method (ALMM) to solve the problem 170 
+
+(EG-FC). We define Lρ(xθ , λ ) as the Lagrangian, which has the form: 171 
+
+Lρ(xθ ; λ) = − OBJ( xθ ) + 
+
+> m
+
+X
+
+> j=1
+
+λj (Eb[xθ (b, g j )] − 1) + ρ
+
+2
+
+> m
+
+X
+
+> j=1
+
+(Eb[xθ (b, g j )] − 1) 2 (3) 4Figure 1: Training process of MarketFCNet. On each iteration, the batch of M independent buyers are drawn. each buyer and each good are represented as k-dimension context. The (i, j )’th element in the allocation matrix represents the allocation computed from i’th buyer and j’th good. MarketFCNet training process alternates between the training of allocation network and prices. The training of allocation network need to achieve an unbiased estimator bLρ(xθ ; λ) of the loss function Lρ(xθ ; λ),followed by gradient descent. The training of prices need to get an unbiased estimator b∆λj of ∆λj ,followed by ALMM updating rule λj ← λj + βt b∆λj .Allocation network 
+
+> Buyers
+
+𝑥 !(𝑏 ", 𝑔 #)
+
+'ℒ$(𝑥 !; λ)
+
+> gradient descent
+
+𝑏 %
+
+𝑏 &
+
+𝑏 '
+
+𝑔 %
+
+𝑔 (
+
+> ……
+
+𝑔 &
+
+> M * k
+> m * k
+> M * m
+
+λ% λ& λ)
+
+…… prices   
+
+> Update λ
+> ……
+> Goods
+> i.i.d .
+> Update 𝜃
+
+MarketFCNet 
+
+Directly computing the objective function seems intractable due to the potentially infinite data size. 172 
+
+Therefore, we follow the framework in learning theory culture that we only guarantee to achieve an 173 
+
+unbiased gradient of the objective function [ 1 , 8 ]. The training process of MarketFCNet is presented 174 
+
+in Figure 1. 175 
+
+To finish the ALMM algorithm, we need to obtain unbiased estimators of following two expressions. 176 
+
+• An unbiased estimator of Lρ(xθ ; λ).177 
+
+• An unbiased estimator of ∆λj , where ∆λj is given by ∆λj = ρ (Eb[xθ (b, g j )] − 1) .178 
+
+Unbiased estimator of ∆λj We aim to obtain an unbiased estimator of Eb[xθ (b, g j )] . By apply-179 
+
+ing Monte Carlo method, we can choose batch size M and sample b1, b 2, ..., b M ∼ U (B), then 180 
+
+> 1
+> M
+
+PMi=1 xθ (bi, g j ) forms an unbiased estimator. 181 
+
+Unbiased estimator of Lp(xθ ; λ) For OBJ( xθ ) and the second term, the technique to achieve an 182 
+
+unbiased estimator is similar. u(b; xθ (b, g)) in OBJ( xθ ) can be calculated directly by summing over 183 
+
+all goods. For the last term, notice that 184 
+
+(Eb [xθ (b, g j )] − 1) 2 = ( Eb [xθ (b, g j )] − 1) · (Eb′ [xθ (b′, g j )] − 1) (4) Therefore, we can sample b1, ..., b M , b ′
+
+> 1
+
+, ..., b ′ 
+
+> M
+
+∼ U (B) and compute 185 
+
+ρ
+
+2 · 1
+
+M
+
+> M
+
+X
+
+> i=1
+> m
+
+X
+
+> j=1
+
+(xθ (bi, g j ) − 1) · (xθ (b′
+
+> i
+
+, g j ) − 1) (5) which provides an unbiased estimator for the last term, capturing the squared deviation of output 186 
+
+allocations from the constraint. 187 
+
+## 5 Performance Measures of Market Equilibrium 188 
+
+In this section, we propose Nash Gap to measure the performance of an approximated market 189 
+
+equilibrium and show that Nash Gap preserves the economic interpretation for market equilibrium. To 190 
+
+introduce Nash Gap, we first introduce two types of welfare, Log Nash Welfare and Log Fixed-price 191 
+
+Welfare in Definition 5.1 and Definition 5.2, respectively. 192 
+
+5Definition 5.1 (Log Nash Welfare) . The Log Nash Welfare (abbreviated as LNW ) is defined as 193 
+
+LNW( x) = 1
+
+Btotal 
+
+X
+
+> i∈[n]
+
+Bi log ui(xi), (6) where Btotal = P 
+
+> i∈[n]
+
+Bi is the total budgets for buyers. 194 
+
+Notice that LNW( x) is identical to the objective function in Equation (EG), differing only in the 195 
+
+constant term coefficient. 196 
+
+Definition 5.2 (Fixed-price and Log Fixed-price Welfare) . We define the fixed-price utility for buyer 197 
+
+i as, 198 
+
+˜u(bi; p) = max 
+
+> xi
+
+{u(bi; xi) | xi ∈ Rm 
+
+> +
+
+, ⟨p, xi⟩ ≤ B(bi)} (7) which represents the optimal utility that buyer i can obtain at the price level p, regardless of the 199 
+
+market clearance constraints. The Log Fixed-price Welfare (abbreviated as LFW ) is defined as the 200 
+
+logarithm of Fixed-price Welfare, 201 
+
+LFW( p) = 1
+
+Btotal 
+
+X
+
+> i∈[n]
+
+Bi log ˜ ui(p) (8) Based on these definitions, we present the definition of Nash Gap. 202 
+
+Definition 5.3 (Nash Gap) . We define Nash Gap (abbreviated as NG) as the difference of Log Nash 203 
+
+Welfare and Log Fixed-price Welfare, i.e. 204 
+
+NG( x, p) = LFW( p) − LNW( x) (9) 
+
+5.1 Properties of Nash Gap 205 
+
+To show why NG is useful in the measure of market equilibrium, we first observe that, 206 
+
+Proposition 5.4 (Price constraints) . If (x, p) constitute a market equilibrium, the following identity 207 
+
+always hold, 208 
+
+X
+
+> j∈[m]
+
+pj Yj = X
+
+> i∈[n]
+
+Bi (10) Below, we state the most important theorem in this paper. 209 
+
+Theorem 5.5. Let (x, p) be a pair of allocation and price. Assuming the allocation satisfies market 210 
+
+clearance and the price meets price constraint, then we have NG( x, p) ≥ 0.211 
+
+Moreover, NG( x, p) = 0 if and only if (x, p) is a market equilibrium. 212 
+
+Theorem 5.5 show that Nash Gap is an ideal measure of the solution concept of market equilibrium, 213 
+
+since it holds following properties, 214 
+
+• NG( x, p) is continuous on the inputs (x, p).215 
+
+• NG( x, p) ≥ 0 always hold. (under conditions in Theorem 5.5) 216 
+
+• NG( x, p) = 0 if and only if (x, p) meets the solution concept. 217 
+
+• The computation of NG does not require the knowledge of an equilibrium point (x∗, p∗)218 
+
+Since some may argue that NG( x, p) is not intuitive to understand, we consider some more intuitive 219 
+
+measures, the Euclidean distance to the market equilibrium, i.e. , || x − x∗|| and || p − p∗|| , as 220 
+
+well as the difference on Weighted Social Welfare, |WSW( x) − WSW( x∗)|, where WSW( x) := 221 P 
+
+> i∈[n]
+> Bi
+> Btotal
+
+ui(xi), and show the connection between NG and these intuitive measures. 222 
+
+Proposition 5.6. Under some technical assumptions (which is presented in Appendix B.4), if 223 
+
+NG( x, p) = ε, we have: 224 
+
+• || p − p∗|| = O(√ε).225 
+
+6• || xi − x∗ 
+
+> i
+
+|| = O(√ε) for all i.226 
+
+• |WSW( x) − WSW( x∗)| = O(ε).227 
+
+Finally, we give a saddle-point explaination for Nash Gap. 228 
+
+Corollary 5.7. Within market clearance and price constraint, we have 229 
+
+min  
+
+> p
+
+LFW( p) = max  
+
+> x
+
+LNW( x) (11) Corollary 5.7 provides an economic interpretation for GAP. Market equilibrium can be seen as the 230 
+
+saddle point over social welfare, and the social welfare for x can be actually implemented while 231 
+
+the social welfare for p is virtual and desired by buyers. Nash Gap measures the gap between the 232 
+
+“desired welfare” and the “implemented welfare” for buyers. 233 
+
+5.2 Measures in General Cases 234 
+
+Since NG only works for (x, p) that satisfies market clearance and price constraints, we generalize 235 
+
+the measure of NG to a more general case, which need to give a measure for all positive (x, p).236 
+
+We first notice that any equilibrium must satisfy the conditions of market clearance and price 237 
+
+constraint , we first make a projection on arbitrary positive (x, p) to the space where these constraints 238 
+
+hold. Specifically, if we let 239 
+
+αj = Vj
+
+P 
+
+> i
+
+xij 
+
+, ˜xij = xij · αj β =
+
+P 
+
+> i
+
+Bi
+
+P 
+
+> j
+
+Vj pj
+
+, ˜pj = β · pj (12) then ( ˜ x, ˜p) satisfies these constraints and we consider NG( ˜ x, ˜p) as the equilibrium measure. 240 
+
+Besides, we also need to measure how far is the point (x, p) to the space within the conditions of 241 
+
+market clearance and price constraint . we propose following two measurement, called Violation of 242 
+
+Allocation (abbreviated as VoA ) and Violation of Price (abbreviated as VoP ), respectively. 243 
+
+VoA( x) := 1
+
+m
+
+X
+
+> j
+
+| log αj |, VoP( p) := | log β| (13) From the expressions of VoA and VoP , we know that these two constraints hold if and only if 244 
+
+VoA( x) = 0 and VoP( p) = 0 .245 
+
+We argue that this projection is of economic meaning. If (x, p) constitute a market equilibrium 246 
+
+and we scale budget with a factor of β, then (x, β p) constitute a market equilibrium in the new 247 
+
+market. Similarly, if we scale the value for each buyer with factor 1/α (here α can be a vector in 248 
+
+Rm 
+
+> +
+
+) and capacity with factor α, then, (αx , 1 
+
+> α
+
+p) constitute a market equilibrium in the new market. 249 
+
+These instances are evidence that market equilibrium holds a linear structure over market parameters. 250 
+
+Therefore, a linear projection can eliminate the effect from linear scaling, while preserving the effect 251 
+
+from orthogonal errors. 252 
+
+Notice that x = ˜ x and p = ˜ p if and only if VoA( x) = 0 and VoP( p) = 0 , respectively. From 253 
+
+Theorem 5.5 We can easy derive following statements: 254 
+
+Proposition 5.8. For arbitrary x ∈ Rn×m 
+
+> +
+
+, p ∈ Rm 
+
+> +
+
+, we have VoA( x) ≥ 0, VoP( p) ≥255 
+
+0, NG( ˜ x, ˜p) ≥ 0 always hold. Moreover, (x, p) is a market equilibrium if and only if VoA( x) = 256 
+
+VoP( p) = NG( ˜ x, ˜p) = 0 .257 
+
+Proposition 5.8 is a certificate that VoA( x), VoP( p), NG( ˜ x, ˜p) together form a good measure for 258 
+
+market equilibrium. Therefore, in our experiments we compute these measures of solutions and 259 
+
+prefer a lower measure without further clarification. 260 
+
+## 6 Experiments 261 
+
+In this section, we present empirical experiments that evaluate the effectiveness of MarketFCNet. 262 
+
+Though briefly mentioned in this section, we leave the details of baselines, implementations, hyper-263 
+
+parameters and experimental environments to Appendix C. 264 
+
+7Table 1: Comparison of MarketFCNet with baselines: n = 1 , 048 , 576 buyers and m = 10 goods. The GPU time for MarketFCNet represents the training time and testing time, respectively. Methods NG VoA VoP GPU Time Naïve 3.65e-1 0 0 3.57e-3 EG 2.17e-2 2.620e-1 7.031e-2 197 EG-m 2.49e-4 6.01e-2 9.77e-2 100 FC 1.63e-3 1.416e-2 6.750e-3 43.6 ; 9.63e-2 6.1 Experimental Settings 265 
+
+In our experiments, all utilities are chosen as CES utilities, which captures a wide utility class 266 
+
+including linear utilities, Cobb-Douglas utilities and Leontief utilities and has been widely studied in 267 
+
+literature [59, 4]. CES utilities have the form, 268 
+
+ui(xi) = 
+
+ X
+
+> j∈[m]
+
+vαij xαij 
+
+
+
+> 1/α
+
+with α ≤ 1. The fixed-price utilities for CES utility is derived in Appendix A. 269 
+
+In order to evaluate the performance of MarketFCNet, we compare them mainly with a baseline that 270 
+
+directly maximizes the objective in EG convex program with gradient ascent algorithm (abbreviated 271 
+
+as EG ), which is widely used in the field of market equilibrium computation. Besides, we also 272 
+
+consider a momentum version of EG algorithm with momentum β = 0 .9 (abbreviated as EG-m ). We 273 
+
+move the details of all baselines, experimental environments and implementations of algorithms to 274 
+
+Appendix C.1 and Appendix C.2. 275 
+
+We also consider a naïve allocation and pricing rule (abbreviated as Naïve ), which can be regarded as 276 
+
+the benchmark of the experiments: 277 
+
+xij = 1 , pj =
+
+P 
+
+> i∈[n]
+
+Bi
+
+mV j
+
+, for all i, j (14) In the following experiments, MarketFCNet is abbreviated as FC . Notice that Naïve always gives an 278 
+
+allocation that satisfies market clearance and price constraints, while EG , EG-m and FC do not. 279 
+
+6.2 Experiment Results 280 
+
+Comparing with Baselines We choose number of buyers n = 1 , 048 , 576 = 2 20 , number of items 281 
+
+m = 10 , CES utilities parameter α = 0 .5 and representation with standard normal distribution as 282 
+
+the basic experimental environment of MarketFCNet; We consider NG( ˜ x, ˜p), VoA( x), VoP( p) and 283 
+
+the running time of algorithms as the measures. Without special specification, these parameters are 284 
+
+default settings among other experiments. Results are presented in Table 1. From these results we 285 
+
+can see that the approximations of MarketFCNet are competitive with EG and EG-m and far better 286 
+
+than Naïve, which means that the solution of MarketFCNet are very close to market equilibrium. 287 
+
+MarketFCNet also achieve a much lower running time compared with EG and EG-m , which indicates 288 
+
+that these methods are more suitable to large-scale market equilibrium computation. In following 289 
+
+experiments, VoA and VoP measures are omitted and we only report NG and running time. 290 
+
+Experiments in different parameters settings In this experiments, the market scale is chosen as 291 
+
+n = 4 , 194 , 304 and m = 10 . We consider experiments on different distribution of representation, 292 
+
+including normal distribution, uniform distribution and exponential distribution. See (a) and (b) 293 
+
+in Figure 2 for results. We also consider different α in our experimental settings. Specifically, 294 
+
+our settings consist of: 1) α = 1 , the utility functions are linear; 2) α = 0 .5, where goods are 295 
+
+substitutes; 3) α = 0 , where goods are neither substitutes or complements; 4) α = −1, where goods 296 
+
+are complements. More detailed results are shown in (c) and (d) Figure 2. The performance of 297 
+
+MarketFCNet is robust in both settings. 298 
+
+8Figure 2: The Nash Gap and GPU running time for different algorithms: MarketFCNet, EG and EG-m. Different colors represent for different algorithm. Market size is chosen as n = 4 , 194 , 304 
+
+buyers and m = 10 goods. Normal Uniform Exponential     
+
+> Distribution
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 1
+> NG
+> EG
+> FC
+> EG-m
+
+(a) Nash Gap on different context distributions. Normal Uniform Exponential 
+
+> Distribution
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> 350
+> 400
+> Time
+> EG
+> FC
+> EG-m
+
+(b) GPU running time on different context distribu-tions. 1 0.5 0 -1     
+
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 1
+> NG
+> EG
+> FC
+> EG-m
+
+(c) Nash Gap on different CES utilities parameter α.1 0.5 0 -1 
+
+> 0
+> 50
+> 100
+> 150
+> 200
+> 250
+> 300
+> 350
+> Time
+> EG
+> FC
+> EG-m
+
+(d) GPU running time on different CES utilities pa-rameter α.
+
+Figure 3: The Nash Gap and GPU running time for different algorithms: MarketFCNet, EG and EG-m. Different colors represent for different algorithm. Market size is chosen as n = 2 18 , 220 , 222 
+
+buyers and m = 5 , 10 , 20 goods. n     
+
+> 218
+> 220
+> 222
+> m
+> 5
+> 10
+> 20
+> NG
+> 10 5
+> 10 4
+> 10 3
+> 10 2
+> 10 1
+> 1
+> EG
+> FC
+> EG-m
+
+(a) Nash Gap on different market size, 
+
+n = 218 , 220 , 222 buyers and m =5, 10 , 20 goods. n
+
+> 218
+> 220
+> 222
+> m
+> 5
+> 10
+> 20
+> time
+> 0
+> 200
+> 400
+> 600
+> EG
+> MarketFCNet
+> EG-m
+
+(b) GPU running time on different mar-ket size, n = 2 18 , 220 , 222 buyers and 
+
+m = 5 , 10 , 20 goods. 
+
+Different market scale for MarketFCNet In this section we ask that how market size (here n299 
+
+and m) will have impact on the efficiency of MarketFCNet. We set m = 5 , 10 , 20 and n = 2 18 =300 
+
+262 , 114 , 220 = 1 , 048 , 576 , 222 = 4 , 194 , 304 as the experimental settings. For each combination 301 
+
+of n and m, we train MarketFCNet and compared with EG and EG-m, see results in Figure 3. As 302 
+
+the market size varies, MarketFCNet has almost the same Nash Gap and running time, which shows 303 
+
+the robustness of MarketFCNet method over different market sizes. However, as the market size 304 
+
+increases, both EG and EG-m have larger Nash Gaps and longer running times, demonstrating that 305 
+
+MarketFCNet is more suitable to large-scale contextual market equilibrium computation. 306 
+
+## 7 Conclusions and Future Work 307 
+
+This paper initiates the problem of large-scale contextual market equilibrium computation from a deep 308 
+
+learning perspective. We believe that our approach will pioneer a promising direction for large-scale 309 
+
+contextual market equilibrium computation. 310 
+
+For future works, it would be promising to extend these methods to the case when only the number of 311 
+
+goods is large, or both the numbers of goods and buyers are large, which stays a blank throughout our 312 
+
+works. Since many existing works proposed dynamics for online market equilibrium computation, 313 
+
+it’s also promising to extend our approaches to tackle the online market setting with large buyers. 314 
+
+Besides, both existing works and ours consider sure budgets and values for buyers, and it would be 315 
+
+interesting to extend the fisher market and equilibrium concept when the budgets or values of buyers 316 
+
+are stochastic or uncertain. 317 
+
+9References 318 
+
+[1] Shun-ichi Amari. Backpropagation and stochastic gradient descent method. Neurocomputing , 5 319 
+
+(4-5):185–196, 1993. 320 
+
+[2] Kenneth J Arrow. An extension of the basic theorems of classical welfare economics. In 321 
+
+Proceedings of the second Berkeley symposium on mathematical statistics and probability ,322 
+
+volume 2, pages 507–533. University of California Press, 1951. 323 
+
+[3] Kenneth J Arrow and Gerard Debreu. Existence of an equilibrium for a competitive economy. 324 
+
+Econometrica: Journal of the Econometric Society , pages 265–290, 1954. 325 
+
+[4] Kenneth J Arrow, Hollis B Chenery, Bagicha S Minhas, and Robert M Solow. Capital-labor 326 
+
+substitution and economic efficiency. The review of Economics and Statistics , pages 225–250, 327 
+
+1961. 328 
+
+[5] Santiago Balseiro, Christian Kroer, and Rachitesh Kumar. Contextual standard auctions with 329 
+
+budgets: Revenue equivalence and efficiency guarantees. Management Science , 69(11):6837– 330 
+
+6854, 2023. 331 
+
+[6] Siddhartha Banerjee, Vasilis Gkatzelis, Artur Gorokh, and Billy Jin. Online nash social welfare 332 
+
+maximization with predictions. In Proceedings of the 2022 Annual ACM-SIAM Symposium on 333 
+
+Discrete Algorithms (SODA) , pages 1–19. SIAM, 2022. 334 
+
+[7] Yoshua Bengio, Jérôme Louradour, Ronan Collobert, and Jason Weston. Curriculum learning. 335 
+
+In Proceedings of the 26th annual international conference on machine learning , pages 41–48, 336 
+
+2009. 337 
+
+[8] Léon Bottou. Large-scale machine learning with stochastic gradient descent. In Proceedings 338 
+
+of COMPSTAT’2010: 19th International Conference on Computational StatisticsParis France, 339 
+
+August 22-27, 2010 Keynote, Invited and Contributed Papers , pages 177–186. Springer, 2010. 340 
+
+[9] Simina Brânzei, Yiling Chen, Xiaotie Deng, Aris Filos-Ratsikas, Søren Frederiksen, and Jie 341 
+
+Zhang. The fisher market game: Equilibrium and welfare. In Proceedings of the AAAI 342 
+
+Conference on Artificial Intelligence , volume 28, 2014. 343 
+
+[10] Jonathan Brogaard, Terrence Hendershott, and Ryan Riordan. High-frequency trading and price 344 
+
+discovery. The Review of Financial Studies , 27(8):2267–2306, 2014. 345 
+
+[11] Eric Budish. The combinatorial assignment problem: Approximate competitive equilibrium 346 
+
+from equal incomes. Journal of Political Economy , 119(6):1061–1103, 2011. 347 
+
+[12] Yun Kuen Cheung, Richard Cole, and Yixin Tao. Dynamics of distributed updating in fisher 348 
+
+markets. In Proceedings of the 2018 ACM Conference on Economics and Computation , pages 349 
+
+351–368, 2018. 350 
+
+[13] Richard Cole and Lisa Fleischer. Fast-converging tatonnement algorithms for one-time and 351 
+
+ongoing market problems. In Proceedings of the Fortieth Annual ACM Symposium on Theory 352 
+
+of Computing , pages 315–324, 2008. 353 
+
+[14] Richard Cole, Nikhil Devanur, Vasilis Gkatzelis, Kamal Jain, Tung Mai, Vijay V Vazirani, 354 
+
+and Sadra Yazdanbod. Convex program duality, fisher markets, and nash social welfare. In 355 
+
+Proceedings of the 2017 ACM Conference on Economics and Computation , pages 459–460, 356 
+
+2017. 357 
+
+[15] Vincent Conitzer, Christian Kroer, Debmalya Panigrahi, Okke Schrijvers, Nicolas E Stier-Moses, 358 
+
+Eric Sodomka, and Christopher A Wilkens. Pacing equilibrium in first price auction markets. 359 
+
+Management Science , 68(12):8515–8535, 2022. 360 
+
+[16] Vincent Conitzer, Christian Kroer, Eric Sodomka, and Nicolas E Stier-Moses. Multiplicative 361 
+
+pacing equilibria in auction markets. Operations Research , 70(2):963–989, 2022. 362 
+
+[17] Michael Curry, Alexander R Trott, Soham Phade, Yu Bai, and Stephan Zheng. Finding general 363 
+
+equilibria in many-agent economic simulations using deep reinforcement learning. 2021. 364 
+
+10 [18] Michael Curry, Tuomas Sandholm, and John Dickerson. Differentiable economics for random-365 
+
+ized affine maximizer auctions. arXiv preprint arXiv:2202.02872 , 2022. 366 
+
+[19] Xiaotie Deng, Christos Papadimitriou, and Shmuel Safra. On the complexity of equilibria. In 367 
+
+Proceedings of the Thiry-fourth Annual ACM Symposium on Theory of Computing , pages 67–71, 368 
+
+2002. 369 
+
+[20] Xiaotie Deng, Christos Papadimitriou, and Shmuel Safra. On the complexity of price equilibria. 370 
+
+Journal of Computer and System Sciences , 67(2):311–324, 2003. 371 
+
+[21] Zhijian Duan, Jingwu Tang, Yutong Yin, Zhe Feng, Xiang Yan, Manzil Zaheer, and Xiaotie Deng. 372 
+
+A context-integrated transformer-based neural network for auction design. In International 373 
+
+Conference on Machine Learning , pages 5609–5626. PMLR, 2022. 374 
+
+[22] Zhijian Duan, Wenhan Huang, Dinghuai Zhang, Yali Du, Jun Wang, Yaodong Yang, and Xiaotie 375 
+
+Deng. Is nash equilibrium approximator learnable? In Proceedings of the 2023 International 376 
+
+Conference on Autonomous Agents and Multiagent Systems , pages 233–241, 2023. 377 
+
+[23] Zhijian Duan, Yunxuan Ma, and Xiaotie Deng. Are equivariant equilibrium approximators 378 
+
+beneficial? In Proceedings of the 40th International Conference on Machine Learning , ICML’23. 379 
+
+JMLR.org, 2023. 380 
+
+[24] Zhijian Duan, Haoran Sun, Yurong Chen, and Xiaotie Deng. A scalable neural network for 381 
+
+DSIC affine maximizer auction design. 2023. URL https://openreview.net/forum?id= 382 
+
+cNb5hkTfGC .383 
+
+[25] Paul Dütting, Zhe Feng, Harikrishna Narasimhan, David Parkes, and Sai Srivatsa Ravindranath. 384 
+
+Optimal auctions through deep learning. In International Conference on Machine Learning ,385 
+
+pages 1706–1715. PMLR, 2019. 386 
+
+[26] Paul Dütting, Zhe Feng, Harikrishna Narasimhan, David C Parkes, and Sai Srivatsa Ravin-387 
+
+dranath. Optimal auctions through deep learning: Advances in differentiable economics. Journal 388 
+
+of the ACM (JACM) , 2023. 389 
+
+[27] Edmund Eisenberg. Aggregation of utility functions. Management Science , 7(4):337–350, 390 
+
+1961. 391 
+
+[28] Edmund Eisenberg and David Gale. Consensus of subjective probabilities: The pari-mutuel 392 
+
+method. The Annals of Mathematical Statistics , 30(1):165–168, 1959. 393 
+
+[29] Zhe Feng, Harikrishna Narasimhan, and David C Parkes. Deep learning for revenue-optimal 394 
+
+auctions with budgets. In Proceedings of the 17th International Conference on Autonomous 395 
+
+Agents and Multiagent Systems , pages 354–362, 2018. 396 
+
+[30] Yuan Gao and Christian Kroer. First-order methods for large-scale market equilibrium computa-397 
+
+tion. Advances in Neural Information Processing Systems , 33:21738–21750, 2020. 398 
+
+[31] Yuan Gao and Christian Kroer. Infinite-dimensional fisher markets and tractable fair division. 399 
+
+Operations Research , 71(2):688–707, 2023. 400 
+
+[32] Yuan Gao, Alex Peysakhovich, and Christian Kroer. Online market equilibrium with application 401 
+
+to fair division. Advances in Neural Information Processing Systems , 34:27305–27318, 2021. 402 
+
+[33] Jugal Garg, Ruta Mehta, Vijay V Vazirani, and Sadra Yazdanbod. Settling the complexity of 403 
+
+leontief and plc exchange markets under exact and approximate equilibria. In Proceedings of 404 
+
+the 49th Annual ACM SIGACT Symposium on Theory of Computing , pages 890–901, 2017. 405 
+
+[34] Jugal Garg, Yixin Tao, and László A Végh. Approximating equilibrium under constrained 406 
+
+piecewise linear concave utilities with applications to matching markets. In Proceedings of 407 
+
+the 2022 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA) , pages 2269–2284. 408 
+
+SIAM, 2022. 409 
+
+[35] Jonathan Goldman and Ariel D Procaccia. Spliddit: Unleashing fair division algorithms. ACM 410 
+
+SIGecom Exchanges , 13(2):41–46, 2015. 411 
+
+11 [36] Noah Golowich, Harikrishna Narasimhan, and David C Parkes. Deep learning for multi-facility 412 
+
+location mechanism design. In International Joint Conferences on Artificial Intelligence , pages 413 
+
+261–267, 2018. 414 
+
+[37] Xue-Zhong He and Shen Lin. Reinforcement learning equilibrium in limit order markets. 415 
+
+Journal of Economic Dynamics and Control , 144:104497, 2022. 416 
+
+[38] Howard Heaton, Daniel McKenzie, Qiuwei Li, Samy Wu Fung, Stanley Osher, and Wotao Yin. 417 
+
+Learn to predict equilibria via fixed point networks. arXiv preprint arXiv:2106.00906 , 2021. 418 
+
+[39] Edward Hill, Marco Bardoscia, and Arthur Turrell. Solving heterogeneous general equilibrium 419 
+
+economic models with deep reinforcement learning. arXiv preprint arXiv:2103.16977 , 2021. 420 
+
+[40] Zhiyi Huang, Minming Li, Xinkai Shu, and Tianze Wei. Online nash welfare maximization 421 
+
+without predictions. In International Conference on Web and Internet Economics , pages 422 
+
+402–419. Springer, 2023. 423 
+
+[41] Devansh Jalota and Yinyu Ye. Stochastic online fisher markets: Static pricing limits and adaptive 424 
+
+enhancements. arXiv preprinted arXiv:2205.00825 , 2023. 425 
+
+[42] Devansh Jalota, Marco Pavone, Qi Qi, and Yinyu Ye. Fisher markets with linear constraints: 426 
+
+Equilibrium properties and efficient distributed algorithms. Games and Economic Behavior ,427 
+
+141:223–260, 2023. 428 
+
+[43] Nils Kohring, Fabian Raoul Pieroth, and Martin Bichler. Enabling first-order gradient-based 429 
+
+learning for equilibrium computation in markets. In International Conference on Machine 430 
+
+Learning , pages 17327–17342. PMLR, 2023. 431 
+
+[44] Christian Kroer. Ai, games, and markets. 2023. https://www.columbia.edu/~ck2945/ 432 
+
+files/main_ai_games_markets.pdf .433 
+
+[45] Christian Kroer and Alexander Peysakhovich. Scalable fair division for’at most one’preferences. 434 
+
+arXiv preprint arXiv:1909.10925 , 2019. 435 
+
+[46] Christian Kroer, Alexander Peysakhovich, Eric Sodomka, and Nicolas E Stier-Moses. Comput-436 
+
+ing large market equilibria using abstractions. In Proceedings of the 2019 ACM Conference on 437 
+
+Economics and Computation , pages 745–746, 2019. 438 
+
+[47] Ningyuan Li, Yunxuan Ma, Yang Zhao, Zhijian Duan, Yurong Chen, Zhilin Zhang, Jian Xu, 439 
+
+Bo Zheng, and Xiaotie Deng. Learning-based ad auction design with externalities: The frame-440 
+
+work and a matching-based approach. In Proceedings of the 29th ACM SIGKDD Conference on 441 
+
+Knowledge Discovery and Data Mining , pages 1291–1302, 2023. 442 
+
+[48] Luofeng Liao, Yuan Gao, and Christian Kroer. Nonstationary dual averaging and online fair 443 
+
+allocation. Advances in Neural Information Processing Systems , 35:37159–37172, 2022. 444 
+
+[49] Yuxuan Lu, Qian Qi, and Xi Chen. A framework of transaction packaging in high-throughput 445 
+
+blockchains. arXiv preprint arXiv:2301.10944 , 2023. 446 
+
+[50] Luke Marris, Ian Gemp, Thomas Anthony, Andrea Tacchetti, Siqi Liu, and Karl Tuyls. Tur-447 
+
+bocharging solution concepts: Solving nes, ces and cces with neural equilibrium solvers. 448 
+
+Advances in Neural Information Processing Systems , 35:5586–5600, 2022. 449 
+
+[51] Andreu Mas-Colell, Michael Dennis Whinston, Jerry R Green, et al. Microeconomic theory ,450 
+
+volume 1. Oxford University Press New York, 1995. 451 
+
+[52] Tianlong Nan, Yuan Gao, and Christian Kroer. Fast and interpretable dynamics for fisher 452 
+
+markets via block-coordinate updates. arXiv preprint arXiv:2303.00506 , 2023. 453 
+
+[53] Noam Nisan, Tim Roughgarden, Eva Tardos, and Vijay V Vazirani. Algorithmic game theory, 454 
+
+2007. Book available for free online , 2007. 455 
+
+[54] Christos Papadimitriou. Algorithms, games, and the internet. In Proceedings of the Thirty-third 456 
+
+Annual ACM Symposium on Theory of Computing , pages 749–753, 2001. 457 
+
+12 [55] Jad Rahme, Samy Jelassi, Joan Bruna, and S Matthew Weinberg. A permutation-equivariant 458 
+
+neural network architecture for auction design. In Proceedings of the AAAI Conference on 459 
+
+Artificial Intelligence , volume 35, pages 5664–5672, 2021. 460 
+
+[56] Weiran Shen, Sébastien Lahaie, and Renato Paes Leme. Learning to clear the market. In 461 
+
+International Conference on Machine Learning , pages 5710–5718. PMLR, 2019. 462 
+
+[57] Vadim I Shmyrev. An algorithm for finding equilibrium in the linear exchange model with fixed 463 
+
+budgets. Journal of Applied and Industrial Mathematics , 3:505–518, 2009. 464 
+
+[58] The Sveriges Riksbank Prize in Economic Sciences in Memory of Alfred Nobel 1972. No-465 
+
+belprize.org. Nobel Prize Outreach AB 2024, Sun. 28 Jan 2024. https://www.nobelprize. 466 
+
+org/prizes/economic-sciences/1972/summary/ .467 
+
+[59] Hal R Varian and Hal R Varian. Microeconomic analysis , volume 3. Norton New York, 1992. 468 
+
+[60] Vijay V Vazirani and Mihalis Yannakakis. Market equilibrium under separable, piecewise-linear, 469 
+
+concave utilities. Journal of the ACM (JACM) , 58(3):1–25, 2011. 470 
+
+[61] Leon Walras. Elements of pure economics . Routledge, 2013. 471 
+
+[62] Tonghan Wang, Paul Dütting, Dmitry Ivanov, Inbal Talgam-Cohen, and David C Parkes. 472 
+
+Deep contract design via discontinuous piecewise affine neural networks. arXiv preprint 473 
+
+arXiv:2307.02318 , 2023. 474 
+
+[63] Fang Wu and Li Zhang. Proportional response dynamics leads to market equilibrium. In 475 
+
+Proceedings of the Thirty-ninth Annual ACM Symposium on Theory of Computing , pages 476 
+
+354–363, 2007. 477 
+
+[64] Ruitu Xu, Yifei Min, Tianhao Wang, Michael I Jordan, Zhaoran Wang, and Zhuoran Yang. 478 
+
+Finding regularized competitive equilibria of heterogeneous agent macroeconomic models via 479 
+
+reinforcement learning. In International Conference on Artificial Intelligence and Statistics ,480 
+
+pages 375–407. PMLR, 2023. 481 
+
+[65] Zongjun Yang, Luofeng Liao, and Christian Kroer. Greedy-based online fair allocation with 482 
+
+adversarial input: Enabling best-of-many-worlds guarantees. arXiv preprint arXiv:2308.09277 ,483 
+
+2023. 484 
+
+[66] Li Zhang. Proportional response dynamics in the fisher market. Theoretical Computer Science ,485 
+
+412(24):2691–2698, 2011. 486 
+
+13 Appendix 487 
+
+A Derivation of Fixed-price Utility for CES Utility Functions 14 488 
+
+B Omitted Proofs 16 489 
+
+C Additional Experiments Details 22 490 
+
+## A Derivation of Fixed-price Utility for CES Utility Functions 491 
+
+In this section we show the explicit expressions of Fixed-price Utility for CES utility functions. 492 
+
+We first consider the case α̸ = 0 , 1, −∞ . The optimization problem for consumer i is: 493 
+
+max   
+
+> xij ,j ∈[m]
+
+ui(xi) = 
+
+ X
+
+> j∈[m]
+
+vαij xαij 
+
+
+
+> 1/α
+
+(15) 
+
+s.t. X
+
+> j∈[m]
+
+xij pj = Bi (Budget Constraint) 
+
+xij ≥ 0 (16) Not hard to verify that in an optimal solution with Equation (Budget Constraint), Equation (16) 494 
+
+always holds, therefore we omit this constraint in our derivation. 495 
+
+We write the Lagrangian L(xi, λ )496 
+
+L(xi, λ ) = ui(xi) + λ(Bi − X
+
+> j∈[m]
+
+xij pj ) (17) By ∂L ∂x ij = 0 , we have 497 
+
+∂u i
+
+∂x ∗
+
+> ij
+
+(xi) = λp j (18) We derive that 498 
+
+∂u i
+
+∂x ij 
+
+(xi) = 1
+
+α
+
+ X
+
+> j∈[m]
+
+vαij xαij 
+
+
+
+> 1/α −1
+
+· αv αij xα−1 
+
+> ij
+
+(19) 
+
+vαij xα−1 
+
+> ij
+
+=cp j · · · let c = λ ·
+
+ X
+
+> j∈[m]
+
+vαij xαij 
+
+
+
+> 1/α −1
+
+(20) 
+
+x∗ 
+
+> ij
+
+= v α
+
+> 1−α
+> ij
+
+c 11−α · p 11−α
+
+> j
+
+(21) Taking (21) into (Budget Constraint), we get 499 
+
+Bi = X
+
+> j∈[m]
+
+v α
+
+> 1−α
+> ij
+
+c 11−α
+
+· p− α 
+
+> 1−α
+> j
+
+(22) 
+
+c 11−α = 1
+
+Bi
+
+X
+
+> j∈[m]
+
+ vij 
+
+pj
+
+ α
+
+> 1−α
+
+(23) 14 Taking Equation (23) into Equation (21), we get 500 
+
+x∗ 
+
+> ij
+
+= v α
+
+> 1−α
+> ij
+
+p 11−α
+
+> j
+
+· Bi
+
+c0
+
+(24) where c0 = P
+
+> j∈[m]
+
+ vij 
+
+> pj
+
+ α
+
+> 1−α
+> 501
+
+Taking Equation (24) into Equation (15), we finally have 502 
+
+ui(x∗ 
+
+> i
+
+) = vαij xαij 
+
+ 1
+
+> α
+
+=
+
+X
+
+> j∈[m]
+
+vαij 
+
+v α21−α
+
+> ij
+
+p α
+
+> 1−α
+> j
+
+cα
+
+> 0
+
+
+
+=
+
+ X
+
+> j∈[m]
+
+ vij 
+
+pj
+
+ α
+
+> 1−α
+
+cα
+
+> 0
+
+
+
+=Bic 1−αα
+
+> 0
+
+log ˜ ui(p) = log ui(x∗ 
+
+> i
+
+) = log Bi + 1 − αα log c0
+
+(25) For α = 1 , by simple arguments we know that consumer will only buy the good that with largest 503 
+
+value-per-cost, i.e. , vij /p j . Therefore, we have 504 
+
+log ˜ ui(p) = log Bi + log max 
+
+> j
+
+vij 
+
+pj
+
+(26) For α = 0 , we have log ui(xi) = 1
+
+> vt
+
+P 
+
+> j∈[m]
+
+vij log xij where vt = P 
+
+> j∈[m]
+
+vij .505 
+
+Similarly, we have 506 
+
+cp j = ∂ log ui
+
+∂x ij 
+
+= vij 
+
+xij 
+
+(27) 
+
+x∗ 
+
+> ij
+
+= vij 
+
+cp j
+
+(28) By solving budget constraints we have c = vt 
+
+> Bi
+
+, and therefore, x∗ 
+
+> ij
+
+= vij Bi  
+
+> pjvt
+
+and 507 
+
+log ui(x∗ 
+
+> i
+
+) = 1
+
+vt
+
+X
+
+> j∈[m]
+
+(vij log vij Bi
+
+pj vt
+
+) (29) 
+
+= log Bi + X
+
+> j∈[m]
+
+vij 
+
+vt
+
+log vij 
+
+pj vt
+
+(30) For α = −∞ , we can easily know that vij x∗ 
+
+> ij
+
+≡ c for some c. By solving budget constraint we have 508 
+
+X
+
+> j∈[m]
+
+cp j
+
+vij 
+
+= Bi (31) 
+
+c = Bi
+
+ X
+
+> j∈[m]
+
+pj
+
+vij 
+
+
+
+> −1
+
+(32) 
+
+log ˜ ui(p) = log c = log Bi − log X
+
+> j∈[m]
+
+pj
+
+vij 
+
+(33) 15 Above all, the log Fixed-price Utility for CES functions is 509 
+
+log ˜ ui(p) = 
+
+
+
+log Bi + max j log vij  
+
+> pj
+
+for α = 1 log Bi + P 
+
+> j∈[m]
+> vij
+> vt
+
+log vij   
+
+> pjvt
+
+for α = 0 log Bi − log P 
+
+> j∈[m]
+> pj
+> vij
+
+for α = −∞ 
+
+log Bi + 1−αα log c0 others (34) 
+
+## B Omitted Proofs 510 
+
+B.1 Proof of Proposition 3.2 511 
+
+We consider Lagrangian multipliers p and use the KKT condition. The Lagrangian becomes 512 
+
+L(p, x) = X
+
+> i
+
+Bi log ui(xi) − X
+
+> j
+
+pj (X
+
+> i
+
+xij − Yj ) (35) and the partial derivative of xij is 513 
+
+∂L (p, xi)
+
+∂x ij 
+
+= Bi
+
+ui(xi)
+
+∂u i
+
+∂x ij 
+
+− pj (36) By complementary slackness of xij ≥ 0, we have 514 
+
+Bi
+
+ui(xi)
+
+∂u i
+
+∂x ij 
+
+≤ pj for all i (37) By theorem 3.1, we know that if (x, p) is a market equilibrium, we must have ui(xi) > 0 for all i,515 
+
+and by condition in Proposition 3.2, we can always select buyer i such that ∂u i 
+
+> ∂x ij
+
+> 0. Therefore, we 516 
+
+have pj > 0.517 
+
+As a consequence, pj > 0 indicates that P 
+
+> j
+
+xij = Vj by market clearance condition. 518 
+
+B.2 Proof of Proposition 5.4 519 
+
+Consider the market equilibrium condition ⟨p∗, x∗ 
+
+> i
+
+⟩ = Bi, we have P 
+
+> j
+
+pj xij = Bi. sum over this 520 
+
+expression, we have P
+
+> i
+
+P 
+
+> j
+
+pj xij = P 
+
+> i
+
+Bi. Then, P 
+
+> j
+
+pj
+
+P 
+
+> i
+
+xij = P 
+
+> i
+
+Bi. Notice that we have 521 Pni=1 xij = Yj in market equilibrium, so P 
+
+> j
+
+pj Yj = P 
+
+> i
+
+Bi, that completes the proof. 522 
+
+B.3 Proof of Theorem 5.5 523 
+
+Proof of Theorem 5.5. Denote (x, p) as the market equilibrium, p as the price for goods and x∗ 
+
+> i
+
+(p)524 
+
+as the optimal consumption set of buyer i when the price is p.525 
+
+We have following equation: 526 
+
+X
+
+> j
+
+xij pj =Bi (38) 
+
+xi ∈x∗ 
+
+> i
+
+(p) (39) 
+
+X
+
+> i∈[n]
+
+xij =Yj (40) 
+
+ui(p) = ui(xi), ∀p ∈ Rm 
+
+> +
+
+, ∀xi ∈ x∗ 
+
+> i
+
+(p) (41) From Proposition 5.4 we know P 
+
+> i∈[n]
+
+Bi = P 
+
+> j∈[m]
+
+Yj pj .527 
+
+Let p′ be some price for items such that P 
+
+> j∈[m]
+
+Yj p′ 
+
+> j
+
+= P 
+
+> i∈[n]
+
+Bi. Let x′ 
+
+> i
+
+∈ x∗ 
+
+> i
+
+(p′) and B′ 
+
+> i
+
+=528 
+
+⟨p′, xi⟩. We know that 529 
+
+X
+
+> i∈[n]
+
+B′ 
+
+> i
+
+= ⟨p′, X
+
+> i∈[n]
+
+xi⟩ = ⟨p′, Y ⟩ = X
+
+> i∈[n]
+
+Bi (42) 16 For consumer i, xi costs B′ 
+
+> i
+
+at price p′, thus Bi
+
+> B′
+> i
+
+xi costs Bi at price p′. Besides, x′ 
+
+> i
+
+also costs Bi for 530 
+
+price p′, and x′ is the optimal consumption for buyer i. Then we have 531 
+
+ui(p′) = ui(x′
+
+> i
+
+) ≥ ui( Bi
+
+B′
+
+> i
+
+xi) = Bi
+
+B′
+
+> i
+
+ui(xi) (43) where the last equation is from the homogeneity(with degree 1) of utility function. 532 
+
+Taking logarithm and weighted sum with Bi, we have 533 
+
+X
+
+> i∈[n]
+
+Bi log ui(p′) ≥ X
+
+> i∈[n]
+
+Bi log Bi
+
+B′
+
+> i
+
++ X
+
+> i∈[n]
+
+Bi log ui(xi) (44) Take Btotal = P 
+
+> i∈[n]
+
+Bi, the first term in RHS becomes 534 
+
+X
+
+> i∈[n]
+
+Bi log Bi
+
+B′
+
+> i
+
+(45) 
+
+=Btotal 
+
+X
+
+> i∈[n]
+
+ Bi
+
+Btotal 
+
+log Bi/B total 
+
+B′
+
+> i
+
+/B total 
+
+
+
+(46) 
+
+=Btotal · KL ( B
+
+Btotal 
+
+|| B′
+
+Btotal 
+
+) (47) 
+
+≥ 0 (48) Therefore, 535 
+
+X
+
+> i∈[n]
+
+Bi log ui(p′) ≥ X
+
+> i∈[n]
+
+Bi log ui(xi) (49) For x′ that satisfies market clearance, by optimality of EG program(EG), we have 536 
+
+X
+
+> i∈[n]
+
+Bi log ui(xi) ≥ X
+
+> i∈[n]
+
+Bi log ui(x′
+
+> i
+
+) (50) Equation (49) and Equation (50) together complete the proof of the first part. 537 
+
+If (x, p) constitutes a market equilibrium, it’s obvious that LFW( p) and LNW( x) are identical, 538 
+
+therefore NG( x, p) = 0 .539 
+
+On the other hand, if (x, p) is not a market equilibrium, but NG( x, p) = 0 , it means that the KL 540 
+
+convergence term must equal to 0, and Bi = B′ 
+
+> i
+
+for all i, which means that xi costs buyer i with 541 
+
+money Bi and xi are in the consumption set of buyer i. Since (x, p) is not a market equilibrium, 542 
+
+there is at least one buyer that can choose a better allocation x′ 
+
+> i
+
+to improve her utility, therefore 543 
+
+improve LFW( p), and it cannot be the case that LFW( p) = LNW( x), which makes a contradiction. 544 545 
+
+B.4 Proof of Proposition 5.6 546 
+
+We leave the formal presentation of Proposition 5.6 and proofs to three theorems below. 547 
+
+Lemma B.1. Assume that ui(xi) is twice differentiable and denote H(xi) as the Hessian matrix of 548 
+
+ui(xi). If following hold: 549 
+
+• H(x∗ 
+
+> i
+
+) has rank m − 1550 
+
+• || xi − x∗ 
+
+> i
+
+|| = ε for some i551 
+
+• x∗ 
+
+> i
+
+> 0552 
+
+then we have OPT − LNW( x) = Ω( ε2).553 
+
+17 Lemma B.2. Denote ˜ui(p, B i) and x∗ 
+
+> i
+
+(p, B i) as the maximum utility buyer i can get and the 554 
+
+corresponding consumption for buyer i when her budget is Bi and prices are p. If following hold: 555 
+
+• || p − p∗|| = ε556 
+
+• x∗ 
+
+> i
+
+(p, B i) is differentiable with p.557 
+
+• HX := ( P 
+
+> i∈[n]
+> ∂x ∗
+> ij
+> ∂p k
+
+(p∗, B i)) j,k ∈[m] has full rank. 558 
+
+then we have LF W (p) − OP T = Ω( ε2).559 
+
+Remark B.3 . It’s worth notice that H(x∗ 
+
+> i
+
+) can not has full rank m, since ui(x) is assumed to be 560 
+
+homogeneous and thus linear in the direction x. Therefore, we have H(xi)xi = 0 for all xi.561 
+
+Let Ci = {xi ∈ Rm 
+
+> +
+
+: ⟨p, xi⟩ = Bi} be the consumption set of buyer i, since xi can not be parallel 562 
+
+with Ci, the condition that H(x∗ 
+
+> i
+
+) has rank m − 1 means that, H(xi) is strongly concave at point x∗
+
+> i563
+
+on the consumption set Ci.564 
+
+Besides, we emphasize that the conditions in Lemma B.1 and Lemma B.2 are satisfied for CES utility 565 
+
+with α < 1.566 
+
+Corollary B.4. Under the assumptions in Lemma B.1 and Lemma B.2, if NG( x, p) = ε, we have: 567 
+
+• || p − p∗|| = O(√ε)568 
+
+• || xi − x∗ 
+
+> i
+
+|| = O(√ε) for all i569 
+
+Proof of Corollary B.4. A direct inference from Lemma B.1 and Lemma B.2, notice that NG = ε570 
+
+indicates that OPT − LNW( x) ≤ ε and LFW( p) − OPT ≤ ε.571 
+
+Corollary B.4 states that, for a pair of (x, p) that satisfy market clearance and price constraints, a 572 
+
+small Nash Gap indicates that the point (x, p) is close to the equilibrium point (x∗, p∗), in the sense 573 
+
+of Euclidean distance. 574 
+
+Lemma B.5. Assume following hold: 575 
+
+• buyers have same utilities at x∗, i.e. ui(x∗ 
+
+> i
+
+) = uj (x∗ 
+
+> j
+
+) ≡ c for all i, j 576 
+
+• || xi − x∗ 
+
+> i
+
+|| ≤ ε for all i577 
+
+then, we have |WSW( x) − WSW( x∗)| = O(ε2).578 
+
+Remark B.6 . These conditions can be held when buyers are homogeneous, i.e. , Bi = Bj and 579 
+
+ui(x) = uj (x) for all i, j, x ∈ Rm 
+
+> +
+
+. Besides, consider buyers with same budgets, these conditions 580 
+
+can also be held if the market has some “equivariance property”, e.g. , there is a n-cycle permutation of 581 
+
+buyers ρ and permutation of goods τ , such that ui(xi) = uρ(i)(τ (xρ(i))) for all i and τ (Y1, ..., Y m) = 582 
+
+(Y1, ..., Y m).583 
+
+Corollary B.7. Under the assumptions in Lemma B.1 and Lemma B.5, if NG( x, p) = ε, we have 584 
+
+• |WSW( x) − WSW( x∗)| = O(ε).585 
+
+Proof. A direct inference from Lemma B.1 and Lemma B.5. 586 
+
+B.4.1 Proof of Lemma B.1 587 
+
+Proof of Lemma B.1. We observe that 588 
+
+OPT − LNW( x) = X
+
+> i∈[n]
+
+Bi [log ui(x∗ 
+
+> i
+
+) − log ui(xi)] 
+
+18 Consider the Taylor expansion of log ui(xi) and ui(xi):589 
+
+log ui(xi) = log ui(x∗ 
+
+> i
+
+) + 1
+
+ui(x∗ 
+
+> i
+
+) (ui(xi) − ui(x∗ 
+
+> i
+
+)) 
+
+− 12ui(x∗ 
+
+> i
+
+)2 (ui(xi) − ui(x∗ 
+
+> i
+
+)) 2
+
++O(( ui(xi) − ui(x∗ 
+
+> i
+
+)) 3)
+
+ui(xi) = ui(x∗ 
+
+> i
+
+) + ∂u i
+
+∂xi
+
+(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+)+ 12 (xi − x∗ 
+
+> i
+
+)T H(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+) + O(|| xi − x∗ 
+
+> i
+
+|| 3)
+
+Notice that || xi − x∗ 
+
+> i
+
+|| = ε, we have 590 
+
+log ui(xi) = log ui(x∗ 
+
+> i
+
+)+ 1
+
+ui(x∗ 
+
+> i
+
+) [ ∂u i
+
+∂x i
+
+(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+) · · · ε term (51) 
+
++ 12 (xi − x∗ 
+
+> i
+
+)T H(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+)] · · · ε2 term (52) 
+
+− 12ui(x∗ 
+
+> i
+
+)2
+
+ ∂u i
+
+∂xi
+
+(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+)
+
+2
+
+· · · ε2 term (53) 
+
++O(ε3)
+
+We next deal with Equation (51) to Equation (53) separately. 591 
+
+Derivation of Equation (51) Since x∗ 
+
+> i
+
+solves the buyer i’s problem, we must have 592 
+
+∂u i
+
+∂x i
+
+(x∗ 
+
+> i
+
+) = λip∗ (54) where λi is the Lagrangian Multipliers for buyer i.593 
+
+We also know that ui(xi) is homogeneous with degree 1, by Euler formula, we derive 594 
+
+⟨ ∂u i
+
+∂x i
+
+(xi), xi⟩ = ui(xi) (55) Combine Equation (54) and Equation (55) and take xi = x∗ 
+
+> i
+
+, we derive 595 
+
+λi⟨p∗, x∗ 
+
+> i
+
+⟩ =ui(x∗ 
+
+> i
+
+)
+
+λi = ui(x∗ 
+
+> i
+
+)
+
+Bi
+
+∂u i
+
+∂x i
+
+(x∗ 
+
+> i
+
+) = ui(x∗ 
+
+> i
+
+)
+
+Bi
+
+p∗
+
+Sum up over i for Equation (51), we have 596 
+
+X
+
+> i∈[n]
+
+Bi
+
+1
+
+ui(x∗ 
+
+> i
+
+)
+
+∂u i
+
+∂x i
+
+(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+)=p X
+
+> i∈[n]
+
+(xi − x∗ 
+
+> i
+
+)=0 · · · by market clearance (56) 
+
+Derivation of Equation (52) and Equation (53) Combining Equation (52) and Equation (53), we 597 
+
+have 598 
+
+Bi
+
+2ui(x∗ 
+
+> i
+
+) (xi − x∗ 
+
+> i
+
+)T H(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+) − 12Bi
+
+(xi − x∗ 
+
+> i
+
+)T (p∗p∗T )( xi − x∗ 
+
+> i
+
+)= 12Bi
+
+(xi − x∗ 
+
+> i
+
+)T ( B2
+
+> i
+
+ui(x∗ 
+
+> i
+
+) H(x∗ 
+
+> i
+
+) − p∗p∗T )( xi − x∗ 
+
+> i
+
+)
+
+19 Denote H0(x∗ 
+
+> i
+
+) = B2  
+
+> i
+> ui(x∗
+> i)
+
+H(x∗ 
+
+> i
+
+) − p∗p∗T , next we assert that H0(x∗ 
+
+> i
+
+) is negative definite. 599 
+
+Since H(x∗ 
+
+> i
+
+) and −p∗p∗T are negative semi-definite, H0(x∗ 
+
+> i
+
+) must be negative semi-definite with 600 
+
+rank( H0(x∗ 
+
+> i
+
+)) ≥ m − 1.601 
+
+Let λ1 ≤ λ2 ≤ · · · ≤ λm−1 < λ m = 0 be eigenvalues and v1, ..., v n = x∗ 
+
+> i
+
+be eigenvectors 602 
+
+of H(x∗ 
+
+> i
+
+). If rank( H0(x∗ 
+
+> i
+
+)) = m − 1, it means that x∗ 
+
+> i
+
+has to be eigenvectors of −p∗p∗T with 603 
+
+eigenvalue 0. However, we have −p∗p∗T x∗ 
+
+> i
+
+= −Bip∗̸ = 0 , which leads to a contradiction. 604 
+
+Therefore, we have rank( H0(x∗ 
+
+> i
+
+)) = m and H0(x∗ 
+
+> i
+
+) is negative definite, we denote λi 
+
+> 1
+
+≤ ..., ≤605 
+
+λin < 0 as the eigenvalues of H0(x∗ 
+
+> i
+
+), and k as the universal lower bound for |λin|, then we have that, 606 
+
+12 (xi − x∗ 
+
+> i
+
+)T H0(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+) ≤ − k
+
+2 ε2 (57) By combining Equation (56) and Equation (57), we have 607 
+
+OPT − LNW( x) = − X
+
+> i∈[n]
+
+Bi
+
+ 12Bi
+
+(xi − x∗ 
+
+> i
+
+)T H0(x∗ 
+
+> i
+
+)( xi − x∗ 
+
+> i
+
+)
+
+
+
++ O(ε3)
+
+≥ k
+
+2 ε2 + O(ε3)=Ω( ε2)
+
+(58) 
+
+> 608
+
+B.4.2 Proof of Lemma B.2 609 
+
+Proof of Lemma B.2. The proof is similar with Appendix B.4.1 by using Taylor expansion technique. 610 
+
+Before that, we first derive some identities. 611 
+
+By Roy’s identity, we have 612 
+
+∂ ˜ui
+
+∂p j
+
+(p, B i) = −x∗ 
+
+> ij
+
+(p, B i) ∂ ˜ui
+
+∂B i
+
+(p, B i)
+
+Since u(xi) is homogeneous with xi, it’s easy to derive that 613 
+
+∂ ˜ui
+
+∂B i
+
+(p, B i) = ˜ui(p, B i)
+
+Bi
+
+Above all, 614 
+
+∂ ˜ui
+
+∂p j
+
+(p, B i) = − 1
+
+Bi
+
+x∗ 
+
+> ij
+
+(p, B i)˜ ui(p, B i)
+
+Besides, 615 
+
+∂2 ˜ui
+
+∂p j ∂p k
+
+(p, B i) = 1
+
+B2
+
+> i
+
+x∗ 
+
+> ij
+
+(p, B i)x∗
+
+> ik
+
+(p, B i)˜ ui(p, B i)
+
+− 1
+
+Bi
+
+x∗ 
+
+> ij
+
+(p, B i)
+
+∂p k
+
+˜ui(p, B i)
+
+Next we consider the Taylor expansion, 616 
+
+log ˜ ui(p) = log ˜ ui(p∗)+ 1˜ui(p∗) [ ∂ ˜ui
+
+∂p (p∗)( p − p∗) · · · ε term (59) 
+
++ 12 (p − p∗)T Hp(p − p∗)] · · · ε2 term (60) 
+
+− 12˜ ui(p∗)2
+
+ ∂ ˜ui
+
+∂p (p∗)( p − p∗)
+
+2
+
+· · · ε2 term (61) 
+
++O(ε3)
+
+where Hp is the Hessian matrix for ˜ui(p).617 
+
+20 Derivation of Equation (59) We have 618 
+
+X
+
+> i∈[n]
+
+Bi
+
+1˜ui(p∗) ⟨ ∂ ˜ui
+
+∂p (p∗), (p − p∗)⟩
+
+= X
+
+> i∈[n]
+
+⟨x∗ 
+
+> i
+
+, (p − p∗)⟩
+
+=⟨1, (p − p∗)⟩ · · · by market clearance 
+
+=0 · · · by price constraints 
+
+Derivation of Equation (60) and Equation (61) These expressions become 619 
+
+12˜ ui(p∗) [ 1
+
+B2
+
+> i
+
+˜ui(p∗)⟨x∗ 
+
+> i
+
+, p − p∗⟩2 − 1
+
+Bi
+
+˜ui(p∗)( p − p∗)T ( ∂x ∗
+
+> ij
+
+∂p k
+
+(p∗, B i)) j,k ∈[m](p − p∗)] 
+
+− 12˜ ui(p∗)2
+
+˜ui(p∗)2
+
+B2
+
+> i
+
+⟨x∗ 
+
+> i
+
+, p − p∗⟩2
+
+= 12Bi
+
+(p − p∗)T ( ∂x ∗
+
+> ij
+
+∂p k
+
+(p∗, B i)) j,k ∈[m](p − p∗)
+
+Summing up over i, we derive that 620 
+
+LFW( p) − OPT = X
+
+> i∈[n]
+
+Bi
+
+12Bi
+
+(p − p∗)T ( ∂x ∗
+
+> ij
+
+∂p k
+
+(p∗, B i)) j,k ∈[m](p − p∗) + O(ε3)= 12 (p − p∗)T HX (p − p∗) + O(ε3)
+
+Since p∗ gets the minimum of LFW( p), we must have that HX is positive semi-definite. Together 621 
+
+with HX has full rank, we know that HX is positive definite. Denote λm as the minimum eigenvalues 622 
+
+of HX , we have 623 
+
+LFW( p) − OPT ≥ ε2λm
+
+2 + O(ε3)=Ω( ε2)
+
+> 624
+
+B.4.3 Proof of Lemma B.5 625 
+
+Proof of Lemma B.5. Notice that 626 
+
+WSW( x) = WSW( x∗) + X
+
+> i∈[n]
+
+⟨ ∂WSW 
+
+∂xi
+
+(x∗ 
+
+> i
+
+), (xi − x∗ 
+
+> i
+
+)⟩ + O(ε2)
+
+We have 627 
+
+∂WSW 
+
+∂xi
+
+(x∗ 
+
+> i
+
+)=Bi
+
+∂u i
+
+∂xi
+
+(x∗ 
+
+> i
+
+)=Bi
+
+ui(x∗ 
+
+> i
+
+)
+
+Bi
+
+p∗
+
+=cp∗
+
+Therefore, 628 
+
+WSW( x) =WSW( x∗) + X
+
+> i∈[n]
+
+c⟨p∗, xi − x∗ 
+
+> i
+
+⟩ + O(ε2)=WSW( x∗) + O(ε2) · · · market clearance which completes the proof. 629 630 
+
+21 C Additional Experiments Details 631 
+
+C.1 More about baselines 632 
+
+EG program solver (abbreviated as EG) We propose the first baseline algorithm EG. Recall the 633 
+
+Eisenberg-Gale convex program(EG): 634 
+
+max 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+Bi log ui(xi) s.t. 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+xij = 1 , x ≥ 0. (62) We use the network module in pytorch to represent the parameters x ∈ Rn×m 
+
+> +
+
+, and softplus activation 635 
+
+function to satisfy x ≥ 0 automatedly. We use gradient ascent algorithm to optimize the parameters 636 
+
+x. For constraint 1
+
+> n
+
+P 
+
+> i∈[n]
+
+xij = 1 , we introduce Lagrangian multipliers λj and minimize the 637 
+
+Lagrangian: 638 
+
+Lρ(x; λ) = − 1
+
+n
+
+X
+
+> i∈[n]
+
+Bi log ui(xi) + X
+
+> j∈[m]
+
+λj
+
+ 1
+
+n
+
+X
+
+> i∈[n]
+
+xij − 1
+
+ (63) 
+
++ ρ
+
+2
+
+X
+
+> j∈[m]
+
+ 1
+
+n
+
+X
+
+> i∈[n]
+
+xij − 1
+
+
+
+> 2
+
+(64) The updates of λ is λj ← λj + βtρ
+
+ 1
+
+> n
+
+P 
+
+> i∈[n]
+
+xij − 1
+
+
+
+, here βt is step size, which is identical with 639 
+
+that in MarketFCNet. The algorithm returns the final (x, λ) as the approximated market equilibrium. 640 
+
+EG program solver with momentum (abbreviated as EG-m) The program to solve is exactly 641 
+
+same with that in EG. The only difference is that we use gradient ascent with momentum to optimize 642 
+
+the parameters x.643 
+
+C.2 More Experimental Details 644 
+
+Without special specification, we use the experiment settings as follows. All experiments are con-645 
+
+ducted in one RTX 4090 graphics cards using 16 CPUs or 1 GPU. We set dimension of representations 646 
+
+of buyers and goods to be d = 5 . Each elements in representation is i.i.d from N (0 , 1) for normal 647 
+
+distribution (default) contexts, U [0 , 1] for uniform distribution contexts and Exp (1) for exponential 648 
+
+distribution contexts. Budget is generated with B(b) = || b|| 2, and valuation in utility function is 649 
+
+generated with v(b, g ) = softplus( ⟨b, g ⟩), where softplus( x) = log(1 + exp( x)) is a smoothing 650 
+
+function that maps each real number to be positive. α in CES utility are chosen to be 0.5 by default. 651 
+
+MarketFCNet is designed as a fully connected network with depth 5 and width 256 per layer. ρ is 652 
+
+chosen to be 0.2 in Augmented Lagrange Multiplier Method and the step size βt is chosen to be 1√t .653 
+
+We choose K = 100 as inner iteration for each epoch, and training for 30 epochs in MarketFCNet. 654 
+
+For EG and EG-m baselines, we choose the inner iteration K = 1000 when n > 1000 and K = 100 655 
+
+when n ≤ 1000 for each epoch. Baselines are enssembled with early stopping as long as NG is lower 656 
+
+than 10 −3. Both baselines are optimized for 30 epochs in total. 657 
+
+We use Adam optimizer and learning rate 1e − 4 to optimize the allocation network in MarketFCNet. 658 
+
+When computing ∆λj in MarketFCNet, we directly compute ∆λj rather than generate an unbiased 659 
+
+estimator, since it does not cost too much to consider all buyers for one time. For those baselines, 660 
+
+we use gradient descent to optimize the parameters following existing works, and the step size is 661 
+
+fine-tuned to be 1e + 2 for α = 1 , n > 1000 ; 1e + 3 for α < 1, n > 1000 and 1 for α < 1, n ≤ 1000 662 
+
+and 0.1 for α = 1 , n ≤ 1000 for better performances of the baselines. Since that Lagrangian 663 
+
+multipliers λ ≤ 0 will indicate an illegal Nash Gap measure, therefore, we hard code EG algorithm 664 
+
+such that it will only return a result when it satisfies that the price λj > 0 for all good j. All baselines 665 
+
+are run in GPU when n > 1000 and CPU when n ≤ 1000 .1
+
+> 666
+> 1
+
+We find in the experiments when market size is pretty large, baselines run slower on CPU than on GPU and this phenomenon reverses when market size is small. Therefore, the hardware on which baselines run depend on the market size and we always choose the faster one in experiments. 
+
+22 NeurIPS Paper Checklist 667 
+
+1. Claims 668 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the 669 
+
+paper’s contributions and scope? 670 
+
+Answer: [TODO] [Yes] 671 
+
+Justification: [TODO] 672 
+
+Guidelines: 673 
+
+• The answer NA means that the abstract and introduction do not include the claims 674 
+
+made in the paper. 675 
+
+• The abstract and/or introduction should clearly state the claims made, including the 676 
+
+contributions made in the paper and important assumptions and limitations. A No or 677 
+
+NA answer to this question will not be perceived well by the reviewers. 678 
+
+• The claims made should match theoretical and experimental results, and reflect how 679 
+
+much the results can be expected to generalize to other settings. 680 
+
+• It is fine to include aspirational goals as motivation as long as it is clear that these goals 681 
+
+are not attained by the paper. 682 
+
+2. Limitations 683 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? 684 
+
+Answer: [TODO] [Yes] 685 
+
+Justification: [TODO] We discuss the limitations in Section 7. 686 
+
+Guidelines: 687 
+
+• The answer NA means that the paper has no limitation while the answer No means that 688 
+
+the paper has limitations, but those are not discussed in the paper. 689 
+
+• The authors are encouraged to create a separate "Limitations" section in their paper. 690 
+
+• The paper should point out any strong assumptions and how robust the results are to 691 
+
+violations of these assumptions (e.g., independence assumptions, noiseless settings, 692 
+
+model well-specification, asymptotic approximations only holding locally). The authors 693 
+
+should reflect on how these assumptions might be violated in practice and what the 694 
+
+implications would be. 695 
+
+• The authors should reflect on the scope of the claims made, e.g., if the approach was 696 
+
+only tested on a few datasets or with a few runs. In general, empirical results often 697 
+
+depend on implicit assumptions, which should be articulated. 698 
+
+• The authors should reflect on the factors that influence the performance of the approach. 699 
+
+For example, a facial recognition algorithm may perform poorly when image resolution 700 
+
+is low or images are taken in low lighting. Or a speech-to-text system might not be 701 
+
+used reliably to provide closed captions for online lectures because it fails to handle 702 
+
+technical jargon. 703 
+
+• The authors should discuss the computational efficiency of the proposed algorithms 704 
+
+and how they scale with dataset size. 705 
+
+• If applicable, the authors should discuss possible limitations of their approach to 706 
+
+address problems of privacy and fairness. 707 
+
+• While the authors might fear that complete honesty about limitations might be used by 708 
+
+reviewers as grounds for rejection, a worse outcome might be that reviewers discover 709 
+
+limitations that aren’t acknowledged in the paper. The authors should use their best 710 
+
+judgment and recognize that individual actions in favor of transparency play an impor-711 
+
+tant role in developing norms that preserve the integrity of the community. Reviewers 712 
+
+will be specifically instructed to not penalize honesty concerning limitations. 713 
+
+3. Theory Assumptions and Proofs 714 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and 715 
+
+a complete (and correct) proof? 716 
+
+Answer: [TODO] [No] 717 
+
+23 Justification: [TODO] The answer is [Yes] except for Theorem 3.1. Theorem 3.1 is a 718 
+
+restated theorem of Gao and Kroer [30] and we do not cover that proof in this paper. 719 
+
+Guidelines: 720 
+
+• The answer NA means that the paper does not include theoretical results. 721 
+
+• All the theorems, formulas, and proofs in the paper should be numbered and cross-722 
+
+referenced. 723 
+
+• All assumptions should be clearly stated or referenced in the statement of any theorems. 724 
+
+• The proofs can either appear in the main paper or the supplemental material, but if 725 
+
+they appear in the supplemental material, the authors are encouraged to provide a short 726 
+
+proof sketch to provide intuition. 727 
+
+• Inversely, any informal proof provided in the core of the paper should be complemented 728 
+
+by formal proofs provided in appendix or supplemental material. 729 
+
+• Theorems and Lemmas that the proof relies upon should be properly referenced. 730 
+
+4. Experimental Result Reproducibility 731 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-732 
+
+perimental results of the paper to the extent that it affects the main claims and/or conclusions 733 
+
+of the paper (regardless of whether the code and data are provided or not)? 734 
+
+Answer: [TODO] [Yes] 735 
+
+Justification: [TODO] We present the experimental details in Appendix C. 736 
+
+Guidelines: 737 
+
+• The answer NA means that the paper does not include experiments. 738 
+
+• If the paper includes experiments, a No answer to this question will not be perceived 739 
+
+well by the reviewers: Making the paper reproducible is important, regardless of 740 
+
+whether the code and data are provided or not. 741 
+
+• If the contribution is a dataset and/or model, the authors should describe the steps taken 742 
+
+to make their results reproducible or verifiable. 743 
+
+• Depending on the contribution, reproducibility can be accomplished in various ways. 744 
+
+For example, if the contribution is a novel architecture, describing the architecture fully 745 
+
+might suffice, or if the contribution is a specific model and empirical evaluation, it may 746 
+
+be necessary to either make it possible for others to replicate the model with the same 747 
+
+dataset, or provide access to the model. In general. releasing code and data is often 748 
+
+one good way to accomplish this, but reproducibility can also be provided via detailed 749 
+
+instructions for how to replicate the results, access to a hosted model (e.g., in the case 750 
+
+of a large language model), releasing of a model checkpoint, or other means that are 751 
+
+appropriate to the research performed. 752 
+
+• While NeurIPS does not require releasing code, the conference does require all submis-753 
+
+sions to provide some reasonable avenue for reproducibility, which may depend on the 754 
+
+nature of the contribution. For example 755 
+
+(a) If the contribution is primarily a new algorithm, the paper should make it clear how 756 
+
+to reproduce that algorithm. 757 
+
+(b) If the contribution is primarily a new model architecture, the paper should describe 758 
+
+the architecture clearly and fully. 759 
+
+(c) If the contribution is a new model (e.g., a large language model), then there should 760 
+
+either be a way to access this model for reproducing the results or a way to reproduce 761 
+
+the model (e.g., with an open-source dataset or instructions for how to construct 762 
+
+the dataset). 763 
+
+(d) We recognize that reproducibility may be tricky in some cases, in which case 764 
+
+authors are welcome to describe the particular way they provide for reproducibility. 765 
+
+In the case of closed-source models, it may be that access to the model is limited in 766 
+
+some way (e.g., to registered users), but it should be possible for other researchers 767 
+
+to have some path to reproducing or verifying the results. 768 
+
+5. Open access to data and code 769 
+
+Question: Does the paper provide open access to the data and code, with sufficient instruc-770 
+
+tions to faithfully reproduce the main experimental results, as described in supplemental 771 
+
+material? 772 
+
+24 Answer: [TODO] [No] 773 
+
+Justification: [TODO] The code need to be more finely organized before it goes public. 774 
+
+Guidelines: 775 
+
+• The answer NA means that paper does not include experiments requiring code. 776 
+
+• Please see the NeurIPS code and data submission guidelines ( https://nips.cc/ 777 
+
+public/guides/CodeSubmissionPolicy ) for more details. 778 
+
+• While we encourage the release of code and data, we understand that this might not be 779 
+
+possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not 780 
+
+including code, unless this is central to the contribution (e.g., for a new open-source 781 
+
+benchmark). 782 
+
+• The instructions should contain the exact command and environment needed to run to 783 
+
+reproduce the results. See the NeurIPS code and data submission guidelines ( https: 784 
+
+//nips.cc/public/guides/CodeSubmissionPolicy ) for more details. 785 
+
+• The authors should provide instructions on data access and preparation, including how 786 
+
+to access the raw data, preprocessed data, intermediate data, and generated data, etc. 787 
+
+• The authors should provide scripts to reproduce all experimental results for the new 788 
+
+proposed method and baselines. If only a subset of experiments are reproducible, they 789 
+
+should state which ones are omitted from the script and why. 790 
+
+• At submission time, to preserve anonymity, the authors should release anonymized 791 
+
+versions (if applicable). 792 
+
+• Providing as much information as possible in supplemental material (appended to the 793 
+
+paper) is recommended, but including URLs to data and code is permitted. 794 
+
+6. Experimental Setting/Details 795 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-796 
+
+parameters, how they were chosen, type of optimizer, etc.) necessary to understand the 797 
+
+results? 798 
+
+Answer: [TODO] [Yes] 799 
+
+Justification: [TODO] These are presented in Appendix C 800 
+
+Guidelines: 801 
+
+• The answer NA means that the paper does not include experiments. 802 
+
+• The experimental setting should be presented in the core of the paper to a level of detail 803 
+
+that is necessary to appreciate the results and make sense of them. 804 
+
+• The full details can be provided either with the code, in appendix, or as supplemental 805 
+
+material. 806 
+
+7. Experiment Statistical Significance 807 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate 808 
+
+information about the statistical significance of the experiments? 809 
+
+Answer: [TODO] [No] 810 
+
+Justification: [TODO] Since the difference between baselines and our method is promi-811 
+
+nent, we believe that one experiment on each setting is an enough certificate to show the 812 
+
+effectiveness of our method. 813 
+
+Guidelines: 814 
+
+• The answer NA means that the paper does not include experiments. 815 
+
+• The authors should answer "Yes" if the results are accompanied by error bars, confi-816 
+
+dence intervals, or statistical significance tests, at least for the experiments that support 817 
+
+the main claims of the paper. 818 
+
+• The factors of variability that the error bars are capturing should be clearly stated (for 819 
+
+example, train/test split, initialization, random drawing of some parameter, or overall 820 
+
+run with given experimental conditions). 821 
+
+• The method for calculating the error bars should be explained (closed form formula, 822 
+
+call to a library function, bootstrap, etc.) 823 
+
+• The assumptions made should be given (e.g., Normally distributed errors). 824 
+
+25 • It should be clear whether the error bar is the standard deviation or the standard error 825 
+
+of the mean. 826 
+
+• It is OK to report 1-sigma error bars, but one should state it. The authors should 827 
+
+preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis 828 
+
+of Normality of errors is not verified. 829 
+
+• For asymmetric distributions, the authors should be careful not to show in tables or 830 
+
+figures symmetric error bars that would yield results that are out of range (e.g. negative 831 
+
+error rates). 832 
+
+• If error bars are reported in tables or plots, The authors should explain in the text how 833 
+
+they were calculated and reference the corresponding figures or tables in the text. 834 
+
+8. Experiments Compute Resources 835 
+
+Question: For each experiment, does the paper provide sufficient information on the com-836 
+
+puter resources (type of compute workers, memory, time of execution) needed to reproduce 837 
+
+the experiments? 838 
+
+Answer: [TODO] [Yes] 839 
+
+Justification: [TODO] See Appendix C. 840 
+
+Guidelines: 841 
+
+• The answer NA means that the paper does not include experiments. 842 
+
+• The paper should indicate the type of compute workers CPU or GPU, internal cluster, 843 
+
+or cloud provider, including relevant memory and storage. 844 
+
+• The paper should provide the amount of compute required for each of the individual 845 
+
+experimental runs as well as estimate the total compute. 846 
+
+• The paper should disclose whether the full research project required more compute 847 
+
+than the experiments reported in the paper (e.g., preliminary or failed experiments that 848 
+
+didn’t make it into the paper). 849 
+
+9. Code Of Ethics 850 
+
+Question: Does the research conducted in the paper conform, in every respect, with the 851 
+
+NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?852 
+
+Answer: [TODO] [Yes] 853 
+
+Justification: [TODO] 854 
+
+Guidelines: 855 
+
+• The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. 856 
+
+• If the authors answer No, they should explain the special circumstances that require a 857 
+
+deviation from the Code of Ethics. 858 
+
+• The authors should make sure to preserve anonymity (e.g., if there is a special consid-859 
+
+eration due to laws or regulations in their jurisdiction). 860 
+
+10. Broader Impacts 861 
+
+Question: Does the paper discuss both potential positive societal impacts and negative 862 
+
+societal impacts of the work performed? 863 
+
+Answer: [TODO] [Yes] 864 
+
+Justification: [TODO] The accelaration of market equilibrium computation is a positive 865 
+
+social impact. 866 
+
+Guidelines: 867 
+
+• The answer NA means that there is no societal impact of the work performed. 868 
+
+• If the authors answer NA or No, they should explain why their work has no societal 869 
+
+impact or why the paper does not address societal impact. 870 
+
+• Examples of negative societal impacts include potential malicious or unintended uses 871 
+
+(e.g., disinformation, generating fake profiles, surveillance), fairness considerations 872 
+
+(e.g., deployment of technologies that could make decisions that unfairly impact specific 873 
+
+groups), privacy considerations, and security considerations. 874 
+
+26 • The conference expects that many papers will be foundational research and not tied 875 
+
+to particular applications, let alone deployments. However, if there is a direct path to 876 
+
+any negative applications, the authors should point it out. For example, it is legitimate 877 
+
+to point out that an improvement in the quality of generative models could be used to 878 
+
+generate deepfakes for disinformation. On the other hand, it is not needed to point out 879 
+
+that a generic algorithm for optimizing neural networks could enable people to train 880 
+
+models that generate Deepfakes faster. 881 
+
+• The authors should consider possible harms that could arise when the technology is 882 
+
+being used as intended and functioning correctly, harms that could arise when the 883 
+
+technology is being used as intended but gives incorrect results, and harms following 884 
+
+from (intentional or unintentional) misuse of the technology. 885 
+
+• If there are negative societal impacts, the authors could also discuss possible mitigation 886 
+
+strategies (e.g., gated release of models, providing defenses in addition to attacks, 887 
+
+mechanisms for monitoring misuse, mechanisms to monitor how a system learns from 888 
+
+feedback over time, improving the efficiency and accessibility of ML). 889 
+
+11. Safeguards 890 
+
+Question: Does the paper describe safeguards that have been put in place for responsible 891 
+
+release of data or models that have a high risk for misuse (e.g., pretrained language models, 892 
+
+image generators, or scraped datasets)? 893 
+
+Answer: [TODO] [NA] 894 
+
+Justification: [TODO] 895 
+
+Guidelines: 896 
+
+• The answer NA means that the paper poses no such risks. 897 
+
+• Released models that have a high risk for misuse or dual-use should be released with 898 
+
+necessary safeguards to allow for controlled use of the model, for example by requiring 899 
+
+that users adhere to usage guidelines or restrictions to access the model or implementing 900 
+
+safety filters. 901 
+
+• Datasets that have been scraped from the Internet could pose safety risks. The authors 902 
+
+should describe how they avoided releasing unsafe images. 903 
+
+• We recognize that providing effective safeguards is challenging, and many papers do 904 
+
+not require this, but we encourage authors to take this into account and make a best 905 
+
+faith effort. 906 
+
+12. Licenses for existing assets 907 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in 908 
+
+the paper, properly credited and are the license and terms of use explicitly mentioned and 909 
+
+properly respected? 910 
+
+Answer: [TODO] [NA] 911 
+
+Justification: [TODO] 912 
+
+Guidelines: 913 
+
+• The answer NA means that the paper does not use existing assets. 914 
+
+• The authors should cite the original paper that produced the code package or dataset. 915 
+
+• The authors should state which version of the asset is used and, if possible, include a 916 
+
+URL. 917 
+
+• The name of the license (e.g., CC-BY 4.0) should be included for each asset. 918 
+
+• For scraped data from a particular source (e.g., website), the copyright and terms of 919 
+
+service of that source should be provided. 920 
+
+• If assets are released, the license, copyright information, and terms of use in the 921 
+
+package should be provided. For popular datasets, paperswithcode.com/datasets 922 
+
+has curated licenses for some datasets. Their licensing guide can help determine the 923 
+
+license of a dataset. 924 
+
+• For existing datasets that are re-packaged, both the original license and the license of 925 
+
+the derived asset (if it has changed) should be provided. 926 
+
+27 • If this information is not available online, the authors are encouraged to reach out to 927 
+
+the asset’s creators. 928 
+
+13. New Assets 929 
+
+Question: Are new assets introduced in the paper well documented and is the documentation 930 
+
+provided alongside the assets? 931 
+
+Answer: [TODO] [NA] 932 
+
+Justification: [TODO] 933 
+
+Guidelines: 934 
+
+• The answer NA means that the paper does not release new assets. 935 
+
+• Researchers should communicate the details of the dataset/code/model as part of their 936 
+
+submissions via structured templates. This includes details about training, license, 937 
+
+limitations, etc. 938 
+
+• The paper should discuss whether and how consent was obtained from people whose 939 
+
+asset is used. 940 
+
+• At submission time, remember to anonymize your assets (if applicable). You can either 941 
+
+create an anonymized URL or include an anonymized zip file. 942 
+
+14. Crowdsourcing and Research with Human Subjects 943 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper 944 
+
+include the full text of instructions given to participants and screenshots, if applicable, as 945 
+
+well as details about compensation (if any)? 946 
+
+Answer: [TODO] [NA] 947 
+
+Justification: [TODO] 948 
+
+Guidelines: 949 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 950 
+
+human subjects. 951 
+
+• Including this information in the supplemental material is fine, but if the main contribu-952 
+
+tion of the paper involves human subjects, then as much detail as possible should be 953 
+
+included in the main paper. 954 
+
+• According to the NeurIPS Code of Ethics, workers involved in data collection, curation, 955 
+
+or other labor should be paid at least the minimum wage in the country of the data 956 
+
+collector. 957 
+
+15. Institutional Review Board (IRB) Approvals or Equivalent for Research with Human 958 
+
+Subjects 959 
+
+Question: Does the paper describe potential risks incurred by study participants, whether 960 
+
+such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) 961 
+
+approvals (or an equivalent approval/review based on the requirements of your country or 962 
+
+institution) were obtained? 963 
+
+Answer: [TODO] [NA] 964 
+
+Justification: [TODO] 965 
+
+Guidelines: 966 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 967 
+
+human subjects. 968 
+
+• Depending on the country in which research is conducted, IRB approval (or equivalent) 969 
+
+may be required for any human subjects research. If you obtained IRB approval, you 970 
+
+should clearly state this in the paper. 971 
+
+• We recognize that the procedures for this may vary significantly between institutions 972 
+
+and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the 973 
+
+guidelines for their institution. 974 
+
+• For initial submissions, do not include any information that would break anonymity (if 975 
+
+applicable), such as the institution conducting the review. 976 
+
+28

@@ -1,0 +1,2359 @@
+Title: 23042_From_Machine_to_Human_Le.pdf
+
+URL Source: https://openreview.net/pdf?id=XoFJjBH1Oq
+
+Number of Pages: 31
+
+Markdown Content:
+# From Machine to Human Learning: Towards Warm-Starting Teacher Algorithms with Reinforcement Learning Agents 
+
+Anonymous Author(s) 
+
+Affiliation Address 
+
+email 
+
+## Abstract 
+
+We present an investigation into using Reinforcement Learning (RL) agents to ad-1
+
+dress the well-established cold-start problem in AI teacher algorithms that require 2
+
+extensive human learning data. While the challenge of bootstrapping personalized 3
+
+learning systems is recognized across domains, collecting comprehensive human 4
+
+learning data remains resource-intensive and often impractical. Our work explores 5
+
+a novel methodological approach: warm-starting data-hungry teacher algorithms 6
+
+using RL agents to provide an initial foundation that can be refined and augmented 7
+
+with human learning data. We emphasize that this approach is not intended to 8
+
+replace human data, but rather to provide a practical starting point when such data 9
+
+is scarce. Through exploratory experiments in two game-based environments—a 10 
+
+Super Mario-inspired platformer and an Overcooked-inspired medical training 11 
+
+simulation—we conduct human subjects studies demonstrating that RL-initialized 12 
+
+curricula can achieve comparable performance to expert-crafted sequences. Our 13 
+
+preliminary analysis reveals that while human learning outcomes are positive, there 14 
+
+remain notable gaps between RL agent behavior and human learning patterns, high-15 
+
+lighting opportunities for improved alignment. This work establishes a promising 16 
+
+potential for RL-initialized teaching systems, opening valuable research directions 17 
+
+at the intersection of RL and human learning. 18 
+
+## 1 Introduction 19 
+
+Artificial Intelligence (AI) applications in education hold the promise of revolutionizing learning 20 
+
+through scalable, personalized, and adaptive approaches [Doroudi et al. , 2019; Alrakhawi et al. , 2023]. 21 
+
+These AI-driven methods aim to address the limitations of traditional expert-designed curricula, which 22 
+
+often struggle to efficiently meet the diverse needs of a vast and growing student population across 23 
+
+an expanding knowledge base [Lin et al. , 2023]. In theory, AI tools could simultaneously provide 24 
+
+tailored learning experiences to numerous students, dynamically adapting to individual needs and 25 
+
+learning styles [Mousavinasab et al. , 2021]. However, recent studies have shown that learning-26 
+
+based teacher algorithms often underperform when compared to expert-initialized or even random 27 
+
+algorithms [Green et al. , 2011; Lindsey et al. , 2014]. 28 
+
+These systems require extensive data on student’s learning process in order to design effective 29 
+
+curricula [van der Velde et al. , 2024; Doroudi et al. , 2019]. However, gathering comprehensive 30 
+
+human learning data is time-consuming and costly; in one study, it took approximately 900 man-hours 31 
+
+for a Machine Learning-based teacher algorithm to converge [Bassen et al. , 2020]. While existing 32 
+
+approaches supplement human data by incorporating demographic information [Zhao et al. , 2020; 33 
+
+Patel and Thakkar, 2022], this method introduces potential biases and privacy concerns [Suresh et al. ,34 
+
+2022; Wang et al. , 2018], limiting the development of robust teaching strategies. The challenge is 35 
+
+Submitted to 39th Conference on Neural Information Processing Systems (NeurIPS 2025). Do not distribute. especially significant in dynamic fields where learning patterns change rapidly, requiring constant 36 
+
+data collection and algorithm updates [Hatzilygeroudis and Prentzas, 2004]. 37 
+
+Our work focuses on teacher algorithms that adaptively sequence training tasks to optimize student 38 
+
+learning outcomes. These algorithms interact with students by assigning targeted challenges, creating 39 
+
+personalized curricula that evolve with student progress. Motivated by the capabilities of Reinforce-40 
+
+ment Learning (RL) agents in mastering complex environments [Silver et al. , 2017, 2016], we propose 41 
+
+leveraging these agents to bootstrap training data for teacher algorithms. This novel methodological 42 
+
+approach aims to augment early algorithm development, reducing initial data requirements while 43 
+
+providing a foundation that can be refined with human learning patterns. We evaluate this approach 44 
+
+through human subjects studies in two contrasting environments: a Super Mario-style platformer for 45 
+
+motor skills and a medical emergency response simulation with discrete tasks. Our findings suggest 46 
+
+this approach offers a promising direction for addressing the cold-start problem in adaptive teaching 47 
+
+systems. We invite the research community to explore advancing RL-based initialization with human 48 
+
+learning patterns, potentially enabling more accessible personalized learning technologies. 49 
+
+Our key contributions are as follows: 50 
+
+1. We introduce a two-stage framework that leverages RL agents to generate training data for 51 
+
+teacher algorithms that optimize student learning through task recommendations. 52 
+
+2. We present two pedagogy-based teacher algorithms under this framework: a human-friendly 53 
+
+adaptation of PERM [Tio and Varakantham, 2023] for domains with potentially infinite 54 
+
+scenarios, represented by a finite set of parameters; and SimMAC, a novel Task Sequencing 55 
+
+algorithm for domains with a finite and discrete set of scenarios. 56 
+
+3. We demonstrate our approach’s effectiveness through two new environments, the Jumper 57 
+
+game and Emergency Response game, where human trials show our methods outperform 58 
+
+baselines approaches and match expert-handcrafted curricula. 59 
+
+## 2 Related Work 60 
+
+Unsupervised Environment Design (UED, [Dennis et al. , 2020]) formalizes adaptive curriculum 61 
+
+creation in a teacher-student framework for artificial agents. Domain Randomization (DR; [Tobin et 62 
+
+al. , 2017]), a foundational UED concept, generates diverse curricula but may not optimize learning. 63 
+
+The current state-of-the-art UED algorithm, ACCEL [Parker-Holder et al. , 2022], while effective for 64 
+
+training agents, faces challenges in direct human application. We examine DR as a baseline and build 65 
+
+on PERM [Tio and Varakantham, 2023], a promising approach based on Item-Response Theory that 66 
+
+doesn’t require extensive student knowledge beyond interaction history. 67 
+
+Sim-to-real research bridges the “reality gap" by training policies in simulation before deploying 68 
+
+them in physical environments while maintaining the same policy architecture [Da et al. , 2025]. In 69 
+
+contrast, our method operates within a single environment but addresses the transfer from agents to 70 
+
+humans, using bootstrap teacher algorithms that progressively improve their instructional capabilities. 71 
+
+Unlike Sim-to-real’s focus on environmental domain gaps, we tackle the “simulated-agent and human 72 
+
+gap" which involves differences in learning mechanisms and cognitive processing that we explore in 73 
+
+Section 6.3. 74 
+
+Recent research has explored using RL to optimize instructional activities in education [Doroudi et 75 
+
+al. , 2019]. However, across different domains, data-hungry RL teachers have shown mixed results, 76 
+
+often failing to outperform baselines [Green et al. , 2011; Segal et al. , 2018; Doroudi et al. , 2017]. 77 
+
+A key challenge is the complexity of modeling student states, requiring an “inordinate amount of 78 
+
+data” [Doroudi et al. , 2019]. Recent RL implementations in algebra education show promise but face 79 
+
+challenges, notably the cold-start problem. [Bassen et al. , 2020] reported their RL teacher needed 80 
+
+nearly 600 learner course completions, or 900 man-hours, to converge on an effective strategy. This 81 
+
+highlights a critical challenge in applying learning-based methods to human learning: the need for 82 
+
+extensive initial data to achieve competency, raising practical and ethical concerns for real-world 83 
+
+educational implementation. To address these issues, our study proposes employing RL agents as 84 
+
+warm-start human learners for data collection. We aim to generate valuable training data for teacher 85 
+
+algorithms, potentially mitigating the cold-start problem and improving the overall effectiveness of 86 
+
+AI-assisted education. 87 
+
+2We focus on two key principles to guide effective learning. First, both human [Van den Akker, 88 
+
+2007; Grant, 2018; Macalister and Nation, 2019] and artificial learners [Bengio et al. , 2009; Graves 89 
+
+et al. , 2017; Huang et al. , 2020] benefit from progressively challenging curricula, where task dif-90 
+
+ficulty gradually increases to match student abilities. This alignment with the Zone of Proximal 91 
+
+Development [Vygotsky and Cole, 1978] ensures optimal learning by maintaining an appropriate 92 
+
+challenge level. Second, learning continuity enhances knowledge acquisition by connecting new 93 
+
+content to prior experiences, creating smoother transitions through content overlap. This spiral 94 
+
+curriculum approach [Bruner, 2009] strategically leverages existing knowledge while increasing 95 
+
+difficulty, making learning more intuitive and effective than introducing entirely new content. Our 96 
+
+proposed teacher algorithms address these principles: both incorporate difficulty progression, while 97 
+
+SimMAC (Section 4.2) additionally considers task similarity by selecting subsequent tasks based on 98 
+
+the learner’s experience history. 99 
+
+## 3 Teacher Problem 100 
+
+We study interactive teaching where algorithms dynamically assign tasks based on student perfor-101 
+
+mance feedback to maximize learning outcomes. Our focus encompasses two paradigms: UED and 102 
+
+Task Sequencing. 103 
+
+Unsupervised Environment Design UED [Dennis et al. , 2020] generates diverse challenges to 104 
+
+optimize student learning. The core assumption is that exposing students to diverse environments 105 
+
+fosters generalized proficiency across the environment distribution, enhancing generalization. 106 
+
+Formally, UED is conceptualized as an Underspecified Partially Observable Markov Decision Process 107 
+
+(UPOMDP), defined as M = ⟨A, O, Θ, S, T, I, R, γ ⟩, where A represents the action space, O the 108 
+
+observation space, S the state space, T : S × A × Θ → ∆( S) the transition function, I : S × Θ →109 
+
+∆( O) the observation function, R : S × A × S × Θ → R the reward function, and γ ∈ [0 , 1) 110 
+
+the discount factor. The UPOMDP extends the traditional POMDP by incorporating Θ, a set of 111 
+
+environment parameters where θ ∈ Θ represents specific configurations that define task instances. At 112 
+
+each timestep t, the teacher selects θt ∈ Θ to generate an environment instance T θt with state st ∈ S,113 
+
+allowing dynamic adjustment of challenge complexity based on observed student performance. For 114 
+
+example, in a navigation task, θ might parameterize obstacle frequency, enabling progressive difficulty 115 
+
+calibration to maximize learning outcomes across Θ.116 
+
+Task Sequencing Task Sequencing represents a constrained UPOMDP where Θ defines a discrete 117 
+
+and finite task pool with varying difficulty levels and knowledge requirements, requiring agents to 118 
+
+apply different knowledge sets for successful completion. A successful teacher would determine 119 
+
+optimal task ordering to maximize learning efficiency and post-training generalization across the task 120 
+
+distribution. Given its versatility and effectiveness, Task Sequencing finds widespread application in 121 
+
+various educational contexts [Bassen et al. , 2020; Segal et al. , 2018]. 122 
+
+## 4 RL-Supported Teacher Algorithms 123 
+
+In this section, we detail our two-stage process for using RL to retrieve data for our teacher algorithms, 124 
+
+consisting of an Exploration Stage and an Exploitation Stage . We then present two algorithms that 125 
+
+benefits from this process: PERM-H, a human-adapted version of existing work, and SimMAC, a 126 
+
+novel approach specifically designed for Task Sequencing. 127 
+
+The Exploration Stage In the first stage, we use RL agents to simulate student-environment 128 
+
+interactions and collect data. These RL agents interact with a variety of levels generated using DR 129 
+
+[Tobin et al. , 2017]. We record the agents’ performance, the parameters of the levels they encounter, 130 
+
+and other relevant data specific to the teacher algorithms we’re developing. The key idea here is to 131 
+
+use RL agents as stand-ins for human students. This allows us to gather extensive data on learning 132 
+
+progress without requiring actual human participants. An important advantage of this approach is 133 
+
+that RL agents start from scratch and improve over time, much like real students. This enables us to 134 
+
+simulate a diverse group of learners with varying skill levels, providing a rich dataset for our teacher 135 
+
+algorithms to learn from. By using RL agents in this way, we can generate a large amount of valuable 136 
+
+3training data for our teacher algorithms, helping to address the cold-start problem and potentially 137 
+
+improve the effectiveness of AI-assisted education from the outset. 138 
+
+The Exploitation Stage In the exploitation stage, we utilize the data collected during the exploration 139 
+
+stage to train the teacher algorithms and apply compatible algorithms to human training. Similar to 140 
+
+RL training under UPOMDPs, we emulate the process with humans using a continuous loop. We note 141 
+
+here that as more human interaction data is collected, it can be used to supplement, and eventually 142 
+
+replace, RL data for stronger alignment to humans. 143 
+
+The teacher algorithm first makes an inference based on the student’s recent performance rt and 144 
+
+outputs the next task, θt+1 . The student then trains under the new level generated from θt+1 and 145 
+
+returns the corresponding reward or performance metric, rt+1 . This iterative process continues 146 
+
+throughout the training session until a predetermined termination criterion is reached. 147 
+
+4.1 PERM-H 148 
+
+PERM [Tio and Varakantham, 2023] is an Item-Response Theory-based model for UED in RL 149 
+
+that infers agent ability a and environment difficulty δ from observed parameters and performance 150 
+
+to determine subsequent training environments, motivated by the Zone of Proximal Development 151 
+
+[Vygotsky and Cole, 1978]. We modified PERM’s original assumption that optimal learning occurs 152 
+
+when δ = a to δ = ϵa (ϵ ≥ 1.0), accommodating potentially faster human learning rates [Tsividis et 153 
+
+al. , 2017]. We call this adaptation PERM-H. 154 
+
+During the Exploration Stage, we collect θ and r to train PERM-H. In the Exploitation stage, PERM-155 
+
+H operates cyclically by estimating the student’s current ability, using this estimate to specify the 156 
+
+desired difficulty for the next level, and generating a level matching this difficulty, while adapting 157 
+
+to the student’s progress. While effective for difficulty-based progression, PERM-H, without major 158 
+
+modifications, cannot handle domains requiring distinct, non-comparable skills. For these cases, we 159 
+
+developed an alternative algorithm for more diverse task sequencing. 160 
+
+4.2 SimMAC 161 
+
+SimMAC creates effective learning curricula by balancing task difficulty and knowledge continuity. 162 
+
+Our approach is built on two fundamental principles: tasks requiring less training time are inherently 163 
+
+easier, and optimal learning occurs when new tasks build upon previously acquired knowledge. 164 
+
+Quantifying Task Difficulty We measure task difficulty through convergence analysis: training 165 
+
+an RL agent uniformly across tasks and identifying the point at which performance stabilizes. We 166 
+
+consider task 1 easier than task 2 if and only if its convergence point cθ occurs earlier ( cθ1 < c θ2 ). 167 
+
+We average results across multiple runs to ensure measurement reliability. 168 
+
+Modeling Knowledge Transfer Between Tasks The core innovation of SimMAC lies in its ability 169 
+
+to identify knowledge overlap between tasks. We approximate a task’s knowledge content through 170 
+
+trajectory analysis, operating on the principle that similar tasks elicit similar behavioral patterns 171 
+
+during solution. 172 
+
+A trajectory τ represents the sequence of states and actions, i.e., τ = {s0, a 0, s 1, a 1, ..., a T −1, s T }.173 
+
+The distribution of trajectories, the occupancy measure, provides a mathematical expression of the 174 
+
+knowledge required for task completion: 175 
+
+ρπ  
+
+> Tθ
+
+(s, a ) = 
+
+> T
+
+X
+
+> t=0
+
+h
+
+P r (st = s, a t = a|s0 ∼ p0(·), s t ∼
+
+p(·| st−1, a t−1, θ ), a t ∼ π(·| st)
+
+i
+
+where T is the horizon limit, p0(·) is the initial state distribution. 176 
+
+Tasks with overlapping occupancy measures require similar actions in similar states, indicating 177 
+
+shared knowledge requirements. We quantify this similarity using Wasserstein distance W between 178 
+
+trajectory distributions [Li et al. , 2023b] W(ρπ  
+
+> Tθi
+
+, ρ π  
+
+> Tθj
+
+) ≈ W (τi, τ j ) where ρπ  
+
+> Tθi
+
+and ρπ  
+
+> Tθj
+
+represent 179 
+
+4the occupancy measures induced by policy π on task T θi and task T θj , respectively, with τi and τj180 
+
+being the resulting trajectories. 181 
+
+Extending beyond Li et al. [2023b]’s pairwise comparisons, we measure similarity between a 182 
+
+candidate task and the entire set of previously completed tasks: T θk and a set of tasks, T θi∼j =183 T θi , T θi+1 , ..., T θj . We aggregate the trajectories collected in T θi∼j as τi∼j and compute the 184 
+
+distance d between τk and τi∼j :185 
+
+d(T θk , T θi∼j ) ≜ W(ρπ  
+
+> Tθk
+
+, ρ π  
+
+> Tθi∼j
+
+) ≈ W (τk, τ i∼j ) (1) In our paper, low distance between task denotes high similarity, which guides our task selection. 186 
+
+4.2.1 Implementation of Exploration-Exploitation Process in SimMAC 187 
+
+During the Exploration Stage, we deploy multiple RL agents trained uniformly across the task 188 
+
+space, systematically collecting trajectory data and measuring convergence points to quantify both 189 
+
+task difficulty ( cθ ) and occupancy distributions ( ρπ  
+
+> Tθ
+
+). These measurements provide the empirical 190 
+
+foundation for our similarity metrics. 191 
+
+In the subsequent Exploitation Stage, we leverage these metrics to construct optimal learning se-192 
+
+quences. Drawing inspiration from spiral curriculum [Bruner, 2009], we design a process that 193 
+
+systematically builds upon existing knowledge while incrementally increasing difficulty. Beginning 194 
+
+with the task exhibiting the lowest convergence point ( min θ cθ ), we iteratively select subsequent 195 
+
+tasks that maximize similarity to the accumulated experience, formally selecting T θj+1 to minimize 196 
+
+d(T θj+1 , T θ1∼j ) while ensuring a gradual progression in difficulty. This implementation enables 197 
+
+the creation of personalized curricula that maintain coherent knowledge pathways while systemati-198 
+
+cally introducing more challenging concepts, thereby optimizing both learning continuity and skill 199 
+
+development. 200 
+
+## 5 Human Subjects Experiment Design 201 
+
+We evaluate our RL-supported teacher algorithms against baselines using human participants who 202 
+
+undergo training in the Jumper and Emergency Response games. All studies received local IRB 203 
+
+approval. Further details of the environments and the experiment procedure can be found in Appendix. 204 
+
+Jumper Environment The Jumper Environment is a 2D obstacle course game developed in Unity 205 
+
+(Juliani et al., 2020), inspired by classic platformers. Players navigate a character through spiked 206 
+
+pathways using keyboard controls, aiming to reach the level’s end without collisions (Figure 14). 207 
+
+The environment has two adjustable parameters θ for level generation: spike density and ground 208 
+
+roughness ; these parameters directly influence the difficulty of the level, enabling systematic study of 209 
+
+learning progression and adaptive difficulty. 210 
+
+Participants were recruited through an online chat group connecting researchers and screened for 211 
+
+device compatibility. To control for prior gaming experience, participants rated their familiarity with 212 
+
+2D side-scrolling games (e.g., Super Mario Bros) to balance experimental conditions. 213 
+
+First, participants received visual instructions on the Jumper gameplay and a trial to familiarize 214 
+
+themselves with the controls. After the trial, participants were randomly assigned to one of three 215 
+
+conditions: 216 
+
+1. No Training (Control): Participants received no training and proceeded directly to the test 217 
+
+stage after the trial. ( n = 80 )218 
+
+2. Random: Participants played randomly generated training levels. ( n = 78 )219 
+
+3. PERM-H: Participants received training levels generated by a Jumper-tuned model trained 220 
+
+on RL data. The model adapted level difficulty based on inferred player ability. ( n = 72 )221 
+
+In the Random and PERM-H conditions, participants received 10 different levels with a maximum of 222 
+
+15 attempts per level. Upon completing a level or exhausting attempts, participants progressed to the 223 
+
+next level. Finally, after the respective training intervention, they would receive a test level on which 224 
+
+we use to measure post-training performance. We initially recruited 240 participants for our study, 225 
+
+5and filtered out low-effort participants. Finally, there were no significant differences in prior gaming 226 
+
+experience across groups (one-way ANOVA: F (2 , 237) = 0 .902 , p > . 05 ). 227 
+
+To further investigate the effectiveness of our approach, we conducted a follow-up study comparing 228 
+
+PERM-H to a handcrafted curriculum. This handcrafted curriculum, designed by our research team, 229 
+
+featured a fixed sequence of training levels with increasing difficulty. We recruited 120 participants 230 
+
+via Prolific 1, representing a different sample group from the initial study. After excluding outliers, our 231 
+
+final counts were 52 participants in the PERM-H group and 61 in the Handcrafted group. Results from 232 
+
+this follow-up study are presented separately from the main study to distinguish between participant 233 
+
+pools. 234 
+
+Emergency Response Environment We present a 3D Emergency Response Environment 2 sim-235 
+
+ulating time-critical medical care scenarios (Figure 15). Developed with paramedic services, this 236 
+
+environment requires players to select and apply appropriate treatments to patients with evolving 237 
+
+conditions during hospital transport. The simulation features stochastic patient state transitions, real-238 
+
+time feedback, and contextual tool information, replicating the decision pressure faced by emergency 239 
+
+medical personnel while allowing limited attempts per intervention. 240 
+
+We conducted an experiment with 121 participants, randomly assigned to one of the four groups: 241 
+
+1. Reading Only (control): Learned solely through reading materials, without engaging in 242 
+
+gameplay. ( n = 31 )243 
+
+2. Random: Played tasks selected at random from the pool, without replacement. ( n = 30 )244 
+
+3. Handcrafted: Followed a predefined task sequence designed by the research team. ( n = 30 )245 
+
+4. SimMAC: Experienced an adaptively curated task order generated by SimMAC. ( n = 30 )246 
+
+Except for the Reading group, all participants completed all 17 unique tasks within 45 minutes after a 247 
+
+25-minute reading session on medical knowledge. After the respective treatments, participants were 248 
+
+given a multiple-choice questionnaire to assess their knowledge of appropriate measures to take in a 249 
+
+medical emergency. One-way ANOVA confirmed no significant differences in prior game experience 250 
+
+(F (3 , 117) = 1 .34 , p = .27 ) or emergency handling experience ( F (3 , 117) = 1 .88 , p = .14 ) across 251 
+
+groups. 252 
+
+## 6 Evaluation 253 
+
+In our evaluation, we investigate three key research questions: differences in post-training perfor-254 
+
+mance across conditions, distinguishing characteristics between curricula, and fundamental differ-255 
+
+ences between RL agents and human learners. For all statistical tests described, we used α = 0 .05 .256 
+
+6.1 Post-Training Evaluation 257 
+
+We analyzed the effectiveness of teacher-guided training in improving post-training performance on 258 
+
+the final test. In Jumper, competence was measured by fewer attempts to complete the test level. In 259 
+
+Emergency Response, we counted correct responses on the final multiple-choice test. 260 
+
+Jumper Environment A one-way ANOVA revealed significant differences in final test attempts 261 
+
+across groups, F (2 , 237) = 16 .461 , p < . 001 , partial η2 = .122 , signifying a moderately large 262 
+
+effect. Tukey’s HSD post-hoc test showed significant differences between No Training and PERM-H 263 
+
+(∆μ = −2.599 , p < . 001 ) and between Random and PERM-H ( ∆μ = −1.380 , p < . 001 ). No 264 
+
+significant difference was found between the No Training Group and Random Group ( ∆μ = −1.219 ,265 
+
+p = .115 ). 266 
+
+PERM-H vs. Handcrafted Training An independent-samples t-test comparing PERM-267 
+
+H (μ = 5.904 , σ = 5.558 ) and Handcrafted (μ = 4.705 , σ = 5.022 )268 
+
+conditions on the Jumper post-training test results showed no significant difference, 269 
+
+t(112) = 1.193 , p = .235 , with Cohen’s d = .23 , suggesting a small effect size. 270           
+
+> 1https://www.prolific.com/
+> 2Medical content from West Virginia Department of Health and Human Resources (https://www.wvoems.org/), verified by medical experts during IRB approval.
+
+6Figure 1: Number of attempts across different conditions for Jumper test. Lower numbers denote better performance. ‘X’ represents mean number of attempts. 
+
+Figure 2: Results of Emergency Response knowl-edge test. ‘X’ denotes mean score on test. 
+
+> 271
+
+Emergency Response Game A one-way 272 
+
+ANOVA showed significant differences in the 273 
+
+test scores among groups, F (3 , 117) = 12 .46 ,274 
+
+p < . 001 , partial η2 = .24 , signifying a large 275 
+
+effect. Tukey’s HSD post-hoc comparisons re-276 
+
+vealed significant differences between SimMAC 277 
+
+and both random ( ∆μ = −3.21 , p < . 001 )278 
+
+and reading-only conditions ( ∆μ = −3.53 ,279 
+
+p < . 001 ). The handcrafted condition also dif-280 
+
+fered significantly from random ( ∆μ = −1.81 ,281 
+
+p = .03 ) and reading conditions ( ∆μ = −2.13 ,282 
+
+p = .009 ). No significant differences were 283 
+
+found between SimMAC and handcrafted con-284 
+
+ditions ( ∆μ = −1.40 , p = .155 ) or between 285 
+
+random and reading conditions ( ∆μ = −0.326 ,286 
+
+p = .960 ). 287 
+
+In summary: 288 
+
+1. Students trained using our proposed teacher algorithms significantly outperformed those in 289 
+
+the control and Random curricula groups in both environments. 290 
+
+2. Students trained under the handcrafted curriculum also outperformed those in the control 291 
+
+and Random curricula groups. 292 
+
+3. No significant performance difference was observed between students trained with our 293 
+
+algorithms and those trained with the Handcrafted curriculum. Similarly, no significant 294 
+
+difference was found between the Random and control groups. 295 
+
+The results for Jumper and Emergency Response game are visualized in Figure 1 and 2 respectively. 296 
+
+Discussion These findings demonstrate that our RL-bootstrapped teacher algorithms (PERM-H 297 
+
+and SimMAC) significantly outperformed both random and control curricula groups while achieving 298 
+
+comparable results to expert-designed curricula—despite requiring no manual design effort. Overall, 299 
+
+these results lend credibility to the efficacy of algorithms supported by RL agents in curriculum design. 300 
+
+Surprisingly, the Random group showed no improvement over the No Training group despite greater 301 
+
+domain exposure, highlighting that unstructured practice offers minimal benefit and reinforcing the 302 
+
+value of intelligently sequenced learning experiences. 303 
+
+6.2 Comparisons to Other Teacher Algorithms 304 
+
+Given the central focus on level difficulty (PERM-H) and task similarity (Sim-305 
+
+MAC) in the respective environments, we draw comparisons between our 306 
+
+proposed teacher algorithms and baselines in the context of these metrics. 307 
+
+7Figure 3: Difficulty progression across curricula for Jumper. PERM-H introduces challenges earlier than alternatives. RL agents reach difficulty levels comparable to humans, supporting their viability as warm-start learners. 
+
+> 308
+
+Jumper Figure 3 shows PERM-H-generated 309 
+
+levels consistently exhibited higher difficulty 310 
+
+compared to random curricula. This rigorous 311 
+
+training benefited students when encountering 312 
+
+the complex final test level. Contrary to ex-313 
+
+pectations of a logarithmic training curve with 314 
+
+initial growth followed by plateauing, such as 315 
+
+the one exhibited by the Handcrafted group, 316 
+
+PERM-H participants faced challenging environ-317 
+
+ments early, resulting in a performance ceiling 318 
+
+effect. Many PERM-H group participants ap-319 
+
+peared to reach this upper bound during training 320 
+
+due to the Jumper domain’s relative simplicity. 321 
+
+PERM-H demonstrated the ability to quickly 322 
+
+infer learner ability levels and present challeng-323 
+
+ing levels early in training, contrasting with the 324 
+
+random curriculum’s potentially wasted training 325 
+
+opportunities. 326 
+
+The Handcrafted curriculum began with ex-327 
+
+tremely easy levels, slowly increasing difficulty 328 
+
+to reach a plateau comparable to PERM-H’s level around the 5th training level. Compared to the 329 
+
+adaptive curriculum provided by PERM-H, this suggests that initial levels provided minimal training 330 
+
+value, and participants could have benefited from a shorter, more efficient training regimen beginning 331 
+
+at a higher difficulty level. 332 
+
+Figure 4: Cumulative distance comparisons across different curricula for Emergency Response. Higher distance means lower similarity. 
+
+Emergency Response Figure 4 illustrates 333 
+
+the cumulative distance during training under 334 
+
+SimMAC-generated and Handcrafted curricula, 335 
+
+calculated by Equation 1. The SimMAC cur-336 
+
+riculum results in a lower cumulative distance 337 
+
+throughout training compared to both Random 338 
+
+and Handcrafted curricula. The Random cur-339 
+
+riculum’s cumulative distance is similar to the 340 
+
+Handcrafted curriculum but less effective due 341 
+
+to higher variation in task similarity and lack 342 
+
+of easy-to-hard ordering. Students’ better per-343 
+
+formance under the SimMAC curriculum indi-344 
+
+cates that emphasizing learning continuity and 345 
+
+smoother experiences leads to positive learning 346 
+
+outcomes. 347 
+
+6.3 Comparisons to RL Agents 348 
+
+This section attempts to investigate whether RL 349 
+
+agents are suitable as warm-start human learners by comparing RL Agent and human training. 350 
+
+Jumper We trained a PPO [Schulman et al. , 2017] student agent using PERM as the teacher 351 
+
+algorithm for 24,000 episodes. Figure 3 compresses the 24,000 RL training episodes into 10 352 
+
+levels, matching the human training scale. As training progresses, the artificial student agent 353 
+
+encounters increasingly challenging environments, ultimately reaching difficulty levels comparable 354 
+
+to handcrafted levels and, to some extent, humans trained under PERM-H. 355 
+
+Emergency Response For each task-pair i, j ,356 
+
+we calculate the Wasserstein distance between 357 
+
+performance distributions for both RL agents 358 
+
+and human students, and plotted these paired dis-359 
+
+8tances in Figure 5, right. A Pearson correlation 360 
+
+coefficient was computed to assess the relation-361 
+
+ship between them, and we found a moderate 362 
+
+positive correlation between the two variables 363 
+
+(r = .490 , n = 287 , p < . 001 ). 364 
+
+Discussion Our findings across two environ-365 
+
+ments demonstrate both the potential and limi-366 
+
+tations of using RL agents as warm-start human 367 
+
+learners. In the Jumper environment, we corrob-368 
+
+orate the results of Tsividis et al. [2017], with hu-369 
+
+mans demonstrated superior learning efficiency, 370 
+
+reaching high performance levels quickly while 371 
+
+RL agents required millions of experiences to achieve even minimal human performance levels. 372 
+
+Despite this gap, RL agents and humans showed consistent agreement on task difficulty rankings. 373 
+
+The alignment suggests that in carefully designed domains, RL can effectively provide valid initial 374 
+
+training data in place of human learners. 375 
+
+In the Emergency Response domain, a moderately positive correlation emerged between inter-task 376 
+
+similarities derived from humans and agents, indicating some alignment between artificial and human 377 
+
+learning patterns. Notably, when selecting tasks during human trials, we relied on the distance 378 
+
+between human task trajectories and task trajectories, without updating the similarity metrics with 379 
+
+human data. Despite this direct comparison of task similarity from artificial to human learners, the 380 
+
+approach yielded excellent learning outcomes, demonstrating RL agents’ effectiveness as warm-start 381 
+
+substitutes for human learning data. 382 
+
+While differences between human and RL agents persist across both domains, our findings highlight 383 
+
+both the current limitations of RL in matching human learning efficiency and its potential to inform 384 
+
+and enhance human learning processes. The ability to automatically collect training data without 385 
+
+expert intervention, combined with positive student outcomes, justifies our approach of using RL 386 
+
+agents to train teacher algorithms. This lays the groundwork for developing more sophisticated 387 
+
+adaptive learning systems. 388 
+
+## 7 Conclusion and Future Work 389 
+
+We investigated using RL agents as warm-start proxies to address the cold-start problem in teacher 390 
+
+algorithms. Our approach trains PERM-H and SimMAC through structured Exploration and Ex-391 
+
+ploitation stages. Human studies showed that our RL-bootstrapped curricula outperformed baseline 392 
+
+methods and matched expert-designed curricula without requiring extensive human data or domain 393 
+
+expertise. 394 
+
+While our findings suggest a viable pathway for reducing initial data dependencies in adaptive learning 395 
+
+systems, our approach is not without limitations. First, our approach is currently constrained to 396 
+
+environments that can effectively model both RL and human learning patterns, and notable alignment 397 
+
+gaps exist between these modalities. Second, our analysis revealed that RL agents has distinct 398 
+
+differences from human learners, suggesting the need for better alignment techniques. 399 
+
+Future work should investigate methods to better calibrate and evaluate the gap between RL agent 400 
+
+behavior and human learning patterns, perhaps through transfer learning approaches or hybrid models 401 
+
+that incorporate limited human data earlier in the process. Additionally, researchers might explore 402 
+
+how this bootstrapping methodology generalizes across more diverse learning domains, particularly 403 
+
+those with abstract reasoning requirements or social components. We invite the community to build 404 
+
+upon our testbed environments to develop improved alignment metrics and evaluation frameworks, 405 
+
+potentially expanding this approach to broader educational contexts. As this nascent field develops, 406 
+
+integrating generative AI with RL-based curriculum design could open new avenues for creating 407 
+
+more accessible, effective, and personalized learning experiences. 408 
+
+9References 409 
+
+Hazem A Alrakhawi, Nurullizam Jamiat, and Samy Abu-Naser. Intelligent tutoring systems in 410 
+
+education: a systematic review of usage, tools, effects and evaluation. Journal of Theoretical and 411 
+
+Applied Information Technology , 101(4):1205–1226, 2023. 412 
+
+Jonathan Bassen, Bharathan Balaji, Michael Schaarschmidt, Candace Thille, Jay Painter, Dawn 413 
+
+Zimmaro, Alex Games, Ethan Fast, and John C Mitchell. Reinforcement learning for the adaptive 414 
+
+scheduling of educational activities. In Proceedings of the 2020 CHI Conference on Human 415 
+
+Factors in Computing Systems , pages 1–12, 2020. 416 
+
+Yoshua Bengio, Jérôme Louradour, Ronan Collobert, and Jason Weston. Curriculum learning. In 417 
+
+Proceedings of the 26th annual international conference on machine learning , pages 41–48, 2009. 418 
+
+Jerome S Bruner. The process of education . Harvard university press, 2009. 419 
+
+Longchao Da, Justin Turnau, Thirulogasankar Pranav Kutralingam, Alvaro Velasquez, Paulo Shakar-420 
+
+ian, and Hua Wei. A survey of sim-to-real methods in rl: Progress, prospects and challenges with 421 
+
+foundation models. arXiv preprint arXiv:2502.13187 , 2025. 422 
+
+Michael Dennis, Natasha Jaques, Eugene Vinitsky, Alexandre Bayen, Stuart Russell, Andrew Critch, 423 
+
+and Sergey Levine. Emergent complexity and zero-shot transfer via unsupervised environment 424 
+
+design. Advances in neural information processing systems , 33:13049–13061, 2020. 425 
+
+Shayan Doroudi, Vincent Aleven, and Emma Brunskill. Robust evaluation matrix: Towards a more 426 
+
+principled offline exploration of instructional policies. In Proceedings of the fourth (2017) ACM 427 
+
+conference on learning@ scale , pages 3–12, 2017. 428 
+
+Shayan Doroudi, Vincent Aleven, and Emma Brunskill. Where’s the reward? a review of rein-429 
+
+forcement learning for instructional sequencing. International Journal of Artificial Intelligence in 430 
+
+Education , 29:568–620, 2019. 431 
+
+Janet Grant. Principles of curriculum design. Understanding medical education: Evidence, theory, 432 
+
+and practice , pages 71–88, 2018. 433 
+
+Alex Graves, Marc G Bellemare, Jacob Menick, Remi Munos, and Koray Kavukcuoglu. Automated 434 
+
+curriculum learning for neural networks. In international conference on machine learning , pages 435 
+
+1311–1320. Pmlr, 2017. 436 
+
+Derek Green, Thomas Walsh, Paul Cohen, and Yu-Han Chang. Learning a skill-teaching curriculum 437 
+
+with dynamic bayes nets. In Proceedings of the AAAI Conference on Artificial Intelligence ,438 
+
+volume 25, pages 1648–1654, 2011. 439 
+
+Ioannis Hatzilygeroudis and Jim Prentzas. Using a hybrid rule-based approach in developing an 440 
+
+intelligent tutoring system with knowledge acquisition and update capabilities. Expert systems 441 
+
+with applications , 26(4):477–492, 2004. 442 
+
+Yuge Huang, Yuhan Wang, Ying Tai, Xiaoming Liu, Pengcheng Shen, Shaoxin Li, Jilin Li, and Feiyue 443 
+
+Huang. Curricularface: adaptive curriculum learning loss for deep face recognition. In proceedings 444 
+
+of the IEEE/CVF conference on computer vision and pattern recognition , pages 5901–5910, 2020. 445 
+
+Minqi Jiang, Edward Grefenstette, and Tim Rocktäschel. Prioritized level replay. In International 446 
+
+Conference on Machine Learning , pages 4940–4950. PMLR, 2021. 447 
+
+Arthur Juliani, Vincent-Pierre Berges, Ervin Teng, Andrew Cohen, Jonathan Harper, Chris Elion, 448 
+
+Chris Goy, Yuan Gao, Hunter Henry, Marwan Mattar, and Danny Lange. Unity: A general platform 449 
+
+for intelligent agents. arXiv preprint arXiv:1809.02627 , 2020. 450 
+
+Dexun Li, Wenjun Li, and Pradeep Varakantham. Diversity induced environment design via self-play. 451 
+
+arXiv preprint arXiv:2302.02119 , 2023. 452 
+
+Wenjun Li, Pradeep Varakantham, and Dexun Li. Effective diversity in unsupervised environment 453 
+
+design. arXiv preprint arXiv:2301.08025 , 2023. 454 
+
+10 Chien-Chang Lin, Anna YQ Huang, and Owen HT Lu. Artificial intelligence in intelligent tutoring 455 
+
+systems toward sustainable education: a systematic review. Smart Learning Environments , 10(1):41, 456 
+
+2023. 457 
+
+Robert V Lindsey, Jeffery D Shroyer, Harold Pashler, and Michael C Mozer. Improving students’ 458 
+
+long-term knowledge retention through personalized review. Psychological science , 25(3):639–647, 459 
+
+2014. 460 
+
+John Macalister and IS Paul Nation. Language curriculum design . Routledge, 2019. 461 
+
+Elham Mousavinasab, Nahid Zarifsanaiey, Sharareh R. Niakan Kalhori, Mahnaz Rakhshan, Leila 462 
+
+Keikha, and Marjan Ghazi Saeedi. Intelligent tutoring systems: a systematic review of characteris-463 
+
+tics, applications, and evaluation methods. Interactive Learning Environments , 29(1):142–163, 464 
+
+2021. 465 
+
+Jack Parker-Holder, Minqi Jiang, Michael Dennis, Mikayel Samvelyan, Jakob Foerster, Edward 466 
+
+Grefenstette, and Tim Rocktäschel. Evolving curricula with regret-based environment design. 467 
+
+arXiv preprint arXiv:2203.01302 , 2022. 468 
+
+R. Patel and P. Thakkar. Addressing item cold start problem in collaborative filtering-based recom-469 
+
+mender systems using auxiliary information. In IOT with Smart Systems: Proceedings of ICTIS 470 
+
+2022, Volume 2 , pages 133–142, Singapore, 2022. Springer Nature Singapore. 471 
+
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy 472 
+
+optimization algorithms. arXiv preprint arXiv:1707.06347 , 2017. 473 
+
+Avi Segal, Yossi Ben David, Joseph Jay Williams, Kobi Gal, and Yaar Shalom. Combining difficulty 474 
+
+ranking with multi-armed bandits to sequence educational content. In Artificial Intelligence in Ed-475 
+
+ucation: 19th International Conference, AIED 2018, London, UK, June 27–30, 2018, Proceedings, 476 
+
+Part II 19 , pages 317–321. Springer, 2018. 477 
+
+David Silver, Aja Huang, Chris J Maddison, Arthur Guez, Laurent Sifre, George Van Den Driessche, 478 
+
+Julian Schrittwieser, Ioannis Antonoglou, Veda Panneershelvam, Marc Lanctot, et al. Mastering 479 
+
+the game of go with deep neural networks and tree search. nature , 529(7587):484–489, 2016. 480 
+
+David Silver, Thomas Hubert, Julian Schrittwieser, Ioannis Antonoglou, Matthew Lai, Arthur Guez, 481 
+
+Marc Lanctot, Laurent Sifre, Dharshan Kumaran, Thore Graepel, et al. Mastering chess and shogi 482 
+
+by self-play with a general reinforcement learning algorithm. arXiv preprint arXiv:1712.01815 ,483 
+
+2017. 484 
+
+Sujanya Suresh, Savitha Ramasamy, Ponnuthurai N Suganthan, and Cheryl Sze Yin Wong. Incremen-485 
+
+tal knowledge tracing from multiple schools. arXiv preprint arXiv:2201.06941 , 2022. 486 
+
+Sidney Tio and Pradeep Varakantham. Transferable curricula through difficulty conditioned genera-487 
+
+tors, 2023. 488 
+
+Josh Tobin, Rachel Fong, Alex Ray, Jonas Schneider, Wojciech Zaremba, and Pieter Abbeel. Domain 489 
+
+randomization for transferring deep neural networks from simulation to the real world. In 2017 490 
+
+IEEE/RSJ international conference on intelligent robots and systems (IROS) , pages 23–30. IEEE, 491 
+
+2017. 492 
+
+Pedro A Tsividis, Thomas Pouncy, Jaqueline L Xu, Joshua B Tenenbaum, and Samuel J Gershman. 493 
+
+Human learning in atari. In 2017 AAAI spring symposium series , 2017. 494 
+
+Jan Van den Akker. Curriculum design research. An introduction to educational design research ,495 
+
+37:37–50, 2007. 496 
+
+Maarten van der Velde, Florian Sense, Jelmer P Borst, and Hedderik V Rijn. Large-scale evaluation 497 
+
+of cold-start mitigation in adaptive fact learning: Knowing "what" matters more than knowing 498 
+
+"who". User Modeling and User-Adapted Interaction , pages 1–25, 2024. 499 
+
+Lev Semenovich Vygotsky and Michael Cole. Mind in society: Development of higher psychological 500 
+
+processes . Harvard university press, 1978. 501 
+
+11 Cong Wang, Yifeng Zheng, Jinghua Jiang, and Kui Ren. Toward privacy-preserving personalized 502 
+
+recommendation services. Engineering , 4(1):21–28, 2018. 503 
+
+Rui Wang, Joel Lehman, Jeff Clune, and Kenneth O Stanley. Paired open-ended trailblazer (poet): 504 
+
+Endlessly generating increasingly complex and diverse learning environments and their solutions. 505 
+
+arXiv preprint arXiv:1901.01753 , 2019. 506 
+
+Jinjin Zhao, Shreyansh Bhatt, Candace Thille, Neelesh Gattani, and Dawn Zimmaro. Cold start 507 
+
+knowledge tracing with attentive neural turing machine. In Proceedings of the Seventh ACM 508 
+
+Conference on Learning@ Scale , pages 333–336, 2020. 509 
+
+12 A Technical Appendices and Supplementary Material 510 
+
+A.1 Further Details on Teacher Algorithms 511 
+
+A.1.1 PERM-H 512 
+
+Figure 6: Training results of RL Agents trained under PERM (orange) and a random curricula (blue). Left: Agents trained under PERM-H increased in ability over time, despite levels of increasing difficulty. Centre: PERM trainees are more likely to complete the level than those under random. Right: Agents trained under PERM travelled deeper into the level than the counterparts in the random condition. 
+
+Pre-study To determine if PERM applies well to our Jumper environment, we conducted a pre-study 513 
+
+in which we use PERM to train a student RL agent. 514 
+
+We first train a Jumper-tuned version of PERM. For the Jumper environment, we collected a tuple of 515 
+
+(spike density, height variance, rewards ) for every episode of the RL training. In this development 516 
+
+phase, we obtained a total of 14506 environment-student interaction data, over a course of 12 hours, 517 
+
+with a single V100 GPU. Thereafter, we deploy the trained PERM-H as a teacher algorithm to a 518 
+
+new PPO Schulman et al. [2017] RL student trained using Unity’s ml-agents package Juliani et al. 519 
+
+[2020]. We also provide the results of a RL student trained under a random curricula. The results are 520 
+
+shown in Figure 6. 521 
+
+Based on the obtained results, it is evident that the adoption of an Item Response Theory-driven 522 
+
+curriculum with the PERM teacher yields remarkable outcomes for RL agents, surpassing the 523 
+
+performance achieved by the random curriculum. Notably, RL agents trained using the IRT-driven 524 
+
+curriculum exhibit a higher level of proficiency in completing levels and, on average, traversed 525 
+
+deeper into these levels compared to their counterparts trained using the random curriculum. These 526 
+
+impressive outcomes are noteworthy considering that PERM continually challenges the student by 527 
+
+evolving the levels in the same pace. 528 
+
+Futher Analysis on Performance We compared participant’s completion rate. We also compared 529 
+
+participant’s self-reported familiarity with side-scrolling games against their completion rates. A 530 
+
+successful completion meant that participants took lesser than 15 attempts on the final test. Lastly, we 531 
+
+analyzed the duration it took per attempt for them to complete. We perform the above analysis based 532 
+
+on the assumption that more competent participants would complete the test with lesser attempts, 533 
+
+13 Figure 7: Participant’s self-report of their familiarity with 2D games, against their completion rates in the final test. A score of 0 represents ”No Experience at all" while 5 represents ”Highly Experienced". All participants under PERM-H were successful in completing the test, with the exception of individuals who had ”No experience at all" in 2D Games. 
+
+Name Jumper 
+
+Environment Type UED 
+
+Short Description A Super-Mario inspired 2D game, where players have to control a character to jump across obstacles to reach the end 
+
+Student Objective Reach the end of the level, while avoiding obstacles 
+
+Student Actions Keyboard controls to control main character’s movement and jumping 
+
+Env Parameters to adjust θ
+
+Spike Density; Ground Roughness 
+
+Skills Imparted Motor-skills, hand-eye coordination 
+
+Table 1: Overview of Jumper Game Environment with a shorter duration. We used Student’s t-test to compare the duration and the attempts made in 534 
+
+the final test, and chi-squared test of goodness of fit to compare completion rates. 535 
+
+Figure 8: Participants under PERM-H took a longer time per attempt during the test ( p < 0.01 ). 
+
+Results The completion rate of the 536 
+
+tests are presented in Figure 7. Partic-537 
+
+ipants under the PERM-H were more 538 
+
+likely to complete the test (i.e. reach 539 
+
+the goal with less than 15 attempts), 540 
+
+regardless of prior experience with 541 
+
+games, than the other conditions. Fig-542 
+
+ure 7 depicts the completion rate of 543 
+
+each condition, compared to their self-544 
+
+reported prior experience. The ef-545 
+
+fect of curriculum was found to be 546 
+
+significant, i.e. the completion rates 547 
+
+were not equally distributed amongst 548 
+
+the 3 conditions ( χ2(2 , N = 230) = 549 
+
+9.24 , p < 0.01 ). 550 
+
+Lastly, the duration per attempt 551 
+
+for groups under PERM-H ( μ =552 
+
+61 .02 , σ = 66 .41 ) were significantly 553 
+
+longer than that of the random curricula ( μ = 45 .01 , σ = 19 .68 , p < 0.01 ) and control condition 554 
+
+(μ = 29 .86 , σ = 16 .42 , p < 0.01 ). The average duration is plotted in Figure 8. 555 
+
+Discussion Collectively, these findings suggest that students trained with PERM-H were not only 556 
+
+more likely to succeed on the test but also required fewer attempts to do so. Crucially, this positive 557 
+
+impact of PERM-H on students remains consistent across individuals with diverse levels of prior 558 
+
+experience with similar games. This consistency underscores the effectiveness of the adaptive 559 
+
+curriculum implemented by PERM-H, demonstrating its capacity to benefit participants regardless of 560 
+
+their varied backgrounds. 561 
+
+14 Name Emergency Response 
+
+Environment Type Task Sequencing 
+
+Short Description A Overcooked-inspired game, where players take the role of a paramedic providing medical assistance to a patient enroute to the hospital 
+
+Student Objective Provide the necessary medical assistance, in reaction to a description of pa-tient’s conditions 
+
+Student Actions Mouse to control paramedic’s movement, and to guide and pick up the neces-sary medical devices 
+
+Env Parameters to adjust θ
+
+Task from a pre-determined pool 
+
+Skills Imparted Medical knowledge and decision making, working under time pressures 
+
+Table 2: Overview of Emergency Response Game Environment 
+
+Figure 9: Possible segments of levels generated by PERM-H. The easy level (left) has lesser spikes and lesser variation in the terrain. In contrast, players have to navigate uneven terrains and jump across more spikes in the difficult level (right). We were surprised that students under PERM-H had took significantly longer per attempt to complete 562 
+
+the test. This observation hints at distinct behavioral differences among the learners, especially 563 
+
+those exposed to higher difficulty levels. It’s worth highlighting that participants were not explicitly 564 
+
+informed that their performance was being evaluated based on the speed of level completion. This 565 
+
+absence of explicit information could have influenced the more deliberate approach adopted by 566 
+
+students exposed to the PERM-H framework. 567 
+
+Enjoyment During Training 568 
+
+Method At the end of the training trial, we conducted a short survey that queried participants on 569 
+
+how fun they found the training. 570 
+
+Results Participants assigned to the PERM-H condition rated the game as less fun ( μ = 3 .18 , σ =571 
+
+1.06 ) as compared to participants in the no training condition ( μ = 3 .43 , σ = 1 .16 , p = 0 .027 ) but not 572 
+
+significantly different from the participants in the random curricula ( μ = 3 .29 , σ = 1 .29 , p = 0 .044 ). 573 
+
+Discussion We noticed that participants who did not undergo any form of training tended to rate the 574 
+
+game as more enjoyable than those who received training. This disparity in enjoyment levels might 575 
+
+be linked to the potential fatigue induced by the training process. A closer analysis showed that, 576 
+
+on average, both participants with average ( μ = 4 .08 , σ = 2 .98 ) performance under the PERM-H 577 
+
+framework required more attempts to complete their training compared to their peers in the random 578 
+
+curricula ( μ = 3 .43 , σ = 2 .28 , p < 0.01 ). It’s important to note that this increased number of training 579 
+
+15 attempts was a desired outcome of PERM-H, as it consistently provided levels within the grasp of the 580 
+
+participant’s ability. 581 
+
+A.2 SimMAC 582 
+
+In this section, we provide more details of the SimMAC algorithm and related backgrounds of 583 
+
+SimMAC. 584 
+
+Background: Wasserstein Distance Wasserstein distance was employed to estimate the distance 585 
+
+between two tasks in DIPLR Li et al. [2023a]. DIPLR focuses on the pair-wise distance and calculates 586 
+
+the distance between two tasks d(T θ1 , T θ2 ) as: 587 
+
+# W(ρπ
+
+T θ1 , ρ π
+
+T θ2 ) = 
+
+#  inf 
+
+ψ∈Π( ρπ  
+
+> Tθ1
+
+,ρ π  
+
+> Tθ2
+
+)
+
+# E(ϕ1,ϕ 2)∼ψ [d(ϕ1, ϕ 2)p]
+
+# 
+
+1/p 
+
+(2) where ϕ ∈ (S, A ) is a sample from the occupancy distribution. By Equation (2), DIPLR collects 588 
+
+state-action samples in trajectories to compute the empirical Wasserstein distance between two tasks. 589 
+
+I.e., d(T θi , T θj ) ≜ W(ρπ  
+
+> Tθi
+
+, ρ π  
+
+> Tθj
+
+) ≈ W (τi, τ j ) is our empirical estimation of the Wasserstein 590 
+
+distance between two tasks. 591 
+
+We extend the methodology in DIPLR and employ Wasserstein distance to calculate the distance 592 
+
+between one task and a set of tasks, d(T θk , T θi∼æ ):593 
+
+# W(ρπ
+
+T θk , ρ π
+
+T θi∼j ) = 
+
+#  inf 
+
+ψ∈Π( ρπ  
+
+> Tθk
+
+,ρ π  
+
+> Tθi∼j
+
+)
+
+# E(ϕ1,ϕ 2)∼ψ [d(ϕ1, ϕ 2)p]
+
+# 
+
+1/p 
+
+(3) 
+
+Exploration Stage During the Exploration Stage of SimMAC, we initialize a diverse set of RL 594 
+
+agents and train them uniformly on all tasks. We collect the trajectories at different stages during 595 
+
+training such that the agent trajectories have a wide coverage over each task and we can use them 596 
+
+to obtain a good occupancy measure for each task. Assume we have k tasks and we denote the 597 
+
+trajectories associated with each task by Γ1, Γ2, ..., Γk. The complete procedures of the SimMAC 598 
+
+algorithm are summarized in Algorithm A.2. 599 
+
+[th] SimMAC for Emergency Response Game k training tasks: T θ1 , T θ2 , ..., T θk , training curriculum 600 
+
+length N (N ≤ k), empty trajectory buffer Γ601 
+
+Measure the difficulty of each task 602 
+
+Select task with the lowest difficulty, denoted by T θ1
+
+> 603
+
+Train human learner in T θ1 and collect the trajectories, τ1 ∼ T θ1
+
+> 604
+
+Insert τ1 into Γ605 
+
+t = 2 , 3, ..., N i = 1 , 2, ..., N Calculate task similarity between T θi and the rest of the tasks by 606 
+
+d = W(Γ , Γi)607 
+
+Select the task with the lowest distance, denoted by T θt
+
+> 608
+
+Train the human learner in T θt and collect the trajectories, τt ∼ T θt
+
+> 609
+
+Insert τt into Γ610 611 
+
+Qualtitative Feedback from Participants At the end of the experiment, we conducted a short 612 
+
+survey to gather participants’ feedback on how enjoyable they found the game, the coherence of 613 
+
+their learning experiences, and whether they felt fatigued afterward. Our primary focus was on their 614 
+
+feedback regarding the consistency and coherence of the curriculum. 615 
+
+Participants in the Random group frequently complained about the lack of coherence in their learning 616 
+
+experience, as tasks were randomly shuffled, leading to a disjointed progression for some. In contrast, 617 
+
+participants in the SimMAC group reported a more coherent and continuous learning experience. 618 
+
+16 In addition to smooth knowledge accumulation, human learners showed a strong preference for 619 
+
+progressing from easy to more difficult tasks. This preference is interesting because it contrasts with 620 
+
+what is typically effective for training reinforcement learning (RL) agents. In RL, numerous studies 621 
+
+Wang et al. [2019]; Dennis et al. [2020]; Jiang et al. [2021]; Parker-Holder et al. [2022] highlight the 622 
+
+benefits of training in novel and challenging environments. This difference in learning preferences 623 
+
+can be attributed to the distinct objectives and constraints in RL training versus human training. In 624 
+
+RL, the goal is to develop agents with general capabilities that can transfer to unseen challenges, often 625 
+
+involving billions of training timesteps. On the other hand, human training emphasizes maximizing 626 
+
+learning efficiency within a limited timeframe, as extended curricula can lead to fatigue. 627 
+
+A.2.1 Extended Experiment Results 628 
+
+Figure 10: Game time by various groups. All participants were compensated for their participation in our study, at a rate that 629 
+
+is above or the same as Prolific’s recommended payment principles (https://researcher-630 
+
+help.prolific.com/en/article/2273bd). 631 
+
+Game Time Figure 10 compares the game time across three different experimental groups: Hand-632 
+
+crafted, SimMAC, and Random. The Reading group is the control group, which did not participate in 633 
+
+the game but instead focused on reading materials related to emergency response knowledge. Key 634 
+
+observations include: 635 
+
+1. The SimMAC group, which used the proposed SimMAC teacher for curriculum training, 636 
+
+has a median game time of about 18 minutes, with a relatively tight interquartile range (IQR) 637 
+
+from around 15 to 22 minutes. This suggests that participants in this group were able to 638 
+
+complete the game efficiently. 639 
+
+2. The Handcrafted group shows a similar median game time, also around 18 minutes, but with 640 
+
+a slightly wider IQR compared to the SimMAC group. This indicates a bit more variability 641 
+
+in performance. 642 
+
+3. The Random group has the highest median game time, approximately 22 minutes, with 643 
+
+the broadest IQR, suggesting greater variability in how long participants took to complete 644 
+
+the game. There is also an outlier, indicating that at least one participant took significantly 645 
+
+longer than others. 646 
+
+In summary, the results highlight the effectiveness of the SimMAC teacher in providing a training 647 
+
+curriculum that allows human learners to complete the task more efficiently, as evidenced by the 648 
+
+17 lower game times. Moreover, participants in the SimMAC group achieved the highest post-test scores, 649 
+
+demonstrating that the efficiency gained in game time did not come at the cost of learning quality. 650 
+
+Figure 11: Averaged remaining attempts in each task during the game. 
+
+Remaining Attempts in the Game Figure 11 provides the average remaining attempts in each 651 
+
+task during the game. In general, participants in Random group required more attempts to complete 652 
+
+the scenario. SimMAC and Handcrafted, on the other hand required lesser attempts. This can be 653 
+
+attributed to the easy-hard progression that is a feature of SimMAC and Handcrafted curriculum, so 654 
+
+that participants do not face a difficult task even before they have learned about it. 655 
+
+Figure 12: Averaged remaining attempts in each task during the game. 
+
+Participant’s Assessment of Fun and Usefulness After the experiment ended, participants were 656 
+
+tasked to complete a survey on their training experience. The results pertaining to the fun factor 657 
+
+18 ("How do you rate the fun factor of the game?") and usefulness of their curricula ("Did you feel the 658 
+
+order in which these scenarios were presented to you to play, helped you to learn these scenarios 659 
+
+better?") are presented in Figure 12 and Figure 13 respectively. Overall, all participants found the 
+
+Figure 13: Averaged remaining attempts in each task during the game. 
+
+> 660
+
+Emergency Response Game fun with average scores well above 3 points ( μ = 3 .78 ). Notably, 661 
+
+participants were more likely to find the curriculum generated by SimMAC to be helpful. 662 
+
+A.3 Environment Details 663 
+
+A.3.1 Emergency Response Environment 664 
+
+Our research team designed the emergency response game for paramedic training for non-expert 665 
+
+human learners. The participants engaged in our experiment will learn emergency response knowledge 666 
+
+through interactive video games. 667 
+
+A clear illustration of the game interface is presented in Figure 15. In the game, the human player 668 
+
+navigates the ambulance, selecting appropriate medical items to treat patients with various conditions. 669 
+
+The patient’s condition transitions stochastically, meaning it can change to different states after the 670 
+
+application of a particular medical item. The current condition of the patient is displayed in the top 671 
+
+right corner, and this description updates dynamically as the condition evolves. When the mouse 672 
+
+hovers over a specific medical item, a description of the item and its functions appears in the bottom 673 
+
+right corner. 674 
+
+Players must complete a series of treatments to stabilize the patient before the ambulance reaches 675 
+
+the hospital. Our research team designed 10 different medical conditions, including Allergy , Seizure ,676 
+
+BreathingDifficulty , HeatStroke , ExternalBleeding , ColdExposure , AbdominalTrauma , Musculoskele-677 
+
+talTrauma , AcuteCoronarySyndrome , Bronchospasm . Two of these conditions ( Seizure and ColdExpo-678 
+
+sure ) were used to create a demo video to instruct participants on gameplay. The remaining conditions 679 
+
+form the task pool for training. Depending on the natural complexity of each condition, we developed 680 
+
+easy, medium, and hard versions for some diseases. However, conditions like ExternalBleeding and 681 
+
+HeatStroke may have only easy or medium versions due to a lack of diverse condition variations. In 682 
+
+total, 17 tasks were constructed to form the training curriculum. 683 
+
+Figure 16 presents a segment of the flowchart for the BreathingDifficulty condition. For instance, in 684 
+
+the stochastic transition, the patient’s state can evolve to either patient-state=1 or patient-state=10 685 
+
+after the player applies CPAP. The player navigates the flowchart by selecting different actions 686 
+
+(i.e., medical items) and eventually reaches various termination states. Condition variations refer 687 
+
+to different severities of the same disease, such as mild HeatStroke versus severe HeatStroke . Vital 688 
+
+19 Figure 14: Jumper Game’s test level. Players control the red figure to navigate the spiked maze, with the objective of reaching the final goal in blue. variations involve changes in vital signs, like blood pressure and body temperature, which influence 689 
+
+the treatment approach. Additionally, vital variations trigger dynamic updates in the game, displaying 690 
+
+the relevant vital value and range (indicated by the green bar). Through this interactive game, players 691 
+
+progressively accumulate knowledge and skills for handling various emergency response situations. 692 
+
+20 Figure 15: Blown-up version of the Emergency Response Game, providing a bird-eye view of the interior of an ambulance enroute to the hospital. Participants have to control the medical officer (in blue) to retrieve appropriate medical equipment to address patient’s condition. The Information Panel on the left describes the patient’s condition, and a short description of the item when participant’s mouse hovers over an item. 
+
+Figure 16: Flowchart of the BreathingDifficulty disease. 21 Figure 17: Public Experiment Flow. 
+
+A.3.2 Additional Procedures for Human Subjects Training 693 
+
+Based on feedback from 8 volunteer testers, we adjusted our experimental setup. We reduced the 694 
+
+number of diseases from 10 to 8 and decreased total tasks from 21 to 17 to mitigate participant fatigue. 695 
+
+We also added 2 simpler tasks for a demo video and warm-up to familiarize participants with the 696 
+
+game. Figure 17 illustrates the detailed experiment flow. 697 
+
+Pilot test feedback revealed participants prefer completing one topic before moving to another, even 698 
+
+if tasks in new topics have higher similarity to past experiences. Consequently, we adjusted SimMAC 699 
+
+to complete all tasks within a current condition before introducing a new one. 700 
+
+22 The participants’ initial reading materials were adapted from West Virginia Department of Health 701 
+
+and Human Resources 3. Prior to the commencement of the study, the research team had consulted 702 
+
+a medical expert and they had confirmed that the medical information provided above are not 703 
+
+misrepresented, even in the local context, and poses no harm to the participants. As an added measure, 704 
+
+participants were debriefed after the experiment and explicitly advised to disregard the session as 705 
+
+indicative of local medical emergency protocols. They were directed to context-specific online 706 
+
+resources for more localized information. 707 
+
+A.4 Participant Background Analysis 708 
+
+A.4.1 Emergency Response Game 709 
+
+We conducted a comprehensive ablation analysis to ensure that the performance of the SimMAC 710 
+
+curriculum is not influenced by participants’ backgrounds. Most participants in our experiment were 711 
+
+university students with similar demographics, including age, learning abilities, reading skills and 712 
+
+etc. We focused on three key factors: whether participants held a job related to healthcare, their 713 
+
+experience with 3D games, and their initial proficiency in emergency procedures. 714 
+
+Healthcare Job Participants with healthcare-related jobs might perform better during the game 715 
+
+and in post-test questionnaires. Therefore, we collected this background information in the pre-test 716 
+
+questionnaire and summarized the job backgrounds of all participants in Figure18. 717 
+
+Figure 18: Participants’ background of healthcare job. 
+
+3D Game Experience Experience 718 
+
+with 3D games could also influence 719 
+
+performance. The distribution of 3D 720 
+
+game experience by group is shown 721 
+
+in Figure 19. 722 
+
+A two-way ANCOVA was conducted 723 
+
+to examine the effects of Group as-724 
+
+signment and Game Experience on the 725 
+
+final test scores, with Game Experi-726 
+
+ence serving as a covariate. The anal-727 
+
+ysis revealed a significant main effect 728 
+
+of Group (F (3 , 113) = 10 .32 , p < 729 
+
+.001) . However, the covariate, Game 730 
+
+Experience, did not show a signifi-731 
+
+cant effect (F (1 , 113) = 1 .79 , p =732 
+
+.183) . The interaction between Group 733 
+
+and Game Experience was also not 734 
+
+statistically significant (F (3 , 113) = 735 
+
+0.07 , p = .974) .736 
+
+In summary, our experiment design 737 
+
+was successful in mitigating for prior experience in games as a potential confounding factor for our 738 
+
+final test scores, and thus was not discussed in the main text. 739 
+
+Proficiency in Emergency Procedures Finally, we analyzed participants’ proficiency in emergency 740 
+
+procedures, i.e., prior knowledge of handling emergency situations, as shown in Figure 20. A two-way 741 
+
+ANCOVA was conducted to examine the effects of Group assignment and Emergency Proficiency 742 
+
+on test scores, while controlling for Emergency Proficiency as a covariate. The results revealed a 743 
+
+significant main effect of Group (F (3 , 113) = 10 .34 , p < . 001) . There was also a significant effect 744 
+
+of the covariate, Emergency Proficiency (F (1 , 113) = 8 .92 , p = .003) . However, the interaction 745 
+
+between Group and Emergency Proficiency was not statistically significant (F (3 , 113) = 1 .49 , p =746 
+
+.221) .747 
+
+Taken together, it would suggest that while Emergency Proficiency and Group independently influ-748 
+
+enced the final test scores, Emergency Proficiency was not a confound of group assignment. Our 749 
+
+> 3
+
+https://www.wvoems.org/ 
+
+23 Figure 19: Left: Proportion of self-reported experience with games by Group. Right: Scores by Group and prior Game Experience experimental procedure had sufficiently controlled for prior experience in Emergency situations and 750 
+
+thus was not discussed in the main text. 751 
+
+Figure 20: Left: Proportion of self-reported experience with emergencies and medical procedures by Group. Right: Scores by Group and prior experience with medical emergencies. 24 NeurIPS Paper Checklist 752 
+
+1. Claims 753 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the 754 
+
+paper’s contributions and scope? 755 
+
+Answer: [Yes] 756 
+
+Justification: We have highlighted the main direction of where we want to encourage 757 
+
+research towards, and highlighted the aspirations of this line of research. 758 
+
+Guidelines: 759 
+
+• The answer NA means that the abstract and introduction do not include the claims 760 
+
+made in the paper. 761 
+
+• The abstract and/or introduction should clearly state the claims made, including the 762 
+
+contributions made in the paper and important assumptions and limitations. A No or 763 
+
+NA answer to this question will not be perceived well by the reviewers. 764 
+
+• The claims made should match theoretical and experimental results, and reflect how 765 
+
+much the results can be expected to generalize to other settings. 766 
+
+• It is fine to include aspirational goals as motivation as long as it is clear that these goals 767 
+
+are not attained by the paper. 768 
+
+2. Limitations 769 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? 770 
+
+Answer: [Yes] 771 
+
+Justification: We have included it and discussed it briefly in the Conclusion section. 772 
+
+Guidelines: 773 
+
+• The answer NA means that the paper has no limitation while the answer No means that 774 
+
+the paper has limitations, but those are not discussed in the paper. 775 
+
+• The authors are encouraged to create a separate "Limitations" section in their paper. 776 
+
+• The paper should point out any strong assumptions and how robust the results are to 777 
+
+violations of these assumptions (e.g., independence assumptions, noiseless settings, 778 
+
+model well-specification, asymptotic approximations only holding locally). The authors 779 
+
+should reflect on how these assumptions might be violated in practice and what the 780 
+
+implications would be. 781 
+
+• The authors should reflect on the scope of the claims made, e.g., if the approach was 782 
+
+only tested on a few datasets or with a few runs. In general, empirical results often 783 
+
+depend on implicit assumptions, which should be articulated. 784 
+
+• The authors should reflect on the factors that influence the performance of the approach. 785 
+
+For example, a facial recognition algorithm may perform poorly when image resolution 786 
+
+is low or images are taken in low lighting. Or a speech-to-text system might not be 787 
+
+used reliably to provide closed captions for online lectures because it fails to handle 788 
+
+technical jargon. 789 
+
+• The authors should discuss the computational efficiency of the proposed algorithms 790 
+
+and how they scale with dataset size. 791 
+
+• If applicable, the authors should discuss possible limitations of their approach to 792 
+
+address problems of privacy and fairness. 793 
+
+• While the authors might fear that complete honesty about limitations might be used by 794 
+
+reviewers as grounds for rejection, a worse outcome might be that reviewers discover 795 
+
+limitations that aren’t acknowledged in the paper. The authors should use their best 796 
+
+judgment and recognize that individual actions in favor of transparency play an impor-797 
+
+tant role in developing norms that preserve the integrity of the community. Reviewers 798 
+
+will be specifically instructed to not penalize honesty concerning limitations. 799 
+
+3. Theory assumptions and proofs 800 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and 801 
+
+a complete (and correct) proof? 802 
+
+Answer:[NA] . 803 
+
+25 Justification: We use empirical results from our human subjects study to justify. 804 
+
+Guidelines: 805 
+
+• The answer NA means that the paper does not include theoretical results. 806 
+
+• All the theorems, formulas, and proofs in the paper should be numbered and cross-807 
+
+referenced. 808 
+
+• All assumptions should be clearly stated or referenced in the statement of any theorems. 809 
+
+• The proofs can either appear in the main paper or the supplemental material, but if 810 
+
+they appear in the supplemental material, the authors are encouraged to provide a short 811 
+
+proof sketch to provide intuition. 812 
+
+• Inversely, any informal proof provided in the core of the paper should be complemented 813 
+
+by formal proofs provided in appendix or supplemental material. 814 
+
+• Theorems and Lemmas that the proof relies upon should be properly referenced. 815 
+
+4. Experimental result reproducibility 816 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-817 
+
+perimental results of the paper to the extent that it affects the main claims and/or conclusions 818 
+
+of the paper (regardless of whether the code and data are provided or not)? 819 
+
+Answer: [Yes] 820 
+
+Justification: We have accurately described all algorithms and approaches highlighted in our 821 
+
+paper. Upon acceptance, we intend to open-source the environment such that researchers 822 
+
+can also use our environments to run their own studies. 823 
+
+Guidelines: 824 
+
+• The answer NA means that the paper does not include experiments. 825 
+
+• If the paper includes experiments, a No answer to this question will not be perceived 826 
+
+well by the reviewers: Making the paper reproducible is important, regardless of 827 
+
+whether the code and data are provided or not. 828 
+
+• If the contribution is a dataset and/or model, the authors should describe the steps taken 829 
+
+to make their results reproducible or verifiable. 830 
+
+• Depending on the contribution, reproducibility can be accomplished in various ways. 831 
+
+For example, if the contribution is a novel architecture, describing the architecture fully 832 
+
+might suffice, or if the contribution is a specific model and empirical evaluation, it may 833 
+
+be necessary to either make it possible for others to replicate the model with the same 834 
+
+dataset, or provide access to the model. In general. releasing code and data is often 835 
+
+one good way to accomplish this, but reproducibility can also be provided via detailed 836 
+
+instructions for how to replicate the results, access to a hosted model (e.g., in the case 837 
+
+of a large language model), releasing of a model checkpoint, or other means that are 838 
+
+appropriate to the research performed. 839 
+
+• While NeurIPS does not require releasing code, the conference does require all submis-840 
+
+sions to provide some reasonable avenue for reproducibility, which may depend on the 841 
+
+nature of the contribution. For example 842 
+
+(a) If the contribution is primarily a new algorithm, the paper should make it clear how 843 
+
+to reproduce that algorithm. 844 
+
+(b) If the contribution is primarily a new model architecture, the paper should describe 845 
+
+the architecture clearly and fully. 846 
+
+(c) If the contribution is a new model (e.g., a large language model), then there should 847 
+
+either be a way to access this model for reproducing the results or a way to reproduce 848 
+
+the model (e.g., with an open-source dataset or instructions for how to construct 849 
+
+the dataset). 850 
+
+(d) We recognize that reproducibility may be tricky in some cases, in which case 851 
+
+authors are welcome to describe the particular way they provide for reproducibility. 852 
+
+In the case of closed-source models, it may be that access to the model is limited in 853 
+
+some way (e.g., to registered users), but it should be possible for other researchers 854 
+
+to have some path to reproducing or verifying the results. 855 
+
+5. Open access to data and code 856 
+
+26 Question: Does the paper provide open access to the data and code, with sufficient instruc-857 
+
+tions to faithfully reproduce the main experimental results, as described in supplemental 858 
+
+material? 859 
+
+Answer: [Yes] 860 
+
+Justification: We intend to open-source the code and environments for further research. As 861 
+
+our human subjects study contains sensitive data, we will not be releasing it at the moment. 862 
+
+Guidelines: 863 
+
+• The answer NA means that paper does not include experiments requiring code. 864 
+
+• Please see the NeurIPS code and data submission guidelines ( https://nips.cc/ 865 
+
+public/guides/CodeSubmissionPolicy ) for more details. 866 
+
+• While we encourage the release of code and data, we understand that this might not be 867 
+
+possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not 868 
+
+including code, unless this is central to the contribution (e.g., for a new open-source 869 
+
+benchmark). 870 
+
+• The instructions should contain the exact command and environment needed to run to 871 
+
+reproduce the results. See the NeurIPS code and data submission guidelines ( https: 872 
+
+//nips.cc/public/guides/CodeSubmissionPolicy ) for more details. 873 
+
+• The authors should provide instructions on data access and preparation, including how 874 
+
+to access the raw data, preprocessed data, intermediate data, and generated data, etc. 875 
+
+• The authors should provide scripts to reproduce all experimental results for the new 876 
+
+proposed method and baselines. If only a subset of experiments are reproducible, they 877 
+
+should state which ones are omitted from the script and why. 878 
+
+• At submission time, to preserve anonymity, the authors should release anonymized 879 
+
+versions (if applicable). 880 
+
+• Providing as much information as possible in supplemental material (appended to the 881 
+
+paper) is recommended, but including URLs to data and code is permitted. 882 
+
+6. Experimental setting/details 883 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-884 
+
+parameters, how they were chosen, type of optimizer, etc.) necessary to understand the 885 
+
+results? 886 
+
+Answer: [Yes] 887 
+
+Justification: We have described all our experiments and human subject interactions in the 888 
+
+Experiment section, as well as additional details in the Appendix. 889 
+
+Guidelines: 890 
+
+• The answer NA means that the paper does not include experiments. 891 
+
+• The experimental setting should be presented in the core of the paper to a level of detail 892 
+
+that is necessary to appreciate the results and make sense of them. 893 
+
+• The full details can be provided either with the code, in appendix, or as supplemental 894 
+
+material. 895 
+
+7. Experiment statistical significance 896 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate 897 
+
+information about the statistical significance of the experiments? 898 
+
+Answer: [Yes] 899 
+
+Justification: We have taken due care to all statistical tests and plots we have done. 900 
+
+Guidelines: 901 
+
+• The answer NA means that the paper does not include experiments. 902 
+
+• The authors should answer "Yes" if the results are accompanied by error bars, confi-903 
+
+dence intervals, or statistical significance tests, at least for the experiments that support 904 
+
+the main claims of the paper. 905 
+
+• The factors of variability that the error bars are capturing should be clearly stated (for 906 
+
+example, train/test split, initialization, random drawing of some parameter, or overall 907 
+
+run with given experimental conditions). 908 
+
+27 • The method for calculating the error bars should be explained (closed form formula, 909 
+
+call to a library function, bootstrap, etc.) 910 
+
+• The assumptions made should be given (e.g., Normally distributed errors). 911 
+
+• It should be clear whether the error bar is the standard deviation or the standard error 912 
+
+of the mean. 913 
+
+• It is OK to report 1-sigma error bars, but one should state it. The authors should 914 
+
+preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis 915 
+
+of Normality of errors is not verified. 916 
+
+• For asymmetric distributions, the authors should be careful not to show in tables or 917 
+
+figures symmetric error bars that would yield results that are out of range (e.g. negative 918 
+
+error rates). 919 
+
+• If error bars are reported in tables or plots, The authors should explain in the text how 920 
+
+they were calculated and reference the corresponding figures or tables in the text. 921 
+
+8. Experiments compute resources 922 
+
+Question: For each experiment, does the paper provide sufficient information on the com-923 
+
+puter resources (type of compute workers, memory, time of execution) needed to reproduce 924 
+
+the experiments? 925 
+
+Answer: [No] 926 
+
+Justification: As our work mainly involves running Unity environments, and less about 927 
+
+large models, we do not specify the hardware requirements. We do not forsee any problems 928 
+
+running our work with the standard University lab setups. 929 
+
+Guidelines: 930 
+
+• The answer NA means that the paper does not include experiments. 931 
+
+• The paper should indicate the type of compute workers CPU or GPU, internal cluster, 932 
+
+or cloud provider, including relevant memory and storage. 933 
+
+• The paper should provide the amount of compute required for each of the individual 934 
+
+experimental runs as well as estimate the total compute. 935 
+
+• The paper should disclose whether the full research project required more compute 936 
+
+than the experiments reported in the paper (e.g., preliminary or failed experiments that 937 
+
+didn’t make it into the paper). 938 
+
+9. Code of ethics 939 
+
+Question: Does the research conducted in the paper conform, in every respect, with the 940 
+
+NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?941 
+
+Answer: [Yes] 942 
+
+Justification: As far as possible, we adhere to any ethics guidelines, including seeking IRB 943 
+
+for our human subjects studies. 944 
+
+Guidelines: 945 
+
+• The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. 946 
+
+• If the authors answer No, they should explain the special circumstances that require a 947 
+
+deviation from the Code of Ethics. 948 
+
+• The authors should make sure to preserve anonymity (e.g., if there is a special consid-949 
+
+eration due to laws or regulations in their jurisdiction). 950 
+
+10. Broader impacts 951 
+
+Question: Does the paper discuss both potential positive societal impacts and negative 952 
+
+societal impacts of the work performed? 953 
+
+Answer: [Yes] 954 
+
+Justification: Our work is preliminary and aspirational. As such, we discuss this in a bid to 955 
+
+spur research in a nascent field such as ours. 956 
+
+Guidelines: 957 
+
+• The answer NA means that there is no societal impact of the work performed. 958 
+
+28 • If the authors answer NA or No, they should explain why their work has no societal 959 
+
+impact or why the paper does not address societal impact. 960 
+
+• Examples of negative societal impacts include potential malicious or unintended uses 961 
+
+(e.g., disinformation, generating fake profiles, surveillance), fairness considerations 962 
+
+(e.g., deployment of technologies that could make decisions that unfairly impact specific 963 
+
+groups), privacy considerations, and security considerations. 964 
+
+• The conference expects that many papers will be foundational research and not tied 965 
+
+to particular applications, let alone deployments. However, if there is a direct path to 966 
+
+any negative applications, the authors should point it out. For example, it is legitimate 967 
+
+to point out that an improvement in the quality of generative models could be used to 968 
+
+generate deepfakes for disinformation. On the other hand, it is not needed to point out 969 
+
+that a generic algorithm for optimizing neural networks could enable people to train 970 
+
+models that generate Deepfakes faster. 971 
+
+• The authors should consider possible harms that could arise when the technology is 972 
+
+being used as intended and functioning correctly, harms that could arise when the 973 
+
+technology is being used as intended but gives incorrect results, and harms following 974 
+
+from (intentional or unintentional) misuse of the technology. 975 
+
+• If there are negative societal impacts, the authors could also discuss possible mitigation 976 
+
+strategies (e.g., gated release of models, providing defenses in addition to attacks, 977 
+
+mechanisms for monitoring misuse, mechanisms to monitor how a system learns from 978 
+
+feedback over time, improving the efficiency and accessibility of ML). 979 
+
+11. Safeguards 980 
+
+Question: Does the paper describe safeguards that have been put in place for responsible 981 
+
+release of data or models that have a high risk for misuse (e.g., pretrained language models, 982 
+
+image generators, or scraped datasets)? 983 
+
+Answer: [No] 984 
+
+Justification: The environments released are cleared by IRB and deemed suitable for general 985 
+
+adult audiences. As such, we do not go into detail in this paper. The IRB approval can be 986 
+
+provided, upon request. 987 
+
+Guidelines: 988 
+
+• The answer NA means that the paper poses no such risks. 989 
+
+• Released models that have a high risk for misuse or dual-use should be released with 990 
+
+necessary safeguards to allow for controlled use of the model, for example by requiring 991 
+
+that users adhere to usage guidelines or restrictions to access the model or implementing 992 
+
+safety filters. 993 
+
+• Datasets that have been scraped from the Internet could pose safety risks. The authors 994 
+
+should describe how they avoided releasing unsafe images. 995 
+
+• We recognize that providing effective safeguards is challenging, and many papers do 996 
+
+not require this, but we encourage authors to take this into account and make a best 997 
+
+faith effort. 998 
+
+12. Licenses for existing assets 999 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in 1000 
+
+the paper, properly credited and are the license and terms of use explicitly mentioned and 1001 
+
+properly respected? 1002 
+
+Answer: [NA] . 1003 
+
+Justification: The environment, and code, are all developed by authors. 1004 
+
+Guidelines: 1005 
+
+• The answer NA means that the paper does not use existing assets. 1006 
+
+• The authors should cite the original paper that produced the code package or dataset. 1007 
+
+• The authors should state which version of the asset is used and, if possible, include a 1008 
+
+URL. 1009 
+
+• The name of the license (e.g., CC-BY 4.0) should be included for each asset. 1010 
+
+29 • For scraped data from a particular source (e.g., website), the copyright and terms of 1011 
+
+service of that source should be provided. 1012 
+
+• If assets are released, the license, copyright information, and terms of use in the 1013 
+
+package should be provided. For popular datasets, paperswithcode.com/datasets 1014 
+
+has curated licenses for some datasets. Their licensing guide can help determine the 1015 
+
+license of a dataset. 1016 
+
+• For existing datasets that are re-packaged, both the original license and the license of 1017 
+
+the derived asset (if it has changed) should be provided. 1018 
+
+• If this information is not available online, the authors are encouraged to reach out to 1019 
+
+the asset’s creators. 1020 
+
+13. New assets 1021 
+
+Question: Are new assets introduced in the paper well documented and is the documentation 1022 
+
+provided alongside the assets? 1023 
+
+Answer: [Yes] 1024 
+
+Justification: We release the environment on a best effort basis. 1025 
+
+Guidelines: 1026 
+
+• The answer NA means that the paper does not release new assets. 1027 
+
+• Researchers should communicate the details of the dataset/code/model as part of their 1028 
+
+submissions via structured templates. This includes details about training, license, 1029 
+
+limitations, etc. 1030 
+
+• The paper should discuss whether and how consent was obtained from people whose 1031 
+
+asset is used. 1032 
+
+• At submission time, remember to anonymize your assets (if applicable). You can either 1033 
+
+create an anonymized URL or include an anonymized zip file. 1034 
+
+14. Crowdsourcing and research with human subjects 1035 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper 1036 
+
+include the full text of instructions given to participants and screenshots, if applicable, as 1037 
+
+well as details about compensation (if any)? 1038 
+
+Answer: [Yes] 1039 
+
+Justification: All details are provided in the Appendix, as far as possible. 1040 
+
+Guidelines: 1041 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 1042 
+
+human subjects. 1043 
+
+• Including this information in the supplemental material is fine, but if the main contribu-1044 
+
+tion of the paper involves human subjects, then as much detail as possible should be 1045 
+
+included in the main paper. 1046 
+
+• According to the NeurIPS Code of Ethics, workers involved in data collection, curation, 1047 
+
+or other labor should be paid at least the minimum wage in the country of the data 1048 
+
+collector. 1049 
+
+15. Institutional review board (IRB) approvals or equivalent for research with human 1050 
+
+subjects 1051 
+
+Question: Does the paper describe potential risks incurred by study participants, whether 1052 
+
+such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) 1053 
+
+approvals (or an equivalent approval/review based on the requirements of your country or 1054 
+
+institution) were obtained? 1055 
+
+Answer: [Yes] 1056 
+
+Justification: We have mentioned in our main paper that IRB approval has been sought ans 1057 
+
+received. 1058 
+
+Guidelines: 1059 
+
+• The answer NA means that the paper does not involve crowdsourcing nor research with 1060 
+
+human subjects. 1061 
+
+30 • Depending on the country in which research is conducted, IRB approval (or equivalent) 1062 
+
+may be required for any human subjects research. If you obtained IRB approval, you 1063 
+
+should clearly state this in the paper. 1064 
+
+• We recognize that the procedures for this may vary significantly between institutions 1065 
+
+and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the 1066 
+
+guidelines for their institution. 1067 
+
+• For initial submissions, do not include any information that would break anonymity (if 1068 
+
+applicable), such as the institution conducting the review. 1069 
+
+16. Declaration of LLM usage 1070 
+
+Question: Does the paper describe the usage of LLMs if it is an important, original, or 1071 
+
+non-standard component of the core methods in this research? Note that if the LLM is used 1072 
+
+only for writing, editing, or formatting purposes and does not impact the core methodology, 1073 
+
+scientific rigorousness, or originality of the research, declaration is not required. 1074 
+
+Answer: [NA] . 1075 
+
+Justification: No LLMs were used in the experiments. 1076 
+
+Guidelines: 1077 
+
+• The answer NA means that the core method development in this research does not 1078 
+
+involve LLMs as any important, original, or non-standard components. 1079 
+
+• Please refer to our LLM policy ( https://neurips.cc/Conferences/2025/LLM )1080 
+
+for what should or should not be described. 1081 
+
+31
