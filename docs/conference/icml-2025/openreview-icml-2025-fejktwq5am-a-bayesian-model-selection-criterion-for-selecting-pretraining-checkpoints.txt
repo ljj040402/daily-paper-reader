@@ -1,0 +1,785 @@
+Title: A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints
+
+URL Source: https://openreview.net/pdf?id=fEjktWQ5Am
+
+Number of Pages: 16
+
+Markdown Content:
+# A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+Michael Munn * 1 Susan Wei * 2 
+
+# Abstract 
+
+Recent advances in artificial intelligence have been fueled by the development of foundation models such as BERT, GPT, T5, and Vision Transformers. These models are first pretrained on vast and diverse datasets and then adapted to specific downstream tasks, often with signifi-cantly less data. However, the mechanisms behind the success of this ubiquitous pretrain-then-adapt paradigm remain underexplored, particularly the characteristics of pretraining checkpoints that en-hance downstream adaptation. We introduce a Bayesian model selection criterion, called the downstream free energy, which quantifies a check-point’s adaptability by measuring the concentra-tion of nearby favorable parameters for the down-stream task. We demonstrate that this Bayesian model selection criterion can be effectively imple-mented without access to the downstream data or prior knowledge of the downstream task. Further-more, we provide empirical evidence that the crite-rion reliably correlates with improved fine-tuning performance, offering a principled approach to predicting model adaptability. 
+
+# 1. Introduction 
+
+The advent of foundation models has significantly reshaped the landscape of modern machine learning (Bommasani et al., 2021). Trained on expansive, diverse datasets using su-pervised or self-supervised learning methods, these models learn generalized representations that can then be success-fully adapted (or finetuned) to a wide array of downstream tasks, often where there is significantly less data or limited computational resources (Bengio, 2012; Brown et al., 2020). This pretrain-then-adapt paradigm has emerged as a dom-inant and highly successful technique driving significant     
+
+> *Equal contribution 1Google Research, New York, USA
+> 2Dept. of Econometrics and Business Statistics, Monash Univer-sity, Melbourne, Australia. Correspondence to: Michael Munn
+> <munn@google.com >.
+> Proceedings of the 42 nd International Conference on Machine Learning , Vancouver, Canada. PMLR 267, 2025. Copyright 2025 by the author(s).
+
+progress across natural language processing and computer vision with applications including text classification (Qiu et al., 2020), text generation (Li et al., 2024), image classifi-cation (Liu et al., 2023b), object detection (Sanchez et al., 2020), medical imaging (Mormont et al., 2018; Chen et al., 2019; Ke et al., 2021), autonomous driving (Kim & Park, 2017) and robotics (Jaquier et al., 2023). As a result, there is a growing body of research that aims to better understand the theoretical reasons behind the success of this pre-train-then-adapt paradigm (Galanti et al., 2022; Munn et al., 2024). One of the key open questions is to understand how to select pretraining checkpoints which are optimal for adaptation. A number of practical heuristics have emerged through experimental intuition and empirical analysis (Liu et al., 2023a), but a principled theoretical framework for effective checkpoint selection is still lacking. To address this, we repurpose well-established concepts from Bayesian statistics and propose downstream free en-ergy as a pretraining model selection criterion. Downstream free energy measures the negative log of the concentration of well-performing network weights near a pretraining check-point when evaluated on downstream data. In statistical lingo, this is nothing more than the (negative log) marginal likelihood where the integral is restricted to a local neighbor-hood around the pretraining checkpoint. Intuitively, lower downstream free energy indicates a higher concentration of parameters in parameter space for which the model is more adaptable and capable of generalizing well on downstream tasks. In short, checkpoints with lower downstream free energy are better suited for adaptation and thus should be preferred during pretraining. Although the use of downstream free energy as a pretraining model selection criterion has strong theoretical grounding in Bayesian statistics, it comes with an unfortunate caveat: to compute it requires access to the downstream dataset which may not be available to the practitioner during pretrain-ing. However, under certain distributional shift conditions between the pretraining and downstream data, it is possi-ble to overcome this limitation. Namely, we introduce the 
+
+pretraining free energy , which is computed solely on the pretraining data, and show that minimizing it serves as a reliable proxy for minimizing the downstream free energy (see Proposition 5.1). Together, these insights provide a 1A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+solid justification for using the pretraining free energy as a model selection criterion during pretraining. This strategy is particularly advantageous when pretraining is intended to be general purpose, as is the case with most foundation models.    
+
+> Figure 1. We plot pretraining free energy versus two types of trans-fer accuracy (top and bottom) for checkpoints at the end of pretrain-ing. As expected, checkpoints with lower pretraining free energy ,across various pretraining hyperparameters such as learning rate, batch size, and momentum, show higher transfer accuracy . The size of the icons represent magnitude of the hyperparameter value; e.g., a larger triangle means higher momentum. The reported val-ues are averaged over five random seeds. See Section 6 for details.
+
+To justify our theoretical results, we exploit certain pretrain-ing mechanisms that are known to reduce the pretraining free energy, such as larger learning rates, smaller batch sizes and higher momentum (Lau et al., 2025). We then verify that these mechanisms, which lead to reduced pretraining free energy, in turn correlate with improved downstream adaptation performance. A preview of these results is pre-sented in Figure 1. In summary, our contributions are: • We introduce the downstream free energy as novel model selection criterion for quantifying downstream adaptability (Section 4.1). • We prove the downstream free energy can be controlled by the pretraining free energy (Proposition 5.1) and provide insight into how this free energy perspective informs practical pretraining heuristics (Section 5.1). • We experimentally confirm (Section 6), using varied datasets and architectures, that lower pretraining free energy not only enhances downstream adaptability (Figure 2 and Figure 3) but also exhibits a stronger correlation with adaptability compared to other pre-training metrics (Table 1). 
+
+# 2. Relationship to Prior Work 
+
+Implicit bias in transfer learning. The term implicit bias refers to the tendency of optimization processes, such as stochastic gradient descent (SGD), to inherently guide the model’s learning dynamics towards solutions with proper-ties which are not explicitly prescribed by the loss function (Neyshabur et al., 2017; Soudry et al., 2018; Gunasekar et al., 2018). For example, the selection of training hyperpa-rameters, such as the learning rate and batch size, can have a significant effect on the optimization efficiency as well as on the quality of the learned model (Keskar et al., 2017; Masters & Luschi, 2018; Goyal, 2017; He et al., 2019; An-driushchenko et al., 2023). As a result, there has been con-siderable effort to understand the mechanisms which govern these implicit biases during model training. However, the effect of implicit bias in transfer learning—particularly how it impacts successful downstream domain adaptation—is a growing but less explored area of research (Lippl & Lindsey, 2024; Kumar et al., 2022). In transfer learning, the ability to identify and leverage pretraining biases to predict and improve downstream test error is highly valuable. Recent work of (Liu et al., 2023a; Galanti et al., 2022; Munn et al., 2024) can be viewed as establishing relationships of the form downstream test error ≲ pretraining characteristic. (1) Ideally, these pretraining characteristics are sensitive to fac-tors which can be manipulated by practitioners, thus allow-ing for deliberate influence and intentional design during pretraining. Furthermore, any such pretraining characteris-tic should be accessible using only pretraining data, since knowledge to the downstream task or data is typically not available. It is worthwhile to note that (Liu et al., 2023a; Galanti et al., 2022; Munn et al., 2024) mainly consider the 
+
+linear probe as their fine-tuning method while we consider full fine-tuning. (Liu et al., 2023a) explore the role of implicit bias in lan-guage modeling and establish an empirical relationship be-tween the pretraining flatness (measured by the trace of the Hessian of the pretraining loss) and the downstream test accuracy. Their experiments verify that lower pretraining flatness, which they show is effectively regularized by SGD, strongly correlates with better downstream performance. Al-though this work does not provide a formal bound as in (1), it offers valuable empirical evidence on how the implicit 2A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+flatness regularization of SGD acts to benefit transfer learn-ing. This is particularly beneficial since techniques exist for explicitly minimizing loss landscape sharpness; e.g., (Foret et al., 2021; Wen et al., 2023). (Galanti et al., 2022) examine the efficacy of transfer learn-ing through the lens of neural collapse, a recently observed phenomenon which characterizes the geometry of last-layer features and weights for overparameterized classification networks (Papyan et al., 2020). They show through theory and experiments that the neural collapse exhibited during pretraining generalizes to new classes of the downstream task as well, thus enabling successful model adaptation. Drawing on the formalism described in (1), (Galanti et al., 2022) can be seen as deriving theoretical bounds of the form downstream test error ≲ downstream neural collapse ≲ pretraining neural collapse. However, despite supporting neural collapse as a beneficial pretraining characteristic, practical methods to explicitly regularize it are lacking. (Munn et al., 2024) make progress in this direction by means of the geometric complexity, a model complexity measure introduced and analyzed in (Dherin et al., 2022). They prove that the geometric complexity of the model’s learned feature representations upper bounds the model neural col-lapse. Furthermore, their experiments verify that techniques which implicitly reduce this geometric complexity during pretraining (such as large learning rates, small batch sizes and increased L2 regularization) in turn put regularizing pressure on the pretraining neural collapse leading to im-proved transfer test accuracy. Our key contribution is the identification of free energy 
+
+as a novel and significant pretraining characteristic which exhibits direct theoretical and empirical connections govern-ing successful downstream model adaptability. We prove in Section 5 that, similar to neural collapse, the pretraining free energy bounds from above the downstream free energy. In addition, we establish (see Appendix A) a theoretical link between downstream free energy and the downstream Bayesian prediction, providing theoretical guarantees on the downstream Bayes test error. Together, these theoretical results, viewed in the context of (1), imply downstream Bayesian test error ≲ downstream free energy ≲ pretraining free energy. Furthermore, using mechanisms established in (Lau et al., 2025) which are known to implicitly regularize the pretrain-ing free energy—such as large learning rates, small batch sizes, and increased momentum—we experimentally ver-ify (see Section 6) that lower pretraining free energy does indeed lead to improved fine-tuning performance. 
+
+Bayesian model selection criterion. The idea of using free energy has its roots in Bayesian model selection. Given a collection of models, M1, . . . , Mk, the task of choosing an optimal model for some given data is known as model selection. There are different (and sometimes irreconcilable) model selection criteria; but, in general, all model selection criteria attempt to balance fit and complexity. A particu-larly appealing Bayesian model selection criterion is the 
+
+free energy criterion which is widely used and accepted in the both the statistical and machine learning literature (Hinton & van Camp, 1993; Kass & Raftery, 1995; MacKay, 2002; Robert et al., 2007). The free energy model selection criterion says we should pick the model with the lowest free energy. Since the free energy is the negative log of the marginal likelihood, also known as Bayesian model evi-dence, free energy minimization is equivalent to marginal likelihood maximization. To our knowledge, this work rep-resents the first application of the free energy criterion in the domain of transfer learning. 
+
+# 3. Problem Setup 
+
+Here, we shall mainly treat the supervised setting though the theory developed below applies equally to the unsupervised setting. During pretraining, for input x and target y, we employ a probabilistic model p0(y|x, w ) parameterized by 
+
+w ∈ W ⊂ Rp. Throughout, we assume the pretraining model p0(y|x, w ) depends on x through a neural network 
+
+f PT  
+
+> w
+
+(x) = σout (vT ϕθ (x)) where w = ( v, θ ). Here ϕθ de-notes the feature extractor parameterized by θ and v the weights of the linear head. The final activation is denoted 
+
+σout ; e.g., softmax or sigmoid for classification tasks. For fine-tuning, we attach a new linear head u to the backbone ϕθ resulting in a neural network f FT  
+
+> w′
+
+(x) =
+
+σout (uT ϕθ (x)) where w′ = ( u, θ ) with u potentially hav-ing different dimension to v. The fine-tuning probabilistic model is denoted p1(y|x, w ′) where the dependence on x is through f FT  
+
+> w′
+
+.Given a pretraining checkpoint w∗ = ( v∗, θ ∗), we initialize 
+
+f FT  
+
+> w′
+
+at (u0, θ ∗) where u0 is randomly initialized. All param-eters of w′ are then fine-tuned via stochastic optimization. In this work, we employ limited fine-tuning where the lin-ear head undergoes standard training, while the backbone remains mostly frozen, with updates governed by a separate, smaller learning rate. This approach is particularly useful in scenarios with limited downstream data, where the dif-ferential learning rates help to prevent overfitting or loss of general-purpose representations; cf. (Lee et al., 2022). For theoretical convenience, we will assume that u and v
+
+share the same dimensionality 1
+
+This way, we can use p(y|x, w ) to denote both the pretrain-   
+
+> 1This eases exposition by avoiding having to distinguish be-tween p0(y|x, w )and p1(y|x, w ′). Note, we do not adhere to this restriction in our experiments.
+
+3A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+ing and fine-tuning models. Let the true (and unknown) pretraining ( i = 0 ) and fine-tuning ( i = 1 ) joint distribu-tions be denoted 
+
+ri(x, y ) := ri(y|x)ri(x), i = 0 , 1; 
+
+and define the pretraining (i = 0) and fine-tuning (i = 1) 
+
+test loss to be 
+
+Ki(w) := Eri(x)DKL (ri(y|x)|| p(y|x, w )) .
+
+Let D0 and D1 be datasets drawn from the pretraining and downstream distributions (resp.) and the corresponding pretraining ( i = 0 ) and fine-tuning ( i =1) sample losses be 
+
+ˆKi(w) := 1
+
+|D i|
+
+X
+
+> (x,y )∈D i
+
+ log ri(y|x) − log p(y|x, w ) .
+
+Note that minimization of Ki(w) and ˆKi(w) with respect to 
+
+w can recover the standard cross-entropy loss and squared loss frequently employed in deep learning. Indeed, if we drop the entropy term in Ki and ˆKi, which does not depend on w, we obtain the negative log likelihoods, for i = 0 , 1,
+
+Li(w) := −Eri(x,y ) log p(y|x, w )ˆLi(w) := − 1
+
+|D i|
+
+X
+
+> (x,y )∈D i
+
+log p(y|x, w ).
+
+We double load test loss to mean either Ki or Li and train loss to mean either ˆKi or ˆLi.
+
+# 4. Pretraining and downstream free energy 
+
+In this section, we begin by introducing the downstream free energy as a measure of how suitable a checkpoint is for downstream adaptation. We then introduce the pretraining free energy as a proxy that can be measured solely using the pretraining data. Let U0 = {w∗ 
+
+> α
+
+= ( v∗
+
+> α
+
+, θ ∗
+
+> α
+
+)}α denote the set of local min-ima of the pretraining test loss K0(w). In our theoretical development, we will frequently refer to the elements of U0
+
+as pretraining checkpoints . Note that the elements of U0,being local minima of the test loss, generally differ from the actual checkpoints obtained during pretraining, which are governed by the training loss ˆK0(w) (or equivalently, 
+
+ˆL0(w)). To bridge this gap between theory and practice, checkpoints should correspond to local minima of the train-ing loss. This ensures that the theoretical objects we analyze – minimizers of the test loss – are meaningfully related to their empirical counterparts. Given a single model – a parametric family M =
+
+{p(y|x, w ) : w ∈ W } – with multiple optima (as neural net-works are prone to exhibit), we can perform internal model selection (Balasubramanian, 1997) using a local version of the free energy criterion to select among the local optima. This amounts to comparing the downstream free energies between elements of U0. We now define the downstream free energy associated to an element of U0.
+
+4.1. Downstream free energy 
+
+With datasets D0 and D1 as above, let n = |D 0| and m =
+
+|D 1|. Informally, we might say that a pretraining checkpoint 
+
+w∗ = ( v∗, θ ∗) ∈ U0 is a good candidate for adaptation if there are many weights θ in the vicinity of θ∗ with low fine-tuning test loss; i.e., low values of K1(w). One way to make this mathematically precise is via the downstream free energy 
+
+¯F1(Bγ (w∗)) := − log ¯Z1(Bγ (w∗)) , (1) which is the negative log of a local marginal likelihood 
+
+¯Z1(Bγ (w∗)) := 
+
+Z 
+
+> Bγ(w∗)
+
+exp {− mK1(w)}φ(w) dw. (2) Here φ(w) is a prior over the model parameters w, and 
+
+Bγ (w∗) := {w = ( v∗, θ ) : || θ − θ∗|| 22 ≤ 1/γ } is the γ-neighborhood around w∗ with v∗ frozen. Note that large values of γ force us to stay near θ∗ and thus, ultimately, stay near the pretraining checkpoint w∗ = ( v∗, θ ∗) as well. Taken together, equations (1) and (2) imply that a large con-centration of weights θ near θ∗ with low downstream test loss K1(w) results in a large ¯Z1(Bγ (w∗)) and, equivalently, a small ¯F1(Bγ (w∗)) . Thus, we propose the following down-stream free energy strategy for improved fine-tuning: 
+
+Pretraining checkpoints with lower downstream free energy are more likely to adapt successfully to downstream tasks. 
+
+Formally, we seek to find parameters w∗ ∈ U0 which mini-mize the downstream free energy; i.e., 
+
+arg min 
+
+> w∗∈U0
+
+¯F1(Bγ (w∗)) . (3) Before addressing the implementation of this free energy strategy, let’s first understand the competing forces behind this model selection criterion. Given w∗ ∈ U0, following the techniques set out in (Watanabe, 2009), the asymptotic expansion of ¯F1(Bγ (w∗)) in the sample size m is 
+
+¯F1(Bγ (w∗)) = mK1(w∗1) + λ1(w∗) log m + O(log log m), (4) where w∗1 := arg min w∈Bγ (w∗) K1(w). Further discus-sion, including the derivation of equation (4), can be found in Section 4 and Appendix B of (Lau et al., 2025). 4A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+Remark 4.1 . From (4), note that that downstream free energy of a checkpoint w∗ is a weighted sum of two things: the fit, as measured by K1(w∗1), and the complexity, as measured by λ1(w∗). This complexity measure λ1(w∗) was recently introduced as the local learning coefficient ; see Lau et al. (2025). Lower local learning coefficient means lower model complexity. Note that a checkpoint with higher loss under the downstream distribution may still be preferred as long as its complexity is low enough to compensate. Furthermore, note that for pretraining checkpoints that are in the same level set of K1, the checkpoint with the lowest model com-plexity, as measured by λ1, will have the lowest downstream free energy. The free energy strategy in (3) which uses ¯F1(Bγ (w∗)) to select among candidate checkpoints in U0 is conceptually sound but presents two notable implementation challenges. First, ¯F1(Bγ (w∗)) , besides involving some unknown terms such as K1, is the negative log of an intractable integral. This is not insurmountable as many techniques such as MCMC or variational inference are available to deal with intractable integrals. The second, and more significant, issue is that applying 
+
+¯F1(Bγ (w∗)) to select among checkpoints w∗ ∈ U0 requires access to downstream data. This poses a problem because, in many practical scenarios, the downstream task may not be known or fully available during pretraining. To address this limitation, we introduce the pretraining free energy, an analog of the downstream free energy but which can be computed using only the pretraining data. In Section 5 we show how these two quantities are related. 
+
+Remark 4.2 . Note that the free energy as defined in equa-tions (1) and (2) is not scale invariant with respect to pa-rameters w. Thus, for certain neural network architectures exhibiting strict scale invariance, such as those composed purely of ReLU activations, it’s possible for a global pa-rameter rescaling to leave model outputs and downstream accuracy unaffected, while potentially altering the free en-ergy in some non-trivial way. However, our investigation here centers on commonly deployed neural networks, which typically incorporate elements like normalization layers or weight decay that break strict parameter scaling invariance. 
+
+4.2. Pretraining free energy 
+
+Similar to the downstream free energy defined in (1), we define the pretraining free energy for a pretraining check-point w∗ = ( v∗, θ ∗) ∈ U0 as 
+
+F0(Bγ (w∗); β) := − log Z 0(Bγ (w∗); β) (5) where 
+
+Z0(Bγ (w∗); β) := 
+
+Z 
+
+> Bγ(w∗)
+
+exp {− nβ ˆK0(w)}φ(w) dw 
+
+(6) and β > 0 is an inverse temperature. Unlike ¯Z1(Bγ (w∗)) 
+
+and ¯F1(Bγ (w∗)) , here the quantities Z0(Bγ (w∗); β) and 
+
+F0(Bγ (w∗); β) are stochastic. We indicate this by dropping the overhead bar. Analogous to (4), the asymptotic expansion of 
+
+F0(Bγ (w∗); β) in n for w∗ ∈ U0 is 
+
+F0(Bγ (w∗); β)= nβ ˆK0(w∗0) + λ0(w∗) log n + Op(log log n) (7) where w∗0 := arg min w∈Bγ (w∗) K0(w). Note that the asymptotic expansion of ¯F1(Bγ (w∗)) in (4) involves the downstream test loss K1 whereas the asymptotic expansion of F0(Bγ (w∗); β) in (7) involves the pretraining train loss 
+
+ˆK0. To compare the two, we take the expectation over the dataset in (7), arriving at the following expansion involving only deterministic quantities: 
+
+ED0 F0(Bγ (w∗); β)= nβ K0(w∗0) + λ0(w∗) log n + O(log log n). (8) In the next section, we will use these asymptotic expan-sions to bound the discrepancy between the downstream and pretraining free energy. 
+
+# 5. Relationship between pretraining and downstream free energy 
+
+In this section, we show there is a satisfying relationship between pretraining free energy and downstream free energy, asymptotically speaking. Relying on the leading order terms of the asymptotic expansion of the downstream free energy in (4), we can express the downstream free energy strategy in (3) as 
+
+arg min 
+
+> w∗∈U0
+
+mK1(w∗1) + λ1(w∗) log m , (9) where w∗1 := arg min w∈Bγ (w∗) K1(w). To avoid requir-ing the downstream test loss K1, we introduce the pretrain-ing asymptotic free energy strategy which relies only on the pretraining distribution and (under mild assumptions, be-low) serves as a viable proxy for (9). Formally, this strategy seeks a solution of the following optimization 
+
+arg min 
+
+> w∗∈U0
+
+nβ 0K0(w∗) + λ0(w∗) log n (10) where β0 = M m log nn log m . This strategy is supported by the following result whose proof can be found in Appendix C. 
+
+Proposition 5.1. Let w∗ be a local minimum of K0(w);i.e., w∗ ∈ U0 and γ be such that w∗0 is a local minimum of 
+
+K0(w); i.e., w∗0 ∈ U0. Further suppose λ1(w∗) ≤ λ0(w∗).
+
+5A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+Define M := max (x,y )∼r0(x,y ) r1(x,y ) 
+
+> r0(x,y )
+
+< ∞. Then, 
+
+K1(w∗1) + λ1(w∗) log mm
+
+≤ M K0(w∗) + D + λ0(w∗) log mm
+
+(11) 
+
+where D = R log r1(y|x) 
+
+> r0(y|x)
+
+r1(x, y ) dx dy. 
+
+Proposition 5.1 justifies model selection using the asymp-totic expansion of the pretraining free energy as in (10). This follows from (11) by first multiplying both sides by m
+
+and then noting that minimizing 
+
+mM K0(w∗) + mD + λ0(w∗) log m
+
+is equivalent, up to constants, to minimizing 
+
+log n
+
+log m
+
+mM K0(w∗) + λ0(w∗) log m ,
+
+which leads us precisely to (10). To further illustrate Propo-sition 5.1, we include explanatory examples in Appendix D which interprets this result applied to Gaussian distributions. There are some real-world scenarios for which Proposition 5.1 would be uninformative. For example, if the pretrain-ing data includes only images of horses while the down-stream data contains only cars, their label supports would be disjoint, leading to an infinite M . To address this, our experiments in Section 6 focus on settings where the pre-training dataset is significantly larger and more diverse than the downstream dataset. This also reflects common practice in the field and an established heuristic in transfer learning; see also (Kornblith et al., 2019). Specifically, we achieve this by using pretraining datasets with a substantially larger set of image classes. If this were reversed; i.e., the pretrain-ing dataset has substantially fewer classes than the down-stream dataset, the relationship we establish in Proposition 5.1 would be uninformative. 
+
+5.1. Observations of the pretraining asymptotic free energy strategy 
+
+In this section, we present practical observations that fol-low from selecting pretraining checkpoints according to the pretraining asymptotic free energy strategy defined by (10). 
+
+Observation 1: A suboptimal checkpoint in terms of pre-training test loss can still be preferred by the pretraining asymptotic free energy strategy in (10). Suppose we have two models w∗
+
+> α
+
+, w ∗ 
+
+> β
+
+∈ U0; i.e., both models are local min-ima of the pretraining test loss K0. In order to determine which model is preferred for fine-tuning, our strategy (10) directs us to compare 
+
+Fα = nβ 0K0(w∗
+
+> α
+
+) + λ0(w∗
+
+> α
+
+) log n (12) and 
+
+Fβ = nβ 0K0(w∗ 
+
+> β
+
+) + λ0(w∗ 
+
+> β
+
+) log n. (13) Suppose K0(w∗
+
+> α
+
+) < K0(w∗ 
+
+> β
+
+); i.e., w∗ 
+
+> α
+
+and w∗ 
+
+> β
+
+are in differ-ent level sets and checkpoint w∗ 
+
+> α
+
+has lower pretraining test loss; but λ0(w∗
+
+> α
+
+) > λ 0(w∗ 
+
+> β
+
+), implying checkpoint w∗ 
+
+> β
+
+is less complex than checkpoint w∗
+
+> α
+
+. Then it is entirely possible for Fα > F β so that checkpoint w∗ 
+
+> β
+
+will be preferred by (10) despite having higher pretraining test loss. In fact, this happens precisely when 
+
+m
+
+log m < 1
+
+Mλ0(w∗
+
+> α
+
+) − λ0(w∗ 
+
+> β
+
+)K0(w∗ 
+
+> β
+
+) − K0(w∗
+
+> α
+
+) .
+
+Recall, m represents the number of examples in the down-stream dataset. Note that, when M is large, there’s a smaller range of m under which the suboptimal pretraining check-point will be preferred. In other words, if the downstream distribution is very different to the pretraining distribution, the free energy strategy will look to the lower level sets of pretraining test loss. 
+
+Observation 2: When nβ 0 ≫ log n, a checkpoint with lower pretraining test loss will always be preferred by the pretraining asymptotic free energy strategy in (10). 
+
+Again, suppose we have two local minima w∗
+
+> α
+
+, w ∗ 
+
+> β
+
+∈ U0
+
+but which are in different level sets of the test loss; i.e., 
+
+K0(w∗
+
+> α
+
+)̸ = K 0(w∗ 
+
+> β
+
+). Without a handle on β0, we cannot decide which checkpoint has lower free energy since, as described above in Observation 1, the complexity term λ0
+
+also plays a role in comparing Fα and Fβ .However, when nβ 0 is significantly larger than log n, the first term in (10) dominates the second. In this case, the pretraining asymptotic free energy strategy prioritizes check-points with lower pretraining test loss K0.Using the definition of β0 in (10), the setting described here is equivalent to M m ≫ log m, where m is the size of the fine-tuning dataset and M measures distributional shift. Since m already grows faster than log m, this may offer an intriguing insight which justifies the pretraining test loss as a heuristic for checkpoint adaptability. 
+
+Observation 3: For checkpoints with the same pretrain-ing test loss, the one with the lowest complexity is pre-ferred by the pretraining asymptotic free energy strat-egy in (10). Suppose we have two models w∗
+
+> α
+
+, w ∗ 
+
+> β
+
+∈ U0
+
+in the same level set of K0; i.e., same pretraining test loss 
+
+K0(w∗
+
+> α
+
+) = K0(w∗ 
+
+> β
+
+). As before, our strategy (10) directs us to compare Fα and Fβ as defined in equations (12) and (13), resp. However, since the first terms are equal, selecting the pre-ferred pretraining checkpoint depends only on the model complexity, as measured by λ0(w∗
+
+> α
+
+) and λ0(w∗ 
+
+> β
+
+). Thus, all else being equal, the strategy in (10) naturally prefers 6A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+simple pretraining checkpoints over more complex ones for improved fine-tuning. 
+
+5.2. Estimating pretraining free energy 
+
+So far, we have established the pretraining asymptotic free energy strategy as a theoretically principled approach to pretraining model selection for improved finetuning. In this section, we show how to estimate the pretraining asymp-totic free energy required in (10) using only the sample pretraining train loss ˆL0. This estimation technique, which we employ in our experiments (Section 6), enables the ap-plication of our proposed strategy in (10) for real-world machine learning scenarios. We begin by focusing first on model selection for pretraining checkpoints in the same level set of K0. In this case, we can set β0 to an arbitrary value; we set β0 = 1 . Next, note that the optimization objective in (10) can be equivalently expressed in terms of L0 since it differs only from K0 by a constant with respect to w. In other words, we have 
+
+arg min 
+
+> w∗∈U0
+
+nK0(w∗) + λ0(w∗) log n
+
+= arg min 
+
+> w∗∈U0
+
+nL0(w∗) + λ0(w∗) log n . (14) To estimate the RHS of (14), we refer to recent work of (Lau et al., 2025) which shows that the Widely Ap-plicable Bayesian Information Criterion (WBIC) around 
+
+w∗ ∈ U0 is an asymptotically unbiased estimator of 
+
+nL0(w∗) + λ0(w∗) log n. This localized version of the WBIC is computed from the sample pretraining train loss 
+
+ˆL0 measured in the neighborhood Bγ (w∗) of the checkpoint 
+
+w∗ as described below. Consider a localizing Gaussian prior which acts as a sur-rogate for enforcing the domain of integration given by 
+
+Bγ (w∗). Specifically, let 
+
+φ⃗γ (w) ∝ exp {− ⃗γ T || w|| 22},⃗ γ ∈ Rp>0
+
+which is centered at the origin with scale vector ⃗γ =(γ1, . . . , γ p). Since we only want to measure the free en-ergy with respect to parameters θ of the model backbone (recall, the fine-tuning setup described in Section 3), we take γj = ∞ in the coordinates of v and γj = γ in the coordinates of θ, where γ is the same as the radius defining the neighborhood Bγ (w∗); recall, (2). Define the pretraining posterior distribution 
+
+p0(w; w∗, β,⃗ γ ) ∝ exp {− nβ ˆL0(w)}φ⃗γ (w − w∗). (15) Following Lau et al. (2025), we define the pretraining WBIC at w∗ ∈ U0 by 
+
+WBIC( w∗; β∗) := 
+
+Z h
+
+nˆL0(w)
+
+i
+
+p0(w; w∗, β ∗, γ ) dw, 
+
+(16) where β∗ = 1log n . It is not hard to see that (16) is a local-ized adaptation of Watanabe’s classic Widely Applicable Bayesian Information Criterion (WBIC) (Watanabe, 2013). The classic WBIC itself was developed because the stan-dard Bayesian Information Criterion (BIC) (Schwarz, 1978) is unsuitable for singular statistical models. Recall that a model is said to be ‘regular’ if its parameter-to-distribution mapping is one-to-one and its Fisher information matrix is positive definite for all possible parameter values; other-wise, it is singular. The key distinction of the pretraining WBIC, as defined in (16), and the classic WBIC is its local-ization through a Gaussian prior centered on the pretraining checkpoint w∗.The pretraining WBIC at a checkpoint w∗ is a good estimate of the (expected) pretraining free energy around w∗ defined by equations (5) and (6). Furthermore, WBIC( w∗; β∗) can be reliably computed via SGLD sampling methods; see Lau et al. (2025, Appendix G). Therefore, to apply the pretraining asymptotic free energy strategy in (10) to checkpoints with the same K0, we simply select the one with the smallest pretraining WBIC given by 
+
+WBIC( w∗; β∗). Next, we empirically verify this strategy using the CIFAR dataset trained on ResNet-18. 
+
+# 6. Experiments 
+
+The goal of our experiments is to evaluate how well the pretraining WBIC, which estimates the pretraining free en-ergy as described in Section 5.2, correlates with downstream performance. In order to measure the impact of lower pre-training WBIC, we apply mechanisms during pretraining which are known to implicitly regularize this quantity, as shown in (Lau et al., 2025). These include including large learning rates, small batch sizes, and high momentum. We use the CIFAR-FS dataset (Bertinetto et al., 2019), derived from CIFAR-100 where the 100 classes are di-vided into 64 classes for meta-training, 16 classes for meta-validation, and 20 classes for meta-testing. We pretrain on the meta-training set and then assess model adaptability on the unseen meta-test set via limited fine-tuning described in Section 3. The meta-validation classes are not used. 
+
+Pretraining. For pretraining, we use all 64 classes from the CIFAR-FS meta-training set to train a ResNet-18 model using stochastic gradient descent (SGD). We explore ranges of hyperparameter values for the learning rate, batch size and momentum. Interaction effects between these are not considered. Full experiment details for each hyperparameter sweep are provided in Appendix B.1. During training we track the pretraining train loss (first column of Figure 2) and the pretraining WBIC (second column of Figure 2). The hyperparameter settings for pretraining WBIC computation are provided in Appendix B.1. 7A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints        
+
+> Figure 2. Model checkpoints with lower pretraining WBIC (second column) consistently result in better transfer accuracy, both when fine-tuning on the full downstream dataset (third column) and in the few-shot setting (fourth column). Lower pretraining WBIC correlates with better downstream performance for Top row: larger learning rates, Middle row: smaller batch sizes, and Bottom row: increased momentum. Additional experiments on mini-ImageNet and a VGG model yield similar results; see Figure 3 and Appendix E.
+
+Full meta-test fine-tuning uses the full meta-test dataset, consisting of all 20 meta-test classes with 600 examples per class. We use an 80/20 split for training and testing, with stratification within each class. In this setting a new (randomly initialized) linear head is attached for the 20-class classification task, and the model is fine-tuned for 100 steps using SGD. This setting corresponds to the “Fine-tune Transfer Accuracy” metric (third column) in Figure 2. Hyperparameter details for this setting are in Appendix B.2. 
+
+Few-shot meta-test fine-tuning examines a data-limited, few-shot scenario. A single few-shot task is created by ran-domly sampling 5 classes and 5 examples per class from the meta-test dataset, creating a dataset with 25 total train-ing examples. A new (randomly initialized) linear head is attached for the 5-class classification task, and the model is finetuned for 100 steps using full batch gradient descent. The transfer accuracy is evaluated on 100 randomly selected test examples for each of the 5 classes. The overall transfer accuracy is averaged over 100 few-shot tasks. This setting corresponds to the “Avg 5-shot Transfer Accuracy” metric (fourth column) in Figure 2. Hyperparameter details for this setting are in Appendix B.2. 
+
+Results. In each of these two fine-tuning scenarios, we observe a strong correlation between lower pretraining free energy (as measured by the pretraining WBIC, see Section 5.2) and better downstream performance; see Figure 2. In particular, we see that increasing learning rate, decreasing batch sizes, and increasing momentum all result in lower pretraining WBIC, which in turn leads to better downstream performance. Note the Avg 5-shot transfer accuracy (fourth column) is typically higher than the finetune transfer accu-racy (third column); this is likely because the former only needs to learn 5 classes at a time while the latter needs to learn 20 classes. Interestingly, we can view pretraining train loss (the first column of Figure 2) as a baseline comparison. We see that pretraining train loss often collapses to a sim-ilar value as training proceeds, rendering it ineffective for distinguishing different fine-tuning behaviors. In Figure 1, we take each checkpoint at the end of pretrain-ing and plot its pretraining WBIC (called pretraining free energy there since the terminology had not been introduced) versus transfer accuracy. The left (right) plot of Figure 1 corresponds to the third (fourth) column of Figure 2. 
+
+Comparison of with other pretraining metrics. As de-scribed in Section 2, recent work of (Galanti et al., 2022) and (Munn et al., 2024) examines the role of neural col-lapse and geometric complexity as effective pretraining met-rics for assessing the suitability of a model checkpoint for transfer learning. To compare the effectiveness of our free energy strategy against these other pretraining metrics, we 8A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+conducted a correlation analysis computing the Pearson cor-relation coefficients (Pearson & Galton, 1895) using model checkpoints obtained from training a ResNet-18 model on CIFAR-FS to convergence; see Table 1. These experiments involved a comprehensive exploration of the hyperparameter space (see Appendix B.3). For each checkpoint, we compared the Geometric Complexity, Neu-ral Collapse, and Free Energy of the pretrained model to its downstream performance, measured via both full meta-test fine-tuning and few-shot meta-test fine-tuning. As indicated in Table 1, the pretraining Free Energy exhibits a substan-tially stronger correlation with downstream performance than other metrics considered.          
+
+> Pretraining Metric Finetune Accuracy Avg 5-shot Accuracy
+> Geometric Complexity −0.767 −0.443
+> Neural Collapse −0.632 −0.1875
+> Free Energy −0.820 −0.8901
+> Table 1. Correlation comparision between pretraining metrics (ge-ometric complexity, neural collapse, and free energy) and down-stream performance (finetune and few-shot transfer accuracy).
+
+# 7. Conclusion and Future Work 
+
+In this work, we introduced the downstream free energy as a Bayesian model selection criterion for quantifying the adaptability of pretraining checkpoints, offering a principled way to predict their performance on unseen downstream tasks. Our key insight is that checkpoints with lower down-stream free energy are more adaptable, making them ideal candidates for fine-tuning. Our empirical results across var-ied datasets (CIFAR-FS, mini-Imagenet) and architectures (ResNet, VGG) validate the utility of the pretraining free en-ergy as a practical checkpoint selection criterion, especially when downstream data is scarce or inaccessible. Despite the promising results, some limitations remain. First, our analysis currently lacks a direct link between downstream free energy and downstream predictive per-formance. At the moment, we provide a rigorous connec-tion only when downstream adaptation is performed in a 
+
+Bayesian manner (see Appendix A). While Bayesian deep learning is not yet widely adopted due to its computational overhead, this link may become valuable as computational barriers are reduced, particularly in fine-tuning scenarios. In addition, while our theoretical framework supports the use of free energy as a selection criterion, the practical computation of the pretraining WBIC as in (16), remains challenging for large models which may possess tens or hun-dreds of billions of parameters. Developing tractable meth-ods for this computation remains a challenge and presents a significant direction for future work. An alternative ap-proach would be to instead identify computationally effi-cient “levers” that influence pretraining free energy, thus allowing us to improve downstream adaptation performance without relying on direct computation of the pretraining WBIC. 
+
+# Impact Statement 
+
+This work proposes a novel theoretical framework for under-standing the mechanisms behind successful fine-tuning in machine learning. Our findings have the potential to guide development of more efficient fine-tuning strategies, reduc-ing computational costs and resource consumption, with implications for diverse applications like NLP and computer vision. As the primary focus of this work is theoretical, there are no direct societal consequences of our work that we feel must be specifically highlighted. 
+
+# Acknowledgments 
+
+We would like to thank Javier Gonzalvo for helpful discus-sions, suggestions, and feedback during the development of this work. 
+
+# References 
+
+Andriushchenko, M., Varre, A. V., Pillaud-Vivien, L., and Flammarion, N. Sgd with large step sizes learns sparse features. In International Conference on Machine Learn-ing , pp. 903–925. PMLR, 2023. Balasubramanian, V. Statistical inference, occam’s razor, and statistical mechanics on the space of probability dis-tributions. Neural Computation , 9(2):349–368, 1997. Bengio, Y. Deep learning of representations for unsuper-vised and transfer learning. In Proceedings of ICML workshop on unsupervised and transfer learning , pp. 17– 36. JMLR Workshop and Conference Proceedings, 2012. Bertinetto, L., Henriques, J. F., Torr, P., and Vedaldi, A. Meta-learning with differentiable closed-form solvers. In 
+
+International Conference on Learning Representations ,2019. URL https://openreview.net/forum? id=HyxnZh0ct7 .Bommasani, R., Hudson, D. A., Adeli, E., Altman, R., Arora, S., von Arx, S., Bernstein, M. S., Bohg, J., Bosse-lut, A., Brunskill, E., Brynjolfsson, E., Buch, S., Card, D., Castellon, R., Chatterji, N. S., Chen, A. S., Creel, K. A., Davis, J., Demszky, D., Donahue, C., Doumbouya, M., Durmus, E., Ermon, S., Etchemendy, J., Ethayarajh, K., Fei-Fei, L., Finn, C., Gale, T., Gillespie, L. E., Goel, K., Goodman, N. D., Grossman, S., Guha, N., Hashimoto, T., Henderson, P., Hewitt, J., Ho, D. E., Hong, J., Hsu, K., Huang, J., Icard, T. F., Jain, S., Jurafsky, D., Kalluri, 9A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+P., Karamcheti, S., Keeling, G., Khani, F., Khattab, O., Koh, P. W., Krass, M. S., Krishna, R., Kuditipudi, R., Kumar, A., Ladhak, F., Lee, M., Lee, T., Leskovec, J., Levent, I., Li, X. L., Li, X., Ma, T., Malik, A., Man-ning, C. D., Mirchandani, S. P., Mitchell, E., Munyikwa, Z., Nair, S., Narayan, A., Narayanan, D., Newman, B., Nie, A., Niebles, J. C., Nilforoshan, H., Nyarko, J. F., Ogut, G., Orr, L., Papadimitriou, I., Park, J. S., Piech, C., Portelance, E., Potts, C., Raghunathan, A., Reich, R., Ren, H., Rong, F., Roohani, Y. H., Ruiz, C., Ryan, J., R’e, C., Sadigh, D., Sagawa, S., Santhanam, K., Shih, A., Srinivasan, K. P., Tamkin, A., Taori, R., Thomas, A. W., Tram `er, F., Wang, R. E., Wang, W., Wu, B., Wu, J., Wu, Y., Xie, S. M., Yasunaga, M., You, J., Zaharia, M. A., Zhang, M., Zhang, T., Zhang, X., Zhang, Y., Zheng, L., Zhou, K., and Liang, P. On the opportunities and risks of foundation models. ArXiv , 2021. URL https: //crfm.stanford.edu/assets/report.pdf .Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J. D., Dhariwal, P., Neelakantan, A., Shyam, P., Sastry, G., Askell, A., et al. Language models are few-shot learners. 
+
+Advances in neural information processing systems , 33: 1877–1901, 2020. Chen, S., Ma, K., and Zheng, Y. Med3d: Transfer learn-ing for 3d medical image analysis. arXiv preprint arXiv:1904.00625 , 2019. Dherin, B., Munn, M., Rosca, M., and Barrett, D. Why neural networks find simple solutions: The many regu-larizers of geometric complexity. Advances in Neural Information Processing Systems , 35:2333–2349, 2022. Dhillon, G. S., Chaudhari, P., Ravichandran, A., and Soatto, S. A baseline for few-shot image classification. In Inter-national Conference on Learning Representations , 2019. Foret, P., Kleiner, A., Mobahi, H., and Neyshabur, B. Sharpness-aware minimization for efficiently improving generalization. In International Conference on Learning Representations , 2021. Galanti, T., Gy ¨orgy, A., and Hutter, M. On the Role of Neural Collapse in Transfer Learning, Jan-uary 2022. URL http://arxiv.org/abs/2112. 15121 . arXiv:2112.15121 [cs]. Goyal, P. Accurate, large minibatch sg d: training imagenet in 1 hour. arXiv preprint arXiv:1706.02677 , 2017. Gunasekar, S., Lee, J. D., Soudry, D., and Srebro, N. Im-plicit bias of gradient descent on linear convolutional networks. Advances in neural information processing systems , 31, 2018. He, F., Liu, T., and Tao, D. Control batch size and learn-ing rate to generalize well: Theoretical and empirical evidence. Advances in neural information processing systems , 32, 2019. He, K., Zhang, X., Ren, S., and Sun, J. Deep residual learn-ing for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition ,pp. 770–778, 2016. Hinton, G. E. and van Camp, D. Keeping the neural networks simple by minimizing the description length of the weights. In Proceedings of the Sixth Annual Conference on Computational Learning Theory , COLT ’93, pp. 5–13, New York, NY, USA, 1993. Association for Computing Machinery. ISBN 0897916115. doi: 10.1145/168304.168306. URL https://doi.org/ 10.1145/168304.168306 .Jaquier, N., Welle, M. C., Gams, A., Yao, K., Fichera, B., Billard, A., Ude, A., Asfour, T., and Kragic, D. Trans-fer learning in robotics: An upcoming breakthrough? a review of promises and challenges. The International Journal of Robotics Research , pp. 02783649241273565, 2023. Kass, R. E. and Raftery, A. E. Bayes factors. Journal of the American Statistical Association , 90(430):773–795, 1995. doi: 10.1080/01621459.1995.10476572. URL 
+
+https://www.tandfonline.com/doi/abs/ 10.1080/01621459.1995.10476572 .Ke, A., Ellsworth, W., Banerjee, O., Ng, A. Y., and Ra-jpurkar, P. Chextransfer: performance and parameter effi-ciency of imagenet models for chest x-ray interpretation. In Proceedings of the conference on health, inference, and learning , pp. 116–124, 2021. Keskar, N. S., Mudigere, D., Nocedal, J., Smelyanskiy, M., and Tang, P. T. P. On large-batch training for deep learning: Generalization gap and sharp minima. In Inter-national Conference on Learning Representations , 2017. Kim, J. and Park, C. End-to-end ego lane estimation based on sequential transfer learning for self-driving cars. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition workshops , pp. 30–38, 2017. Kornblith, S., Shlens, J., and Le, Q. V. Do better imagenet models transfer better? In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 2661–2671, 2019. Kumar, A., Raghunathan, A., Jones, R. M., Ma, T., and Liang, P. Fine-tuning can distort pretrained features and underperform out-of-distribution. In International Con-ference on Learning Representations , 2022. 10 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+Lau, E., Furman, Z., Wang, G., Murfet, D., and Wei, S. The local learning coefficient: A singularity-aware complex-ity measure. In The 28th International Conference on Artificial Intelligence and Statistics , 2025. URL https: //openreview.net/forum?id=1av51ZlsuL .Lee, Y., Chen, A. S., Tajwar, F., Kumar, A., Yao, H., Liang, P., and Finn, C. Surgical fine-tuning improves adapta-tion to distribution shifts. In The Eleventh International Conference on Learning Representations , 2022. Li, J., Tang, T., Zhao, W. X., Nie, J.-Y., and Wen, J.-R. Pre-trained language models for text generation: A survey. 
+
+ACM Computing Surveys , 56(9):1–39, 2024. Lippl, S. and Lindsey, J. Inductive biases of multi-task learning and finetuning: multiple regimes of feature reuse. 
+
+Advances in Neural Information Processing Systems , 37: 118745–118776, 2024. Liu, H., Xie, S. M., Li, Z., and Ma, T. Same pre-training loss, better downstream: Implicit bias matters for lan-guage models. In Krause, A., Brunskill, E., Cho, K., Engelhardt, B., Sabato, S., and Scarlett, J. (eds.), Pro-ceedings of the 40th International Conference on Ma-chine Learning , volume 202 of Proceedings of Ma-chine Learning Research , pp. 22188–22214. PMLR, 23– 29 Jul 2023a. URL https://proceedings.mlr. press/v202/liu23ao.html .Liu, Y., Zhang, Y., Wang, Y., Hou, F., Yuan, J., Tian, J., Zhang, Y., Shi, Z., Fan, J., and He, Z. A survey of visual transformers. IEEE Transactions on Neural Networks and Learning Systems , 2023b. MacKay, D. J. C. Information Theory, Inference & Learning Algorithms . Cambridge University Press, USA, 2002. ISBN 0521642981. Masters, D. and Luschi, C. Revisiting small batch training for deep neural networks. arXiv preprint arXiv:1804.07612 , 2018. Mormont, R., Geurts, P., and Mar ´ee, R. Comparison of deep transfer learning strategies for digital pathology. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition workshops , pp. 2262–2271, 2018. Munn, M., Dherin, B., and Gonzalvo, J. The impact of geometric complexity on neural collapse in transfer learn-ing. In The Thirty-eighth Annual Conference on Neural Information Processing Systems , 2024. URL https: //openreview.net/forum?id=PLbFid00aU .Neyshabur, B., Tomioka, R., Salakhutdinov, R., and Srebro, N. Geometry of optimization and implicit regularization in deep learning. arXiv preprint arXiv:1705.03071 , 2017. Papyan, V., Han, X., and Donoho, D. L. Prevalence of neural collapse during the terminal phase of deep learn-ing training. Proceedings of the National Academy of Sciences , 117(40):24652–24663, 2020. Pearson, K. and Galton, F. Vii. note on regression and inheritance in the case of two parents. Proceed-ings of the Royal Society of London , 58(347-352): 240–242, 1895. doi: 10.1098/rspl.1895.0041. URL 
+
+https://royalsocietypublishing.org/ doi/abs/10.1098/rspl.1895.0041 .Qiu, X., Sun, T., Xu, Y., Shao, Y., Dai, N., and Huang, X. Pre-trained models for natural language processing: A survey. Science China technological sciences , 63(10): 1872–1897, 2020. Robert, C. P. et al. The Bayesian choice: from decision-theoretic foundations to computational implementation ,volume 2. Springer, 2007. Sanchez, S., Romero, H., and Morales, A. A review: Com-parison of performance metrics of pretrained models for object detection using the tensorflow framework. In IOP conference series: materials science and engineering ,volume 844, pp. 012024. IOP Publishing, 2020. Schwarz, G. Estimating the Dimension of a Model. The Annals of Statistics , 6(2):461–464, March 1978. ISSN 0090-5364, 2168-8966. doi: 10.1214/aos/1176344136. URL https://projecteuclid.org/ journals/annals-of-statistics/ volume-6/issue-2/ Estimating-the-Dimension-of-a-Model/ 10.1214/aos/1176344136.full . Publisher: Institute of Mathematical Statistics. Simonyan, K. Very deep convolutional networks for large-scale image recognition. In International Conference on Learning Representations , 2014. Soudry, D., Hoffer, E., Nacson, M. S., Gunasekar, S., and Srebro, N. The implicit bias of gradient descent on sep-arable data. Journal of Machine Learning Research , 19 (70):1–57, 2018. Watanabe, S. Algebraic Geometry and Statistical Learning Theory . Cambridge University Press, USA, 2009. Watanabe, S. A Widely Applicable Bayesian Infor-mation Criterion. Journal of Machine Learning Re-search , 14(Mar):867–897, 2013. ISSN ISSN 1533-7928. URL http://www.jmlr.org/papers/ v14/watanabe13a.html .Wen, K., Ma, T., and Li, Z. How sharpness-aware minimiza-tion minimizes sharpness? In The Eleventh International Conference on Learning Representations , 2023. 11 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+# A. Theoretical guarantees on fine-tuning predictive performance 
+
+Here we discuss theoretical guarantees on downstream predictive performance when employing the version of the down-stream free energy strategy in equation 9. We would like to give an analysis of downstream predictive performance without being tied to a specific training algorithm e.g., SGD with momentum, ADAM, etc. Towards this end, we consider measuring predictive performance through quantities related to the downstream posterior distribution over neural network weights :
+
+p1(w; w∗, γ ) ∝ exp {− mK1(w)}φγ (w − w∗) (17) This does not mean we are advocating for Bayesian prediction, but rather we believe the posterior distribution above contains highly relevant information that all sensible downstream training algorithms are sensitive to. Since fine-tuning entails finding a small perturbation of said w∗ which performs well on the downstream training dataset D1,we might consider an indicator of the downstream training performance to be given by 
+
+Tm(w∗) := Ew∼p1(w;w∗,γ ) ˆK1(w). (18) Let us call equation 18 the downstream Gibbs training error . Select γ such that w∗ is a local minimum of K0(w); i.e., 
+
+w∗ ∈ U0. Then, on average, over the draw of D1, the expected downstream Gibbs training error is given by 
+
+ED1 Tm(w∗) = K 1(w∗1) + λ1(w∗) − ν1(w∗)
+
+m + o
+
+ 1
+
+m
+
+
+
+(19) where ν1(w∗), like the local learning coefficient λ1(w∗), is a positive number called the singular fluctuation that is an invariant of the underlying model-truth-prior triplet. Since ν1(w∗) is always positive, the strategy in equation 9 leads us to select a checkpoint that minimizes an upper bound on ED1 Tm(w∗).We can also look at the population counterpart to equation 18 given by 
+
+Gm(w∗) := Ew∼p1(w;w∗,γ )K1(w) (20) Let us call equation 20 the downstream Gibbs test error . The expected value of this, over the draw of D1 is given by 
+
+ED1 Gm(w∗) := K 1(w∗1) + λ1(w∗) + ν1(w∗)
+
+m + o
+
+ 1
+
+m
+
+
+
+. (21) It does not appear the strategy in equation 9 gives control over the (expected) downstream Gibbs test error. Finally consider the test error resulting from Bayesian model averaging: 
+
+GBMA  
+
+> m
+
+(w∗) := Er1(x)DKL (r1(y|x)|| Ew∼p1(w;w∗,γ )p(y|x, w )) (22) where the expectation over the posterior has been moved inside the logarithm. Let us call equation 22 the downstream Bayes test error . We have that 
+
+ED1 GBMA  
+
+> m
+
+(w∗) := K 1(w∗1) + λ1(w∗)
+
+m + o( 1
+
+m ). (23) It is evident that the strategy in equation 9 leads us to select a checkpoint that minimizes an upper bound on ED1 GBMA  
+
+> m
+
+(w∗).
+
+# B. Experiment details 
+
+This section provides details for the experiment results presented in Figure 1 and Figure 2. For these experiments we use the CIFAR-FS dataset (Bertinetto et al., 2019) which has been pre-partitioned into 64 meta-training classes, 14 meta-validation classes and 20 meta-test classes. Each class contains 600 examples. We use the meta-training dataset for pretraining and the meta-test dataset during fine-tuning. We do not use the meta-validation dataset. 
+
+Random seeds To account for stochasticity, we repeat all experiments below with 5 different random seeds. These seeds control the randomness in the pretraining optimization trajectory, the train-test split and the fine-tuning optimization trajectory in full meta-test finetuning (Section B.2 below), and the construction of few-shot tasks in few-shot meta-test finetuning (Section B.2 below). The variability across the random seeds is reflected in Figure 2, although the error bands may not always be visible due to the wide scale of the y-axis in some cases. 12 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+B.1. Pretraining details 
+
+We pretrain a ResNet-18 (He et al., 2016) on the CIFAR-FS meta-training dataset (Bertinetto et al., 2019) using SGD with cross-entropy loss. We vary SGD hyperparameters such as the learning rate, batch size, and momentum. We use plain SGD optimizer without any regularization nor schedule to avoid masking effects. We used random crop and random flip for data augmentation. Throughout training we report the pretraining train loss on the augmented data (Figure 2 first column) and the pretraining WBIC computed on the augmented data (Figure 2 second column). Note, we use the same SGLD hyperparameters to compute the WBIC across all experiments. That is, we use step size ϵ = 2 × 10 −7, chain length of 3,000 iterations, batch size of 2,048, γ = 1 .0, and β∗ = 1log n where n is the size of the pretraining dataset. 
+
+Learning rate. For experiments that vary the learning rate in Figure 2 (top row), for each learning rate value in {0.01, 0.05, 0.1, 0.2 } we run SGD without momentum with a fixed batch size of 512 for 50,000 iterations. The WBIC estimations were performed every 2,000 iterations with the SGLD hyperparameters above. 
+
+Batch size. For experiments that vary the batch size in Figure 2 (middle row), for each batch size in {16, 32, 64, 128, 256, 512 } we run SGD without momentum with a fixed learning rate of 0.05 for 50,000 iterations. The WBIC estimations were performed every 4,000 iterations with the SGLD hyperparameters above. 
+
+Momentum. For experiments that vary the momentum in Figure 2 (bottom row), for each momentum in {0.0, 0.2, 0.4, 0.6, 0.8 } we run SGD with a fixed learning rate of 0.01 and batch size of 512 for 80,000 iterations. The WBIC estimations were performed every 2,000 iterations with the SGLD hyperparameters above. 
+
+B.2. Fine-tuning details 
+
+We perform fine-tuning in two scenarios: full CIFAR-FS meta-test finetunining which uses all 20 classes of the meta-test set, and few-shot meta-test finetuning which consists of multiple tasks constructed from the CIFAR-FS meta-test dataset. In both settings we fine-tune a ResNet-18 model initializing the weights of the ResNet backbone with the pre-training weights. The weights of the model head are randomly initialized. 
+
+Full meta-test fine-tuning. When fine-tuning on the full CIFAR-FS meta-test dataset, we use all 20 meta-test classes and all 600 examples in each class. We then create an 80/20 train/test split. We use SGD with L2 regularization rate of 0.01 and with a fixed learning rate of 0.0001 for the model backbone and a fixed learning rate of 0.01 for the model head. We fine-tune for 100 steps using a batch size of 128. 
+
+Few-shot meta-test fine-tuning. For few-shot fine-tuning, we use only part of the CIFAR-FS meta-test dataset by sampling 5-class classification tasks randomly from the 20 classes available in the meta-test dataset. For each of these 5 classes we sample 5 training examples to create a 5-shot dataset for fine-tuning. During fine-tuning, as with full meta-test fine-tuning, we use a fixed learning rate of 0.0001 for the model backbone and a fixed learning rate of 0.01 for the model head. We perform 100 steps of full-batch gradient descent (GD) with L2 regularization rate of 0.001 and then measure the model performance on 100 random test samples from each class. This constitutes a single task. Finally, we report the resulting accuracy rates averaged over 100 randomly chosen tasks. 
+
+B.3. Correlation Analysis for Table 1 
+
+To assess the effectiveness of our free energy strategy in comparison to these other pretraining metrics, we computed the Pearson correlation coefficients (Pearson & Galton, 1895) for each of the pretraining metrics {} against the downstream 
+
+{full meta-test fine-tuning transfer accuracy, few-show meta-test fine-tuning transfer accuracy } using model checkpoints obtained from experiments with CIFAR-FS, trained on ResNet-18 to convergence. These experiments, detailed in Section 6, involved a comprehensive exploration of the hyperparameter space. We swept across three hyperparameters (learning rate, batch size, and momentum), with six values for learning rate, six for batch size, and five for momentum. Each configuration was trained with five different random seeds, resulting in a total of 85 model checkpoints. For each checkpoint, we compared the Geometric Complexity, Neural Collapse, and Free Energy of the pretrained model to its downstream performance, measured via both full meta-test fine-tuning and few-shot meta-test fine-tuning. Notably, as indicated by the Pearson correlation coefficients in Table 1, the pretraining Free Energy exhibits a 13 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+substantially stronger correlation with downstream performance than other metrics considered. 
+
+# C. Proof of Proposition 5.1 
+
+Proof. By definition of the test loss and rearranging terms via change of measure, for all w,
+
+K1(w) = 
+
+Z
+
+log 
+
+ r1(y|x)
+
+p(y|x, w )
+
+
+
+r1(x, y )dxdy 
+
+=
+
+Z
+
+log 
+
+ r0(y|x)
+
+p(y|x, w )
+
+r1(y|x)
+
+r0(y|x)
+
+ r1(x, y )
+
+r0(x, y ) r0(x, y )dxdy 
+
+=
+
+Z
+
+log 
+
+ r0(y|x)
+
+p(y|x, w )
+
+ r1(x, y )
+
+r0(x, y ) r0(x, y ) dx dy 
+
++
+
+Z
+
+log 
+
+ r1(y|x)
+
+r0(y|x)
+
+
+
+r1(x, y ) dx dy 
+
+≤ M K0(w) + D. 
+
+Also, by definition of w∗1, we have K1(w∗1) ≤ K1(w∗). Combining these two facts, we get K1(w∗) ≤ M K0(w∗) + D
+
+and obtain the conclusion in (11). 
+
+# D. Examples of Proposition 5.1 
+
+In this section we provide two detailed examples involving Gaussian distributions which help to illustrate Proposition 5.1 in action. 
+
+Example 1 (Covariate shift between pretraining and downstream distributions) . Suppose r0(y|x) = r1(y|x) = r(y|x).Our pretraining and fine-tuning joint model is pi(x, y |w) = p(y|x, w )ri(x). Then we have λ0(w∗) = λ1(w∗) and 
+
+Ki(w) = Eri(x)K(x, w ) where K(x, w ) = DKL (r(y|x)|| p(y|x, w )) . Writing 
+
+Er1(x)K(x, w ) = 
+
+Z
+
+K(x, w ) r1(x)
+
+r0(x) r0(x) dx 
+
+we have that if M = max x∼r0(x) r1(x) 
+
+> r0(x)
+
+< ∞ then 
+
+Er1(x)K(x, w ) ≤ M Er0(x)K(x, w )
+
+Putting this together we have D = 0 and 
+
+K1(w∗1) ≤ K1(w∗) ≤ M K0(w∗).
+
+Suppose the two covariate distributions are Gaussians 
+
+ri(x) ∝ exp {− || x − μi|| 22
+
+2σ2
+
+> i
+
+}
+
+then M is finite if σ0 > σ 1, in which case M = σ0 
+
+> σ1
+
+exp { (μ0−μ1)2   
+
+> 2( σ20−σ21)
+
+}
+
+Example 2 (Nuisance parameter mismatch between pretrain and downstream distributions) . Suppose the pretrain ( i = 0 )and downstream ( i = 1 ) distributions are given by 
+
+ri(x, y ) = r(y|x, w 0, σ 2 
+
+> i
+
+)r(x)
+
+where r(y|x, w 0, σ 2 
+
+> i
+
+) = N (fw0 (x), σ 2 
+
+> i
+
+) with fw(x) representing neural network with weight w. The pretraining and fine-tuning model are given by 
+
+pi(x, y |w) = r(y|x, w, σ 2 
+
+> i
+
+)r(x)
+
+Then we have λ0(w∗) = λ1(w∗) and M = σ0/σ 1.14 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints        
+
+> Figure 3. Model checkpoints with lower pretraining WBIC (second column) consistently result in better transfer accuracy, both when fine-tuning on the full downstream dataset (third column) and in the few-shot setting (fourth column). Lower pretraining WBIC correlates with better downstream performance for Top row: larger learning rates, Middle row: smaller batch sizes, and Bottom row: increased momentum.
+
+# E. Additional Experiments for mini-Imagenet; see Figure 3 
+
+E.1. Pretraining details 
+
+We pretrain a VGG-16 (Simonyan, 2014) on the mini-Imagenet meta-training dataset (Dhillon et al., 2019) using SGD with cross-entropy loss. We vary SGD hyperparameters such as the learning rate, batch size, and momentum. We use plain SGD optimizer without any regularization nor schedule to avoid masking effects. We used random crop and random flip for data augmentation. Throughout training we report the pretraining train loss on the augmented data (Figure 2 first column) and the pretraining WBIC computed on the augmented data (Figure 2 second column). Note, we use the same SGLD hyperparameters to compute the WBIC across all experiments. That is, we use step size ϵ = 2 × 10 −7, chain length of 1,000 iterations, batch size of 1,024, γ = 1 .0, and β∗ = 1log n where n is the size of the pretraining dataset. The results are plotted in Figure 3. 
+
+Learning rate. For experiments that vary the learning rate in Figure 2 (top row), for each learning rate value in {0.0025, 0.005, 0.01 } we run SGD without momentum with a fixed batch size of 512 for 50,000 iterations. The WBIC estimations were performed every 2,000 iterations with the SGLD hyperparameters above. 
+
+Batch size. For experiments that vary the batch size in Figure 2 (middle row), for each batch size in {16, 32, 64, 128, 256, 512 } we run SGD without momentum with a fixed learning rate of 0.01 for 50,000 iterations. The WBIC estimations were performed every 2,000 iterations with the SGLD hyperparameters above. 
+
+Momentum. For experiments that vary the momentum in Figure 2 (bottom row), for each momentum in {0.0, 0.1, 0.3, 0.5 } we run SGD with a fixed learning rate of 0.005 and batch size of 512 for 50,000 iterations. The WBIC estimations were performed every 2,000 iterations with the SGLD hyperparameters above. 15 A Bayesian Model Selection Criterion for Selecting Pretraining Checkpoints 
+
+E.2. Fine-tuning details 
+
+We perform fine-tuning in two scenarios: full mini-Imagenet meta-test finetunining which uses all 20 classes of the meta-test set, and few-shot meta-test finetuning which consists of multiple tasks constructed from the mini-Imagenet meta-test dataset. In both settings we fine-tune a VGG-16 model initializing the weights of the VGG backbone with the pre-training weights. The weights of the model head are randomly initialized. 
+
+Full meta-test fine-tuning. When fine-tuning on the full mini-Imagenet meta-test dataset, we use all 20 meta-test classes and all 600 examples in each class. We then create an 80/20 train/test split. We use SGD with L2 regularization rate of 0.01 and with a fixed learning rate of 0.0001 for the model backbone and a fixed learning rate of 0.01 for the model head. We fine-tune for 500 steps using a batch size of 32. 
+
+Few-shot meta-test fine-tuning. For few-shot fine-tuning, we use only part of the mini-Imagenet meta-test dataset by sampling 5-class classification tasks randomly from the 20 classes available in the meta-test dataset. For each of these 5 classes we sample 5 training examples to create a 5-shot dataset for fine-tuning. During fine-tuning, as with full meta-test fine-tuning, we use a fixed learning rate of 0.0001 for the model backbone and a fixed learning rate of 0.01 for the model head. We perform 100 steps of full-batch gradient descent (GD) with L2 regularization rate of 0.01 and then measure the model performance on 100 random test samples from each class. This constitutes a single task. Finally, we report the resulting accuracy rates averaged over 100 randomly chosen tasks. 16

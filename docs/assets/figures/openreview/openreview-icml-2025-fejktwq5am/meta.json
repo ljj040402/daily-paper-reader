@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/openreview/openreview-icml-2025-fejktwq5am/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 653,
+      "height": 1002,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/openreview/openreview-icml-2025-fejktwq5am/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 1775,
+      "height": 930,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/openreview/openreview-icml-2025-fejktwq5am/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1775,
+      "height": 936,
+      "label": "Figure"
+    }
+  ]
+}
