@@ -1,0 +1,1794 @@
+Title: Deep Principal Support Vector Machines  for Nonlinear Sufficient Dimension Reduction
+
+URL Source: https://openreview.net/pdf?id=t2xZSQTArz
+
+Number of Pages: 20
+
+Markdown Content:
+# Deep Principal Support Vector Machines for Nonlinear Sufficient Dimension Reduction 
+
+YinFeng Chen ∗ 1 Jin Liu 2 Rui Qiu ∗ 3
+
+## Abstract 
+
+The normal vectors obtained from the support vector machine (SVM) method offer the potential to achieve sufficient dimension reduction in both classification and regression scenarios. Motivated by it, we in this paper introduce a unified frame-work for nonlinear sufficient dimension reduction based on classification ensemble. Kernel princi-pal SVM, which leverages the reproducing kernel Hilbert space, can almost be regarded as a special case of this framework, and we generalize it by us-ing a neural network function class for more flex-ible deep nonlinear reduction. We theoretically prove its unbiasedness with respect to the central 
+
+σ-field and provide a nonasymptotic upper bound for the estimation error. Simulations and real data analysis demonstrate the considerable competi-tiveness of the proposed method, especially under heavy data contamination, large sample sizes, and complex inputs. 
+
+## 1. Introduction 
+
+With the advent of the big data era, high-dimensional data have become increasingly common across diverse scientific domains. To this end, sufficient dimension reduction (SDR) techniques are developed to extract low-dimensional rep-resentations of data while preserving as much information as possible. These representations serve to facilitate both visualization and downstream tasks of data analysis. Let 
+
+X ∈ Rp be the predictor variables of dimension p, and 
+
+Y ∈ R be the response variable. The classical linear SDR method aims to find a p × d(d < p ) matrix η such that the        
+
+> *Equal contribution 1School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, China 2School of Data Science, The Chinese University of Hong Kong (Shenzhen), Shenzhen, China 3School of Mathematical Sciences, Peking University, Bei-jing, China. Correspondence to: Rui Qiu <rqiu@pku.edu.cn >.
+> Proceedings of the 42 nd International Conference on Machine Learning , Vancouver, Canada. PMLR 267, 2025. Copyright 2025 by the author(s).
+
+following conditional independence holds: 
+
+Y ⊥⊥ X|ηT X, (1) where ⊥⊥ stands for statistical independence. The iden-tifiable parameter in (1) is the subspace spanned by the columns of η, rather than η itself, referred to as the suffi-cient dimension reduction subspace. Under mild conditions (see Cook (1998); Yin et al. (2008)), the intersection of all such spaces is also a sufficient dimension reduction sub-space and is called the central subspace, denoted by SY |X .Representative methods of linear SDR include sliced inverse regression (SIR) (Li, 1991), sliced average variance estimate (SAVE) (Cook & Weisberg, 1991), directional regression (DR) (Li & Wang, 2007), minimum average variance esti-mation (MAVE) (Xia et al., 2002), and so on. We refer to Ma & Zhu (2013) for an extensive survey on linear SDR. Sometimes due to complex regression relationships, linear combinations of predictor variables often fail to achieve effective SDR. To address this limitation, a nonlinear exten-sion of the linear SDR, as formulated in Cook (2007), is considered to seek any function f (X) : Rp 7 → Rd such that 
+
+Y ⊥⊥ X|f (X). (2) The kernel trick stands out as the most popular approach to extend linear SDR to nonlinear SDR, and related works in-clude Wu (2008), Yeh et al. (2009), among others. Recently, Lee et al. (2013) proposed a rigorous SDR framework based on σ-fileds, which integrates both linear and nonlinear SDR into a unified system. They define the SDR problem as seeking a sub σ-field G of σ(X) such that 
+
+Y ⊥⊥ X|G . (3) Similar to the linear scenario, the intersection of all sub 
+
+σ-fields satisfying relation (3) still conforms to (3) under mild conditions. This minimal sub σ-field is then called the central σ-field and denoted by GY |X . Definitions of (1) and (2) can be seamlessly integrated into this framework by considering G as σ(ηT X) and σ(f (X)) , respectively. Compared to the linear case, the development of nonlin-ear SDR methods is relatively limited. As the nonlinear counterparts of SIR and SAVE, Lee et al. (2013) introduced 1Deep principal support vector machines 
+
+the generalized sliced inverse regression (GSIR) and gener-alized sliced average variance estimator (GSAVE). These methods may struggle with large samples and complex input structures. The rapid development of machine learning has sparked interest in incorporating machine learning techniques into traditional dimension reduction, such as k-means inverse regression (Setodji & Cook, 2004), principal support vector machines (Li et al., 2011), and dimension reduction forests (Loyal et al., 2022). In particular, deep neural networks have attracted the attention of many researchers due to their powerful feature extraction capabilities. A prominent repre-sentative of deep unsupervised dimension reduction is the auto-encoder models with bottleneck structures in represen-tation learning (Hinton & Salakhutdinov, 2006). Inspired by the mechanism of generative adversarial networks (GANs), Zheng et al. (2022) trained two deep neural networks ad-versarially and proposed a mutual information-based suf-ficient representation learning approach. Further, to avoid estimating the ratio of the joint density and the marginal densities, Huang et al. (2024) replaced mutual information with distance covariance and established the consistency of the proposal but not the rate of convergence. However, their strategy for limiting the distribution of sufficient representa-tion distinguished itself from the central σ-filed framework used in our paper. Recently, Chen et al. (2024) proposed GMDDNet for nonlinear SDR, which combines the gener-alized martingale difference divergence criteria with neural networks. In addition, Kapla et al. (2022) introduced a two-stage SDR estimation utilizing a neural network instead of local linear smoothing typically employed in MAVE (Xia et al., 2002). However, it remains a linear method. This paper will introduce a new nonlinear SDR method based on classification ensembles within the standard statis-tical framework established by (3) . Our contribution lies in the following aspects: 1. Our nonlinear SDR methods can be applied to a broad range of function classes. Among them, the neural network approximator shows significant promise. This deep method demonstrates flexibility in handling large samples and diverse input types including images and text. Importantly, it is robust for regression and clas-sification tasks, particularly suited for data with many outliers. Our deep method does not require additional special design of network structures such as bottleneck and generative adversarial structures. 2. We rigorously establish the unbiasedness of optimal solutions to the proposed objective function, indicat-ing that they belong to the central class. Under the assumption concerning the covering number of func-tion classes, the upper bound of the estimation error is given. Encouragingly, the assumption can be satis-fied by Vapnik-Chervonenkis (VC) classes, with neural networks being a representative example. As a result, we derive a specific convergence rate tailored to the neural network class, showcasing its optimality up to a polynomial order of log n when compared against the minimax rate of nonparametric regression. 3. The structure order determination method from classi-cal sufficient dimension reduction can be easily applied to our method, which is not the case for other neural network-based methods. 
+
+Notations: For any vector x, ∥x∥r and ∥x∥∞ represent the 
+
+lr and supremum norm of x, respectively. Let L2 (PX )
+
+be the space of square-integrable measurable functions with respect to the measure PX of X. For any function 
+
+f ∈ L2 (PX ), we define ∥f ∥L2(PX ) = E|f (X)|2 1/2
+
+and ∥f ∥∞ = sup x |f (x)| as the L2(PX ) norm and supre-mum norm of f , respectively. The ϵ-covering number of a set A with respect to the metric d is denoted by N (ϵ, A, d ).
+
+## 2. Preliminaries 
+
+To better elucidate our nonlinear SDR method and related theories, we first provide a detailed introduction to the frame-work of nonlinear SDR. Deep nonlinear SDR is the focus of this paper, for which we will briefly describe the structure of neural networks. 
+
+2.1. Nonlinear SDR 
+
+Let (Ω , F, P ) denote a probability space, and let (Ω X , BX ),
+
+(Ω Y , BY ) and (Ω XY , BXY ) represent measurable spaces where ΩX ⊂ Rp, ΩY ⊂ Rq and ΩXY ⊂ Rp+q . By default, 
+
+ΩXY = Ω X × ΩY and BXY = BX × BY . Let X, Y ,and (X, Y ) be random vectors taking values in ΩX , ΩY ,and ΩXY , respectively, with distributions PX , PY , and 
+
+PXY . The σ-filed generated by X is σ(X) = X−1(BX ).The conditional distribution of X given Y is denoted by 
+
+PX|Y (·|· ) : BX × ΩY → R. We consider the following nonlinear SDR problem 
+
+Y ⊥⊥ X|f 0(X), (4) where f 0(·) is a Rd-valued function ( d < p ). That is to say, at least d functions of p-dimensional X are needed to fully capture the relationship between Y and X. Here, we assume the structural dimension d is known for simplic-ity. Obviously, f 0 is unidentifiable since we can substitute 
+
+f 0 with any one-to-one function of it, without altering the conditional independence (4) . In fact, this conditional inde-pendence relies solely on the σ-field generated by f 0(X),which is unique under very mild assumptions (Lee et al., 2013). Without loss of generality, we may always assume 2Deep principal support vector machines 
+
+Assumption. The family of probability measures 
+
+{PX|Y (·| y) : y ∈ Ω} is dominated by a σ-finite measure. Then there exists a unique minimal sufficient σ-field (or central σ-field) GY |X such that 
+
+Y ⊥⊥ X|GY |X .
+
+Moreover, f 0 in (4) satisfies 
+
+E(f 0(X)) = 0 , Var( f 0(X)) = Id,
+
+and 
+
+σ(f 0(X)) = GY |X .
+
+We introduce some examples to build intuition in Appendix A.1. Even though the central σ-field is identifiable, it can be quite abstract to handle. Following Lee et al. (2013), let MY |X be the central class corresponding to the central 
+
+σ-field σ(f 0(X)) . This class is the collection of all square-integrable and σ(f 0(X)) -measurable functions. Equiva-lently, MY |X is a subset of L2(PX ) containing all elements that can be expressed as a function of f 0. To introduce the concept of unbiasedness for nonlinear SDR, we first re-view the unbiasedness in linear SDR. The central subspace 
+
+SY |X = Span( η) can be viewed as a member of the param-eter space that encompasses all d-dimensional subspaces of 
+
+Rp. Let Pn be the empirical distribution of an i.i.d. sample 
+
+{(X1, Y 1), . . . , (Xn, Y n)} from the distribution PXY . T is a mapping from all possible distributions of (X, Y ) to Rp×d.If Span[ T (PXY )] ⊆ SY |X , we call T (Pn) is an unbiased estimator of SY |X . This is equivalent to the inner product of X and any column vector of T (PXY ) being measurable with respect to σ(ηT X). From this perspective, we can easily generalize the concept of unbiasedness to nonlinear SDR: 
+
+Definition 2.1. A function f (X) from L2(PX ) is unbiased for the central σ-field GY |X if f (X) ∈ MY |X . Such a function is called an SDR function. Unbiasedness is the most fundamental requirement for SDR estimators. It ensures that the information extracted by each SDR function solely originates from the regression relationship between X and Y .
+
+2.2. Deep neural network 
+
+We now briefly introduce the feedforward neural networks with the rectified linear unit (ReLU) activation function. Specifically, the feedforward neural network can be repre-sented as 
+
+f (x) = WL ◦ σ ◦ WL− 1 ◦ σ ◦ · · · ◦ σ ◦ W1 ◦ σ ◦ W0(x),
+
+where x ∈ Rp, W i(x) = ωix + bi denotes an affine trans-formation with the weight matrix ωi ∈ Rki+1 ×ki and inter-cept vector bi ∈ Rki+1 , for i = 0 , 1, . . . , L. The function 
+
+σ(x) = max {x, 0} is the ReLU activation function ap-plied element-wise. Here, k0 and kL+1 are the input and output dimensions, respectively. And ki, i = 1 , 2, . . . , L
+
+stands for the number of neurons (width) in the ith hid-den layer. The depth of a network, denoted by L, refers to the number of hidden layers, while its width denotes the maximum width, N = max {k1, k 2, . . . , k L}, among the hidden layers. Moreover, the size of a network can be fur-ther characterized by two quantities: the total number of neurons U = PL 
+
+> i=1
+
+ki, and the total number of parameters 
+
+S = PL 
+
+> i=0
+
+ki+1 · (ki + 1) . As the most widely used func-tion class, neural networks will serve as the main estimator for the nonlinear SDR functions in our methods. 
+
+## 3. Motivation and Methodology 
+
+In this section, we introduce a new nonlinear SDR method based on the principal support vector machines (PSVM) proposed by Li et al. (2011). Then we give a reliable strat-egy for determining the structure dimension d in practical applications. 
+
+3.1. Sample estimation for nonlinear SDR 
+
+When the response Y ∈ {− 1, 1} is binary, Li et al. (2011) observed that the normal vectors of the hyperplane learned by support vector machines (SVM) align with the directions forming the SDR subspace. Therefore these normal vectors can be naturally leveraged to construct the SDR subspace. Specifically, given training data Dn = {(Xi, Y i)}ni=1 , Li et al. (2011) demonstrated the validity of the following objective function for linear SDR 
+
+min 
+
+> (ψ,t )∈Rp×R
+
+λn
+
+> n
+
+X
+
+> i=1
+
+1 − Yi
+
+ψ⊤ Xi − En(X) − t +
+
++ Var n(ψ⊤X), (5) where λ is a hyperparameter, En(·) and Var n(·) denotes the empirical mean and variance, and [x]+ = max {x, 0}
+
+is the hinge loss function. In particular, Li et al. (2011) proposed combining these normal vectors through principal component analysis to form the basis of the SDR subspace. Zhou & Zhu (2016) then introduced the principal minimax support vector machines formulation 
+
+min 
+
+> (ψ,t )∈Rp×R
+
+λ∥ψ∥1 + c∗ψT ψ + Var n(ψ⊤X)+ Cn
+
+> n
+
+X
+
+> i=1
+
+1 − Yi
+
+ ψT Xi + t + ,
+
+where λ, C are hyperparameters and c∗ is a special number. Additionally, Shin et al. (2017) proposed 
+
+min  
+
+> (ψ,t )∈Rp×R
+
+ψ⊤ψ + λn
+
+> n
+
+X
+
+> i=1
+
+wπ (Yi) 1 − Yi
+
+ ψ⊤Xi + t + ,
+
+3Deep principal support vector machines 
+
+where λ is a hyperparameter and wπ (Yi) = 1 − π if Yi = 1 
+
+and π otherwise. The kernel trick or reproducing kernel Hilbert space (RKHS) provides an effective approach for extending linear SDR methods to their nonlinear counterparts. However, finding a suitable kernel for non-vector input remains challenging. For example, when dealing with tensor-valued input such as images, the conventional kernel trick often requires flat-tening tensors, which inevitably results in information loss. In contrast, neural networks show remarkable flexibility in handling diverse data types. Moreover, the computational burden of neural networks is typically lower than that of the kernel trick when handling large samples. Given that the kernel trick frequently involves inverting an n × n kernel matrix, the computational cost O(n3) becomes formidable for large n.Motivated by the superiority of neural networks over the kernel trick and the validity of normal vectors from SVM in linear SDR, we combine (5) with a general functional class 
+
+Fn (e.g., neural networks) and a general loss ρ to achieve nonlinear SDR. Specifically, let eY be the binarization of Y ,then we define an objective function 
+
+Ln(f, t )=λ Var n(f (X)) + λt 2
+
++ 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ρ − eYi
+
+f (Xi) − En(f (X)) − t  (6) 
+
+= 2λn(n − 1) 
+
+X
+
+> 1≤i<j ≤n
+
+f (Xi) − f (Xj ) 2 + 2 t2
+
+2+ 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ρ − eYi
+
+(
+
+f (Xi) − 1
+
+n
+
+> n
+
+X
+
+> j=1
+
+f (Xj ) − t
+
+)! 
+
+,
+
+where t ∈ R, f is a member of Fn and ρ is any non-decreasing convex loss function. Particularly, ρ(x) =max {1 + x, 0} corresponds to the hinge loss in (5) . Here we follow the slicing techniques proposed in Li et al. (2011) to discretize Y into the binary eY . One, which we call “left versus right (LVR)”, repeatedly divides the data Dn into two groups according to a set of cutting points for the response. The other, which we call “one versus another (OVA)” , par-titions Dn into several slices and pairs up all possible slices. Below we summarize the the algorithm process: 1. (LVR) Let qr , r = 1 , . . . , h − 1, be h − 1 cutting points. For example, they can be equally spaced sample percentiles of {Y1, . . . , Y n}. For 1 ≤ r ≤ h − 1, set 
+
+eY ri = I(Yi > q r ) − I(Yi ≤ qr ).
+
+Over Fn ×R, ( ˆfr , ˆtr ) is the minimizer of Ln(f, t ) with 
+
+eYi replaced by eY ri .1′. (OVA) In addition to the above {qr }h−1 
+
+> r=1
+
+, let q0 =min {Y1, . . . , Y n} and qh = max {Y1, . . . , Y n}. For each (r, s ) satisfying 1 ≤ r < s ≤ h, set 
+
+eY rs i = I(qs−1 < Y i ≤ qs) − I(qr−1 < Y i ≤ qr ).
+
+Over Fn × R, ( ˆfrs , ˆtrs ) is the minimizer of Ln(f, t )
+
+with eYi replaced by eY rs i .2. Let v1, . . . , vd be the d leading eigenvectors of either one of the matrices M with entries 
+
+Mij =
+
+> n
+
+X
+
+> k=1
+
+ˆfi(Xk) ˆfj (Xk),
+
+where ˆfi is the minimizer from different dividing schemes ( 1 ≤ i, j ≤ h − 1 for LVR and 1 ≤ i, j ≤
+
+h(h − 1) /2 for OVA). Then the ith (1 ≤ i ≤ d) non-linear SDR function is 
+
+X
+
+> j
+
+vij ˆfj ,
+
+where vij is the jth entry of l-dimensional vi (l = h−1
+
+for LVR and l = h(h − 1) /2 for OVA). Li et al. (2011) empirically demonstrated that LVR works best when the response is a continuous variable and OVA works best when the response is categorical. 
+
+3.2. Estimation of structure dimension. 
+
+Determining the structural dimension d is a critical aspect of SDR. Here we employ the ladle method proposed by Luo & Li (2016). This method utilizes not only the eigenvalue information of the matrix M but also its eigenvectors to determine the structure dimension. Let Bk = ( v1, . . . , vk)
+
+and (λ1, . . . , λ k) respectively denote the l × k matrix com-prising the first k eigenvectors of M and the vector compris-ing the first k eigenvalues of M . Utilizing bootstrapping, we sample n instances with replacement from a dataset of size n. With these n samples, we re-implement Bk, denot-ing its ith instance as B∗
+
+> k,i
+
+. This bootstrapping procedure is repeated n times to generate multiple bootstrap samples. To measure the disparity between Bk and its bootstrapped counterpart, we define the following function: 
+
+f 0
+
+> n
+
+(k) = 
+
+(
+
+0, k = 0 ,n−1 Pni=1 {1 − | det (BTk B∗
+
+> k,i
+
+)|} , k = 1 , . . . , l. 
+
+We then normalize f 0
+
+> n
+
+(k) as follows 
+
+fn(k) = f 0
+
+> n
+
+(k)1 + Prl 
+
+> i=0
+
+f 0
+
+> n
+
+(i) ,
+
+4Deep principal support vector machines 
+
+where rl = l − 1 if l ≤ 10 , rl = ⌊l/ log l⌋ if l > 10 , and 
+
+⌊a⌋ denotes the largest integer not exceeding a. The impact of eigenvalues is quantified by the function 
+
+gn(k) = λ2
+
+> k+1
+
+1 + Prl 
+
+> i=0
+
+λ2
+
+> i+1
+
+, for k = 0 , 1, . . . , r l.
+
+Finally, the ladle method determines the dimension d using the formula 
+
+ˆd = argmin 
+
+> k=0 ,...,r l
+
+{fn(k) + gn(k)}.
+
+## 4. Theoretical Results 
+
+For nonlinear SDR, our primary objective is to identify functions within the central class MY |X . The population form of (6) is defined as 
+
+L(f, t ) = λ Var( f (X)) + λt 2
+
++ Eρ  − eY f (X) − E(f (X)) − t  , (7) where t ∈ R, f belongs to a function class F, and ρ repre-sents any nondecreasing convex loss function. The follow-ing theorem shows that it can achieve effective nonlinear SDR. 
+
+Theorem 4.1. Suppose that 1. F is a dense subset of L2(PX ),2. Y ⊥⊥ X|f 0(X).If (f ∗, t ∗) minimizes (7) over F × R, then f ∗(X) ∈ MY |X .
+
+Linear SDR methods typically rely on the linear conditional mean assumption concerning E  X|η⊤X to ensure unbi-asedness (Li, 1991; Li & Dong, 2009). Remarkably, for the nonlinear method proposed here, such stringent con-ditions are unnecessary. The first condition of Theorem 4.1 can be satisfied by continuous function class, RKHS with a Gaussian kernel, or L2(PX ) itself. In general, we usually choose F = L2(PX ) directly for population opti-mization. By Definition 2.1, Theorem 4.1 establishes the validity of our nonlinear SDR method (7) since the optimal solution f ∗ is unbiased. In other words, we can conclude that σ(f ∗(X)) ⊆ σ(f 0(X)) . The significance of Theorem 4.1 lies in its transformation of an abstract nonlinear SDR problem into a specific and solvable optimization problem (7) . It is essential to emphasize that our goal is to iden-tify functions that capture as many nonlinear relationships between Y and X as possible, rather than approximating specific predetermined functions, such as f 0.More generally, given some function class Fn, below we prove that the sample optimization (6) over Fn × R can con-verge to the population optimization (7) over L2(PX ) × R
+
+at a certain convergence rate. Before stating the results, we need the following assumptions. Let (f ∗, t ∗) be a minimizer of L(f, t ) over L2(PX ) × R.
+
+Assumption 4.2. There exists an absolute constant B > 1
+
+such that ∥f ∗∥∞ ≤ B and ∥f ∥∞ ≤ B for any f ∈ F n.
+
+Assumption 4.3. f ∗ is β-H ¨older continuous, i.e. , |f ∗(x1)−
+
+f ∗(x2)| ≤ Lhld ∥x1 − x2∥β for any x1, x 2 ∈ [0 , 1] p, where 
+
+Lhld is some positive constant. 
+
+Assumption 4.4. Nondecreasing convex loss function ρ :
+
+R 7 → R+ is Lipschitz continuous with Lipschitz constant 
+
+Llip , i.e. , |ρ(x) − ρ(y)| ≤ Llip ∥x − y∥ for any x, y ∈ R.
+
+Assumption 4.5. There exist an universal constant C and a parameter V depending on Fn such that 
+
+log N (ϵ, Fn, ∥ · ∥ L2(Q)) ≤ CV 1 + log(1 /ϵ ) ,
+
+where Q refers to PX and Pn, the empirical probability measure of X.Assumption 4.2 states that the ground-truth function f ∗ and neural networks are bounded. The parameter β in Assump-tion 4.3 characterizes the smoothness or regularity of f ∗.A higher value of β indicates greater smoothness, which generally facilitates more accurate approximation. The con-vergence rate of our estimator is jointly determined by β
+
+and the input dimension p; see Corollary 4.7 for details. Assumption 4.2 and 4.3 are common requirements in many existing works (Gy ¨orfi et al., 2002; Schmidt-Hieber, 2020; Farrell et al., 2021). Assumption 4.4, crucial for deriving the convergence result, is satisfied by common loss func-tions such as hinge loss and Huber loss. Regarding the assumption 4.5, this upper bound always holds for any VC class Fn with the parameter V being its VC dimension (see Theorem 2.6.7 in Vaart & Wellner (1996)), such as splines, RKHS with a polynomial kernel, and deep neural network class. The parameter V is a measure of the size (capacity, complexity, or expressive power) of a hypothesis class Fn,which is relative to the trade-off between statistical error and approximation error of our estimator. Classes with larger 
+
+V have stronger approximation capabilities but also carry a higher risk of overfitting. When ρ(x) = max {1 + x, 0}, optimizing (6) over RKHS and R is similar to kernel principal SVM (Li et al., 2011). Flexibility in the optimization range is another advantage over classical SDR methods. 
+
+Theorem 4.6. Let ( ˆf , ˆt) be the minimizer of Ln(f, t ) over 
+
+Fn × R and (f ∗, t ∗) be the minimizer of L(f, t ) over 
+
+L2(PX ) × R. Let δ > 0. Under the assumptions 4.2, 4.4 and 4.5, if n ≥ V , the following inequality holds with probability at least 1 − 4δL( ˆf , ˆt) − L(f ∗, t ∗) = 
+
+O
+
+ Vn log nV + inf  
+
+> f∈F n
+
+∥f − f ∗∥∞ + log(1 /δ )
+
+n
+
+
+
+.
+
+5Deep principal support vector machines 
+
+Now we focus on the neural network class. By Theorem 2.6.7 in Vaart & Wellner (1996) and Theorem 7 in Bartlett et al. (2019), the log covering number of the ReLU-activated neural network class Fn with respect to L2(Q) norm for any probability measure Q can be bounded by 
+
+log N  ϵ, Fn, ∥ · ∥ L2(Q)
+
+ ≤ K1 · VC( Fn)1 + log(1 /ϵ )
+
+≤ K2 · SL log( S)1 + log(1 /ϵ ) ,
+
+where K1, K 2 are two universal constants, VC( Fn) is the VC dimension of the neural network class, L is the depth of networks, and S is the total number of network param-eters. Hence the neural network class satisfies the assump-tion 4.5 with V ≤ SL log( S). Concerning the approxima-tion error, β-H ¨older continuous function f ∗ can be effec-tively approximated by ReLU networks. Specifically, con-sidering ReLU neural network class Fn with width N =3p+3 max  p⌊N 1/p ⌋, N +1  and depth L = 12 L+14+2 p,Theorem 1.1 in Shen (2020) tells that 
+
+inf  
+
+> f∈F n
+
+∥f − f ∗∥∞ = O
+
+
+
+(N L )− 2βp
+
+
+
+.
+
+Here N and L stand for arbitrary positive constants deter-mining the width N and the depth L of neural networks, respectively. With these preparations, we have the follow-ing result on the function class of width-fixed ReLU neural networks. 
+
+Corollary 4.7. For any arbitrary N ∈ N+, consider 
+
+Fn as the scalar-valued ReLU neural network class with width N = 3 p+3 max  p⌊N 1/p ⌋, N + 1  and depth L =12 n p 
+
+> 2( p+2 β)
+
++ 14 + 2 p. Let δ > 0. Under the assumption 4.2, 4.3 and 4.4, if n ≥ SL log( S), the following result holds with probability at least 1 − 4δL( ˆf , ˆt) − L(f ∗, t ∗) = O
+
+
+
+n− 2βp+2 β
+
+1 + log(1 /δ ) log n
+
+
+
+.
+
+Further, 
+
+∥ ˆf − f ∗∥2  
+
+> L2(PX)
+
+= O
+
+
+
+n− 2βp+2 β
+
+1 + log(1 /δ ) log n
+
+
+
+.
+
+Stone (1982) proved the minimax rate n− 2βp+2 β for nonpara-metric regression under the H ¨older continuous assumption. Remarkably, our nonlinear SDR method, leveraging deep neural networks, achieves this optimal rate up to log n. The-orem 4.1 shows that f ∗ is a nonlinear SDR function, while Corollary 4.7 demonstrates the convergence of ˆf to f ∗,thereby ensuring the rationality of the first step of nonlinear SDR algorithm process in section 3.1. Regarding the way of aggregating the optimal solutions from all different dividing schemes, the second step of the algorithm process is inspired by the kernel PSVM (Li et al., 2011). As in that work, we do not delve into the theoretical justification behind it here. In particular, we call our nonlinear SDR method optimized over neural networks with ρ(x) = max {1 + x, 0} the deep principal support vector machines (DPSVM). 
+
+## 5. Numerical Experiments 
+
+We evaluate the finite sample performance of the proposed DPSVM method on synthetic data. For comparison, we consider six other nonlinear dimension reduction methods: kernel principal support vector machine (KPSVM) with Gaussian kernel (Li et al., 2011), generalized sliced in-verse regression (GSIR) (Lee et al., 2013), kernel sliced inverse regression (KSIR) (Yeh et al., 2009), deep dimen-sion reduction (DDR) (Huang et al., 2024), deep sufficient representation learning (DSRL) (Zheng et al., 2022) and GMDDNet (Chen et al., 2024). KPSVM and DSRL are im-plemented based on the algorithm described in the original paper. GSIR and KSIR can be implemented by R package 
+
+nsdr and MAVE , respectively. DDR and GMDDNet are implemented using the source code provided by the original authors. More details on the computer configuration and hyperparameters are provided in the Appendix. Throughout the simulation, we set the training sample size 
+
+n = 500 and the input dimension p = 10 . We first gener-ate the intermediate response H from the following three models: 
+
+A : H =4 X1/(0 .1 + X22 ) + ϵ;
+
+B : H = sin  (X21 + X22 )π/ 10  + X21 + ϵ;
+
+C : H = log(0 .1 + X21 + X22 )
+
+q
+
+X21 + X22 + ϵ, 
+
+where the noise ϵ is independent of X and follows a standard t-distribution with degree of freedom 4. Then we generate a random variable B ∈ { 0, 1} by Bernoulli distribution with success probability pr = 0 .1. Then we acquire the final response Y = 10 H if B = 1 and Y = H otherwise. This design makes Y an outlier with probability pr , increasing the difficulty of nonlinear dimension reduction. Addition-ally, three different distributional scenarios for the predictor vector X = ( X1, . . . , X p)⊤ are involved: I : X ∼ N (0p, Ip),
+
+II : X ∼ t4(0p, Ip),
+
+III : X ∼ t4(0p, Sp),
+
+where Ip is the p × p identity matrix, Sp is a p × p ma-trix with entry Sij = 0 .5|i−j|, and N (A, B) is a mul-tivariate normal distribution with mean A and covari-ance B, and tk(A, B) is a multivariate t-distribution with mean A, covariance B and degree of freedom k. The true nonlinear SDR functions f ∗ for the model A, B, C 
+
+are 4X1/(0 .1 + X22 ), sin  (X21 + X22 )π/ 10  + X21 and 
+
+log(0 .1 + X21 + X22 )pX21 + X22 , respectively. The struc-ture dimension is assumed to be known as 1. We use the em-pirical distance correlation DR n
+
+ f ∗(X), ˆf (X) developed in Szkely et al. (2007) to reflect the merit of the estimated dimension reduction function. The detailed formulation of 6Deep principal support vector machines 
+
+empirical distance correlation is given in the Appendix. In brief, A higher distance correlation indicates more accuracy in extracting nonlinear information. The average distance correlations (with standard deviations in parentheses) over 
+
+100 simulation runs are shown in Table 1. Our method out-performs other methods in seven of the nine settings. This suggests that our approach is more robust to outliers, largely due to the process of bisecting response values (LVR or OVA step in our algorithm). 
+
+Table 1. Average distance correlations (standard deviations) of dif-ferent methods for all settings over 100 simulation runs. Bold-faced numbers indicate the best performers.                                                                       
+
+> Setting DPSVM KPSVM GSIR KSIR DDR DSRL GMDDNet A-I 0.80(0.01) 0.77(0.01) 0.75(0.01) 0.75(0.02) 0.63(0.10) 0.76(0.00) 0.76(0.01) A-II 0.74(0.02) 0.69(0.03) 0.73(0.01) 0.68(0.04) 0.57(0.08) 0.67(0.02) 0.68(0.00) A-III 0.77(0.02) 0.72(0.03) 0.72(0.01) 0.68(0.04) 0.60(0.09) 0.70(0.00) 0.69(0.02) B-I 0.75(0.05) 0.56(0.22) 0.44(0.06) 0.15(0.27) 0.45(0.17) 0.68(0.17) 0.57(0.14) B-II 0.71(0.05) 0.59(0.10) 0.55(0.04) 0.28(0.18) 0.55(0.13) 0.44(0.01) 0.48(0.17) B-III 0.75(0.05) 0.61(0.12) 0.57(0.04) 0.27(0.14) 0.58(0.11) 0.87(0.02) 0.56(0.18) C-I 0.76(0.04) 0.71(0.15) 0.58(0.05) 0.20(0.29) 0.54(0.17) 0.69(0.19) 0.79(0.02) C-II 0.78(0.04) 0.73(0.06) 0.70(0.03) 0.35(0.11) 0.62(0.12) 0.78(0.14) 0.59(0.15) C-III 0.81(0.03) 0.76(0.03) 0.72(0.02) 0.35(0.16) 0.68(0.11) 0.89(0.07) 0.61(0.19)
+
+MNIST database. The MNIST dataset contains 60 , 000 
+
+training images and 10 , 000 testing images of hand-written digits. Here, we take DPSVM and DDR as the representa-tives of deep methods for 2D visualization. LeNet (Lecun et al., 1998) is used as the basic neural network structure for both DPSVM and DDR. The ladle method in section 3.2 gives the structural dimension estimation ˆd = 9 . Then we train DPSVM and DDR respectively to obtain nine es-timated dimension reduction functions. Finally, we train the logistic regression on training images with correspond-ing nine-dimensional representations of original features and get the classification accuracy result on testing images. The accuracy is 0.9862 and 0.9883 for DPSVM and DDR, respectively. As a reference, the accuracy of direct LeNet using the original features is 0.9899 . The closeness of the results suggests that both our method and DDR are effec-tive in extracting nonlinear information from the regression relationship. Lastly, we plot the projections of the original features along the first two estimated dimension reduction directions of DPSVM and DDR to compare visualization effects (see Figure 2). It appears that DPSVM exhibits stronger discriminant power compared to DDR, as the points for each class cluster more distinctly. 
+
+Other datasets. The datasets 1 involved are Communities and Crime (CRIME) for regression tasks; Connectionist Bench Sonar (SONAR), Optical Recognition of Handwritten Digits (OPTDIGITS), Breast Cancer Wisconsin (WDBC) for additional classification tasks. For each dataset, we ran-domly split the data, using 2/3 for the training set and 1/3
+
+for the testing set. Different nonlinear dimension reduction 
+
+> 1
+
+All the datasets are downloaded from UCI machine learning repository 
+
+DPSVM with LeNet DDR with LeNet 
+
+Figure 1. 2D visualization of MNIST using DPSVM and DDR. 
+
+DPSVM with LeNet DDR with LeNet 
+
+Figure 2. 2D visualization of CRIME using DPSVM and DDR. 
+
+methods are applied to the training set to extract a low-dimensional representation. Then, we fit either linear regres-sion or logistic regression to the representation, depending on whether it is a regression task or a classification task. The mean square error for regression and classification accuracy for classification are calculated on the testing set. To reduce randomness, we repeat the above splitting-extraction-fitting process 100 times. The KSIR method consistently incurs errors on the OPTDIGITS dataset across all 100 repetitions, so its result is excluded from the plot. Note that the y-axis of the first three plots represents accuracy (higher values are better), while the y-axis of the last plot represents the mean square error (lower values are better). Our method shows comparable performance across all datasets, highlighting its competitiveness. Additionally, we present a 2D visualiza-tion comparing our approach with the DDR method on the CRIME dataset. The results indicate that our method yields more visually coherent representations. 
+
+## 6. Conclusions and Limitations 
+
+In this paper, we present a new approach to nonlinear suffi-cient dimension reduction that avoids the issues associated with generalized eigendecomposition of n × n matrices in conventional methods. The approach includes kernel principle SVM (Li et al., 2011) and extends it by incorporat-ing neural networks for more flexible deep nonlinear SDR, particularly beneficial for severe data contamination, large samples and complex inputs. The fusion of deep learning with nonlinear SDR brings new energy to the SDR field. From a theoretical standpoint, we provide guarantees of un-7Deep principal support vector machines 
+
+SONAR OPTDIGITS 
+
+WDBC CRIME  
+
+> Figure 3. Performance of different methods on different datasets
+
+biasedness with respect to the central σ-field and establish strong convergence rates for estimation error. Numerical simulations and real data analysis demonstrate the excep-tional performance of our method. The limitation of our method is its speed. For real-valued 
+
+Y , we must first discretize Y into binary variables. Typi-cally, we perform this discretization 10 times with different split schemes and fit neural networks on each discretization. Additionally, discretizing a scalar Y is typically based on quantiles, but calculating quantiles for multivariate Y is challenging and requires more effort. 
+
+## Acknowledgements 
+
+We thank all the anonymous reviewers for their help-ful comments and suggestions. Yinfeng Chen is sup-ported by the National Key R&D Program of China (Grant No. 2023YFA1008700 and 2023YFA1008703). Rui Qiu is supported by the Postdoctoral Fellowship Program and China Postdoctoral Science Foundation (Grant No. 2024M760060 and BX20250069). Jin Liu is supported by the National Natural Science Foundation of China (Grant No. 12371283), University Development Fund (Grant No. UDF01003033) from The Chinese University of Hong Kong, Shenzhen, the Program for Guangdong Introducing Innova-tive and Entrepreneurial Teams (Grant No. 2023ZT10X044), Shenzhen Science and Technology Program (Shenzhen Key Laboratory Grant No. ZDSYS20230626091302006), the Guangdong Provincial Key Laboratory of Mathemat-ical Foundations for Artificial Intelligence (Grant No. 2023B1212010001), Shenzhen Stability Science Program and Shenzhen Fundamental Research Program (General Program) (Grant No. JCYJ20240813113518024). 
+
+## Impact Statement 
+
+This paper presents work whose goal is to advance the field of sufficient dimension reduction. There are many potential societal consequences of our work, none which we feel must be specifically highlighted here. 
+
+## References 
+
+Bartlett, P. L., Harvey, N., Liaw, C., and Mehrabian, A. Nearly-tight vc-dimension and pseudodimension bounds for piecewise linear neural networks. Journal of Machine Learning Research , 20(63):1–17, 2019. Blanchard, G., Bousquet, O., and Massart, P. Statistical per-formance of support vector machines. Annals of Statistics ,36(2):489 – 531, 2008. Chen, Y., Jiao, Y., Qiu, R., and Yu, Z. Deep nonlinear sufficient dimension reduction. Annals of Statistics , 52 (3):1201 – 1226, 2024. Cl ´emen c¸ on, S., Lugosi, G., and Vayatis, N. Ranking and em-pirical minimization of U-statistics. Annals of Statistics ,36(2):844 – 874, 2008. Cook, R. D. Principal hessian directions revisited. Journal of the American Statistical Association , 93(441):84–94, 1998. Cook, R. D. Fisher lecture: Dimension reduction in regres-sion. Statistical Science , 22(1):1–26, 2007. Cook, R. D. and Weisberg, S. Discussion of sliced inverse regression for dimension reduction. Journal of the Amer-ican Statistical Association , 86(414):328–332, 1991. Farrell, M. H., Liang, T., and Misra, S. Deep neural net-works for estimation and inference. Econometrica , 89(1): 181–213, 2021. Gy ¨orfi, L., Kohler, M., Krzyzak, A., Walk, H., et al. 
+
+A distribution-free theory of nonparametric regression .Springer, 2002. Hinton, G. E. and Salakhutdinov, R. R. Reducing the di-mensionality of data with neural networks. Science , 313 (5786):504–507, 2006. Huang, J., Jiao, Y., Liao, X., Liu, J., and Yu, Z. Deep di-mension reduction for supervised representation learning. 
+
+IEEE Transactions on Information Theory , 2024. Kapla, D., Fertl, L., and Bura, E. Fusing sufficient di-mension reduction with neural networks. Computational Statistics & Data Analysis , 168:107390, 2022. Lecun, Y., Bottou, L., Bengio, Y., and Haffner, P. Gradient-based learning applied to document recognition. Proceed-ings of the IEEE , 86(11):2278–2324, 1998. 8Deep principal support vector machines 
+
+Lee, K.-Y., Li, B., and Chiaromonte, F. A general theory for nonlinear sufficient dimension reduction: Formulation and estimation. Annals of Statistics , 41(1):221 – 249, 2013. Li, B. and Dong, Y. Dimension reduction for nonelliptically distributed predictors. Annals of Statistics , 37(3):1272– 1298, 2009. Li, B. and Wang, S. On directional regression for dimension reduction. Journal of the American Statistical Associa-tion , 102(479):997–1008, 2007. Li, B., Artemiou, A., and Li, L. Principal support vector machines for linear and nonlinear sufficient dimension reduction. Annals of Statistics , 39(6):3182–3210, 2011. Li, K.-C. Sliced inverse regression for dimension reduction. 
+
+Journal of the American Statistical Association , 86(414): 316–327, 1991. Loyal, J. D., Zhu, R., Cui, Y., and Zhang, X. Dimension reduction forests: local variable importance using struc-tured random forests. Journal of Computational and Graphical Statistics , 31(4):1104–1113, 2022. Luo, W. and Li, B. Combining eigenvalues and variation of eigenvectors for order determination. Biometrika , 103(4): 875–887, 2016. Ma, Y. and Zhu, L. A review on dimension reduction. 
+
+International Statistical Review , 81(1):134–150, 2013. Massart, P. Concentration inequalities and model selection .Springer Verlag, 2003. Schmidt-Hieber, J. Nonparametric regression using deep neural networks with relu activation function. Annals of Statistics , 48(4):18751897, 2020. Setodji, C. M. and Cook, R. D. K-means inverse regression. 
+
+Technometrics , 46(4):421–429, 2004. Shen, Z. Deep network approximation characterized by number of neurons. Communications in Computational Physics , 28(5):1768–1811, 2020. Shin, S. J., Wu, Y., Zhang, H. H., and Liu, Y. Principal weighted support vector machines for sufficient dimen-sion reduction in binary classification. Biometrika , 104 (1):67–81, 2017. Stone, C. J. Optimal global rates of convergence for nonpara-metric regression. Annals of Statistics , 10(4):1040–1053, 1982. Szkely, G. J., Rizzo, M. L., and Bakirov, N. K. Measur-ing and testing dependence by correlation of distances. 
+
+Annals of Statistics , 35(6):2769 – 2794, 2007. Vaart, A. W. and Wellner, J. A. Weak convergence and empirical processes . Springer, 1996. Wu, H.-M. Kernel sliced inverse regression with applica-tions to classification. Journal of Computational and Graphical Statistics , 17(3):590–610, 2008. Xia, Y., Tong, H., Li, W. K., and Zhu, L.-X. An adaptive estimation of dimension reduction space. Journal of the Royal Statistical Society: Series B (Statistical Methodol-ogy) , 64(3):363–410, 2002. Yeh, Y.-R., Huang, S.-Y., and Lee, Y.-J. Nonlinear dimen-sion reduction with kernel sliced inverse regression. IEEE Transactions on Knowledge and Data Engineering , 21 (11):1590–1603, 2009. Yin, X., Li, B., and Cook, R. D. Successive direction ex-traction for estimating the central subspace in a multiple-index regression. Journal of Multivariate Analysis , 99(8): 1733–1757, 2008. Zheng, S., Lin, Y., and Huang, J. Deep sufficient repre-sentation learning via mutual information, 2022. URL 
+
+https://arxiv.org/abs/2207.10772 .Zhou, J. and Zhu, L. Principal minimax support vector machine for sufficient dimension reduction with contami-nated data. Computational statistics & data analysis , 94: 33–48, 2016. 9Deep principal support vector machines 
+
+## A. Additional materials 
+
+A.1. Illustrative examples 
+
+To illustrate the motivation behind sufficient dimension reduction (SDR), we present two simple examples. EXAMPLE 1: C LASSIFICATION PROBLEM 
+
+Consider the classification problem: 
+
+Y = 1  X21 + X22 − 1 + ε > 0 ,
+
+where X1, X 2 ∼ N (0 , 1) and ε ∼ N (0 , 0.2) . Then, the normalized SDR function is given by 
+
+f0(X) = X21 + X22
+
+2 − 1.
+
+Here, a linear transformation is applied to ensure E(f0(X)) = 0 , Var( f0(X)) = 1 .EXAMPLE 2: M ULTIVARIATE REGRESSION PROBLEM 
+
+Now, consider a multivariate regression problem where Y ∈ R2:
+
+Y1 = sin( X1 + X22 ) + ε1, Y2 = cos( X3X4) + ε2,
+
+where X1, X 2, X 3, X 4 ∼ N (0 , 1) and ε1, ε 2 ∼ N (0 , 0.2) . In this case, the normalized SDR function is 
+
+f 0(X) = 
+
+a0 sin( X1 + X22 ) + b0
+
+a1 cos( X3X4) + b1
+
+
+
+,
+
+where ai and bi, i = 1 , 2, are introduced to ensure E(f 0(X)) = 0 , Var( f 0(X)) = I2.EXAMPLE 3: G ENERAL FORMULATION FOR REGRESSION 
+
+More generally, we consider the model 
+
+Y = g(f 0(X)) + ε, 
+
+where f 0 : Rp → Rd and g : Rd → Rq . Our goal is to identify the low-dimensional nonlinear representation f 0(X). In this general setting, traditional linear sufficient dimension reduction breaks down. 
+
+A.2. Definition of empirical distance correlation 
+
+The empirical distance covariance between two random vectors Y, Y ′ is defined as 
+
+DC n
+
+ Y, Y ′ =
+
+ n
+
+4
+
+−1 X   
+
+> 1≤π1̸=π2̸=π3̸=π4≤n
+
+h    Yπ1 , Y ′
+
+> π1
+
+ ,  Yπ2 , Y ′
+
+> π2
+
+ ,  Yπ3 , Y ′
+
+> π3
+
+ ,  Yπ4 , Y ′
+
+> π4
+
+ ,
+
+where {Yi}ni=1 , {Y ′ 
+
+> i
+
+}ni=1 are the samples of Y and Y ′, and 
+
+h (( Y1, Y ′ 
+
+> 1
+
+) , . . . , (Y4, Y ′ 
+
+> 4
+
+)) = 124 
+
+X   
+
+> 1≤i̸=j̸=k̸=l≤4
+
+  ∥Yi − Yj ∥2 Y ′ 
+
+> i
+
+− Y ′ 
+
+> j2
+
+− 2 ∥Yi − Yj ∥2 ∥Y ′ 
+
+> i
+
+− Y ′ 
+
+> k
+
+∥2 + ∥Yi − Yj ∥2 ∥Y ′ 
+
+> k
+
+− Y ′ 
+
+> l
+
+∥2
+
+.
+
+Then the empirical distance correlation is defined as 
+
+DR n
+
+ Y, Y ′ = DC n
+
+ Y, Y ′q
+
+DC n
+
+ Y, Y q
+
+DC n
+
+ Y ′, Y ′ . (8) 
+
+A.3. Simulations for large p
+
+Since neural networks require more data to fit overparameterized models, we set the sample size to n = 5000 for p = 100 .The results, shown in Table 2, indicate that our method remains competitive under this configuration. 10 Deep principal support vector machines  
+
+> Table 2. Average distance correlations (standard deviations) of different methods for all settings over 100 simulation runs. Bold-faced numbers indicate the best performers.
+
+Setting DPSVM KPSVM GSIR KSIR DDR DSRL GMDDNet A-I 0.77(0.01) 0.72(0.01) 0.74(0.01) 0.76(0.01) 0.55(0.05) 0.67(0.05) 0.61(0.06) A-II 0.73(0.01) 0.65(0.01) 0.71(0.01) 0.68(0.01) 0.50(0.04) 0.62(0.05) 0.62(0.04) A-III 0.75(0.01) 0.65(0.01) 0.63(0.01) 0.69(0.01) 0.51(0.06) 0.68(0.03) 0.65(0.03) B-I 0.70(0.03) 0.45(0.03) 0.06(0.01) nan(nan) 0.42(0.05) 0.69(0.05) 0.47(0.08) B-II 0.67(0.03) 0.39(0.03) 0.45(0.03) 0.25(0.19) 0.53(0.09) 0.67(0.04) 0.64(0.06) B-III 0.68(0.04) 0.41(0.02) 0.45(0.02) 0.35(0.25) 0.54(0.11) 0.69(0.02) 0.63(0.06) C-I 0.71(0.04) 0.58(0.02) 0.08(0.02) 0.48(0.64) 0.38(0.14) 0.55(0.24) 0.53(0.14) C-II 0.64(0.16) 0.54(0.02) 0.59(0.02) 0.26(0.05) 0.63(0.04) 0.75(0.03) 0.70(0.06) C-III 0.73(0.02) 0.59(0.01) 0.55(0.01) 0.25(0.05) 0.61(0.09) 0.73(0.03) 0.71(0.02) 
+
+A.4. Analysis of the computational complexity 
+
+Let n, p, L, and N represent the sample size, input dimension, number of hidden layers, and maximum width of the hidden layers, respectively. Let the batch size and training epochs be b and t, respectively. The computation overhead of each iteration is primarily attributed to calculating the gradient of that batch. This computation overhead is O(bL max {p, N } 2).Considering that we need to update n/b batches for each epoch, the total complexity of each binarization is 
+
+O(nt L max {p, N } 2).
+
+Additionally, using the LVR procedure involves h binarizations. After performing h binarizations, we need to construct the 
+
+h × h matrix based on the inner product of two h × n matrices and compute its eigendecomposition. These two operations require O(h2n) and O(h3) computations, respectively. Therefore, the final computational cost is 
+
+O(hnt L max {p, N } 2 + h2n + h3).
+
+In contrast, deep methods without binarization incur a slightly better computational cost, 
+
+O(nt L max {p, N } 2).
+
+The primary computational complexity of GSIR/PSVM stems from the inversion of an n × n matrix, which is O(n3) for the naive inversion algorithm. When comparing this with the complexity O hnt L max {p, N } 2, it is evident that the computational advantage of neural networks becomes apparent only when n exceeds a certain threshold. Otherwise, the computational overhead of gradient evaluation becomes more expensive. The above conclusion is validated by empirical evaluation in Figure 4. Here, deepsvm represents our proposed method, psvm corresponds to KPSVM, and deepsdr refers to DDR. The other names correspond to their respective original methods as indicated. 
+
+A.5. Computer configuration and network architecture 
+
+All the experiments are run on a computer with 80 Intel(R) Xeon(R) Gold 5218R CPU @ 2.10GHz CPU and 251 GB memory. The batch size and epoch number are set as 100 and the optimizer is set as adam with default parameters. This network structure follows an expansion-contraction pattern, a reverse pattern of the bottleneck structure in auto-encoders. The initial increase in width is to map the original features to a higher-dimensional space, similar to the kernel trick used in a reproducing kernel Hilbert space. The subsequent decreasing width is employed to perform dimension reduction, ultimately obtaining a low-dimensional embedding. The default network is a feedforward ReLU network with hidden dimensions 
+
+2D1 , 2D1+1 , 2D1 , 2D1−1, . . . , 16 , 1,
+
+where D1 = ⌊log 2 p⌋ + 1 and p is the input dimension. Our method performs well with a simple feedforward network, so we did not explore more complex architectures. Specifically, we generate a default neural network with the following Python code. 11 Deep principal support vector machines 
+
+Figure 4. Computational time comparison of different methods. 
+
+def generate_default_net(input_dim, first_hidden_width=None, last_hidden_width=16, increase_count=2, output_dim=1): 
+
+if first_hidden_width is None: first_hidden_width = 2 ** (int (np.log2(input_dim)) + 1) net = nn.Sequential() net.append(nn.Linear(input_dim, first_hidden_width)) net.append(nn.ReLU()) next_width = first_hidden_width 
+
+for i in range (increase_count - 1): net.append(nn.Linear(next_width, next_width * 2)) net.append(nn.ReLU()) next_width = next_width * 2
+
+for i in range (increase_count - 1): net.append(nn.Linear(next_width, next_width // 2)) net.append(nn.ReLU()) next_width = next_width // 2
+
+if last_hidden_width is not None: 
+
+while (next_width // 2 >= last_hidden_width): net.append(nn.Linear(next_width, next_width // 2)) net.append(nn.ReLU()) next_width = next_width // 2net.append(nn.Linear(next_width, output_dim)) 
+
+return net 
+
+A.6. Sensitivity analysis with different hyperparameters 
+
+To evaluate the robustness of our method, we conduct a sensitivity analysis on various hyperparameters: binarization count, 
+
+λ, learning rate, and neural network structure. The results are presented in Table 3. DPSVM is not sensitive to the number of binarizations. The learning rate should be chosen suitably small to ensure optimal performance. As shown in Table 3, smaller values of λ lead to improved performance, as it shifts the focus toward dimension reduction rather than variance constraints. Specifically, λ should range from 0.01 to 0.1. Different configurations of hidden layers and widths of neural networks have the most significant impact on performance in settings B and C. Four different structures I–IV are generated by the code 
+
+generate_default_net(10, last_hidden_width=16, increase_count=2) # default 
+
+generate_default_net(10, last_hidden_width=8, increase_count=2) generate_default_net(10, last_hidden_width=16, increase_count=3) generate_default_net(10, first_hidden_width=32, last_hidden_width=32, increase_count=2) 
+
+12 Deep principal support vector machines 
+
+The optimal configuration uses the default network (Setting I), 10 binarizations to balance performance and computational cost, λ = 0 .01 , and a learning rate of 0.001 , chosen by cross-validation. Setting 5 10 15 20 A-I 0.80(0.01) 0.81(0.01) 0.81(0.01) 0.82(0.02) A-II 0.74(0.01) 0.73(0.02) 0.73(0.01) 0.74(0.02) A-III 0.76(0.01) 0.77(0.01) 0.77(0.01) 0.77(0.02) B-I 0.73(0.04) 0.73(0.05) 0.74(0.04) 0.73(0.04) B-II 0.71(0.04) 0.70(0.03) 0.72(0.04) 0.70(0.05) B-III 0.74(0.05) 0.75(0.06) 0.76(0.05) 0.75(0.05) C-I 0.75(0.04) 0.76(0.02) 0.79(0.03) 0.78(0.03) C-II 0.77(0.02) 0.77(0.03) 0.77(0.05) 0.78(0.04) C-III 0.80(0.03) 0.82(0.03) 0.81(0.03) 0.81(0.02) Setting 0.01 0.1 1 10 A-I 0.79(0.02) 0.81(0.01) 0.78(0.02) 0.46(0.08) A-II 0.72(0.02) 0.75(0.02) 0.70(0.02) 0.32(0.08) A-III 0.75(0.03) 0.76(0.02) 0.72(0.02) 0.34(0.09) B-I 0.76(0.03) 0.74(0.05) 0.68(0.07) 0.31(0.06) B-II 0.76(0.03) 0.71(0.04) 0.61(0.08) 0.27(0.07) B-III 0.79(0.03) 0.75(0.03) 0.68(0.05) 0.34(0.07) C-I 0.77(0.07) 0.76(0.04) 0.71(0.03) 0.36(0.08) C-II 0.82(0.02) 0.78(0.04) 0.72(0.04) 0.36(0.07) C-III 0.84(0.03) 0.81(0.03) 0.76(0.04) 0.39(0.08) Sensitivity analysis with a different number of binarizations. Sensitivity analysis with a different λ.Setting 0.001 0.01 0.1 1A-I 0.81(0.01) 0.82(0.01) 0.64(0.12) 0.09(0.05) A-II 0.74(0.02) 0.78(0.01) 0.59(0.11) 0.07(0.03) A-III 0.76(0.03) 0.80(0.01) 0.61(0.14) 0.09(0.06) B-I 0.75(0.06) 0.68(0.04) 0.56(0.16) 0.07(0.02) B-II 0.72(0.05) 0.65(0.04) 0.60(0.08) 0.08(0.04) B-III 0.74(0.04) 0.67(0.04) 0.60(0.13) 0.11(0.08) C-I 0.77(0.03) 0.69(0.04) 0.51(0.21) 0.09(0.06) C-II 0.78(0.03) 0.74(0.05) 0.60(0.15) 0.09(0.04) C-III 0.80(0.03) 0.77(0.04) 0.61(0.17) 0.07(0.04) Setting I II III IV A-I 0.79(0.01) 0.80(0.02) 0.81(0.02) 0.80(0.03) A-II 0.74(0.02) 0.74(0.03) 0.75(0.01) 0.74(0.02) A-III 0.78(0.01) 0.77(0.02) 0.79(0.02) 0.76(0.03) B-I 0.74(0.03) 0.54(0.04) 0.59(0.05) 0.57(0.05) B-II 0.72(0.03) 0.54(0.05) 0.52(0.05) 0.54(0.05) B-III 0.77(0.02) 0.63(0.03) 0.58(0.03) 0.60(0.03) C-I 0.75(0.04) 0.62(0.06) 0.63(0.04) 0.60(0.06) C-II 0.77(0.04) 0.66(0.05) 0.63(0.04) 0.64(0.04) C-III 0.82(0.02) 0.69(0.02) 0.64(0.03) 0.67(0.04) Sensitivity analysis with a different learning rate. Sensitivity analysis with a different network.  
+
+> Table 3. Results of sensitivity analysis with different hyperparameters
+
+## B. Proofs 
+
+Lemma B.1. Under the assumption 4.4, for each t ∈ R, the function f 7 → L(f, t ) is continuous with respect to the L2(PX )
+
+norm. Proof. The proof follows the same idea as Lemma 1 in Li et al. (2011). For any f1, f 2 ∈ L2(PX ), the following inequality holds 
+
+L(f1, t ) − L(f2, t ) ≤λ Var( f1(X)) − Var( f2(X)) 
+
++ E ρ − eY f1(X) − E(f1(X)) − t  − ρ − eY f2(X) − E(f2(X)) − t  .
+
+By Cauchy-Schwarz inequality, 
+
+Var( f1(X)) − Var( f2(X)) 
+
+= Var( f1(X) − f2(X) + f2(X)) − Var( f2(X)) 
+
+≤ Var( f1(X) − f2(X)) + 2 Var( f1(X) − f2(X)) Var( f2(X)) 1/2
+
+≤∥ f1(X) − f2(X)∥2  
+
+> L2(PX)
+
++ 2 ∥f1(X) − f2(X)∥L2(PX )∥f2(X)∥L2(PX ).
+
+By Lipschitz continuity of ρ,
+
+E ρ − eY f1(X) − E(f1(X)) − t  − ρ − eY f2(X) − E(f2(X)) − t 
+
+≤Llip · E eY f1(X) − E(f1(X)) − f2(X) + E(f2(X)) 
+
+≤2Llip · E f1(X) − f2(X)
+
+13 Deep principal support vector machines 
+
+≤2Llip · ∥ f1(X) − f2(X)∥L2(PX ).
+
+Then we can conclude that the function f 7 → L(f, t ) is continuous with respect to the L2(PX ) norm. 
+
+Proof of Theorem 4.1. Without loss of generality, we assume E(f (X)) = 0 . Note that 
+
+Eρ  − eY f (X) − t  = E
+
+
+
+E
+
+h
+
+ρ − eY f (X) − t  Y, f 0(X)
+
+i 
+
+.
+
+By Jensen inequality and conditional independence Y ⊥⊥ X|f 0(X),
+
+E
+
+
+
+E
+
+h
+
+ρ − eY f (X) − t  Y, f 0(X)
+
+i 
+
+≥ E
+
+
+
+ρ
+
+
+
+E
+
+h
+
+− eY f (X) − t Y, f 0(X)
+
+i 
+
+= E
+
+
+
+ρ
+
+
+
+− eY Ef (X)|f 0(X) − t
+
+ 
+
+.
+
+(9) Now apply the law of total variance, then we get 
+
+Var( f (X)) = Var E f (X)|f 0(X) + E Var  f (X)|f 0(X) ≥ Var E f (X)|f 0(X) . (10) Combining (9) and (10), we have 
+
+L(f, t ) ≥ λ Var E f (X)|f 0(X) + λt 2 + E
+
+h
+
+ρ
+
+
+
+− eY Ef (X)|f 0(X) − t
+
+i 
+
+= L
+
+
+
+E f (X)|f 0(X), t .
+
+The equality in (10) holds when 
+
+E Var  f (X)|f 0(X) = 0 a.s. which holds if and only if there is a version of f that is measurable with respect to σ{f 0(X)}. Therefore, if 
+
+E Var  f (X)|f 0(X) > 0 or f is not measurable with respect to σ{f 0(X)}, then 
+
+L(f, t ) > L (g, t )
+
+where g(X) = E [f (X)|f 0(X)] is a function in L2(PX ). And F is dense in L2(PX ), so we can find a function gf such that 
+
+∥gf − g∥L2(PX ) ≤ ϵ
+
+for all ϵ > 0. By Lemma B.1 and the arbitrariness of ϵ, we find gf ∈ F such that 
+
+L(f, t ) > L (gf , t ),
+
+which concludes that any function that is not measurable with respect to σ{f 0(X)} can’t be the minimizer. 
+
+Proof of Theorem 4.6. To facilitate theoretical analysis, we define an intermediate quantity 
+
+˜Ln(f, t ) = λ Var n(f (X)) + λt 2 + 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ρ − eYi
+
+f (Xi) − E(f (X)) − t  (11) 
+
+= 2λn(n − 1) 
+
+X
+
+> 1≤i<j ≤n
+
+f (Xi) − f (Xj ) 2 + 2 t2
+
+2+ 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ρ − eYi
+
+f (Xi) − Ef (X) − t 
+
+= 2
+
+n(n − 1) 
+
+X
+
+> 1≤i<j ≤n
+
+hf,t (Zi, Z j ),
+
+14 Deep principal support vector machines 
+
+where hf,t (Zi, Z j ) = λt 2 + λ{f (Xi)−f (Xj )}2 
+
+> 2
+
++ ρ(− eYi{f (Xi)−E(f (X)) −t})+ρ(− eYj {f (Xj )−E(f (X)) −t}) 
+
+> 2
+
+is a symmetric kernel and Zi = ( Xi, eYi).Define qf,t (Zi, Z j ) = hf,t (Zi, Z j ) − hf ∗,t ∗ (Zi, Z j ), where (f ∗, t ∗) is the optimal solution of L(f, t ) over L2(PX ) × R.Now we consider 
+
+˜Λn(f, t ) = ˜Ln(f, t ) − ˜Ln(f ∗, t ∗) = 2
+
+n(n − 1) 
+
+X
+
+> 1≤i<j ≤n
+
+qf,t (Zi, Z j ).
+
+It’s obvious that the expectation of ˜Λn(f, t ) is the excess risk Λ( f, t ) = L(f, t ) − L(f ∗, t ∗).Given the conditional kernel 
+
+q0,f,t =
+
+Z
+
+qf,t (z1, z 2)dP (z1)dP (z2) = Λ( f, t ),q1,f,t (z1) = 
+
+Z
+
+qf,t (z1, z 2)dP (z2),q2,f,t (z1, z 2) = qf,t (z1, z 2),
+
+then the Hoeffding decomposition of ˜Λn(f, t ) is 
+
+˜Λn(f, t ) = q0,f,t + 2
+
+n
+
+> n
+
+X
+
+> i=1
+
+q1,f,t (Zi) − q0,f,t 
+
++ 1
+
+n(n − 1) 
+
+X 
+
+> 1≤i̸=j≤n
+
+q2(Zi, Z j ) − q1,f,t (Zi) − q1,f,t (Zj ) + q0,f,t (12) 
+
+:= A1,n (f, t ) + A2,n (f, t )
+
+where A1,n (f, t ) = q0,f,t + 2
+
+> n
+
+Pni=1 
+
+q1,f,t (Zi) − q0,f,t = 2
+
+> n
+
+Pni=1 q1,f,t (Zi) − Λ( f, t ) and A2,n (f, t ) is the third term. Noting that A1,n (f, t ) is an independent sum, let a new loss function 
+
+ℓ(f, t, Z ) = 2 q1,f,t (Z) − Λ( f, t ).
+
+Now we consider a new objective function 
+
+vn(f, t ) = A1,n (f, t ) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ℓ(f, t, Z i)
+
+whose minimizer over Fn × R is denoted by (fℓ, t ℓ) and centered empirical form is 
+
+¯vn(f, t ) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ℓ(f, t, Z i) − Λ( f, t ).
+
+Step 1: Loss gap. 
+
+The sample estimator ( ˆf , ˆt) is obtained by minimizing Ln, while our convergence analysis turns to the independent sum 
+
+vn(f, t ). We should derive the loss gap between vn( ˆf , ˆt) and vn(fℓ, t ℓ) at first. Let the minimizer of ˜Ln be ( ˜f , ˜t), then 
+
+0 ≤ ˜Ln( ˆf , ˆt) − ˜Ln( ˜f , ˜t) =   ˜Ln( ˆf , ˆt) − Ln( ˆf , ˆt) +  Ln( ˆf , ˆt) − ˜Ln( ˜f , ˜t)
+
+:= D1 + D2.
+
+The term D2 can be bounded by 
+
+D2 = Ln( ˆf , ˆt) − Ln( ˜f , ˜t) + Ln( ˜f , ˜t) − ˜Ln( ˜f , ˜t)
+
+≤ Ln( ˜f , ˜t) − ˜Ln( ˜f , ˜t)
+
+15 Deep principal support vector machines 
+
+≤ Ln( ˜f , ˜t) − ˜Ln( ˜f , ˜t)
+
+≤ En ρ − eY  ˜f (X) − En( ˜f (X)) − t  − ρ − eY  ˜f (X) − E( ˜f (X)) − t 
+
+≤ Llip · En( ˜f (X)) − E( ˜f (X)) .
+
+Noting that ˜f is bounded by B, by Hoeffding’s inequality, with probability at least 1 − exp( − 2nδ 2 
+
+> B2
+
+) it holds that 
+
+Llip · En( ˜f (X)) − E( ˜f (X)) ≤ Llip δ, 
+
+Or equivalently, 
+
+D2 ≤ Llip B
+
+r log(1 /δ )2n
+
+with probability at least 1 − δ. And D1 can be bounded by the same logic. Therefore, with probability at least 1 − 2δ,
+
+˜Ln( ˆf , ˆt) − ˜Ln( ˜f , ˜t) ≤ 2Llip B
+
+r log(1 /δ )2n .
+
+Therefore with probability at least 1 − 2δ, we have 
+
+˜Ln( ˆf , ˆt) − ˜Ln(f ∗, t ∗) − 2Llip B
+
+r log(1 /δ )2n ≤ ˜Ln( ˜f , ˜t) − ˜Ln(f ∗, t ∗),
+
+which implies 
+
+˜Λn( ˆf , ˆt) − 2Llip B
+
+r log(1 /δ )2n ≤ ˜Λn( ˜f , ˜t) ≤ ˜Λn(fℓ, t ℓ)
+
+since ( ˜f , ˜t) is also the minimizer of ˜Λn(f, t ). With ˜Λn(f, t ) = A1,n (f, t ) + A2,n (f, t ), we further have 
+
+A1,n ( ˆf , ˆt) − A1,n (fℓ, t ℓ) ≤ 2Llip B
+
+r log(1 /δ )2n + A2,n (fℓ, t ℓ) − A2,n ( ˆf , ˆt). (13) Additionally, by corollary 6 in Cl´ emenc ¸on et al. (2008), with probability at least 1 − δ it holds that 
+
+sup  
+
+> f∈F n
+
+A2,n (f ) ≤ C V /n + (log 1 /δ )/n , (14) where C is a constant and V is defined in Assumption 4.5. Combining (13) and (14), it holds that with probability at least 1 − 3δA1,n ( ˆf , ˆt) − A1,n (fℓ, t ℓ) ≤ 2Llip B
+
+r log(1 /δ )2n + 2 C V /n + (log 1 /δ )/n .
+
+Choosing δ small enough so that log(1 /δ )2n ≥ 1, then we can conclude that with probability at least 1 − 3δ,
+
+vn( ˆf , ˆt) − vn(fℓ, t ℓ) ≤ O (V /n + (log 1 /δ )/n ).
+
+Step 2: Pseudo-metric. 
+
+Define the pseudo-metric as dp(( f1, t 1), (f2, t 2)) = C1(∥f1 − f2∥L2(PX ) + |t1 − t2|), where the universal constant C1 will be determined later to satisfy some properties. Since 
+
+q1,f,t (Z) = λt 2 + λ{f (X) − E(f (X)) }2
+
+2 + ρ  − eY {f (X) − E(f (X)) − t}
+
+2
+
+16 Deep principal support vector machines 
+
++ Eρ   − eY {f (X) − E(f (X)) − t}
+
+2 ,
+
+we have 
+
+Var ℓ(f1, t 1, Z ) − ℓ(f2, t 2, Z )
+
+= Var 2q1,f 1,t 1 (Z) − 2q1,f 2,t 2 (Z)
+
+= Var 
+
+h
+
+2λf1(X) − E(f1(X)) 2 + 2 λt 21 + ρ(− eY f1(X) − E(f1(X)) − t1 )
+
+− 2λf2(X) − E(f2(X)) 2 − 2λt 22 − ρ(− eY f2(X) − E(f2(X)) − t2 )
+
+i
+
+.
+
+Noting that f1, f 2 is bounded by B, Var 
+
+h
+
+λf1(X) − E(f1(X)) 2 − λf2(X) − E(f2(X)) 2i
+
+can be bounded by 
+
+λ2E
+
+hf1(X) − E(f1(X)) + f2(X) − E(f2(X)) 2f1(X) − E(f1(X)) − f2(X) + E(f2(X)) 2i
+
+≤32 B2λ2 h
+
+Ef1(X) − f2(X) 2 + E(f1(X)) − E(f2(X)) 2i
+
+≤64 B2λ2∥f1 − f2∥2 
+
+> L2(PX)
+
+.
+
+With Lipschitz continuity of ρ, the remaining term can be bounded similarly by 
+
+2Llip 2(∥f1 − f2∥2  
+
+> L2(PX)
+
++ |t1 − t2|2)
+
+Let C1 = 2 Llip 2 + 64 B2λ2. Then 
+
+Var ℓ(f1, t 1, Z ) − ℓ(f2, t 2, Z ) ≤ d2
+
+> p
+
+(( f1, t 1), (f2, t 2)) .
+
+The following deduction is still valid if the zero mean assumption doesn’t hold. We can just replace f and f ∗ by ¯f = f − Ef 
+
+and ¯f ∗ = f ∗ − Ef ∗, respectively. With loss of generality, we assume E(f ∗(X)) = 0 here. Let f be any function such that 
+
+E(f (X)) = 0 and t be any constant, then 
+
+L(f, t ) − L(f ∗, t ∗)=λ Var( f (X)) + t2 − λ Var( f ∗(X)) + t∗2 + Eρ  − eY f (X) − t  − Eρ  − eY f ∗(X) − t∗ 
+
+=λE f (X) − f ∗(X) 2 + λ|t − t∗|2 + λE 2f (X) − f ∗(X) f ∗(X) + 2 t∗(t − t∗)+ Eρ  − eY f (X) − t  − Eρ  − eY f ∗(X) − t∗ 
+
+=λE f (X) − f ∗(X) 2 + λ|t − t∗|2 + A
+
+≥λE f (X) − f ∗(X) 2 + λ|t − t∗|2
+
+=λ∥f − f ∗∥2  
+
+> L2(PX)
+
++ λ|t − t∗|2,
+
+if 
+
+A = λE 2f (X) − f ∗(X) f ∗(X) + 2 t∗(t − t∗) + Eρ  − eY f (X) − t  − Eρ  − eY f ∗(X) − t∗ 
+
+≥ 0. (15) Now we prove the condition (15) by contradiction. Let’s assume A < 0. By convexity of loss function ρ, the following holds for any 0 ≤ c ≤ 1,
+
+L(cf + (1 − c)f ∗, ct + (1 − c)t∗) − L(f ∗, t ∗)
+
+≤λc 2h
+
+Ef (X) − f ∗(X) 2 + |t − t∗|2i
+
++ λcE 2f (X) − f ∗(X) f ∗(X) + 2 λct ∗(t − t∗)+ cEρ  − eY f (X) − t  − cEρ  − eY f ∗(X) − t∗ 
+
+=λc 2(Ef (X) − f ∗(X) 2 + |t − t∗|2) + cA. 
+
+17 Deep principal support vector machines 
+
+The root of λc 2(Ef (X) − f ∗(X) 2 + |t − t∗|2) + cA is 
+
+0 or −2A
+
+2λE{f (X) − f ∗(X)}2 + |t − t∗|2 > 0.
+
+Therefore for some small 0 < c < 1, it holds that 
+
+L(cf + (1 − c)f ∗, ct + (1 − c)t∗) < L (f ∗, t ∗),
+
+which contradicts with the fact that (f ∗, t ∗) is the minimizer. Therefore, we get the lower bound of L(f, t ) − L(f ∗, t ∗)
+
+dp(( f1, t 1), (f2, t 2)) ≤ C1
+
+λ
+
+pL(f, t ) − L(f ∗, t ∗) := w(pL(f, t ) − L(f ∗, t ∗)) ,
+
+which implies that w(x) = C1 
+
+> λ
+
+x is a linear function of x.
+
+Step 3: ϕ bound 
+
+Next we need to find a function ϕ : [0 , ∞) 7 → [0 , ∞) with the property 
+
+√nW (σ) = √nE 
+
+"
+
+sup    
+
+> f∈F n,t ∈R,d 2
+> p(( f,t ),(f∗
+> n,t ∗)) ≤σ2
+
+vn(f, t ) − vn(f ∗ 
+
+> n
+
+, t ∗)
+
+#
+
+≤ ϕ(σ),
+
+where f ∗ 
+
+> n
+
+= argmin f ∈F n L(f, t ). Applying Lemma 6.10 in Blanchard et al. (2008), we get 
+
+√nW (σ)
+
+≤C(
+
+Z σ
+
+> 0
+
+q
+
+log N (δ, {ℓ(f, t ) − ℓ(f ∗ 
+
+> n
+
+, t ∗) : f ∈ F n, t ∈ R, d 2
+
+> p
+
+(( f ∗ 
+
+> n
+
+, t ∗), (f, t )) ≤ σ2}, ∥ · ∥ ∞)dδ 
+
++ log N (σ, {ℓ(f, t ) − ℓ(f ∗ 
+
+> n
+
+, t ∗) : f ∈ F n, t ∈ R, d 2
+
+> p
+
+(( f ∗ 
+
+> n
+
+, t ∗), (f, t )) ≤ σ2}, ∥ · ∥ ∞)
+
+√n )
+
+≤C(
+
+Z σ
+
+> 0
+
+q
+
+log N (δ, {f − f ∗ 
+
+> n
+
++ t − t∗ : f ∈ F n, t ∈ R, d 2
+
+> p
+
+(( f ∗ 
+
+> n
+
+, t ∗), (f, t )) ≤ σ2}, ∥ · ∥ ∞)dδ 
+
++ log N (σ, {f − f ∗ 
+
+> n
+
++ t − t∗ : f ∈ F n, t ∈ R, d 2
+
+> p
+
+(( f ∗ 
+
+> n
+
+, t ∗), (f, t )) ≤ σ2}, ∥ · ∥ ∞)
+
+√n )( By Lipschitz continuous condition )
+
+≤C(
+
+Z σ
+
+> 0
+
+plog( B/δ ) + H∞(δ)dδ + log( B/δ ) + H∞(σ)
+
+√n )
+
+≤C(ξ(σ) + (ξ(σ)) 2
+
+σ2√n )( By ξ(x) ≥ xpH∞(x))( assume V > B ):= ϕ(σ),
+
+where H∞(δ) = log N (δ, Fn, ∥ · ∥ ∞) and ξ(x) = R x
+
+> 0
+
+pH∞(δ)dδ ≤ C(√V x + √V R x 
+
+> 0
+
+log(1 /δ )dδ ).Denote x∗ the solution of equation ξ(x) = √nx 2 and σ∗ = cx ∗ for a suitable choice of constant c ≥ 2C > 2, Since 
+
+x−1ξ(x) is a decreasing function, it holds that 
+
+ξ(σ∗) = ξ(cx ∗) ≤ cξ (x∗) = c√nx 2 
+
+> ∗
+
+= √nσ 2 
+
+> ∗
+
+/c. 
+
+Plugging this into ϕ(σ) yields 
+
+ϕ(σ∗) ≤ ( Cc + Cc2 )√nσ 2 
+
+> ∗
+
+≤ √nσ 2 
+
+> ∗
+
+,
+
+18 Deep principal support vector machines 
+
+which implies that ϕ(σ∗)/σ 2 
+
+> ∗
+
+≤ √n. And ϕ(x)/x and therefore ϕ(x)/x 2 is non-increasing function, which conclude that cx ∗
+
+the upper bound for the solution of equation ϕ(σ)/σ 2 = √n. Let the solution of C(√V x + √V R x 
+
+> 0
+
+log(1 /δ )dδ ) = √nx 2
+
+be x∗. Similarly, 
+
+ξ(x∗)/x 2 
+
+> ∗
+
+≤ C(√V x + √V
+
+Z x
+
+> 0
+
+log(1 /δ )dδ )/x 2 ≤ √n, 
+
+which implies x∗ is a upper bound of the solution of ξ(x) = √nx 2 with the non-increasing property of ξ(x)/x 2.Define the non-increasing function g(x) =  
+
+> Rx
+> 0
+
+√log(1 /ϵ )dϵ x with property g(1) ≈ 0.88 > 1/2. Therefore, g(x) > 1/2
+
+and √Vx ≤ 2 ∗ 
+
+> √V g (x)
+> x
+
+for x ∈ (0 , 1) . With the same logic as in the last paragraph the solution of the equation of 
+
+C( 
+
+> √V g (x)
+> x
+
++ √Vx ) = √n is upper bounded by that of 3C 
+
+> √V g (x)
+> x
+
+= √n. Finally, the solution of equation ϕ(x) = √nx 2 is upper bounded by the solutions 
+
+3C
+
+√V g (x)
+
+x = √n. 
+
+For arbitrary 0 < α < 1, we have 
+
+Z x∗
+
+> 0
+
+plog 1 /ϵdϵ/x 2 
+
+> ∗
+
+=
+
+R x∗
+
+> 0
+
+plog 1 /ϵdϵ x1−α
+
+> ∗
+
+Cx1+ α
+
+> ∗
+
+=
+
+r nV .
+
+It’s easy to verify that lim x→0 
+
+> Rx
+> 0
+
+√log(1 /ϵ )dϵ x1−α = 0 and it’s a bounded by some constant C. Therefore, we can bound x∗ by 
+
+r nV =
+
+R x∗
+
+> 0
+
+plog 1 /ϵdϵ x1−α
+
+> ∗
+
+1
+
+x1+ α
+
+> ∗
+
+≤ C2
+
+x1+ α
+
+> ∗
+
+⇐⇒ x2 
+
+> ∗
+
+≤
+
+ Vn
+
+1− α
+
+> 1+ α
+
+=
+
+ Vn
+
+1−γ
+
+,
+
+where γ = α 
+
+> 1+ α
+
+is an arbitrary number in (0 , 1/2) .Therefore, the upper bound of solution of ϕ(w(ϵ∗)) = ϕ(ϵ∗) = √nϵ 2 
+
+> ∗
+
+is 
+
+ϵ2 
+
+> ∗
+
+= C2
+
+ Vn
+
+1−γ
+
+,
+
+where γ is arbitrary number in (0 , 1/2) .
+
+Step 4: Final result 
+
+Combine all the results above and Theorem 8.3 in Massart (2003), we can conclude that with probability at least 1 − 4δ,
+
+L( ˆf , ˆt) − L(f ∗, t ∗)
+
+≤O 
+
+ Vn
+
+1−γ
+
++ Vn + log(1 /δ )
+
+n + 2 inf  
+
+> f∈F n,t ∈R
+
+L(f, t ) − L(f ∗, t ∗) + 1 ∧   Vn
+
+1−γ
+
+( Vn )1−γ
+
+log(1 /δ )
+
+n
+
+!
+
+≤O 
+
+ Vn
+
+1−γ
+
++ 2 inf  
+
+> f∈F n
+
+L(f, t ∗) − L(f ∗, t ∗) + log(1 /δ )
+
+n
+
+!
+
+≤O 
+
+ Vn
+
+1−γ
+
++ inf  
+
+> f∈F n
+
+∥f − f ∗∥2 
+
+> ∞
+
++ log(1 /δ )
+
+n
+
+!
+
+.
+
+Note that the above bound holds for all γ ∈ (0 , 1/2) and 
+
+C1∥ ˆf − f ∗∥2  
+
+> L2(PX)
+
+≤d2
+
+> p
+
+ ( ˆf , ˆt), (f ∗, t ∗) ≤ L( ˆf , ˆt) − L(f ∗, t ∗)
+
+≤O 
+
+ Vn
+
+
+
+1 + log(1 /δ )
+
+n
+
+
+
++ inf   
+
+> f∈F
+
+∥f (x) − f ∗(x)∥2
+
+> ∞
+
+
+
+. (16) 19 Deep principal support vector machines 
+
+Proof of Corollary 4.7. Given any arbitrary N, L ∈ N+, we assume that Fn is the deep ReLU networks Fn with width 
+
+N = 3 p+3 max  p⌊N 1/p ⌋, N + 1 
+
+and depth L = 12 L + 14 + 2 p. By Theorem 1.1 in Shen (2020), we have the approximation error 
+
+inf  
+
+> f∈F n
+
+∥f − f ∗∥2 
+
+> ∞
+
+= O
+
+ N L − 4βp
+
+
+
+. (17) Since the ReLU-activated neural network class is a VC class, the parameter V in assumption 4.5 can be its VC dimension (see Theorem 7 of Bartlett et al. (2019)) 
+
+SL log  S. (18) Based on (17) and (18), the following holds with probability at least 1 − 4δ for any δ > 0 by Theorem 4.6, 
+
+L( ˆf , ˆt) − L(f ∗, t ∗) = O
+
+ SL log ( S)
+
+n +  N L − 4βp + SL log ( S) log(1 /δ )
+
+n
+
+
+
+.
+
+Notice that, for any neural network f ∈ F n, its size satisfies 
+
+S ≤ N (p + 1) +  N 2 + N  (L − 1) + N + 1 = O  N 2L .
+
+Therefore, 
+
+L( ˆf , ˆt) − L(f ∗, t ∗)=O N 2L2 log  N 2L
+
+n +  N L − 4βp + N 2L2 log  N 2L log(1 /δ )
+
+n
+
+!
+
+.
+
+To achieve the balance between the first two terms, we consider the width-fixed ReLU neural network class Fn with 
+
+L = n p 
+
+> 2( p+2 β)
+
+and N being any positive integers, which leads to 
+
+L( ˆf , ˆt) − L(f ∗, t ∗) = O
+
+
+
+n− 2βp+2 β log n + n− 2βp+2 β log n log(1 /δ )
+
+
+
+=O
+
+
+
+n− 2βp+2 β
+
+1 + log(1 /δ ) log n
+
+
+
+.
+
+By equality (16), ∥ ˆf − f ∗∥2  
+
+> L2(PX)
+
+has the same convergence rate with L( ˆf , ˆt) − L(f ∗, t ∗).20

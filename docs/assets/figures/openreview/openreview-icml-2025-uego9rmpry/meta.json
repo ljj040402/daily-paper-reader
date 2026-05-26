@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/openreview/openreview-icml-2025-uego9rmpry/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1668,
+      "height": 955,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/openreview/openreview-icml-2025-uego9rmpry/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 860,
+      "height": 736,
+      "label": "Figure"
+    }
+  ]
+}
