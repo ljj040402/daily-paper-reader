@@ -210,9 +210,6 @@ subscriptions:
         - keyword: AI paper recommendations
           keyword_cn: AI论文推荐
           query: recommendations for important AI papers
-        - keyword: influential AI publications
-          keyword_cn: 有影响力的AI出版物
-          query: most influential publications in artificial intelligence
       intent_queries:
         - query: find recommendations for classic papers in artificial intelligence
           query_cn: 寻找人工智能经典论文推荐
@@ -234,7 +231,7 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-05-26T06:03:13.555Z'
+      updated_at: '2026-05-26T06:13:34.709Z'
       paused: true
 source_backends:
   arxiv:
