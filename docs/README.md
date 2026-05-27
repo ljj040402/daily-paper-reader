@@ -6,65 +6,52 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-26
-- 运行时间：2026-05-26 20:52:04 UTC
+- 最新运行日期：2026-05-27
+- 运行时间：2026-05-27 21:18:17 UTC
 - 运行状态：成功
-- 本次总论文数：15
+- 本次总论文数：10
 - 精读区：5
-- 速读区：10
+- 速读区：5
 
 ### 今日简报（AI）
-今日处理15篇论文，精读5篇，其中《Aligned Training》与《DashAttention》获最高评价。最值得关注：无参数方法提升稀疏自编码器特征质量与稳定性，以及可微分自适应稀疏分层注意力。建议深入这两篇精读论文，特别是其稀疏注意力机制在长上下文场景中的实践价值。
-- 详情：[/202605/26/README](/202605/26/README)
+1) 今日推荐聚焦AI可解释性、光子计算与科研自动化前沿，5篇高分论文涵盖结构保留预测基准性能、小模型token级可解释、通用光子计算、AI科研辅助及单GPU优化。  
+2) 最值得关注的两个方向：一是通过嵌入空间结构保留预测模型性能，二是用小模型token级激活解释机制；同时光子计算为AI提供新硬件思路。  
+3) 普通读者可优先阅读结构保留及可解释性论文以理解模型行为，再探索光子计算与自动化工具的长远潜力。
+- 详情：[/202605/27/README](/202605/27/README)
 
 ### 精读区论文标签
-1. [Aligned Training: A Parameter-Free Method to Improve Feature Quality and Stability of Sparse Autoencoders (SAE)](/202605/26/2605.18629v1-aligned-training-a-parameter-free-method-to-improve-feature-quality-and-stability-of-sparse-autoencoders-sae)  
+1. [Structure Retention in Embedding Spaces as a Predictor of Benchmark Performance](/202605/27/2605.22202v1-structure-retention-in-embedding-spaces-as-a-predictor-of-benchmark-performance)  
    标签：评分：8.0/10、query:ai
-   evidence：改进稀疏自编码器以提升深度神经网络可解释性
-2. [DashAttention: Differentiable and Adaptive Sparse Hierarchical Attention](/202605/26/2605.18753v1-dashattention-differentiable-and-adaptive-sparse-hierarchical-attention)  
+   evidence：分析嵌入模型在自然语言处理任务中的结构与性能关系
+2. [Towards Explainability of SLMs by investigating Token Level Activation](/202605/27/2605.22377v1-towards-explainability-of-slms-by-investigating-token-level-activation)  
    标签：评分：8.0/10、query:ai
-   evidence：提出可微分自适应稀疏层级注意力
-3. [Deep Neural Sheaf Diffusion](/202605/26/2605.19021v1-deep-neural-sheaf-diffusion)  
+   evidence：语言模型的词元级可解释性
+3. [From Recognition to Reasoning: Benchmarking and Enhancing MLLMs on Real-World Receipt Document Understanding](/202605/27/2605.22413v1-from-recognition-to-reasoning-benchmarking-and-enhancing-mllms-on-real-world-receipt-document-understanding)  
    标签：评分：8.0/10、query:ai
-   evidence：深层图神经网络架构
-4. [KAN-MLP-Mixer: A comprehensive investigation of the usage of Kolmogorov-Arnold Networks (KANs) for improving IMU-based Human Activity Recognition](/202605/26/2605.19031v1-kan-mlp-mixer-a-comprehensive-investigation-of-the-usage-of-kolmogorov-arnold-networks-kans-for-improving-imu-based-human-activity-recognition)  
+   evidence：对多模态大语言模型在收据文档理解中的基准测试和增强，涉及NLP和推理
+4. [Structured-Sparse Attention for Entity Tracking with Subquadratic Sequence Complexity](/202605/27/2605.22476v1-structured-sparse-attention-for-entity-tracking-with-subquadratic-sequence-complexity)  
    标签：评分：8.0/10、query:ai
-   evidence：研究KAN与MLP混合架构用于人体活动识别
-5. [EmbGen: Teaching with Reassembled Corpora](/202605/26/2605.19394v1-embgen-teaching-with-reassembled-corpora)  
+   evidence：结构化稀疏注意力机制，次二次复杂度实体追踪
+5. [Implicit Regularization of Mini-Batch Training in Graph Neural Networks](/202605/27/2605.22480v1-implicit-regularization-of-mini-batch-training-in-graph-neural-networks)  
    标签：评分：8.0/10、query:ai
-   evidence：用于指令微调的合成数据生成
+   evidence：研究图神经网络小批量训练中的隐式正则化
 
 ### 速读区论文标签
-1. [m3BERT: A Modern, Multi-lingual, Matryoshka Bidirectional Encoder](/202605/26/2605.19568v1-m3bert-a-modern-multi-lingual-matryoshka-bidirectional-encoder)  
+1. [General-Purpose Photonic Computing Primitive for Contemporary Artificial Intelligence](/202605/27/2605.23051v1-general-purpose-photonic-computing-primitive-for-contemporary-artificial-intelligence)  
    标签：评分：8.0/10、query:ai
-   evidence：支持灵活嵌入维度的多语言BERT
-2. [Efficient Long-Context Modeling in Diffusion Language Models via Block Approximate Sparse Attention](/202605/26/2605.19726v1-efficient-long-context-modeling-in-diffusion-language-models-via-block-approximate-sparse-attention)  
+   evidence：用于AI加速的光子计算
+2. [AutoResearch AI: Towards AI-Powered Research Automation for Scientific Discovery](/202605/27/2605.23204v1-autoresearch-ai-towards-ai-powered-research-automation-for-scientific-discovery)  
    标签：评分：8.0/10、query:ai
-   evidence：扩散语言模型的高效长上下文建模，属于深度学习近期进展
-3. [ContextRAG: Extraction-Free Hierarchical Graph Construction for Retrieval-Augmented Generation](/202605/26/2605.19735v1-contextrag-extraction-free-hierarchical-graph-construction-for-retrieval-augmented-generation)  
+   evidence：关于AI驱动科研自动化的综述
+3. [Convex Optimization for Alignment and Preference Learning on a Single GPU](/202605/27/2605.23244v1-convex-optimization-for-alignment-and-preference-learning-on-a-single-gpu)  
    标签：评分：8.0/10、query:ai
-   evidence：用于检索增强生成的自然语言处理新技术，免去LLM提取
-4. [Fast Tensorization of Neural Networks via Slice-wise Feature Distillation](/202605/26/2605.19842v1-fast-tensorization-of-neural-networks-via-slice-wise-feature-distillation)  
+   evidence：提出用于对齐和偏好学习的凸优化算法，涉及强化学习从人类反馈
+4. [Benchmarking Google Embeddings 2 against Open-Source Models for Multilingual Dense Retrieval and RAG Systems](/202605/27/2605.23618v1-benchmarking-google-embeddings-2-against-open-source-models-for-multilingual-dense-retrieval-and-rag-systems)  
    标签：评分：8.0/10、query:ai
-   evidence：用于神经网络压缩的张量化
-5. [Layer-wise Token Compression for Efficient Document Reranking](/202605/26/2605.20683v2-layer-wise-token-compression-for-efficient-document-reranking)  
+   evidence：多语言NLP嵌入模型在稠密检索和RAG中的性能基准
+5. [DORA: Dataflow-Instruction Orchestration Architecture for DNN Acceleration](/202605/27/2605.23833v1-dora-dataflow-instruction-orchestration-architecture-for-dnn-acceleration)  
    标签：评分：8.0/10、query:ai
-   evidence：面向交叉编码器重排序器的自适应令牌池化方法
-6. [Deep Attention Reweighting: Post-Hoc Attention-Based Feature Aggregation in CNNs for Disentangling Core and Spurious Features under Spurious Correlations](/202605/26/2605.20732v1-deep-attention-reweighting-post-hoc-attention-based-feature-aggregation-in-cnns-for-disentangling-core-and-spurious-features-under-spurious-correlations)  
-   标签：评分：8.0/10、query:ai
-   evidence：基于注意力的CNN特征聚合方法解决虚假相关
-7. [ACL-Verbatim: hallucination-free question answering for research](/202605/26/2605.21102v1-acl-verbatim-hallucination-free-question-answering-for-research)  
-   标签：评分：8.0/10、query:ai
-   evidence：开发用于研究论文的抽取式问答系统，直接应用于自然语言处理技术
-8. [Graph Navier Stokes Networks](/202605/26/2605.21247v1-graph-navier-stokes-networks)  
-   标签：评分：8.0/10、query:ai
-   evidence：提出受纳维-斯托克斯启发的图神经网络新架构，解决过平滑问题
-9. [PromptNCE: Pointwise Mutual Information Predictions Using Only LLMs and Contrastive Estimation Prompts](/202605/26/2605.21776v1-promptnce-pointwise-mutual-information-predictions-using-only-llms-and-contrastive-estimation-prompts)  
-   标签：评分：8.0/10、query:ai
-   evidence：使用大型语言模型进行零样本互信息估计，属于人工智能研究方法
-10. [CASE-NET: Deep Spatio-Temporal Representation Learning via Causal Attention and Channel Recalibration for Multivariate Time Series Classification](/202605/26/2605.22043v1-case-net-deep-spatio-temporal-representation-learning-via-causal-attention-and-channel-recalibration-for-multivariate-time-series-classification)  
-   标签：评分：8.0/10、query:ai
-   evidence：提出一种用于时间序列分类的新型深度神经网络架构
+   evidence：提出一种新的DNN加速器架构，专注于数据流编排
 
 
 <div class="dpr-home-promo-card">

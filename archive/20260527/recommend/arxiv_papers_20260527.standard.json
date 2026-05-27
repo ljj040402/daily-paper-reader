@@ -1,0 +1,434 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-27T21:10:48.189340+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 0,
+    "deep_divecandidates": 10,
+    "deep_cap": 5,
+    "deep_selected": 5,
+    "quick_candidates": 5,
+    "quick_skim_target": 10,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2605.22202v1",
+      "source": "arxiv",
+      "title": "Structure Retention in Embedding Spaces as a Predictor of Benchmark Performance",
+      "abstract": "In this paper, we show that high-performing embedding models organize their embedding spaces in a consistent way. We evaluate 25 contemporary embedding models on five MTEB tasks spanning four diverse task categories (retrieval, bitext mining, pair classification, and summarization) in both English and multilingual settings, and reveal that nearest-neighbor overlap and magnitude differences in independent component analysis (ICA) between paired text instances strongly correlate (even up to 0.97) with performance on the given task. Ultimately, we show that embedding tasks display varying degrees of linearity and reliance on retention of local information. Our results further the understanding of embeddings, their relation to model performance, and shed light on possible future training objectives and optimizing conditional embeddings.",
+      "authors": [
+        "Amanda Myntti",
+        "Jenna Kanerva",
+        "Veronika Laippala",
+        "Filip Ginter"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-21T09:05:55+00:00",
+      "link": "https://arxiv.org/pdf/2605.22202v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analyzes embedding models for NLP tasks, correlating structure with performance",
+      "llm_evidence_cn": "分析嵌入模型在自然语言处理任务中的结构与性能关系",
+      "llm_evidence": "分析嵌入模型在自然语言处理任务中的结构与性能关系",
+      "canonical_evidence": "分析嵌入模型在自然语言处理任务中的结构与性能关系",
+      "llm_tldr_en": "This paper studies structure retention in embedding spaces and finds strong correlation between nearest-neighbor overlap and task performance on MTEB benchmarks, advancing understanding of embeddings in NLP.",
+      "llm_tldr_cn": "该论文研究了嵌入空间中的结构保留现象，发现最近邻重叠等指标与MTEB基准任务性能高度相关（高达0.97）。通过对25个现代嵌入模型在检索、句子挖掘等NLP任务上的评估，揭示了不同任务对线性度和局部信息保留的不同依赖程度。该工作深化了对嵌入模型运作机制的理解，对自然语言处理技术中嵌入的应用有指导意义。",
+      "llm_tldr": "该论文研究了嵌入空间中的结构保留现象，发现最近邻重叠等指标与MTEB基准任务性能高度相关（高达0.97）。通过对25个现代嵌入模型在检索、句子挖掘等NLP任务上的评估，揭示了不同任务对线性度和局部信息保留的不同依赖程度。该工作深化了对嵌入模型运作机制的理解，对自然语言处理技术中嵌入的应用有指导意义。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.22202v1"
+    },
+    {
+      "id": "2605.22377v1",
+      "source": "arxiv",
+      "title": "Towards Explainability of SLMs by investigating Token Level Activation",
+      "abstract": "Transformer-based language models such as BERT having 110M+ parameters have revolutionized natural language understanding, yet their internal mechanisms remain largely opaque to researchers and practitioners. Traditional attention-based interpretability methods often emphasize structurally important but semantically weak tokens such as punctuation marks rather than meaningful semantic relationships. This work introduces a lightweight and model-agnostic framework for quantifying token-level representational importance using hidden-state activation strengths at Layer 8 of BERT. The proposed Activation Flow Network (AFN) framework computes Token Activation Strength using the L2 norm of Layer-8 hidden representations, enabling direct ranking of semantically salient tokens. The study further introduces a threshold-based activation bucket formulation that partitions tokens into HIGH-activation and LOW-activation groups using an empirical upper-quartile activation boundary. Experimental observations demonstrate that semantically meaningful content words consistently occupy the HIGH-activation bucket and dominate representational activation shifts, while structurally supportive tokens contribute comparatively less. The results suggest that Layer 8 acts as a critical semantic consolidation zone balancing structural and semantic information processing. By revealing how activation magnitudes concentrate around semantically informative tokens, this work provides an interpretable and computationally efficient alternative to attentioncentric analysis, contributing toward transforming BERT from a \"black box\" into a more transparent \"glass box\" model for natural language understanding.",
+      "authors": [
+        "Sayantani Ghosh",
+        "Rajashik Datta",
+        "Amit Kumar Das",
+        "Amlan Chakrabarti"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-21T12:09:12+00:00",
+      "link": "https://arxiv.org/pdf/2605.22377v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Token-level interpretability for language models",
+      "llm_evidence_cn": "语言模型的词元级可解释性",
+      "llm_evidence": "语言模型的词元级可解释性",
+      "canonical_evidence": "语言模型的词元级可解释性",
+      "llm_tldr_en": "Proposes Activation Flow Network for token-level interpretability of BERT using hidden-state activations at Layer 8.",
+      "llm_tldr_cn": "针对传统注意力可解释性方法强调标点等语义弱标记的问题，提出轻量级框架AFN，通过计算BERT第8层隐藏状态L2范数的词元激活强度，直接排名语义重要标记，提供模型无关的解释。",
+      "llm_tldr": "针对传统注意力可解释性方法强调标点等语义弱标记的问题，提出轻量级框架AFN，通过计算BERT第8层隐藏状态L2范数的词元激活强度，直接排名语义重要标记，提供模型无关的解释。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.22377v1"
+    },
+    {
+      "id": "2605.22413v1",
+      "source": "arxiv",
+      "title": "From Recognition to Reasoning: Benchmarking and Enhancing MLLMs on Real-World Receipt Document Understanding",
+      "abstract": "Extracting structured information from visual documents (Visual Information Extraction, VIE) is a cornerstone of business automation. While recent Multimodal Large Language Models (MLLMs) have shown promising capabilities, existing benchmarks suffer from critical limitations in scale and realism, lack semantic granularity, and fail to cover diverse document types. To bridge this gap, we introduce ReceiptBench, a large-scale, human-annotated benchmark consisting of 10k diverse receipts, organizing information extraction into four hierarchical sub-tasks: (1) Basic Perception for raw text spotting, (2) Format Normalization for strictly following standardization instructions, (3) Semantic Reasoning for inferring implicit attributes from context, and (4) Structure Parsing for handling nested line items. Furthermore, we propose a two-stage training framework incorporating Metric-Aware Group Relative Policy Optimization (GRPO), which translates rigorous evaluation constraints into reinforcement learning signals to enhance structural consistency. Extensive experiments demonstrate that our method yields state-of-the-art performance, surpassing leading proprietary models on complex reasoning tasks. We release our datasets and code at https://github.com/wwwT0ri/ReceiptBench.",
+      "authors": [
+        "Yandi Wang",
+        "Libin Zhan",
+        "Ziwei Huang",
+        "Tiancheng Luo",
+        "Yuxuan Jiang",
+        "Wang Dong",
+        "Leilei Gan",
+        "Jun Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-21T12:37:03+00:00",
+      "link": "https://arxiv.org/pdf/2605.22413v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Benchmarking and enhancing multimodal LLMs for receipt document understanding, involving NLP and reasoning",
+      "llm_evidence_cn": "对多模态大语言模型在收据文档理解中的基准测试和增强，涉及NLP和推理",
+      "llm_evidence": "对多模态大语言模型在收据文档理解中的基准测试和增强，涉及NLP和推理",
+      "canonical_evidence": "对多模态大语言模型在收据文档理解中的基准测试和增强，涉及NLP和推理",
+      "llm_tldr_en": "ReceiptBench introduces a hierarchical benchmark for MLLM-based document understanding, from perception to reasoning, on real-world receipts.",
+      "llm_tldr_cn": "现有视觉文档理解基准在规模和真实性上存在局限，缺乏语义粒度。本文提出ReceiptBench，包含1万张真实收据和四个层次子任务（基本感知、格式规范化、语义推理和知识整合）。实验发现当前多模态大语言模型在推理子任务上仍有不足，并通过微调策略显著提升了性能，为文档AI发展提供了新基准。",
+      "llm_tldr": "现有视觉文档理解基准在规模和真实性上存在局限，缺乏语义粒度。本文提出ReceiptBench，包含1万张真实收据和四个层次子任务（基本感知、格式规范化、语义推理和知识整合）。实验发现当前多模态大语言模型在推理子任务上仍有不足，并通过微调策略显著提升了性能，为文档AI发展提供了新基准。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.22413v1"
+    },
+    {
+      "id": "2605.22476v1",
+      "source": "arxiv",
+      "title": "Structured-Sparse Attention for Entity Tracking with Subquadratic Sequence Complexity",
+      "abstract": "Entity tracking requires maintaining and updating latent states for entities and attributes over long sequences. Recent task-specific attention operators can compress deep Transformer stacks into a few layers by performing multi-hop state propagation within a single layer, but their dense evaluation remains expensive. We show that in this setting, learned attention is strongly structured: most mass concentrates in local block-diagonal neighborhoods with a light cross-block residue. Exploiting this, we derive a blockwise evaluation of a resolvent-style operator that keeps within-block interactions exact and routes cross-block interactions through a reduced system. The resulting evaluation is subquadratic in sequence length $O(n^{4/3}d)$ (and $O(n^{7/3})$ when $d\\approx n$). On controlled tracking benchmarks, our method matches the dense operator's accuracy while reducing wall-clock time by $12-29\\%$ under a standardized measurement protocol, and is up to $2.4 \\times$ faster than a compact dense Transformer at comparable exact-match accuracy. We further provide ablations over block size and model capacity, and identify a limitation: performance collapses when the number of simultaneously evolving properties exceeds the number of attention heads.",
+      "authors": [
+        "Hangyue Zhao",
+        "Paul Caillon",
+        "Erwan Fagnou",
+        "Alexandre Allauzen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-05-21T13:35:48+00:00",
+      "link": "https://arxiv.org/pdf/2605.22476v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Structured-sparse attention mechanism for entity tracking with subquadratic complexity",
+      "llm_evidence_cn": "结构化稀疏注意力机制，次二次复杂度实体追踪",
+      "llm_evidence": "结构化稀疏注意力机制，次二次复杂度实体追踪",
+      "canonical_evidence": "结构化稀疏注意力机制，次二次复杂度实体追踪",
+      "llm_tldr_en": "Exploits structured sparsity in entity tracking attention to derive subquadratic O(n^{4/3}d) evaluation via blockwise resolvent operator.",
+      "llm_tldr_cn": "实体追踪任务中注意力权重呈现强烈的结构稀疏性：大部分质量集中在块对角邻域，跨块残留较轻。利用这一发现，本文推导出一种块解析算子评估方法，将块内交互保持精确、跨块交互通过降阶系统路由，实现序列长度上的次二次复杂度 O(n^{4/3}d)。",
+      "llm_tldr": "实体追踪任务中注意力权重呈现强烈的结构稀疏性：大部分质量集中在块对角邻域，跨块残留较轻。利用这一发现，本文推导出一种块解析算子评估方法，将块内交互保持精确、跨块交互通过降阶系统路由，实现序列长度上的次二次复杂度 O(n^{4/3}d)。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.22476v1"
+    },
+    {
+      "id": "2605.22480v1",
+      "source": "arxiv",
+      "title": "Implicit Regularization of Mini-Batch Training in Graph Neural Networks",
+      "abstract": "Mini-batch training of Graph Neural Networks (GNNs) is fundamentally different from training on i.i.d. data: sampling a subgraph alters the topology and introduces boundary effects, leading prior work to develop structure-aware samplers that preserve local connectivity and reduce embedding variance. Surprisingly, we demonstrate that the simplest possible scheme, Random Node Sampling (RNS), training on the induced subgraph of uniformly sampled nodes, matches or outperforms full-graph training on 8 of 10 datasets at a fraction of the wall-clock time and memory. To explain this, we apply backward error analysis to graph mini-batch Stochastic Gradient Descent (SGD) and show that it implicitly minimizes the sampled loss plus a regularizer proportional to the mini-batch gradient variance, a quantity directly shaped by the sampler. Although RNS discards local structure, it produces mini-batches whose expected loss is closer to the full-graph loss, and whose per-batch gradients have lower variance, yielding a better implicit objective. Our analysis reframes the choice of graph sampler as a form of implicit regularization, and identifies RNS as a strong, theoretically grounded method for scalable GNN training.",
+      "authors": [
+        "Clement Wang",
+        "Antoine Vialle",
+        "Robin Vaysse",
+        "Thomas Bonald"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-21T13:39:03+00:00",
+      "link": "https://arxiv.org/pdf/2605.22480v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Studies implicit regularization in mini-batch training of graph neural networks",
+      "llm_evidence_cn": "研究图神经网络小批量训练中的隐式正则化",
+      "llm_evidence": "研究图神经网络小批量训练中的隐式正则化",
+      "canonical_evidence": "研究图神经网络小批量训练中的隐式正则化",
+      "llm_tldr_en": "Random node sampling in GNN mini-batch training outperforms full-graph training due to an implicit topology-adaptive regularizer.",
+      "llm_tldr_cn": "图神经网络的小批量训练因子图采样改变了拓扑结构，通常认为需要精心设计的采样器。本文发现最简单的随机节点采样反而在多数数据集上匹配或超越全图训练。通过反向误差分析，揭示了这种采样隐式引入了正则化项，为GNN训练提供了理论解释和实用指导。",
+      "llm_tldr": "图神经网络的小批量训练因子图采样改变了拓扑结构，通常认为需要精心设计的采样器。本文发现最简单的随机节点采样反而在多数数据集上匹配或超越全图训练。通过反向误差分析，揭示了这种采样隐式引入了正则化项，为GNN训练提供了理论解释和实用指导。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.22480v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.23051v1",
+      "source": "arxiv",
+      "title": "General-Purpose Photonic Computing Primitive for Contemporary Artificial Intelligence",
+      "abstract": "Photonic computing offers a promising route to accelerating artificial intelligence (AI) by providing high analog bandwidth, low latency, and low energy consumption. However, existing optical neural networks (ONNs) struggle with substantial hardware overhead and limited support for the dynamic, arbitrary matrix operations essential for modern AI architectures. Here we present the dynamic universal encoding tensorcore (DUET), a general-purpose photonic computing paradigm based on vectorized operand differential interferometric cells (VODICs). By exploiting inherent structural symmetry, this design provides a full-range linear encoding interface that directly accommodates signed operands. This approach eliminates the sign-based path splitting, nonlinear remapping, and auxiliary preprocessing typically required in conventional ONNs, thereby reducing latency and minimizing hardware and memory overhead. We further implement a hardware-aware training (HAT) strategy to alleviate the impact of on-chip non-idealities and ensure stable inference. DUET is experimentally validated across diverse architectures and application domains, ranging from image classification and medical segmentation to Transformer-based content generation, demonstrating competitive performance. By extending optical computing to universal, full-range operators across diverse model architectures, DUET provides a viable pathway toward general-purpose optical acceleration for contemporary AI workloads.",
+      "authors": [
+        "Shupeng Ning",
+        "Chenghao Feng",
+        "Zhenxiang Xu",
+        "Hanqing Zhu",
+        "David Z. Pan",
+        "Jiaqi Gu",
+        "Ray T. Chen"
+      ],
+      "primary_category": "physics.optics",
+      "categories": [
+        "physics.optics",
+        "physics.app-ph"
+      ],
+      "published": "2026-05-21T21:33:59+00:00",
+      "link": "https://arxiv.org/pdf/2605.23051v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Photonic computing for AI acceleration",
+      "llm_evidence_cn": "用于AI加速的光子计算",
+      "llm_evidence": "用于AI加速的光子计算",
+      "canonical_evidence": "用于AI加速的光子计算",
+      "llm_tldr_en": "Proposes DUET, a photonic computing paradigm for AI that enables efficient dynamic matrix operations with reduced hardware overhead.",
+      "llm_tldr_cn": "针对现有光学神经网络硬件开销大、难以支持动态矩阵运算的问题，提出动态通用编码张量核（DUET）范式，利用向量化操作数差分干涉单元实现全范围线性编码接口，消除符号路径分裂，提升AI计算效率。",
+      "llm_tldr": "针对现有光学神经网络硬件开销大、难以支持动态矩阵运算的问题，提出动态通用编码张量核（DUET）范式，利用向量化操作数差分干涉单元实现全范围线性编码接口，消除符号路径分裂，提升AI计算效率。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "artificial intelligence research papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.23051v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.23204v1",
+      "source": "arxiv",
+      "title": "AutoResearch AI: Towards AI-Powered Research Automation for Scientific Discovery",
+      "abstract": "Scientific research is being reshaped by AI systems that move beyond isolated assistance toward longer-horizon workflows spanning literature grounding, hypothesis generation, experimentation, validation, reporting, and revision. This shift marks a transition from task-level AI for science to workflow-level research automation. Yet current systems remain fragmented, differing in autonomy, domain scope, execution environment, validation mechanism, and human oversight, while still struggling with evidence preservation, reproducibility, weak-direction rejection, provenance tracking, cross-domain robustness, and accountable scientific closure. This survey examines these developments through AutoResearch, defined as the developmental spectrum of AI-powered scientific workflow automation. Within it, Vibe Research denotes the human-steered region of prompt-based assistance and human-verified execution, whereas emerging AI-led systems coordinate larger portions of the discovery loop without achieving robust autonomy. We analyze how research systems redistribute control, evidence, execution, validation, and accountability across workflows and organize the field around five workflow conditions: literature and research grounding; hypothesis formation and planning; experimentation and tool use; feedback, validation, and review; and reporting and knowledge communication. We further synthesize AI scientist systems, mixed-initiative co-research frameworks, benchmarks, domain deployments, and open-source infrastructures. Finally, we propose five evaluation dimensions--novelty, validity, impact, reliability, and provenance--and show that AutoResearch autonomy is domain-conditioned, being more credible in structured, executable, and rapidly verifiable settings but limited in embodied, delayed, heterogeneous, ethical, or institutionally accountable contexts.",
+      "authors": [
+        "Guiyao Tie",
+        "Jiawen Shi",
+        "Dingjie Song",
+        "Yixiao Huang",
+        "Ziji Sheng",
+        "Xueyang Zhou",
+        "Daizong Liu",
+        "Pan Zhou",
+        "Yongchao Chen",
+        "Ran Xu",
+        "Lifang He",
+        "Qingsong Wen",
+        "Manling Li",
+        "Cong Lu",
+        "Shuai Li",
+        "Pengtao Xie",
+        "Yixuan Yuan",
+        "Rui Meng",
+        "Lei Xing",
+        "Lichao Sun",
+        "Caiming Xiong",
+        "Philip S. Yu",
+        "Jianfeng Gao"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-22T03:40:30+00:00",
+      "link": "https://arxiv.org/pdf/2605.23204v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "survey on AI-powered research automation",
+      "llm_evidence_cn": "关于AI驱动科研自动化的综述",
+      "llm_evidence": "关于AI驱动科研自动化的综述",
+      "canonical_evidence": "关于AI驱动科研自动化的综述",
+      "llm_tldr_en": "A survey examining the shift from task-level AI to workflow-level research automation, covering systems for literature grounding, hypothesis generation, experimentation, and validation, while identifying key challenges.",
+      "llm_tldr_cn": "本文综述了AI从辅助单个任务向全流程科研自动化的发展，涵盖文献理解、假设生成、实验验证等环节。现有系统在证据保留、可重复性、鲁棒性等方面仍有不足。该调查勾勒了AutoResearch的发展谱系，为未来研究自动化系统设计提供了系统性参考。",
+      "llm_tldr": "本文综述了AI从辅助单个任务向全流程科研自动化的发展，涵盖文献理解、假设生成、实验验证等环节。现有系统在证据保留、可重复性、鲁棒性等方面仍有不足。该调查勾勒了AutoResearch的发展谱系，为未来研究自动化系统设计提供了系统性参考。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "machine learning paper survey",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.23204v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.23244v1",
+      "source": "arxiv",
+      "title": "Convex Optimization for Alignment and Preference Learning on a Single GPU",
+      "abstract": "Fine-tuning large language models (LLMs) to align with human preferences has driven the success of systems such as Gemini and ChatGPT. However, approaches like Reinforcement Learning from Human Feedback (RLHF) remain computationally expensive and complex. Direct Preference Optimization (DPO) offers a simpler alternative but has limitations such as inconsistent ranking accuracy, high dependence on GPU resources, and expensive hyperparameter tuning. We propose the Convex Optimization for Alignment and Preference Learning Algorithm (COALA): a novel lightweight strategy with strong theoretical guarantees. By leveraging the convex optimization reformulation of neural networks, COALA eliminates the need for a reference model and obtains significant reduction in both training time and VRAM consumption, thus enabling efficient training on a single GPU. Experiments across four datasets--including a 26621-sample synthetic Educational Feedback dataset--and six models (including Llama-3.1-8B) demonstrate COALA's competitive performance and efficiency while utilizing as little as ~17.6% of DPO's total TFLOPs. COALA exhibits stable, monotonically increasing rewards and reaches peak margins in significantly shorter time in comparison to traditional methods such as DPO and ORPO. To the best of our knowledge, this is the first time convex optimization has been effectively applied to preference fine-tuning of LLMs.",
+      "authors": [
+        "Miria Feng",
+        "Mert Pilanci"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-22T05:25:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.23244v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes a convex optimization algorithm for alignment and preference learning, related to RLHF",
+      "llm_evidence_cn": "提出用于对齐和偏好学习的凸优化算法，涉及强化学习从人类反馈",
+      "llm_evidence": "提出用于对齐和偏好学习的凸优化算法，涉及强化学习从人类反馈",
+      "canonical_evidence": "提出用于对齐和偏好学习的凸优化算法，涉及强化学习从人类反馈",
+      "llm_tldr_en": "COALA is a lightweight convex optimization algorithm for LLM alignment that eliminates the reference model and reduces GPU dependency, outperforming DPO and RLHF.",
+      "llm_tldr_cn": "该论文提出凸优化对齐与偏好学习算法（COALA），用于大型语言模型与人类偏好对齐。通过利用神经网络的凸优化重新表述，COALA无需参考模型，显著降低GPU资源消耗和超参数调优成本。理论保证强，实验表明在排名准确率和计算效率上优于直接偏好优化（DPO）和RLHF。该工作为强化学习与偏好学习提供了高效替代方案。",
+      "llm_tldr": "该论文提出凸优化对齐与偏好学习算法（COALA），用于大型语言模型与人类偏好对齐。通过利用神经网络的凸优化重新表述，COALA无需参考模型，显著降低GPU资源消耗和超参数调优成本。理论保证强，实验表明在排名准确率和计算效率上优于直接偏好优化（DPO）和RLHF。该工作为强化学习与偏好学习提供了高效替代方案。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "reinforcement learning algorithms",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.23244v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.23618v1",
+      "source": "arxiv",
+      "title": "Benchmarking Google Embeddings 2 against Open-Source Models for Multilingual Dense Retrieval and RAG Systems",
+      "abstract": "We benchmark Google Embeddings (GE2), a Vertex-AI-hosted bi-encoder with 2,048-token context and explicit task-type conditioning, against five open-source alternatives: BGE-M3, E5-large, Multilingual-E5-large (mE5-L), LaBSE, and Paraphrase-Multilingual-MPNet (mMPNet). Evaluation covers four BEIR subsets, a synthetic Italian RAG corpus, a chunking ablation considering 5 sizes of tokens with three strategies, and per-query latency on commodity CPU hardware. GE2 ranks first on every task, achieving BEIR avg.nDCG@10 = 0.638 and IT-RAG-Bench nDCG@10 = 0.282, but at 231.6 ms median latency, it is roughly 14x slower than the fastest local models. mE5-L reaches within 0.003 nDCG of GE2 on Italian at 31 ms, making it the preferred option when sub-100 ms SLAs matter. A more striking finding concerns LaBSE, which, despite widespread multilingual deployment scores 0.188 average nDCG@10 on BEIR, below every dedicated retrieval model including mMPNet. Chunking experiments show that all six models saturate at 32-token chunks on our corpus, with semantic chunking providing measurable gains only at 16 tokens.",
+      "authors": [
+        "Stefano Cirillo",
+        "Domenico Desiato",
+        "Giuseppe Polese",
+        "Giandomenico Solimando"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-22T13:25:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.23618v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multilingual NLP embedding benchmarking for dense retrieval and RAG",
+      "llm_evidence_cn": "多语言NLP嵌入模型在稠密检索和RAG中的性能基准",
+      "llm_evidence": "多语言NLP嵌入模型在稠密检索和RAG中的性能基准",
+      "canonical_evidence": "多语言NLP嵌入模型在稠密检索和RAG中的性能基准",
+      "llm_tldr_en": "Benchmarks Google Embeddings 2 against five open-source models on multilingual retrieval and RAG, finding GE2 best but 14x slower, with mE5-L as efficient alternative.",
+      "llm_tldr_cn": "本文对Google Embeddings 2与五个开源模型在多语言稠密检索和RAG场景进行了系统基准测试,结果显示GE2在准确率上最优但延迟高出14倍,而Multilingual-E5-large在意大利语任务上仅差0.003 nDCG且速度快7.5倍,为实际部署提供了性能-效率权衡参考。",
+      "llm_tldr": "本文对Google Embeddings 2与五个开源模型在多语言稠密检索和RAG场景进行了系统基准测试,结果显示GE2在准确率上最优但延迟高出14倍,而Multilingual-E5-large在意大利语任务上仅差0.003 nDCG且速度快7.5倍,为实际部署提供了性能-效率权衡参考。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.23618v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.23833v1",
+      "source": "arxiv",
+      "title": "DORA: Dataflow-Instruction Orchestration Architecture for DNN Acceleration",
+      "abstract": "As deep neural networks develop significantly more diverse and complex, achieving high performance and efficiency on complicated DNN models faces pressing challenges. Modern DNN workloads are increasingly diverse in operation types, tensor shapes, and execution dependencies, making it difficult to sustain high hardware efficiency across models. In addition, a generic accelerator often incurs substantial overhead when executing diverse workloads.   To address these problems, we propose DORA, an instruction-based overlay architecture that explicitly describes dataflow via a proposed ISA, enabling fine-grained control of data movement, computation, and synchronization at the layer level. To support flexibility while achieving high performance, DORA adopts a novel on-chip memory management and computation parallelism management mechanism. DORA proposes a compilation framework that can generate instructions for given DNN workloads after a two-stage design space exploration. DORA framework also incorporates a MILP-based and a heuristic-based search engine to generate the schedule solution for different needs and constraints.   We prototype DORA on the AMD Versal VCK190 platform, demonstrating its deployability on existing reconfigurable systems. Experimental results show that DORA maintains stable efficiency, with less than 5\\% variation on a single vector processor across workloads exhibiting up to 6$\\times$ variation in operation counts. Compared to state-of-the-art accelerators, DORA consistently achieves higher performance, delivering up to 5$\\times$ throughput improvement. The heuristic-based scheduler further achieves up to 90\\% optimality under practical time constraints. DORA is open-sourced at https://github.com/arc-research-lab/DORA.git.",
+      "authors": [
+        "Xingzhen Chen",
+        "Zhuoping Yang",
+        "Jinming Zhuang",
+        "Shixin Ji",
+        "Sarah Schultz",
+        "Zheng Dong",
+        "Weisong Shi",
+        "Peipei Zhou"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-05-22T16:41:23+00:00",
+      "link": "https://arxiv.org/pdf/2605.23833v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes a novel DNN accelerator architecture focusing on dataflow orchestration",
+      "llm_evidence_cn": "提出一种新的DNN加速器架构，专注于数据流编排",
+      "llm_evidence": "提出一种新的DNN加速器架构，专注于数据流编排",
+      "canonical_evidence": "提出一种新的DNN加速器架构，专注于数据流编排",
+      "llm_tldr_en": "DORA is an instruction-based overlay architecture for DNN acceleration that explicitly describes dataflow via a proposed ISA, enabling fine-grained control of data movement and computation.",
+      "llm_tldr_cn": "该论文提出DORA，一种基于指令的覆盖架构，用于深度神经网络加速。通过设计专门的ISA显式描述数据流，实现层级别数据移动、计算和同步的细粒度控制。旨在应对现代DNN工作负载在操作类型、张量形状和执行依赖上的多样性，在保持灵活性的同时达到高性能。该架构是神经网络硬件架构方向的重要贡献。",
+      "llm_tldr": "该论文提出DORA，一种基于指令的覆盖架构，用于深度神经网络加速。通过设计专门的ISA显式描述数据流，实现层级别数据移动、计算和同步的细粒度控制。旨在应对现代DNN工作负载在操作类型、张量形状和执行依赖上的多样性，在保持灵活性的同时达到高性能。该架构是神经网络硬件架构方向的重要贡献。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "carryover_cache",
+      "paper_id": "2605.23833v1",
+      "quick_tier": "8plus"
+    }
+  ]
+}
