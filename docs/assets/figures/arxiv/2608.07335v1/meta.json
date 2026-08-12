@@ -1,0 +1,198 @@
+{
+  "version": 2,
+  "extractor": "pdffigures2",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-001.webp",
+      "caption": "Figure 1: (a) Nature DQN highlights the standard workflow: a single actor populates a Replay Buffer, and a frozen Target Network is required to calculate stable learning targets. (b) PQN demonstrates the streamlined approach: multiple Vectorized Environments provide synchronous batches directly to the Learner Q-Network, eliminating the Target Network and Replay Buffer.",
+      "page": 11,
+      "index": 1,
+      "width": 584,
+      "height": 331
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-002.webp",
+      "caption": "Table 9: Phase 3 Global Performance. Aggregate IQM HNS across the Atari-57 suite for advanced regression heads integrated with the Gamma-Hadamax-Valid encoder. 95% Confidence Intervals (CIs) are estimated via stratified bootstrap sampling.",
+      "page": 43,
+      "index": 2,
+      "width": 720,
+      "height": 213
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-003.webp",
+      "caption": "Figure 13: Phase 2 Global Performance (IQM HNS). The integration of Hadamard max-pooling alters representational capacity. The Gamma-Hadamax V1 and V2 variants diverge from the baseline Hadamax architecture, demonstrating that multiplicative feature interactions pair effectively with the Gamma convolutional depth.",
+      "page": 53,
+      "index": 3,
+      "width": 692,
+      "height": 675
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-004.webp",
+      "caption": "Figure 4: The \"Regression as Classification\" Optimization Pipeline. The diagram illustrates the parallel transformation of network predictions and scalar Temporal-Difference (TD) targets into categorical probability distributions. On the left pathway, the active Value Network, parameterized by θ, maps a state-action pair (s, a) to continuous logits, which are subsequently converted into predicted categorical probabilities pi(s, a; θ) via a softmax operator. On the right pathway, a scalar Bellman target y, derived using the frozen target network parameters θ−, is projected onto a set of discrete support bins zi. This transformation utilizes either the Two-Hot projection (which allocates probability mass strictly to the two immediately adjacent bins) or the HL-Gauss projection (which applies a Gaussian smoothing function to distribute mass continuously across multiple neighboring bins) to construct the target probabilities p∗i (s, a; θ −). The network is optimized iteratively by minimizing the Cross-Entropy loss between the predicted and target distributions, passing the resulting gradient updates back to θ.",
+      "page": 15,
+      "index": 4,
+      "width": 571,
+      "height": 435
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-005.webp",
+      "caption": "Table 12: Phase 3 Atari-57 Results (HNS) - Continued.",
+      "page": 47,
+      "index": 5,
+      "width": 486,
+      "height": 543
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-006.webp",
+      "caption": "Table 4: Hyperparameter settings utilized across all experimental phases. Phase 3 introduces specific modifications to the loss function to accommodate the advanced distributional regression heads.",
+      "page": 30,
+      "index": 6,
+      "width": 684,
+      "height": 475
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-007.webp",
+      "caption": "Figure 8: Phase 2 Statistical Significance Matrices. Significance heatmaps generated via pairwise Wilcoxon Signed-Rank Tests for the Hadamax integration. To maintain statistical validity, the Holm-Bonferroni correction was applied to control the family-wise error rate at α = 0.05. The light/pale cells (p < 0.05) confirm that Gamma-Hadamax-Valid provides a statistically significant improvement (p < 0.001) over the base Gamma architecture. Furthermore, the deep red cell between Gamma-Hadamax-Valid and Same (p = 0.720) indicates that Same’s parameter expansion offers no significant functional advantage over Valid.",
+      "page": 39,
+      "index": 7,
+      "width": 720,
+      "height": 336
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-008.webp",
+      "caption": "Figure 7: Probability of Improvement (Encoders). A pairwise probability matrix, P (Row > Col), evaluating the baseline convolutional architectures across the Atari-57 suite. Values greater than 0.50 indicate that the row architecture is statistically more likely to outperform the column architecture. The deep topological variants (Alpha, Beta, and Gamma) consistently demonstrate a high probability of improvement (0.79 to 0.85) over the standard PQN baseline.",
+      "page": 34,
+      "index": 8,
+      "width": 577,
+      "height": 516
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-009.webp",
+      "caption": "Figure 6: Phase 1 Statistical Significance Matrices. Significance heatmaps generated via pairwise Wilcoxon Signed-Rank Tests across the Atari-57 suite for the baseline convolutional architectures. To maintain statistical integrity across the 36 pairwise comparisons, we applied the Holm-Bonferroni correction to control the family-wise error rate at α = 0.05. The light/pale cells (p < 0.05) indicate that the modernized variants—specifically the Alpha, Beta, and Gamma cluster—exhibit a statistically significant performance advantage over the PQN baseline. Conversely, the deep red cells (p > 0.05) indicate pairs where the performance differences are not statistically significant, such as between Alpha and Beta (p = 0.847) or Zeta and Eta (p = 0.967).",
+      "page": 33,
+      "index": 9,
+      "width": 720,
+      "height": 343
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-010.webp",
+      "caption": "Table 1: Architectural specifications of the CNN feature extractor variants. Each layer is defined by the tuple (Input Channels, Output Channels, Kernel Size, Stride, Padding). All architectures apply two-dimensional Layer Normalization and ReLU activations after each convolution.",
+      "page": 18,
+      "index": 10,
+      "width": 720,
+      "height": 643
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-011.webp",
+      "caption": "Table 3: Architectural specifications of the Hadamax integration variants. To detail both operations within a single block, each variant is split into a Convolutional (Conv) row and a Max-Pooling (Pool) row. Conv is defined by (Input Channels, Output Channels, Kernel Size, Stride, Padding), and Pool is defined by [Kernel Size, Stride, Padding]. All blocks utilize GELU activations.",
+      "page": 23,
+      "index": 11,
+      "width": 720,
+      "height": 277
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-012.webp",
+      "caption": "Table 11: Phase 3 Atari-57 Results (HNS) - Part 1.",
+      "page": 45,
+      "index": 12,
+      "width": 486,
+      "height": 480
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-013.webp",
+      "caption": "Figure 14: Phase 3 Global Performance (IQM HNS). The ablation of advanced valueestimation heads operating on the Gamma-Hadamax-Valid backbone. Aftab framework yields the highest performance among the evaluated models, reaching 6.479 IQM. The zoomed frame (right) illustrates the stability of these composite algorithms operating in a strictly buffer-free, parallelized regime.",
+      "page": 55,
+      "index": 13,
+      "width": 720,
+      "height": 239
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-014.webp",
+      "caption": "Figure 10: Probability of Improvement (Final Regression Architectures). Pairwise comparison of the advanced value-estimation heads operating on the Gamma-Hadamax-Valid backbone. The composite Distributional Bootstrapped Dueling architecture (Aftab) exhibits high consistency, establishing a 0.86 probability of improvement over the base PQN configuration.",
+      "page": 50,
+      "index": 14,
+      "width": 577,
+      "height": 504
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-015.webp",
+      "caption": "Table 8: Phase 2 Atari-57 Results (HNS).",
+      "page": 40,
+      "index": 15,
+      "width": 700,
+      "height": 285
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-016.webp",
+      "caption": "Figure 9: Probability of Improvement (Hadamax Integration). Pairwise probability matrix comparing the standard Gamma backbone against its Hadamax-augmented variations. The integration of multiplicative interactions yields a strict probabilistic advantage, with GammaHadamax-Valid and -Same achieving improvement probabilities of 0.70 and 0.75, respectively, over the standard Gamma encoder.",
+      "page": 40,
+      "index": 16,
+      "width": 577,
+      "height": 504
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-017.webp",
+      "caption": "Table 5: Full Phase 1 Encoder Results (Part 1: PQN to Delta).",
+      "page": 36,
+      "index": 17,
+      "width": 524,
+      "height": 1156
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-018.webp",
+      "caption": "Table 2: Model complexity and computational footprint of Phase 1 architectures. Floating Point Operations (FLOPs) are reported in millions. The Eta variant exhibits a substantial parameter and computation increase driven by the massive spatial dimensions of the encoder’s output.",
+      "page": 19,
+      "index": 18,
+      "width": 720,
+      "height": 699
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-019.webp",
+      "caption": "Figure 11: Global Performance (IQM HNS). The HNS serves as a standardized metric where 0.0 represents random play and 1.0 represents professional human performance. The 5- layer Alpha and Gamma variants outperform the original DQN encoder. Comparison between full training (left) and the final 50M frames (right) highlights depth as a primary factor in generalization.",
+      "page": 51,
+      "index": 19,
+      "width": 697,
+      "height": 750
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-020.webp",
+      "caption": "Figure 2: Evolution of Convolutional Processing Blocks. (a) The standard unnormalized DQN block relying on spatial striding. (b) The PQN block stabilized via Layer Normalization to bound off-policy activations. (c) The Hadamax block replaces spatial strides with maxpooling and utilizes parallel Hadamard multiplicative interactions with zero-saturating GELU activations.",
+      "page": 12,
+      "index": 20,
+      "width": 683,
+      "height": 272
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-021.webp",
+      "caption": "Table 10: Comparison of Median Human-Normalized Scores (HNS) on the Atari-57 benchmark evaluated at 200M frames.",
+      "page": 44,
+      "index": 21,
+      "width": 596,
+      "height": 362
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-022.webp",
+      "caption": "Table 6: Full Phase 1 Encoder Results (Part 2: Epsilon to Theta).",
+      "page": 37,
+      "index": 22,
+      "width": 458,
+      "height": 1156
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-023.webp",
+      "caption": "Figure 12: Wilcoxon Signed Rank Test. A significance heatmap generated via pairwise Wilcoxon Signed-Rank Tests conducted across the Atari-57 suite for Phase 1. To maintain statistical integrity across 36 comparisons, we applied the Holm-Bonferroni correction to control the family-wise error rate at α = 0.05. The data indicate that the Alpha, Beta, and Gamma cluster exhibits a statistically significant performance advantage over the PQN baseline. Conversely, the p < 0.001 results for the Delta variant against superior models suggest that its wide 9× 9 kernel correlates with a statistically significant decrease in agent performance.",
+      "page": 52,
+      "index": 23,
+      "width": 720,
+      "height": 646
+    },
+    {
+      "url": "assets/figures/arxiv/2608.07335v1/fig-024.webp",
+      "caption": "Figure 5: Topological Evolution of Evaluated Encoders. A structural comparison of the core architectures evaluated in this study. The sequence illustrates the progression from the legacy, unnormalized 3-layer DQN (a), to the stabilized PQN baseline (b), to our 5-layer Gamma topology (c), and finally the multiplicative Gamma-Hadamax V1 architecture (d).",
+      "page": 20,
+      "index": 24,
+      "width": 662,
+      "height": 1003
+    }
+  ]
+}

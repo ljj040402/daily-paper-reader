@@ -1,0 +1,925 @@
+Title: No Unique Minimizer, No Problem: On the Consistency of Robust Neural Classifiers
+
+URL Source: https://arxiv.org/pdf/2608.08489v1
+
+Published Time: Tue, 11 Aug 2026 01:06:15 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# No Unique Minimizer, No Problem: On the Consistency of Robust Neural Classifiers 
+
+Subhabrata Majumdar 1∗ Anand Deo 1† Partha Pratim Saha 2† Abhik Ghosh 3
+
+> 1
+
+Indian Institute of Management Bangalore 
+
+> 2
+
+Independent Researcher 
+
+> 3
+
+Indian Statistical Institute, Kolkata 
+
+Abstract 
+
+Neural network classifiers trained by cross-entropy minimization are highly sensitive to label noise and adversarial contamination. While robust alternatives offer bounded influence and re-sistance to corruption, their statistical foundations in the deep learning setting are insufficient due to a fundamental difficulty: neural parameterizations are non-identifiable, so the popula-tion loss minimizer is an equivalence class of parameters, not a unique point. We develop a consistency theory for robust neural classifiers based on the S-divergence family that requires no identifiability assumption. Casting training as stochastic optimization over a non-identifiable parameter space, we prove that empirical S-divergence minimizers converge to the population-optimal equivalence class under mild regularity conditions, and verify these conditions for three architecture choices. We further establish that limit points of the robust training algorithm are stationary points of the empirical objective. Experiments on vision and language bench-mark datasets confirm that S-divergence training maintains clean-data accuracy while exhibiting performance competitive with existing robust methods. 
+
+# 1 Introduction 
+
+Modern neural networks achieve remarkable predictive performance across domains ranging from computer vision to natural language processing. However, their statistical foundations remain under-explored and challenging due to a fundamental mismatch between the classical theory of parametric estimation and the geometry of deep models. In traditional parametric statistics, consistency is usu-ally established by proving that an estimator ˆθn ∈ Θ, obtained from a sample of size n, converges to a unique population parameter θ0. Such arguments rely on the identifiability assumption, in that different population parameter values must correspond to different probability distributions for the parameter estimate. Deep neural networks violate this principle in an extreme manner. Permutation symmetries among hidden units, redundant neurons, scaling invariances, and overparameterization imply that many distinct parameter vectors generate exactly the same predictive function [11, 24]. This raises a fundamental statistical question: 
+
+Does the absence of a unique neural network parameter minimizer prevent statistical consistency?  
+
+> ∗Corresponding author, email: smajumdar@iimb.ac.in
+> †Equal contribution
+
+1arXiv:2608.08489v1 [cs.LG] 9 Aug 2026 In this work, we show that the answer is negative. The appropriate object of statistical inference is not the parameter vector itself, but the induced conditional probability model. We develop a theory of statistical consistency for a class of robust neural network classifiers {gθ(·) : θ ∈ Θ} that remains valid under parameter non-identifiability. Instead of requiring convergence of ˆθn to a single point, we prove convergence of empirical solutions to a population-level equivalence class 
+
+Θ0 = {θ : gθ(x) = p0(x), x ∈ X } ,
+
+where all parameters in Θ0, plugged into the classifier gθ, represent the same Bayes-optimal condi-tional probability function p0.This is possible because neural network estimation is naturally a stochastic optimization problem over a possibly non-identifiable parameter space. Under mild regularity conditions ensuring uniform convergence of the empirical objective, every sequence of empirical maximizers approaches the population minimizer set, even when this set is not a singleton [23]. Consequently, the learned classifier converges at the function level although the parameter sequence may oscillate indefinitely inside an equivalence class. This perspective is particularly important for robust learning. Real-world datasets frequently contain label corruption, adversarial perturbations, and distributional contamination, under which likelihood-based training can become unstable. Robust divergence-based objectives, including den-sity power divergence (DPD) and the broader S-divergence family, provide bounded influence and resistance against contaminated observations. However, existing theoretical analyses of these objec-tives in the neural network setting have proceeded under classical identifiability assumptions that deep models do not satisfy. A recent proposal [12] proved Fisher consistency, Bayes-optimality, and robustness properties of multi-layer perceptrons (MLP) trained on the S-divergence loss, and demonstrated their empirical stability under label noise and adversarial perturbations. Their anal-ysis, however, assumes a well-defined population minimizer, leaving open the question of whether these guarantees remain valid when the neural parameterization is non-identifiable. The present work addresses this question directly. We propose a general framework for robust neural classifiers where parameter uniqueness is not assumed and statistical consistency is defined through convergence to the population minimizer set. This framework applies to modern architec-tures including MLPs, convolutional neural networks (CNNs), and Transformers. 
+
+1.1 Contributions 
+
+The proposed theory provides a bridge between classical M-estimation, robust statistics, and modern deep learning, establishing a principled foundation for robust neural classifiers beyond identifiable parametric models. Specifically 1. We prove that under mild regularity conditions, empirical S-divergence minimizers converge to the population-level equivalence class Θ0 without any parameter identifiability assumption (Theorem 1), and verify the regularity conditions for MLPs, CNNs, and Transformers (Lemma 1). 2. We propose a training algorithm to compute the empirical minimizer (Algorithm 1), and prove that limit points of this algorithm are stationary points of the empirical objective (Theorem 2). 3. We evaluate the S-divergence training procedure against eight competing losses on three com-puter vision benchmarks under benign and adversarial noise, confirming competitive clean-data accuracy and stability under contamination (Section 4). 
+
+1.2 Related Work 
+
+Classical statistical learning theory has studied estimators under identifiable finite-dimensional models. Consistency of M-estimators was established through uniform laws of large numbers and 2argmax/argmin continuity arguments [18, 25]. These results rely on convergence of empirical opti-mization problems to their population counterparts. Deep neural networks fundamentally challenge this framework because parameterization is highly redundant in them [10]. Consequently, the parameter vector is generally not identifiable even when the predictive distribution is uniquely determined. Recent work has investigated optimization land-scapes of deep networks, showing that global minima often form connected manifolds of high dimen-sions rather than isolated points [2, 19]. However, these analyses primarily focus on optimization geometry and do not establish statistical consistency under non-identifiability. Our work differs by adopting the perspective of stochastic programming and set-valued estimation, where the target of inference is the population minimizer set rather than an individual parameter vector. Modern deep learning systems are vulnerable to corrupted labels, distribution shifts, and ad-versarial examples. Extensive work has studied adversarial robustness and noise-resistant training strategies [9, 16]. Robust statistics provides a principled approach for accurate learning under such situations. The density power divergence loss [1, DPD] enables estimators with bounded influence while retaining high efficiency under clean data. Its extensions, including the S-divergence family, generalize this robustness-efficiency tradeoff further [8]. Several robust losses have subsequently been adapted for machine learning, such as generalized cross entropy [30], symmetric cross entropy [28], trimmed loss functions [21], DPD under the name of β-divergence [7], α-divergence [27], S-divergence often via its transformed version known as (α, β )-divergence [3], and other noise-tolerant objectives. The recent work of rSDNet [12] provides a robust neural training procedure based on 
+
+S-divergence minimization, demonstrating empirical stability under both label noise and adversarial perturbations. The present paper grounds this direction by providing the missing statistical theory for robust training techniques, with the S-divergence loss as an exemplar, which remains valid across modern deep learning architectures. When population minimizers are not unique, classical convergence to a single estimator is re-placed by convergence of solution sets. This framework appears naturally in stochastic programming and variational analysis [23]. Under uniform convergence of empirical objectives, empirical mini-mizer sets converge to population minimizer sets through generalized argmin theorems. Our analysis builds on these ideas and adapts them for robust neural networks. The resulting theory shows that deep learning does not require parameter identification for statistical consistency; instead, identifi-cation of the induced probability model is sufficient. 
+
+# 2 Statistical Consistency of Neural Classifiers 
+
+Let Dn = ( Xi, Y i)ni=1 be a dataset where Xi ∈ X ⊂ Rk are i.i.d. random variables following the input distribution P , and Yi ∈ { 0, 1} be available labels. From this data, we wish to learn an underlying conditional model for probability p(Y = 1 | X = x) := p(x). Suppose there exists a parametric form to this model: 
+
+pθ(x) = exp( gθ(x)) 1 + exp( gθ(x)) . (1) Consider the problem of maximizing the (log)-likelihood of this model based on observed data: 
+
+ˆθn = arg max 
+
+> θ∈Θ
+
+1
+
+n
+
+> n
+
+X
+
+> i=1
+
+[Yigθ(Xi) − log {1 + exp ( gθ(Xi)) }] := arg max  
+
+> θ
+
+Ψn(θ). (2) Let the true conditional probability that needs to be learned equal p0(x), and define the true parameter set 
+
+Θ0 = {θ ∈ Θ : gθ(x) = p0(x), ∀x ∈ X } 
+
+3This is the maximiser of the population objective Ψ( θ) := E[Y g θ(X) − log(1 + exp( gθ(X)))] [25, Sec. 5]. Let v⋆ = arg min θ∈Θ0 Ψ( θ) denote the likelihood of models in Θ0.
+
+2.1 Convergence of the Solution 
+
+The objective is to show convergence without requiring identifiability (that is, for non-singleton 
+
+Θ0). Note that the problem is a stochastic optimisation problem, where one needs to evaluate an optimal decision under uncertainty, captured by the distribution of the samples. Following Shapiro et al. [23], we make the following assumptions to establish regularity of solutions: 
+
+Assumption 1. The samples (Xi, Y i) are i.i.d. 
+
+Assumption 2. The function 
+
+u(·, x, y ) = yg θ(x) − log(1 + exp( gθ(x))) 
+
+is continuous at θ for almost every (x, y ).
+
+An equivalent condition for Assumption 2 to hold is that gθ(x) be continuous in θ for almost every x.
+
+Assumption 3. We have |u(θ, x, y )| ≤ G(x, y ) for all θ ∈ Θ such that EP [G(X, Y )] < ∞.
+
+Let Θn denote the maximizers of Ψn over Θ. We assume that this is non-empty for all large enough n.
+
+Theorem 1. Suppose that Assumptions 1–3 hold, and the set Θ is compact. Then, with probability 1, 
+
+lim sup 
+
+> n→∞
+
+Θn ⊆ Θ0 and Ψ( θn) → v⋆, (3) 
+
+for any selection θn ∈ Θn. In particular, if Θ0 = {θ0} is a singleton, then ˆθn → θ0 with probability 1. Proof. Assumptions 1–3 imply the uniform convergence of the stochastic objective Ψn defined in (2) to the limit Ψ over the set Θ [23, Theorem 7.53]. Thus, from Shapiro et al. [23, Theorem 5.3], 
+
+Ψn(θn) → v⋆ almost surely. Now, 
+
+|Ψ( θn) − v⋆| ≤ sup 
+
+> θ∈Θ
+
+|Ψn(θ) − Ψ( θ)| + |Ψn(θn) − v⋆|.
+
+Since Ψn → Ψ uniformly with probability 1 over Θ, we further obtain Ψ( θn) → v⋆. Further, given any sequence of solutions {ˆθn}n≥1 to the sample problem, d(ˆθn, Θ0) → 0 with probability 1, where 
+
+d(θ, S ) = inf {d(θ, θ ′) : θ′ ∈ S}. Consequently, whenever a subsequence θnk ∈ Θnk converges, its limit lies in Θ0. Equivalently, lim sup n→∞ Θn ⊆ Θ0. The last assertion follows upon noting that when Θ0 = {θ0}, d(ˆθn, Θ0) = d(ˆθn, θ 0).
+
+2.2 Network Architecture Specifications 
+
+We now specify the parametric form of gθ in (1) for three standard architectures, and ensure that Assumptions 1–3 are satisfied for them. Throughout, let z0 = x ∈ Rk denote the input, let θi ∈ Rdi×di−1 be the weight matrix at layer i (with d0 = k) of a neural network, and let 
+
+ϕi : Rdi → Rdi be an element-wise activation function applied after the i-th linear map. Define the pre-activation si = θi zi−1 and post-activation zi = ϕi(si) at each layer. Following Rosati et al. [20], we write Dzi = diag  ϕ′
+
+> i
+
+(si, 1), . . . , ϕ ′
+
+> i
+
+(si,d i ) for the diagonal Jacobian of ϕi evaluated at si.4Multi-layer perceptron (MLP). An L-layer MLP computes 
+
+gθ(x) = θL+1 ϕL
+
+ θL ϕL−1(· · · ϕ1(θ1 x) · · · )
+
+= ( θL+1 ◦ ϕL ◦ θL ◦ · · · ◦ ϕ1 ◦ θ1 )( x),
+
+where θi ∈ Rdi×di−1 for i = 1 , . . . , L are hidden-layer weight matrices and θL+1 ∈ R1×dL is the classification head. Bias vectors bi ∈ Rdi may be absorbed into θi by appending a constant feature; we suppress them for notational clarity. The full parameter vector is θ = (vec( θ1), . . . , vec( θL+1 )) ∈
+
+Θ ⊂ Rp, with p = PL+1  
+
+> i=1
+
+di di−1.For two adjacent hidden layers i < j ≤ L, the Hessian block ∂2gθ/∂θ j ∂θ i decomposes into a product form A B C [20] where B contains a weight matrix θk (i < k < j ) and A, C are products of activation Jacobians Dzℓ and Kronecker terms involving the input and identity matrices. 
+
+Convolutional neural network (CNN). Let θconv  
+
+> i
+
+∈ Rci×ci−1×ki×ki denote a convolutional filter at layer i with ci output channels, ci−1 input channels, and spatial kernel size ki. Define the doubly-block-Toeplitz (or circulant, under periodic padding) matrix T (θconv  
+
+> i
+
+) ∈ Rcihiwi×ci−1hi−1wi−1 that implements the linear convolution on a feature map of spatial size hi−1 × wi−1. The convolutional layer then has the same linear-activation structure as the MLP: 
+
+si = T (θconv  
+
+> i
+
+) zi−1, zi = ϕi(si),
+
+so that T (θconv  
+
+> i
+
+) plays the role of θi in the generic composition gθ(x) = θL+1 ◦ ϕL ◦ T (θconv  
+
+> L
+
+) ◦ · · · ◦ 
+
+ϕ1 ◦ T (θconv 1 ) x. Pooling operations (average or max) and batch normalization, when present, are absorbed into ϕi or treated as fixed linear maps between layers. Because T (θconv  
+
+> i
+
+) is a structured linear operator, singular values of the Hessian blocks inherit the same A B C product structure, with B = T (θconv  
+
+> k
+
+)⊤ for an intermediate layer k.
+
+Transformer (encoder block). Fix a sequence of N token embeddings Z0 = [ z(1) 0 , . . . , z (N )0 ]⊤ ∈
+
+RN ×d. A single Transformer encoder block [26] with H heads computes 
+
+Attn( Z0) = 
+
+> H
+
+X
+
+> h=1
+
+softmax 
+
+ Z0 W (h)
+
+> Q
+
+ W (h)
+
+> K
+
+⊤Z⊤
+
+> 0
+
+√dh
+
+
+
+× Z0 W (h) 
+
+> V
+
+W (h) 
+
+> O
+
+, (4) 
+
+Z1 = LN  Z0 + Attn( Z0), (5) 
+
+Z2 = LN  Z1 + θ2 ϕ(θ1 Z⊤ 
+
+> 1
+
+), (6) where W (h) 
+
+> Q
+
+, W (h) 
+
+> K
+
+, W (h) 
+
+> V
+
+∈ Rd×dh and W (h) 
+
+> O
+
+∈ Rdh×d are the query, key, value, and output projection matrices for head h, with dh = d/H ; θ1 ∈ Rdff ×d and θ2 ∈ Rd×dff are the feed-forward network (FFN) weight matrices; ϕ is the FFN activation (e.g. GELU); and LN denotes layer normalization. When stacking L such blocks, the full parameter vector θ collects 
+
+n
+
+W (h,ℓ ) 
+
+> Q
+
+, W (h,ℓ ) 
+
+> K
+
+, W (h,ℓ ) 
+
+> V
+
+, W (h,ℓ ) 
+
+> O
+
+, θ (ℓ)1 , θ (ℓ)2
+
+oLℓ=1 ,
+
+together with an initial embedding matrix E ∈ R|V|× d and the final classification head. Within the FFN sub-block of each layer, the pair (θ(ℓ)1 , θ (ℓ)2 ) gives a two-layer MLP whose Hessian blocks admit the same A B C factorization: concretely, ∂2gθ/∂θ (ℓ)2 ∂θ (ℓ)1 yields B = θ(ℓ)⊤ 
+
+> 1
+
+(or θ(ℓ)⊤ 
+
+> 2
+
+) flanked by activation-Jacobian and input-dependent factors A and C. For the self-attention parameters, the Hessian blocks ∂2gθ/∂ vec( W (h) 
+
+> V
+
+) ∂vec( W (h′) 
+
+> Q
+
+) involve products of the attention weight matrix 
+
+softmax( ·), the input Z0, and the projection matrices, again yielding a matrix-product structure whose singular values are controlled by the spectral norms of the constituent weight matrices. 5Assumption check. In all three architectures, the classifier pθ(x) of (1) is obtained by applying the logistic link to the scalar output gθ(x), and the parameter space Θ is the Cartesian product of the matrix spaces for all weight matrices. The consistency result of Theorem 1 applies to any 
+
+gθ satisfying Assumptions 1–3, which each of these architectures does under standard regularity (bounded inputs, smooth or piecewise-smooth activations with integrable envelope). We capture this in Lemma 1 below. 
+
+Lemma 1. Suppose Θ is compact and EP [∥X∥] < ∞. Let ϕi be continuous and there exist a C0
+
+such that max i |ϕi(t)| < C 0(1 + |t|) for all t. Then, Assumptions 2–3 are satisfied in each of the neural architectures above. Proof sketch. For each architecture, we verify two properties: (a) continuity of gθ(x) in θ for every 
+
+x (see the comment following Assumption 2), and (b) existence of an integrable envelope G(x, y )
+
+dominating |u(θ, x, y )| uniformly over Θ (Assumption 3). For MLPs, (a) follows from the fact that gθ is a finite composition of continuous maps (linear maps and activations). For (b), the growth condition |ϕi(t)| ≤ C0(1 + |t|) and compactness of Θ
+
+yield, by induction over layers, a bound sup θ∈Θ |gθ(x)| ≤ a + b∥x∥ for finite constants a, b depending only on the architecture and sup θ∈Θ ∥θi∥. The envelope G(x, y ) = 2( a + b∥x∥) + log 2 is integrable by the first moment condition on X.For CNNs, (a) and (b) follow identically once we observe that the map from convolutional filter weights to the corresponding Toeplitz matrix is linear (hence continuous), so each convolutional layer has the same linear-activation structure as the MLP case. For Transformers, (a) holds because every constituent operation—the bilinear query-key product, softmax, linear projections, FFN activations, and layer normalization—is continuous in θ. For (b), the key observation is that layer normalization produces outputs with uniformly bounded norm (∥LN( v)∥ ≤ Γ for a constant Γ depending only on the embedding dimension), and since each encoder block terminates in layer normalization, the bound does not accumulate across layers. This yields a constant envelope G(x, y ) = 2 M0Γ + log 2 , so Assumption 3 holds without any moment condition on X. The full proof is given in Appendix A. □
+
+# 3 Computational Algorithm 
+
+We now describe a training algorithm for robust neural classifiers based on S-divergence minimisa-tion. For a J-class classification problem with training data Dn, where Yi ∈ { e1, . . . , e J } are one-hot encoded labels and the network outputs class probabilities p(Xi; θ) = ( p1(Xi; θ), . . . , p J (Xi; θ)) ⊤ via a softmax layer, the empirical S-divergence loss [8, 12] is 
+
+LSD 
+
+> β,λ
+
+(θ) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+
+
+1
+
+B
+
+> J
+
+X
+
+> j=1
+
+pj (Xi; θ)1+ β − 1 + βB
+
+> J
+
+Y
+
+> j=1
+
+pj (Xi; θ)yij 
+
+ , (7) where B = β − λ(1 − β), with validity constraints A ≡ 1 + λ(1 − β) > 0 and B > 0. Setting 
+
+β = λ = 0 recovers the categorical cross-entropy (CCE) loss, and λ = 0 reduces to the density power divergence (DPD) loss. The tuning parameters (β, λ ) control the robustness–efficiency trade-off: larger β increases down-weighting of outlying observations at the cost of statistical efficiency. The loss in Eq. (7) depends only on the network weights θ through the softmax probabilities, yielding a single-loop stochastic gradient procedure. This simplification holds for all architectures considered in Section 2—MLPs, CNNs, and Transformers—since the loss interacts with the archi-tecture only through the predicted probability vector p(x; θ).6Algorithm 1 Robust Training for Neural Network Classifiers 
+
+Require: Training data Dn = {(Xi, Y i)}ni=1 ; network gθ; S-divergence parameters (β, λ ); learning rate η; batch size m; number of epochs T
+
+Ensure: Trained parameters ˆθ 
+
+> 1:
+
+Initialize θ(0) randomly  
+
+> 2:
+
+for t = 0 , 1, . . . , T − 1 do  
+
+> 3:
+
+Randomly partition Dn into mini-batches B1, . . . , B⌈n/m ⌉ of size m 
+
+> 4:
+
+for each mini-batch B do  
+
+> 5:
+
+Compute class probabilities p(Xi; θ(t)) via forward pass with softmax output, for all 
+
+(Xi, Y i) ∈ B  
+
+> 6:
+
+Compute mini-batch S-divergence loss ˆLSD 
+
+> β,λ
+
+(θ(t)) 
+
+> 7:
+
+Compute gradient ∇θ ˆLSD 
+
+> β,λ
+
+(θ(t)) via backpropagation  
+
+> 8:
+
+Update: θ(t+1) ← Adam 
+
+
+
+θ(t), ∇θ ˆLSD 
+
+> β,λ
+
+(θ(t)), η 
+
+ 
+
+> 9:
+
+end for  
+
+> 10:
+
+end for  
+
+> 11:
+
+return ˆθ = θ(T )
+
+Algorithm 1 gives the training procedure. The algorithm is architecture-agnostic: the forward pass in Step 5 computes p(Xi; θ) using whichever architecture gθ is specified, followed by a softmax output layer. Backpropagation in Step 7 computes gradients through the same computational graph via automatic differentiation. The only component specific to robust training is the loss computation in Step 6, which replaces the standard cross-entropy with the S-divergence objective (7). The following result establishes that the iterates of Algorithm 1 converge to stationary points of the empirical objective. Let {θ(t)}t≥1 denote the sequence of iterates, and let θ0 ∈ Θ0 be a member of the true parameter set. 
+
+Theorem 2. Fix the training sample Dn = ( Xi, Y i)ni=1 . Suppose the iterates {θ(t)}t≥1 of Algorithm 1 are uniformly bounded by a quantity depending only on the sample size and network architecture: 
+
+θ(t) − θ0 ≤ R(n, dim Θ) , t ≥ 1.
+
+Then any limit point θ∞ of {θ(t)} is a stationary point of LSD 
+
+> β,λ
+
+(·), i.e. a point at which 
+
+∇θLSD 
+
+> β,λ
+
+(θ∞) = 0 .
+
+Proof. The proof follows the structure of Theorem 5 of Majumdar and Michailidis [17], which generalizes Theorem 1 of Lin et al. [15], substituting  ˆθ(t), θ 0
+
+ and (θ∞) for the pairs   ˆB(t), ˆΘ(t)
+
+> y
+
+,
+
+(B0, Θy0) and (B∞, Θ∞ 
+
+> y
+
+) therein, with the corresponding modifications below. Since Assumptions 2–3 ensure u(θ, x, y ) = y g θ(x)−log {1+exp( gθ(x)) } is continuous in θ for a.e. 
+
+(x, y ) and dominated by an integrable envelope, the same regularity carries over to the pointwise S-divergence contribution 
+
+vθ(x, y ) = 1
+
+B
+
+> J
+
+X
+
+> j=1
+
+pj (x; θ)1+ β − 1 + βB
+
+> J
+
+Y
+
+> j=1
+
+pj (x; θ)yj ,
+
+which is a smooth (indeed C∞) function of gθ(x) for fixed β > 0. Hence LSD 
+
+> β,λ
+
+(θ) = n−1 P 
+
+> i
+
+vθ(Xi, Y i)
+
+is continuously differentiable in θ whenever gθ is (e.g. for a network with smooth activations). 7By construction, Algorithm 1 is a descent algorithm for LSD 
+
+> β,λ
+
+: each iterate satisfies LSD 
+
+> β,λ
+
+(θ(t+1) ) ≤
+
+LSD 
+
+> β,λ
+
+(θ(t)), with equality only at stationary points. The boundedness assumption ∥θ(t) − θ0∥ ≤ 
+
+R(n, dim Θ) implies {θ(t)} lies in a compact subset of Θ, so it admits at least one limit point θ∞,and some subsequence θ(tk ) → θ∞.Because LSD  
+
+> β,λ
+
+is continuous and monotonically non-increasing along the sequence, and bounded below by 0 (the S-divergence is non-negative by Theorem 3.1 of 8), LSD 
+
+> β,λ
+
+(θ(t)) converges to some limit c∞ ≥ 0, and by continuity LSD 
+
+> β,λ
+
+(θ(tk )) → LSD 
+
+> β,λ
+
+(θ∞) = c∞. Standard arguments for descent algorithms (Zangwill’s global convergence theorem; cf. the proof of Theorem 1 in Lin et al. 15) then show that if θ∞ were not a stationary point, continuity of ∇θLSD  
+
+> β,λ
+
+together with the descent property would produce a further strict decrease in a neighborhood of θ∞ along the subsequence, contradicting convergence of LSD 
+
+> β,λ
+
+(θ(t)) to c∞. Hence ∇θLSD 
+
+> β,λ
+
+(θ∞) = 0 .Theorem 2 places no explicit rate requirement on R(n, dim Θ) : any finite bound on the it-erates suffices for existence of a stationary limit point. A tighter bound, e.g. R(n, dim Θ) = 
+
+OP (pdim Θ log n/n ) obtained from the finite-sample robustness bounds for minimum S-divergence estimators [6, 8], additionally ensures that the resulting stationary point lies close to Θ0 with high probability. 
+
+# 4 Experiments 
+
+We evaluate the proposed S-divergence (SDIV) loss against eight other loss functions and three classification benchmarks, with the goal of characterising the accuracy of SDIV-trained models on clean data and their robustness under (i) uniform label noise, (ii) FGSM adversarial perturbations, and (iii) variation of the SDIV tuning parameters (β, λ ).
+
+4.1 Setup 
+
+To evaluate the performance of our method, we perform experiments on six benchmark datasets from two domains: four from computer vision: MNIST, CIFAR10, PathMNIST, and DermaM-NIST [29], and two from NLP: Emotion [22] and PubMedQA [13]. Nine classification objectives are compared: SDIV, standard categorical cross-entropy (CCE) as a non-robust baseline, mean ab-solute error (MAE) on predicted probabilities, Generalised Cross-Entropy [30, GCE], GCE applied only to samples with py < 0.5, i.e. confidence masking (TruncGCE), Symmetric Cross-Entropy [28], Truncated DPD combined with symmetric CCE (TDPD-CCE), Truncated Symmetric Categorical Cross-Entropy: equivalent to SDIV at λ=0 (TSCCE), and Fractional Classification Loss [14, FCL]. As the model architecture we use a vanilla Transformer encoder paired with the SDIV loss whose architecture mirrors the patch-based ViT design [5] at small scale. We decompose MNIST and CIFAR-10 images into 7×7 non-overlapping patches, and resize PathMNIST and DermaMNIST images to 64 ×64 then decompose into 8×8 patches. All vision models are trained with the Adam optimizer ( η0=10 −3, β1=0 .9, β2=0 .999 ) for 30 epochs, batch size 256. For NLP tasks we fine-tune 
+
+bert-base-uncased [4] with a linear classification head, using Adam ( η0=2 ×10 −5) with batch size 32 for 3 epochs. 
+
+4.2 Clean Data Performance 
+
+We begin with a tuning-parameter sweep for SDIV to quantify performance variation across values of (β, λ ). The results in Table 1 indicate that lower values of β (β ≤ 0.2) and higher values of λ
+
+(λ ≥ − 0.4) lead to both algorithmic stability and better performance. Table 2 presents a comparison 8of test accuracy for the tuned SDIV model with other methods. SDIV narrowly achieves highest accuracy on both datasets. However, the narrow between-method differences indicate that a number of the methods achieve accuracy on both datasets that are statistically similar to CCE, the non-robust alternative. In DermaMNIST, the performance of three methods (GCE, TruncGCE, MAE) is the same as the prevalence of the majority-class in the dataset (66.88%), indicating convergence issues leading to constant prediction across all samples. 
+
+β λ PathMNIST DermaMNIST 0.02 −0.80 77.87 66.88 †
+
+0.02 −0.40 83.23 71.42 0.02 +0.00 83.68 72.87 0.05 −0.80 82.60 66.88 †
+
+0.05 −0.40 84.11 71.57 0.05 +0.00 82.10 72.32 0.10 −0.80 81.52 66.88 †
+
+0.10 −0.40 83.69 73.32 
+
+0.10 +0.00 82.06 72.07 0.20 −0.80 82.45 67.13 0.20 −0.40 82.41 72.87 0.20 +0.00 83.33 71.77 0.20 +0.20 82.59 71.57 0.50 −0.80 81.66 66.88 †
+
+0.50 −0.40 82.62 70.52 0.50 +0.00 82.63 71.12 0.50 +0.20 82.60 71.47 Table 1: SDIV (β, λ ) tuning surface: test accuracy (%) on PathMNIST and DermaMNIST, with 
+
+Bold indicating best per dataset. ‡Values equal the DermaMNIST majority-class prevalence, indi-cating a degenerate constant-class predictor. 
+
+4.3 Robustness to Noisy Labels 
+
+We inject noise in the image labels by randomly selecting η% of training images and flipping their labels, with η ∈ { 0, 10 , 20 , 30 , 40 }. Figure 1 shows the results. On MNIST, SDIV and GCE are the most noise-tolerant losses. The narrow differences of SDIV accuracy values between η = 0 and 
+
+η = 40 are consistent with the theoretical prediction that the SDIV loss down-weights corrupted samples. On DermaMNIST, we see the recurring pattern of decreasing accuracy with increasing noise labels. SDIV has convergence problems at intermediate noise levels, which it recovers from and reaches highest accuracy at η = 40 . On PathMNIST, most losses maintain stable accuracy across noise rates, except MAE. The near-flat trajectories indicate a ceiling effect on this strongly structured dataset. MAE is a notable outlier: at η=0 .1 it collapses to 48.76% and only partially recovers at higher noise levels. 9Loss MNIST CIFAR-10 DermaMNIST PathMNIST CCE 98.19 60.56 73.22 83.02 MAE – – 66.88 ‡ 78.50 GCE 98.36 56.52 66.93 ‡ 82.24 TruncGCE – – 66.93 ‡ 78.20 SCE 98.18 59.05 70.22 83.06 TDPD-CCE 98.50 61.16 72.32 82.10 TSCCE 86.23 52.94 70.82 82.26 FCL 9.80 ‡ 59.06 72.57 83.61 SDIV (ours) 97.94 55.06 73.32 84.11 
+
+Table 2: Test accuracy (%) under clean labels. Bold , underlined, and ‡ values indicate best, second best, and constant-class predictions, respectively. 0 10 20 30 40         
+
+> Label Noise Rate (%)
+> 95 96 97 98
+> Test Accuracy (%)
+> MNIST
+> 010 20 30 40
+> Label Noise Rate (%)
+> 67 68 69 70 71 72 73
+> Test Accuracy (%)
+> DermaMNIST
+> 010 20 30 40
+> Label Noise Rate (%)
+> 50 60 70 80
+> Test Accuracy (%)
+> PathMNIST
+> SDIV CCE GCE TPDD-CCE MAE TruncGCE SCE TSCCE FCL
+
+Figure 1: Test accuracy (%) under uniform label noise. Missing methods in each subplot gave constant prediction. 
+
+4.4 Adversarial Robustness 
+
+We construct adversarial examples using the Fast Gradient Sign Method [9, FGSM], with pertur-bation budgets ε ∈ { 0, 1, 2, 4, 8}/255 . Gradients are computed using the CCE loss uniformly (to prevent information leakage from the training loss into the attack). Figure 2 summarises the re-sults. Under FGSM at ε=8 /255 , GCE is the most robust on MNIST, followed by SDIV (80.63%). SDIV has highest accuracy in DermaMNIST. In general, all methods retain high accuracy relative to their clean baselines. PathMNIST is far more vulnerable to the FGSM attack. At ε=8 /255 , all losses show catastrophic degradation. No loss provides genuine resistance to FGSM on PathMNIST, indicating that robust training losses alone without explicit adversarial training [16], do not confer adversarial robustness. 
+
+4.5 Robust Fine-tuning on Text Data 
+
+Emotion [22] is a 6-class emotion recognition task, and PubMedQA [13] is a 3-class biomedical question-answering task. Table 3 reports the validation accuracy for our methods. SDIV attains the highest accuracy on both datasets, narrowly ahead of the strongest baselines. Also notable is the stability of SDIV relative to the other robust losses: several methods (SCE and TDPD-CCE on both datasets, GCE and FCL on PubMedQA) fail to converge to a non-trivial predictor, whereas SDIV trains stably on both tasks. This pattern is consistent with the vision experiments, where SDIV in its recommended parameter range avoids the gradient-starvation collapse that affects more 10 0 1/255 2/255 4/255 8/255          
+
+> FGSM Perturbation Budget (×255)
+> 80 85 90 95
+> Test Accuracy (%)
+> MNIST
+> 01/255 2/255 4/255 8/255
+> FGSM Perturbation Budget (×255)
+> 30 40 50 60 70
+> Test Accuracy (%)
+> DermaMNIST
+> 01/255 2/255 4/255 8/255
+> FGSM Perturbation Budget (×255)
+> 20 40 60 80
+> Test Accuracy (%)
+> PathMNIST
+> SDIV CCE GCE TPDD-CCE MAE TruncGCE SCE TSCCE FCL
+
+Figure 2: Test accuracy (%) under adversarial perturbations. Missing methods in each subplot gave constant prediction. Loss Emotion PubMedQA CCE 57.25 56.00 MAE 57.60 55.33 GCE 58.20 –TruncGCE 58.10 58.00 SCE – –TDPD-CCE – –TSCCE 57.80 56.00 FCL 57.70 –SDIV (ours) 58.50 58.67 
+
+Table 3: Validation accuracy (%) on NLP datasets. Bold indicates best, and “–” in a cell indicates convergence issues for that method × dataset. aggressive robust losses. This supports the paper’s central claim: because the consistency guarantee is architecture-agnostic, the same S-divergence objective transfers from convolutional and vision-Transformer classifiers to a pretrained language model without modification. 
+
+# 5 Discussion 
+
+The consistency framework of Section 2 guarantees that any sequence of empirical S-divergence minimizers converges to the population-optimal equivalence class, and Lemma 1 confirms that this guarantee holds for MLPs, CNNs, and Transformers under standard regularity conditions. The experiments validate that this theoretical machinery connects to observable behavior in practice. 
+
+Scope of theoretical results. The consistency theorem is stated for binary classification, whereas the experiments use multiclass softmax classifiers. The extension is mostly notational: the uniform-convergence and envelope conditions of Lemma 1 continue to hold under the multinomial likelihood, since our assumptions (continuity and boundedness of gθ) are unaffected by the number of output classes. Second, the stationarity result (Theorem 2) assumes the iterates remain in a bounded re-gion. This holds in practice under weight decay or projected updates, but establishing it from first principles for Adam on these architectures is a substantive extension we leave to future work. 11 Relation to loss-landscape geometry. The equivalence class Θ0 is closely related to the con-nected minima manifolds studied in the loss-landscape literature [2, 19]. Those works characterize the geometry of the set of global minimizers of the training objective. Our contribution is comple-mentary, as we show that empirical minimizers of the population loss concentrate on Θ0 regardless of its shape. 
+
+A note on layer normalization. The Transformer verification in Lemma 1 yields a stronger conclusion than the MLP and CNN cases, since each encoder block terminates in layer normalization, the envelope G(x, y ) is constant, and Assumption 3 holds with no moment condition on the input distribution. The recursive bounds needed for MLPs and CNNs have no analogue here, since the per-block output bound does not depend on the block’s input. This suggests that beyond optimization benefit, layer normalization confers a statistical regularity that makes Transformers amenable to this style of analysis. 
+
+Limitations and Future Work. A few aspects of the experimental evaluation warrant caution. The adversarial evaluation is limited to FGSM, a single-step attack; stronger attacks such as PGD would provide a more rigorous assessment. On the theoretical side, the compactness assumption on 
+
+Θ is standard in M-estimation theory but may not hold exactly for unconstrained gradient descent. Weight decay or projected gradient methods restore it in practice, but a formal treatment of the unbounded case via local compactification arguments would be valuable. Our experiments confirm that S-divergence training is competitive with cross-entropy on clean data and degrades more gracefully under label noise, while also revealing the practical importance of tuning parameter selection and the limits of statistical robustness against adversarial attack. Among directions of future work, finite-sample convergence rates connecting the consistency result to explicit bounds on d(ˆθn, Θ0) as a function of n, dim Θ , and (β, λ ) would provide practical guid-ance on sample complexity. Combining S-divergence training with adversarial training to achieve simultaneous robustness to distributional contamination and worst-case input perturbation is a nat-ural next step. Finally, relaxing the compactness assumption on Θ to accommodate unconstrained optimization, perhaps through implicit regularization arguments, would bring the theory closer to standard deep learning practice. 
+
+# 6 Acknowledgements 
+
+This research is supported by Indian Institute of Management Bangalore Research Seed Grant R&P242-71. 
+
+# References 
+
+[1] A. Basu, I. R. Harris, N. L. Hjort, and M. Jones. Robust and efficient estimation by minimising a density power divergence. Biometrika , 85:549–559, 1998. [2] A. Choromanska, M. Henaff, M. Mathieu, G. B. Arous, and Y. LeCun. The loss surfaces of multilayer networks. In Artificial intelligence and statistics (AISTAT) , pages 192–204. PMLR, 2015. [3] S. Cruces. The alpha-beta divergence for real and complex data. IEEE Signal Processing Letters , 33:1426–1430, 2026. 12 [4] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova. BERT: Pre-training of deep bidirectional transformers for language understanding, 2019. URL https://arxiv.org/abs/1810.04805 .[5] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly, J. Uszkoreit, and N. Houlsby. An image is worth 16x16 words: Transformers for image recognition at scale. In International Conference on Learning Representations (ICLR) , 2021. URL https://arxiv.org/abs/2010.11929 .[6] A. Ghosh and A. Basu. The minimum s-divergence estimator under continuous models: The Basu–Lindsay approach. Statistical Papers , 58:341–372, 2017. [7] A. Ghosh and S. Jana. Provably robust learning of regression neural networks using β-divergences. arXiv preprint arXiv:2602.08933 , 2026. [8] A. Ghosh, I. R. Harris, A. Maji, A. Basu, and L. Pardo. A generalized divergence for statistical inference. Bernoulli , 23(4A):2746–2783, 2017. [9] I. Goodfellow, J. Shlens, and C. Szegedy. Explaining and harnessing adversarial examples. In 
+
+International Conference on Learning Representations (ICLR) , 2015. [10] I. Goodfellow, Y. Bengio, and A. Courville. Deep Learning . MIT Press, 2016. [11] R. Hecht-Nielsen. On the algebraic structure of feedforward network weight spaces. In Advanced Neural Computers , pages 129–135. Elsevier, 1990. [12] S. Jana and A. Ghosh. rsdnet: Unified robust neural learning against label noise and adversarial attacks. arXiv preprint arXiv:2603.17628 , 2026. [13] Q. Jin, B. Dhingra, Z. Liu, W. W. Cohen, and X. Lu. Pubmedqa: A dataset for biomedical research question answering, 2019. URL https://arxiv.org/abs/1909.06146 .[14] M. C. Kurucu, T. Kumbasar, I. Eksin, and M. Güzelkaya. Introducing fractional classification loss for robust learning with noisy labels, 2025. URL https://arxiv.org/abs/2508.06346 .[15] J. Lin, S. Basu, M. Banerjee, and G. Michailidis. Penalized maximum likelihood estimation of multi-layered gaussian graphical models. Journal of Machine Learning Research , 17(146):1–51, 2016. URL http://jmlr.org/papers/v17/16-004.html .[16] A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu. Towards deep learning mod-els resistant to adversarial attacks. In International Conference on Learning Representations (ICLR) , 2018. [17] S. Majumdar and G. Michailidis. Joint estimation and inference for data integration prob-lems based on multiple multi-layered gaussian graphical models. Journal of Machine Learning Research , 23(1):1–53, 2022. URL http://jmlr.org/papers/v23/18-131.html .[18] W. K. Newey and D. McFadden. Large sample estimation and hypothesis testing. In Handbook of Econometrics , volume 4, pages 2111–2245. Elsevier, 1994. [19] Q. Nguyen and M. Hein. Optimization landscape and expressivity of deep CNNs. In Interna-tional Conference on Machine Learning , pages 3730–3739, 2018. 13 [20] D. Rosati, X. Zeng, H. Huang, S. Dionicio, S. Majumdar, F. Rudzicz, and H. Sajjad. Limits of convergence-rate control for open-weight safety, 2026. URL https://arxiv.org/abs/2602. 18868 .[21] A. Rusiecki. Trimmed categorical cross-entropy for deep learning with label noise. Electronics Letters , 55(6):319–320, 2019. [22] E. Saravia, H.-C. T. Liu, Y.-C. Huang, J. Wu, and Y.-S. Chen. CARER: Contextual-ized affect representations for emotion recognition. In Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 3687–3697. Asso-ciation for Computational Linguistics, 2018. doi: 10.18653/v1/D18-1404. URL https: //aclanthology.org/D18-1404 .[23] A. Shapiro, D. Dentcheva, and A. Ruszczynski. Lectures on stochastic programming: modeling and theory . SIAM, 2021. [24] H. J. Sussmann. Uniqueness of the weights for minimal feedforward nets with a given input-output map. Neural Networks , 5(4):589–593, 1992. [25] A. W. Van der Vaart. Asymptotic statistics , volume 3. Cambridge university press, 2000. [26] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin. Attention is all you need, 2017. URL https://arxiv.org/abs/1706.03762 .[27] D. Wang, C. Gong, M. Li, Q. Liu, and V. Chandra. Alphanet: Improved training of supernets with alpha-divergence. In International Conference on Machine Learning , pages 10760–10771. PMLR, 2021. [28] Y. Wang, X. Ma, Z. Chen, Y. Luo, J. Yi, and J. Bailey. Symmetric cross entropy for ro-bust learning with noisy labels. In Proceedings of the IEEE/CVF international conference on computer vision , pages 322–330, 2019. [29] J. Yang, R. Shi, D. Wei, Z. Liu, L. Zhao, B. Ke, H. Pfister, and B. Ni. Medmnist v2 - a large-scale lightweight benchmark for 2d and 3d biomedical image classification. Scientific Data , 10 (1), Jan. 2023. ISSN 2052-4463. doi: 10.1038/s41597-022-01721-8. URL http://dx.doi.org/ 10.1038/s41597-022-01721-8 .[30] Z. Zhang and M. R. Sabuncu. Generalized cross entropy loss for training deep neural networks with noisy labels. In Proceedings of the 32nd International Conference on Neural Information Processing Systems , NIPS’18, page 8792–8802, Red Hook, NY, USA, 2018. Curran Associates Inc. 
+
+# A Proof of Lemma 1 
+
+Proof. i) Verification for Multilayer Perceptrons. It is sufficient to show that gθ(x) is contin-uous in θ for every x, and that sup θ∈Θ |gθ(x)| admits an integrable envelope. Since each linear map 
+
+θi 7 → θiz and each activation ϕi is continuous, so is their composition; hence gθ(x) is continuous in 
+
+θ for every x. This verifies Assumption 2. 14 To verify the uniform bound, note that the componentwise growth condition yields ∥ϕi(z)∥ ≤ 
+
+C0
+
+ √di + ∥z∥ ≤ C0(K0 + ∥z∥), where K0 := max i
+
+√di. Writing the output of the ith layer as 
+
+hθi (x) = ϕi
+
+ θi hθi−1(x) with hθ
+
+> 0
+
+(x) = x, one then obtains 
+
+∥hθi (x)∥ ≤ C0
+
+ K0 + ∥θi∥ ∥ hθi−1(x)∥
+
+≤ C0K0 + C0M0∥hθi−1(x)∥,
+
+where M0 := sup θ∈Θ max i ∥θi∥ < ∞ owing to the compactness of the set Θ. Recursing over 
+
+i = 1 , . . . , L gives 
+
+∥hθL(x)∥ ≤ C0K0
+
+> L−1
+
+X
+
+> k=0
+
+(C0M0)k + ( C0M0)L∥x∥,
+
+uniformly in θ ∈ Θ. Since the output satisfies gθ(x) = θL+1 hθL(x), it follows that 
+
+sup 
+
+> θ∈Θ
+
+|gθ(x)| ≤ M0
+
+ K′ 
+
+> 0
+
++ K1∥x∥ =: B(x)
+
+for the constants K′ 
+
+> 0
+
+:= C0K0
+
+PL−1 
+
+> k=0
+
+(C0M0)k and K1 := ( C0M0)L, which are finite and independent of θ and x.Finally, for y ∈ { 0, 1}, using the bound 0 ≤ log(1 + ea) ≤ log 2 + |a| for all a ∈ R, we obtain 
+
+|u(θ, x, y )| ≤ | y| | gθ(x)| + log  1 + egθ (x)
+
+≤ 2 |gθ(x)| + log 2 
+
+≤ 2B(x) + log 2 =: G(x, y ),
+
+and hence 
+
+EP
+
+G(X, Y ) ≤ 2M0K1 EP ∥X∥ + 2 M0K′ 
+
+> 0
+
++ log 2 < ∞
+
+by the assumed first moment condition. This verifies Assumption 3, and the conditions of Theorem 1 hold. 
+
+ii) Verification for Convolutional Networks. The key observation is that the map θconv  
+
+> i
+
+7 →
+
+T (θconv  
+
+> i
+
+) is linear. In particular, as a linear map between finite-dimensional spaces it is continuous. Since each map θconv  
+
+> i
+
+7 → T (θconv  
+
+> i
+
+) is continuous and each activation ϕi is continuous, the composition 
+
+θ 7 → gθ(x) is continuous for every x, exactly as in case (i) . This verifies Assumption 2. Since θ 7 → ∥ T (θconv  
+
+> i
+
+)∥ is continuous for each i and Θ is compact, 
+
+M conv 0 := sup 
+
+> θ∈Θ
+
+max  
+
+> i
+
+∥T (θconv  
+
+> i
+
+)∥ < ∞.
+
+Writing zθi (x) = ϕi
+
+ T (θconv  
+
+> i
+
+) zθi−1(x) with zθ 
+
+> 0
+
+(x) = x, the recursion of case (i) applies verbatim with 
+
+M0 replaced by M conv 0 , yielding 
+
+sup 
+
+> θ∈Θ
+
+|gθ(x)| ≤ M conv 0
+
+ K′ 
+
+> 0
+
++ K1∥x∥ =: B(x)
+
+for finite constants K′
+
+> 0
+
+, K 1 independent of θ and x. The construction of the integrable envelope 
+
+G(x, y ) = 2 B(x) + log 2 and the verification of Assumption 3 then proceed exactly as in case (i) .
+
+iii) Verification for Transformers. Denote by Zℓ ∈ RN ×d the output of the ℓth encoder block, 
+
+ℓ = 1 , . . . , L , and for a matrix Z ∈ RN ×d write ∥Z∥∞ := max 1≤n≤N ∥Zn, :∥ for the maximum row norm. The network output is gθ(x) = w⊤read( ZL), where w denotes the final classification head and read is the (fixed, linear) map extracting the pooled representation from ZL.15 Every constituent map in Eq. (4)–(6) is continuous in θ for fixed x: Z0 W (h)
+
+> Q
+
+ W (h)
+
+> K
+
+⊤Z⊤ 
+
+> 0
+
+are polynomial in the parameters, the softmax is smooth, the FFN activation ϕ is continuous, and LN 
+
+is smooth since its variance offset is strictly positive. The embedding E 7 → Z0 and the classification head are linear in their respective parameters, and the residual connections are linear. Hence θ 7 →
+
+gθ(x) is continuous for every x as a finite composition of continuous maps, verifying Assumption 2. By compactness of Θ,
+
+M0 := sup 
+
+> θ∈Θ
+
+max  
+
+> h,ℓ
+
+max 
+
+
+
+W (h,ℓ ) 
+
+> V
+
+, W (h,ℓ ) 
+
+> O
+
+, ∥w∥
+
+
+
+< ∞,
+
+and likewise the layer-normalization parameters are bounded uniformly over Θ. Two observations drive the bound. First, the softmax in (4) is applied row-wise, so each row of softmax  Z0W (h) 
+
+> Q
+
+(W (h) 
+
+> K
+
+)⊤Z⊤ 
+
+> 0
+
+/√dh
+
+
+
+lies in the probability simplex, and each row of the hth summand is therefore a convex combination of the rows of Z0 W (h) 
+
+> V
+
+W (h) 
+
+> O
+
+. Since a convex combination of vectors has Euclidean norm at most the largest of their norms, 
+
+∥Attn( Z0)∥∞ ≤
+
+> H
+
+X
+
+> h=1
+
+max 
+
+> m
+
+ Z0 W (h) 
+
+> V
+
+W (h)
+
+> O
+
+ 
+
+> m, :
+
+≤ HM 20 ∥Z0∥∞.
+
+In particular, the query and key matrices shape only the mixing weights and play no role in the magnitude bound. Second, LN produces uniformly bounded outputs: for any v ∈ Rd, the vector 
+
+u := ( v − ¯v1)  1 
+
+> d
+
+∥v − ¯v1∥2 + ϵ1/2 satisfies ∥u∥2 = ∥v − ¯v1∥2  1 
+
+> d
+
+∥v − ¯v1∥2 + ϵ ≤ d, and hence 
+
+∥LN( v)∥ ≤ Γ < ∞ uniformly in v ∈ Rd and θ ∈ Θ,
+
+where Γ depends only on d and the (compactly constrained) layer-normalization parameters. Since both (5) and (6) terminate in LN , it follows that ∥Zℓ∥∞ ≤ Γ for every ℓ ≥ 1, uniformly in θ ∈ Θ
+
+and in the input: in contrast to cases (i) and (ii) , no recursion accumulates, as each block’s output bound is independent of its input bound. Since read returns a convex combination (or a coordinate projection) of the rows of ZL,
+
+sup 
+
+> θ∈Θ
+
+|gθ(x)| ≤ sup 
+
+> θ∈Θ
+
+∥w∥ · ∥ ZL∥∞ ≤ M0 Γ =: B, 
+
+a finite constant independent of both θ and x. The envelope G(x, y ) := 2 B + log 2 constructed as in case (i) is therefore itself constant, so that EP [G(X, Y )] < ∞ holds with no moment condition on X whatsoever. This verifies Assumption 3, and the conditions of Theorem 1 hold. 16

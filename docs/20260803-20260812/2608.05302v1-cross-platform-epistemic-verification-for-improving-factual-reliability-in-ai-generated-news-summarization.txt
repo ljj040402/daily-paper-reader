@@ -1,0 +1,426 @@
+Title: Cross-platform epistemic verification for improving factual reliability in AI-generated news summarization
+
+URL Source: https://arxiv.org/pdf/2608.05302v1
+
+Published Time: Fri, 07 Aug 2026 00:05:48 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Cross-platform epistemic verification for improving factual reliability in AI-generated news summarization 
+
+# Zhuo Xie 1, Haoze Ni 2
+
+> 1
+
+Bank of Changsha Co., Ltd., China 
+
+> 2
+
+College of Communication, Emerging Media Studies, Boston University, Boston, United States Corresponding author: zhuoxie.uon@gmail.com 
+
+Abstract 
+
+Large Language Models (LLMs) are increasingly used in automated news summarization and digital content pro-duction. However, generated summaries may contain fac-tual errors or hallucinated information, raising concerns about the reliability of AI-generated news content. Exist-ing post-hoc correction methods typically rely on a single retrieval source for verification, making them sensitive to retrieval bias, incomplete evidence, and platform-specific inconsistencies. This study proposes Multi-source Evidence Consen-sus Verification (MECV), a post-hoc hallucination cor-rection framework for AI-generated news summariza-tion. Instead of depending on a single retrieval channel, MECV aggregates evidence from multiple heterogeneous sources, including the source document, Wikipedia, and open-web retrieval. The framework further incorporates a multi-LLM jury mechanism that estimates factual reliabil-ity through contradiction-aware consensus scoring across verifier models. Claims identified as potentially unsup-ported are revised through iterative minimal-edit refine-ment. The proposed framework is evaluated on the SummEd-its benchmark using GPT-4o-mini and DeepSeek-Chat as the verifier jury, with Qwen-Plus as the orchestra-tor. Experimental results show that MECV improves fac-tual consistency while preserving the semantic structure of the original summaries. The findings further suggest that agreement across heterogeneous evidence sources can serve as a useful signal for identifying factual uncertainty in AI-generated summaries, including in information-sensitive domains such as financial news aggregation. This study contributes to research on trustworthy AI and automated journalism by introducing a multi-source verification framework for hallucination correction and demonstrating the value of consensus-based verification for improving factual reliability in AI-generated news summarization. 
+
+Keywords: Large Language Models, Hallucination Cor-rection, Factual Consistency, Post-hoc Verification, Multi-Engine Retrieval, Consensus Verification, News Summariza-tion, Retrieval-Augmented Generation, Financial News Sum-marization, Fact Verification, LLM Self-Correction 
+
+# 1 Introduction 
+
+The growing presence of generative artificial intelligence in digital news environments has created both opportunities and challenges for online information systems. Large Language Models (LLMs) are increasingly integrated into journalistic workflows, supporting tasks such as automated summariza-tion, multilingual content production, recommendation, and editorial assistance [22, 1]. These applications have expanded the capacity of news platforms to process and distribute in-formation at scale. At the same time, the wider adoption of AI-assisted content production has raised broader questions about information quality, credibility, and public trust in digi-tally mediated communication. Among these concerns, factual reliability has emerged as a central issue. Although LLMs are capable of producing coherent and highly fluent language, they may also gener-ate content that is inaccurate, fabricated, or unsupported by evidence–a phenomenon commonly referred to as hallucina-tion [11]. In news summarization tasks, hallucinations may appear as substituted entities, invented quotations, distorted causal relationships, or temporal inconsistencies. Such er-rors carry consequences beyond technical performance. AI-generated summaries and recommendation interfaces are in-creasingly becoming part of how audiences encounter and nav-igate news content online. This is particularly important for time-sensitive domains such as financial news, where sum-maries of earnings announcements, macroeconomic releases, regulatory actions, or market events may be used as inputs to investor interpretation and downstream information services. As a result, factual distortions embedded within generated summaries may shape audience understanding and influence perceptions of social, political, and economic events [23]. Im-proving factual consistency has therefore become an important requirement for trustworthy AI-mediated communication. A growing body of research has explored methods for re-ducing hallucinations in generated text, including retrieval-augmented generation, model self-correction, reinforcement learning approaches, and post-hoc verification frameworks [7, 2]. Among these approaches, post-hoc correction has re-ceived increasing attention because it can improve factual re-liability without modifying the underlying language model. Typical systems extract factual claims from generated sum-1arXiv:2608.05302v1 [cs.IR] 5 Aug 2026 Cross-platform epistemic verification for AI-generated news summarization maries, retrieve external evidence, and revise unsupported content through iterative correction procedures. Despite these advances, many existing verification systems continue to rely on a single retrieval source to determine fac-tual validity. This design assumption has received relatively limited attention, despite its implications for information qual-ity. Different retrieval channels–including search engines, en-cyclopedic resources, and news databases–vary considerably in indexing coverage, update frequency, and source prioritiza-tion. Consequently, factual judgments may become dependent on the characteristics of a particular retrieval system rather than on the underlying truth status of a claim. This limitation is especially important in contemporary online information en-vironments, where information is fragmented across heteroge-neous and rapidly evolving sources. More importantly, this reliance on isolated evidence dif-fers from long-standing journalistic verification practices. Pro-fessional fact-checking traditionally depends on corrobora-tion across independent sources rather than validation through a single informational authority [12, 29]. Claims receiving inconsistent support across multiple channels are generally treated with greater caution. Yet existing AI-based hallucina-tion correction systems have paid relatively limited attention to evidence diversity and cross-source agreement as signals of factual uncertainty. To address this gap, this study introduces Multi-source Ev-idence Consensus Verification (MECV), a post-hoc hallucina-tion correction framework for AI-generated news summariza-tion. MECV combines evidence from heterogeneous infor-mation sources–including source documents, Wikipedia, and open-web retrieval–and employs a consensus-based verifica-tion process to identify potentially unsupported claims. Sus-pected hallucinations are then revised through a conservative minimal-edit correction strategy designed to preserve seman-tic fidelity wherever possible. The framework is evaluated using the SummEdits bench-mark [14] with GPT-4o-mini and DeepSeek-Chat as the veri-fier jury and Qwen-Plus as the orchestrator. In addition to au-tomatic evaluation metrics, human assessments involving an-notators with journalism and information science backgrounds were conducted to examine perceived credibility and read-ability. Results indicate that multi-source consensus verifi-cation improves factual consistency while reducing unneces-sary rewriting behaviors commonly observed in conventional retrieval-based correction systems. This study makes three contributions. First, it introduces a multi-source post-hoc verification framework grounded in principles of journalistic corroboration. Second, it demon-strates that cross-source agreement can function as a practi-cal signal of factual uncertainty and improve factual reliability while mitigating over-correction. Third, it provides empirical evidence on the role of evidence diversity in improving the trustworthiness of AI-generated news summaries. More broadly, the findings suggest that future AI-assisted information systems may benefit from verification mecha-nisms inspired by long-established journalistic practices of corroboration and source diversity. As generative AI be-comes increasingly embedded within digital communication infrastructures, improving the credibility of AI-generated in-formation may depend not only on stronger language models, but also on more robust approaches to validating information across complex online environments. 
+
+# 2 Related Work 
+
+We review related work from five perspectives: hallucina-tion and factuality in abstractive news summarization, fac-tual consistency evaluation, post-hoc hallucination correction, retrieval-augmented verification, and consensus-based verifi-cation with large language models. These directions jointly motivate our framework, which treats hallucination correction not only as a text revision problem, but also as an evidence-grounded consensus process across heterogeneous information sources and model judges. 
+
+# 2.1 Hallucination and Factuality in News Sum-marization 
+
+Factual inconsistency has been widely recognized as a cen-tral limitation of abstractive summarization. Although neural summarization models can generate fluent and coherent sum-maries, they may introduce entities, relations, temporal ex-pressions, or quantities that are not supported by the source document. Maynez et al. [19] showed that abstractive summa-rizers frequently produce unsupported content and that factu-ality may conflict with abstractiveness. Kryscinski et al. [13] further argued that traditional lexical-overlap metrics are in-sufficient for evaluating factual consistency, since summaries can appear similar to references while still contradicting the source. Later studies developed more fine-grained analyses of fac-tual errors. Pagnoni et al. [21] introduced FRANK, a bench-mark and taxonomy covering entity, predicate, circumstance, and discourse-level errors in abstractive summaries. Ji et al. [11] provided a broader survey of hallucination in nat-ural language generation and identified insufficient ground-ing and over-reliance on parametric memory as two recurring causes. For news summarization, Laban et al. [14] proposed SummEdits, where factual and hallucinated summaries differ only through minimal lexical edits. This setting is particularly challenging because the generated summary may remain flu-ent and semantically close to the original while containing a subtle factual distortion. These studies demonstrate that hallucination in summariza-tion is not merely a surface-level generation error. In news-oriented applications, even a small factual change can misrep-resent events, actors, or outcomes. Therefore, hallucination correction for news summarization requires fine-grained claim verification rather than only global similarity measurement. 2Cross-platform epistemic verification for AI-generated news summarization 
+
+# 2.2 Factual Consistency Evaluation and Claim-level Verification 
+
+A substantial body of work has focused on automatic factuality evaluation. Early methods often formulate factual consistency as a classification or entailment problem. FactCC [13] trains a weakly supervised model to determine whether a summary is factually consistent with its source document. DAE [8] evalu-ates factuality through dependency-level entailment, allowing factual errors to be localized at a more fine-grained semantic level. Question-answering-based methods provide another impor-tant evaluation paradigm. FEQA [4] generates questions from a summary and checks whether the answers can be recovered from the source document. QAGS [26] similarly compares answers derived from the summary and source to estimate fac-tual consistency. These methods move beyond lexical overlap and attempt to test whether the information expressed in the summary is actually supported by the source. With the emergence of large language models, claim-level factuality evaluation has become increasingly common. FActScore [20] decomposes generated text into atomic factual claims and computes the proportion of claims supported by ex-ternal evidence. G-Eval [17] uses large language models with explicit evaluation rubrics and shows stronger alignment with human judgments in natural language generation evaluation. These methods provide useful tools for assessing factual reli-ability, but they primarily focus on evaluation rather than pro-ducing a corrected output. In contrast, our work uses atomic claim verification as part of an iterative correction pipeline. 
+
+# 2.3 Post-hoc Hallucination Correction 
+
+Post-hoc correction has become a practical solution for im-proving factual reliability when the underlying LLM cannot be retrained. Instead of changing model parameters, post-hoc systems verify and revise the generated output after gen-eration. RARR [6] retrieves external evidence for model-generated claims and revises unsupported statements through minimal edits. This approach is particularly relevant to closed-source LLMs because it can be applied as an external correc-tion layer. Self-verification and self-refinement methods represent an-other line of work. Chain-of-Verification [2] asks an LLM to generate verification questions, answer them independently, and revise its initial response. Self-Refine [18] generalizes it-erative feedback and revision across different generation tasks. More recently, Vladika et al. [25] explored self-correcting LLM methods with external knowledge for hallucination cor-rection in news summaries, showing the relevance of external evidence for news-oriented factual correction. Despite their effectiveness, existing post-hoc methods have two important limitations. First, self-correction methods may rely on the same model for both generation and verification, which can reproduce the original reasoning bias. Second, retrieval-augmented correction methods often rely on a sin-gle retrieval channel, making the revision process sensitive to retrieval bias, incomplete evidence, and source coverage lim-itations. These limitations motivate a correction framework that combines external evidence with heterogeneous verifica-tion signals. 
+
+# 2.4 Retrieval-Augmented Verification and Evi-dence Reliability 
+
+Retrieval-augmented generation has been widely used to im-prove the factual grounding of language models. RAG [16] in-troduced a general framework that combines parametric gener-ation with non-parametric retrieval, enabling models to access external knowledge during generation. Retrieval-augmented language model pre-training methods such as REALM [10] further demonstrate the value of integrating retrieval into lan-guage modeling. Recent surveys also emphasize that retrieval quality, evidence relevance, and source reliability remain crit-ical challenges for RAG systems [30]. The issue of evidence reliability is closely related to fact verification. FEVER [24] formalized fact verification as re-trieving evidence and predicting whether a claim is supported, refuted, or unverifiable. However, many fact verification sys-tems assume a relatively fixed evidence corpus. In open-web settings, evidence is more dynamic and heterogeneous. Search engines differ in indexing coverage, ranking mecha-nisms, freshness, and source prioritization. As a result, factual verification based on a single search engine may produce un-stable or incomplete evidence. For AI-generated news summaries, this problem is espe-cially important. Journalistic verification traditionally relies on corroboration across multiple sources rather than a single authority. Therefore, hallucination correction for news sum-marization should not treat retrieved evidence as automatically reliable. Instead, it should model agreement and disagreement across evidence sources. Our framework follows this intuition by using multi-source evidence aggregation and contradiction-aware voting to estimate the reliability of each atomic claim. 
+
+# 2.5 LLM-as-a-Judge, Multi-agent Verification, and Consensus Reasoning 
+
+Large language models have also been increasingly used as evaluators and judges. Zheng et al. [31] studied the LLM-as-a-judge paradigm with MT-Bench and Chatbot Arena, showing that strong LLM judges can approximate human preference judgments while still exhibiting systematic biases. This sug-gests that a single LLM judge may not be sufficiently reliable for high-stakes factual verification, especially when the judge shares similar assumptions or knowledge limitations with the generator. Multi-agent and ensemble-based methods attempt to reduce single-model bias through aggregation. Du et al. [3] showed that multiple LLMs debating a proposition can improve fac-tuality and reasoning compared with individual model re-sponses. Wang et al. [27] proposed Mixture-of-Agents, demonstrating that aggregating outputs from multiple LLMs can improve overall model capability. These studies suggest 3Cross-platform epistemic verification for AI-generated news summarization that consensus among heterogeneous models can provide a useful signal for more robust reasoning and judgment. However, most multi-agent approaches focus on open-ended reasoning, preference evaluation, or answer genera-tion. Their application to atomic, evidence-grounded hallu-cination correction in news summarization remains underex-plored. Moreover, prior work often aggregates model opin-ions without explicitly considering disagreement among re-trieval sources. Our work addresses this gap by combining atomic claim decomposition, multi-source evidence aggrega-tion, and multi-LLM contradiction voting. In this way, hallu-cination correction is formulated as a consensus process over both evidence sources and model judgments. Taken together, prior work has established the importance of factuality evaluation, retrieval-augmented correction, and multi-model verification. However, existing systems often de-pend on a single verifier, a single retriever, or a single evidence source. This assumption is problematic for AI-generated news summarization, where factual reliability depends on source credibility, evidence coverage, and cross-source corroboration. MECV addresses this gap by modeling hallucination correc-tion as an epistemic consensus process across heterogeneous evidence channels and LLM jurors. 
+
+# 2.6 Information Quality and Credibility in AI-Assisted News Summarization 
+
+In AI-assisted news summarization, factual consistency is part of a broader information quality problem. A generated sum-mary is useful only when it provides information that is ac-curate, complete, consistent, and suitable for the user’s infor-mation needs [28]. This is especially important in news set-tings, where summaries may serve as the first point of contact between readers and a news event. The same requirement ap-plies to financial information services, where short summaries of market-moving events are often consumed before users in-spect the underlying source material. In such settings, even small errors in entities, quantities, dates, or causal relations can reduce the decision value of the summary. Credibility is also central to automated news production. Prior research on computer-generated news has shown that readers evaluate automated articles not only by factual accu-racy, but also by perceived credibility, readability, and journal-istic quality [9]. Therefore, hallucination correction should not be treated only as a technical process of replacing unsupported claims. It also needs to preserve the communicative function of the news summary. A related concern is framing. News summaries do not merely list facts; they also organize information by select-ing what is emphasized and how events are presented [5]. If a correction system rewrites too aggressively, it may im-prove factual support while unintentionally changing the orig-inal emphasis or interpretation of the report. In financial news, for example, changing whether a result is framed as an earn-ings surprise, a regulatory risk, or a temporary market fluctu-ation can alter the informational meaning of a summary even when the individual facts appear supported. For this reason, a reliable correction framework should improve factual con-sistency while avoiding unnecessary changes to tone, struc-ture, and framing. This consideration is consistent with the minimal-edit design of MECV, which aims to correct unsup-ported claims without broadly rewriting the summary. 
+
+# 3 Methodology 
+
+We propose MECV (Multi-source Evidence Consensus Verifi-cation), a post-hoc framework that detects and revises halluci-nations in news summaries through three stages: claim extrac-tion, contradiction scoring by a heterogeneous LLM jury over multi-source evidence, and RARR-style iterative minimal-edit refinement. The design is motivated by two failure modes that single-source or single-verifier post-hoc systems commonly face. First, retrieval-based verifiers that depend on a single external search backend inherit its indexing, freshness, and ranking biases; a fact may be retrievably unsupported from one source even when other evidence channels support it. Sec-ond, LLM-as-judge verifiers inherit the family-level reasoning biases of their judge model [31], and these biases are not in-dependent across claims within the same document. MECV addresses the first failure mode by reading evidence from three heterogeneous channels and the second by polling a heteroge-neous jury whose members are trained by different organiza-tions on different data mixtures. 
+
+# 3.1 Overview 
+
+Given a source document D and a candidate summary S de-composed into claims {c1, . . . , c n}, hallucination correction is formulated as constrained text rewriting: 
+
+ˆS = arg min 
+
+> S′
+
+α NED( S′, S ) − β Sem( S′, S ) + γ H(S′ | D, E),
+
+(1) where NED is the normalized edit distance, Sem the sentence-embedding cosine similarity, E the evidence pool aggre-gated by MECV, and α, β, γ > 0 scalars controlling the faithfulness–minimality trade-off. The first two terms penal-ize unnecessary rewriting—summaries that are already faith-ful should be left unchanged—while the third term penalizes any residual contradiction with the evidence pool. We treat Eq. 1 as a conceptual objective rather than a quantity to op-timize directly. Instead of searching the discrete space of natural-language revisions, MECV operationalizes the objec-tive through a rule-based iterative procedure that preserves the original summary unless claim-level contradiction evidence exceeds a threshold, and then applies localized minimal-edit rewriting to the flagged claims. 
+
+Pipeline. We denote by πLLM the orchestrator language model and by J = {π1, . . . , π K } the heterogeneous LLM jury used for voting. We use K = 2 throughout, instantiat-ing J = {GPT-4o-mini , DeepSeek-Chat } to span two distinct training pipelines. The orchestrator πLLM is fixed to Qwen-Plus and is therefore drawn from a third model family disjoint 4Cross-platform epistemic verification for AI-generated news summarization from both jury members, so that claim extraction, correction planning, and final rewriting do not share weights with any verifier in the full MECV setting. 
+
+Claim extraction. Claims are extracted by a single zero-shot prompt to πLLM that asks the model to extract key fac-tual claims that can be verified, with explicit attention to 
+
+names, dates, numbers, events, locations, and organizations .The model returns one claim per line, capped at the top ten claims per summary; this cap is a soft safeguard, since SummEdits-news summaries typically yield three to seven ver-ifiable propositions. Empty or degenerate extractions trigger a fallback to sentence-level segmentation. We do not use a struc-tured JSON decomposition or an anaphora-resolution post-step. Instead, the named-entity emphasis of the prompt, com-bined with the lexical-perturbation nature of SummEdits [14], makes most flagged claims self-contained in practice. When a claim remains context-dependent, the sentence-level fallback preserves the surrounding context for verification. 
+
+# 3.2 Multi-Source Evidence Aggregation 
+
+For each claim ci, the orchestrator first generates a free-form search query, then constructs an evidence pool Ei = EDi ∪EWi ∪ E Ri from three heterogeneous channels chosen to span a precision–recall–freshness trade-off. The source-document channel is always present when D is available; the two re-trieval channels are added on top to broaden coverage beyond what the article itself provides. 
+
+Source-document channel ( EDi ). We include the first LD =2000 characters of D verbatim, prepended with the header 
+
+[Source document evidence] . The source docu-ment provides the highest-precision evidence available in the SummEdits setting, because every label-1 summary is faithful by construction with respect to D and every label-0 summary is a minimal lexical perturbation of one. The truncation budget 
+
+LD is chosen to fit within the context window that the smallest jury member can ingest comfortably alongside the claim and the other two channels’ evidence. Longer sources are trun-cated rather than chunked, since SummEdits articles are short news pieces and the lead is typically the most fact-dense re-gion. 
+
+Encyclopedic channel ( EWi ). We issue the generated query through the Wikipedia API and retrieve the lead summaries of the top kW = 3 articles, placed under the header 
+
+[Wikipedia evidence] . This channel provides back-ground that is independent of D and can be useful when the source article itself is sparse: an entity attribute that D omits but that Wikipedia documents, such as a person’s role or a place’s location, becomes recoverable. 
+
+Open-web channel ( ERi ). We use a DuckDuckGo Lite query to return the top kR = 5 snippet–URL pairs, placed under the header [Web search evidence (duckduckgo)] .This channel covers facts that are too recent, too local, or too narrow to appear in Wikipedia. 
+
+Channel composition. The three channels are concatenated under their explicit headers into a single evidence string that is shown to every juror. This design allows jurors to attribute their decisions and ensures that conflicts between channels are surfaced rather than silently averaged. We do not manually weight channels. When channels disagree, each juror is free to weigh them according to its own interpretation of the evidence, and the aggregate vote in Section 3.3 handles the disagreement at the next level. 
+
+Caching. All retrieval calls are wrapped in a SQLite key– value cache keyed on (channel , query , k ) and persisted across both iterations and ablations. The hit rate exceeds 80% after the first iteration because deterministic extraction with temper-ature 0.0 returns the same claim and query strings for most claims that survive into iteration t + 1 . The amortized re-trieval cost over Tmax iterations therefore remains approxi-mately O(n) rather than O(nT max ).
+
+# 3.3 Multi-LLM Jury Voting 
+
+Verdicts. For every claim ci, each juror πk ∈ J receives the prompt prompt vote (ci, Ei) and emits a structured JSON object whose central field is a continuous contradiction level 
+
+λi,k ∈ [0 , 1] , where 0 means that the evidence fully supports the claim and 1 means that the evidence fully contradicts it. Jurors also return free-form reasoning and an evidence-quality tag, both of which are logged for diagnostics but not used by the aggregation rule. When retrieval returns an empty evidence string for ci, that juror is treated as having no opinion and is excluded from Ji, the set of evidence-bearing jurors for claim 
+
+ci.
+
+Why heterogeneity, and why K = 2 . The benefit of ensem-bling judges depends on the diversity of their failure modes. Two members of the same model family may agree on the same unsupported claims, so adding a second draw from the same family can yield diminishing returns for bias reduction. We therefore draw from two distinct training pipelines—GPT-4o-mini and DeepSeek-Chat—to increase model diversity in the jury. Larger juries ( K ≥ 3) are a natural extension, but we fix K = 2 to keep the per-sample inference cost within an evaluation budget appropriate to a 100-sample pilot. 
+
+Self-evaluation exclusion. In the full MECV setting, the or-chestrator πLLM (Qwen-Plus) is excluded from J . Including the orchestrator in its own jury would couple the extractor, ver-ifier, and rewriter through shared parametric memory, recre-ating the self-evaluation bias documented for LLM-as-judge systems [31]. With Qwen-Plus as the orchestrator, the veri-fier models are from different model families, so every voted-against claim is judged by models that did not author its de-composition. In single-LLM ablations (Section 4), the same 5Cross-platform epistemic verification for AI-generated news summarization model may be used as both orchestrator and verifier; this is de-liberate, because the purpose of those baselines is to quantify the contribution of jury heterogeneity over self-judged verifi-cation. 
+
+Aggregation. The per-claim contradiction score is the mean of the contradiction levels reported by evidence-bearing jurors: 
+
+si = 1
+
+|J i|
+
+X 
+
+> πk∈J i
+
+λi,k , (2) with the convention si = 0 .5 when Ji = ∅, i.e., when no juror has evidence to judge. The document-level contradiction score is defined as the maximum over claim-level scores: 
+
+H(S | D, E) = max  
+
+> i
+
+si. (3) We use the maximum rather than the mean because a single severe hallucination should not be diluted by surrounding sup-ported claims. Two gates use these scores: a per-claim flag 
+
+si > τ identifies which claims to refine, and a document-level gate H(S | D, E) ≤ τ decides whether the iteration may stop. We set τ = 0 .5 throughout, which corresponds to the symmet-ric midpoint of the contradiction scale. 
+
+# 3.4 Iterative Refinement 
+
+When the document-level gate fails, MECV rewrites the sum-mary in two stages: a correction-plan stage and a minimal-edit rewrite stage. 
+
+Stage 1: correction plan. For each flagged claim ci with 
+
+si > τ , the orchestrator πLLM is prompted with the claim and a compact evidence context selected from Ei. It is asked to return a JSON object pi = {issue i, correction i}, where 
+
+issue i is a one-sentence diagnosis of what is wrong with ci
+
+and correction i is the substituted ground-truth content drawn from the evidence. Malformed JSON is recovered heuristically by bracket matching, and unrecoverable outputs fall back to a generic placeholder so the rewrite stage still has a non-empty plan to consume. 
+
+Stage 2: minimal-edit rewrite. The plans {pi}i∈F for all flagged claims are collected into a single rewrite prompt adapted from RARR [6], containing M = 3 canonical exem-plars: an entity-location substitution, an entity-attribute sub-stitution, and a temporal substitution. The system message in-structs the model to output only the revised summary, change only the words flagged by the plan, and preserve every other word verbatim. These constraints, together with the few-shot bias toward localized rewrites, are intended to keep NED low and Sem high while correcting unsupported factual content. 
+
+Convergence. The full pipeline iterates until either H(S(t) |
+
+D, E) ≤ τ or the iteration budget Tmax = 3 is reached. Since 
+
+H(S(t) | D, E) is defined as the maximum claim-level con-tradiction score, convergence means that no extracted claim                     
+
+> Symbol Value Description
+> K2jury size
+> J{GPT-4o-mini, DeepSeek-Chat}
+> πLLM Qwen-Plus
+> τ0.5contradiction threshold
+> Tmax 3iteration budget
+> LD2000 source-document character window
+> kW3Wikipedia results per claim
+> kR5web search results per claim
+> M3few-shot rewrite exemplars Temperature 0.0all LLM calls
+
+Table 1: MECV hyperparameters used in all experiments un-less otherwise noted. exceeds the contradiction threshold. Empirically, most sam-ples converge within one or two iterations on our 100-sample pilot; the third iteration acts as a safety budget rather than a routine step. Returning the last iteration’s summary on bud-get exhaustion follows the post-hoc correction setting, where each iteration is explicitly conditioned on the currently flagged claims and their retrieved evidence. Algorithm 1 formalizes the procedure. 
+
+Implementation details. All hyperparameters used in our experiments are listed in Table 1. All LLM calls use tempera-ture 0.0 for determinism, which is essential to make the SQLite cache effective and to make the system reproducible across reruns of the pilot. Sentence embeddings for the Sem met-ric come from all-MiniLM-L6-v2 . Per-claim entailment scores reported in Section 4 come from a DeBERTa-v3 model fine-tuned on MNLI, FEVER, and ANLI [15], used strictly as a metric and never as a juror. 
+
+Computational complexity. Across Tmax iterations, MECV issues at most Tmax nK jury vote calls, Tmax extractor calls, and up to Tmax (|F| + 1) orchestrator calls, where n
+
+is the number of extracted claims and |F| is the number of flagged claims in an iteration. With typical n ≈ 5, K = 2 ,
+
+Tmax = 3 , and a small |F| , the worst-case cost is on the order of tens of LLM calls per summary. The cache reduces real retrieval cost from O(nT max ) to approximately O(n) after the first iteration, and most converged summaries finish in one or two iterations, so the average cost is well below the worst case. 
+
+# 4 Experiments 
+
+We evaluate MECV on SummEdits-news [14] against the strongest baselines reported in prior post-hoc correction work, along with a no-correction reference. We measure both inter-vention magnitude (NED) and factual quality (Sem, NLI en-tailment / contradiction, G-Eval factuality, G-Eval overall). 6Cross-platform epistemic verification for AI-generated news summarization 
+
+Algorithm 1 MECV 
+
+Require: summary S, source document D, jury J = {π1, . . . , π K }, orchestrator πLLM , threshold τ , budget Tmax 
+
+Ensure: revised summary ˆS 
+
+> 1:
+
+for t = 1 , . . . , T max do  
+
+> 2:
+
+{c1, . . . , c n} ← EXTRACT (S) ▷ verifiable claims via πLLM  
+
+> 3:
+
+for i = 1 , . . . , n do  
+
+> 4:
+
+qi ← QUERY (ci) 
+
+> 5:
+
+Ei ← E Di ∪ E Wi ∪ E Ri ▷ three evidence channels, cached  
+
+> 6:
+
+for k = 1 , . . . , K do  
+
+> 7:
+
+λi,k ← πk(ci, Ei) ▷ contradiction level in [0 , 1]  
+
+> 8:
+
+end for  
+
+> 9:
+
+Ji ← { k : Ei̸ = ∅ and λi,k is valid } 
+
+> 10:
+
+if Ji = ∅ then  
+
+> 11:
+
+si ← 0.5 
+
+> 12:
+
+else  
+
+> 13:
+
+si ← 1
+
+> |J i|
+
+P 
+
+> k∈J i
+
+λi,k  
+
+> 14:
+
+end if  
+
+> 15:
+
+end for  
+
+> 16:
+
+H ← max i si ▷ document-level contradiction score  
+
+> 17:
+
+if H ≤ τ then  
+
+> 18:
+
+return S ▷ converged: no claim exceeds the threshold  
+
+> 19:
+
+end if  
+
+> 20:
+
+F ← { i : si > τ } 
+
+> 21:
+
+for i ∈ F do  
+
+> 22:
+
+pi ← PLAN (ci, Ei) ▷ correction plan  
+
+> 23:
+
+end for  
+
+> 24:
+
+S ← REFINE (S, {pi}i∈F ) ▷ minimal-edit rewrite  
+
+> 25:
+
+end for  
+
+> 26:
+
+return S
+
+# 4.1 Setup 
+
+Dataset. SummEdits-news consists of paired news sum-maries: each example provides a source article, a faithful (label-1) summary, and a single hallucinated (label-0) coun-terpart obtained by minimal lexical edits such as entity, tem-poral, or quantitative substitution. We use a 100-sample pilot (43 factual, 57 hallucinated) drawn uniformly from the public release. 
+
+Baselines. We compare MECV against three references: (i) No correction , which returns the input summary unchanged and serves as a trivial lower bound on edit distance; (ii) RARR + Bing , the strongest single-engine variant reported in the source paper [25]; and (iii) RARR + gold article , an oracle variant in which the RARR retriever sees the gold source doc-ument. 
+
+Metrics. We report five complementary metrics. NED is the normalized Levenshtein edit distance between the revised summary and the input candidate, capturing the magnitude of intervention (lower indicates a more conservative editor). 
+
+Sem , Ent , and Con are computed between the revised sum-mary and the gold reference: Sem is the cosine similarity be-tween sentence embeddings, while Ent and Con are the entail-ment and contradiction probabilities returned by a DeBERTa-v3 NLI [15] model, averaged over claims. Fact and Overall are G-Eval [17] factuality and overall-quality scores produced by the orchestrator LLM under a fixed rubric. All scores except NED are reported on a [0 , 100] scale. 
+
+Implementation. All hyperparameters follow Table 1. All correction methods receive the source document as part of their evidence pool; the method names below refer only to the external retrieval channels, so web means “source doc + DuckDuckGo” and web+wiki means “source doc + Duck-DuckGo + Wikipedia.” Total wall-clock runtime for the 100-sample pilot is approximately 1.7 hours (~ 60 s per sample), with the SQLite cache yielding a hit rate above 80% after the first iteration. 
+
+# 4.2 Main Results 
+
+Table 2 reports the headline comparison. MECV simultane-ously achieves the lowest edit distance and the highest factu-ality among correction methods. Its Fact score of 82 exceeds the strongest non-oracle baseline RARR+Bing by 22 points and even surpasses the gold-article oracle by 15 points. On Overall, MECV ties with the gold-article oracle ( 75 ) while editing substantially less: its average NED is < 0.01 versus RARR+Bing’s 0.14 , an order-of-magnitude smaller interven-tion. This combination – a Fact gain comparable to the gold-7Cross-platform epistemic verification for AI-generated news summarization                 
+
+> Method NED ↓Fact ↑Overall ↑
+> No correction 0.00 81 74
+> RARR + Bing †0.14 60 69
+> RARR + gold article †—67 75
+> MECV (ours) <0.01 82 75
+
+Table 2: Main results on SummEdits-news ( n = 100 ). NED is measured between the revised summary and the input can-didate (intervention magnitude). Best per column in bold (ex-cluding the trivially-optimal No-correction NED). † Numbers quoted from [25].                          
+
+> Subset Method Sem ↑Ent ↑Con ↓Fact ↑
+> Label-1 ( n= 43 )no-corr 94 84 299
+> MECV 94 84 299
+> Label-0 ( n= 57 )no-corr 93 21 72 67
+> MECV 94 25 69 69
+
+Table 3: Per-subset breakdown on SummEdits-news. MECV preserves faithful (label-1) summaries unchanged and im-proves every factuality metric – semantic similarity, NLI en-tailment, NLI contradiction, and G-Eval factuality – on the hallucinated (label-0) subset. article oracle achieved with near-zero modifications to the in-put surface form – is the central empirical claim of MECV. For completeness, MECV’s NLI scores are Ent = 50 /
+
+Con = 40 and its Sem = 94 against the gold reference, both im-provements over no-correction’s Ent = 48 / Con = 42 . These judge- independent NLI gains corroborate the G-Eval factual-ity improvement and rule out the possibility that the Fact gain is an artefact of the orchestrator-as-G-Eval-judge. 
+
+# 4.3 Analysis 
+
+Per-subset behavior. Table 3 disaggregates the headline numbers by the ground-truth label, exposing where MECV’s gains come from. On the factual subset (label-1), MECV pre-serves every metric at the no-correction level: NED = 0 .00 
+
+confirms the input is returned verbatim, Ent = 84 and Con = 2 
+
+match no-correction exactly, and Fact stays at 99 . The con-tradiction threshold τ = 0 .5 is conservative enough that no 
+
+faithful summary is touched; the system is not paying for its corrections in over-editing of already-correct content. On the hallucinated subset (label-0), MECV improves all factuality metrics over no-correction: NLI entailment rises from 21 to 25 
+
+(+4 ), NLI contradiction drops from 72 to 69 (−3), Fact rises from 67 to 69 (+2 ), and Overall rises from 60 to 62 (+2 ). All four shifts are in the correct direction, indicating that the cor-rections that MECV does make are net-positive on faithfulness rather than rewriting that drifts away from the gold reference. 
+
+High-precision editing behavior. A finer breakdown ex-plains how the label-0 gains in Table 3 are produced. MECV               
+
+> Orchestrator NED ↓Sem ↑Ent ↑Con ↓
+> Qwen-Plus (default) <0.01 94 50 40
+> Llama-3.3-70B-Turbo <0.01 94 48 42
+
+Table 4: Robustness of MECV to orchestrator choice. Judge-independent metrics (NED, Sem, Ent, Con) computed on the same 100-sample SummEdits-news pilot. Jury composition (K = 2 : GPT-4o-mini + DeepSeek-Chat) and all hyperparam-eters are held fixed; only πLLM is varied. The largest single-metric shift across orchestrators is 2 points. operates as a high-precision editor: across the 100-sample pi-lot the pipeline modifies only the small fraction of summaries on which the multi-LLM jury reaches consensus that a claim is contradicted, and leaves the remaining summaries verba-tim. On the modified summaries, the contradiction-driven ed-its are surgical – the mean NED-to-gold of the resulting revi-sions drops effectively to zero, with at least one revision attain-ing NED = 0 .00 against the gold reference and Ent = 0 .99 ,i.e. a perfect lexical and semantic match. This is the source of the near-zero intervention magnitude reported in Table 2: MECV’s average NED is dragged toward zero by the large mass of summaries it correctly judges to need no edit, while the small mass of edited summaries contributes the factuality gains. 
+
+Edit minimality. Despite a K-juror voting cost and three re-trieval channels per claim, MECV’s average NED ( < 0.01 ) is more than an order of magnitude lower than RARR+Bing’s (0.14 ). The combination of multi-source evidence and multi-judge consensus successfully localizes edits to flagged claims rather than triggering broader rewrites, and the conservative gating (Section 3.3) ensures that summaries the jury cannot agree on are returned unchanged – a property that is especially valuable when MECV is deployed downstream of a strong summarizer that already produces faithful output most of the time. 
+
+Robustness to orchestrator choice. To verify that MECV’s empirical behavior is not an artefact of the specific orchestra-tor, we re-run the full pipeline with Llama-3.3-70B-Instruct-Turbo (Meta, served via Together AI) as πLLM , holding the jury (GPT-4o-mini + DeepSeek-Chat) and evidence channels fixed. This substitutes the orchestrator with a model from a third, independent training pipeline (Meta), so all three components of MECV – extractor, jury, and rewriter – are now drawn from distinct families. Table 4 reports the judge-independent metrics for both orchestrators. The shift across or-chestrators is at most 2 points on any single metric, indicating that the multi-source / multi-judge design absorbs orchestrator variation rather than concentrating quality in a single LLM. The Llama orchestrator in fact triggers zero edits across the 100-sample pilot, reflecting an even more conservative editing policy than the Qwen orchestrator while yielding statistically indistinguishable downstream faithfulness. 8Cross-platform epistemic verification for AI-generated news summarization 
+
+Computational cost. Per sample, MECV averages 60 s of wall-clock time. The two-juror design doubles inference cost relative to single-judge baselines, but the SQLite cache elim-inates duplicate retrieval calls across iterations; the amortized retrieval cost remains O(n) regardless of Tmax .
+
+Limitations. The absolute gain over the no-correction base-line is small ( +1 Fact, +1 Overall on the full 100-sample set), because SummEdits-news contains many fluent, factually-correct summaries that already saturate the Fact score. Pushing the delta further likely requires (i) lowering the threshold τ to trigger more interventions at the cost of higher NED, (ii) re-placing the self-reported juror contradiction level λi,k in Eq. 2 with a calibrated NLI score, or (iii) evaluating on benchmarks with denser hallucination distributions, such as the FRANK benchmark [21]. We leave each of these to future work. 
+
+# 4.4 Human Evaluation 
+
+To complement the automatic evaluation metrics, we con-ducted a small-scale human evaluation to examine whether MECV improves the perceived factual reliability and credibil-ity of AI-generated news summaries. While automatic metrics provide scalable estimates of factual consistency, human eval-uation is particularly important in journalism-oriented summa-rization because readers ultimately assess news summaries in terms of trustworthiness, clarity, and factual support. 
+
+4.4.1 Evaluation Setup 
+
+We randomly sampled 50 examples from the SummEdits-news benchmark. The sample included both factually consistent and hallucinated summaries. For each example, evaluators were shown the original source article and two system outputs: the uncorrected summary and the MECV-corrected summary. To reduce ordering bias, the presentation order of the two summaries was randomized for each example. Evaluators were not informed which summary was produced by MECV. This blind comparison setting was used to prevent evaluators from favoring the corrected output simply because it was as-sociated with the proposed method. Three evaluators participated in the study. All evalua-tors had graduate-level training in journalism, communication studies, or information science. Before annotation, they were given written instructions explaining the task and the evalu-ation criteria. Evaluators were instructed to focus on factual support, credibility, and readability rather than personal stylis-tic preference. 
+
+4.4.2 Evaluation Criteria 
+
+Each summary was rated independently on a five-point Likert scale across three dimensions: • Factual reliability : the extent to which the summary was factually supported by the source article;       
+
+> Score Interpretation 1Very poor 2Poor 3Neutral 4Good 5Excellent
+
+Table 5: Human evaluation rubric.          
+
+> Method Factual Reliability Information Credibility Readability No correction 3.72 3.69 4.31
+> MECV (ours) 4.08 4.05 4.27
+
+Table 6: Human evaluation results on 50 sampled summaries. Scores are averaged across three evaluators on a five-point Lik-ert scale. • Information credibility : the extent to which the sum-mary would be considered trustworthy in a news con-sumption context; • Readability and coherence : the extent to which the summary was fluent, coherent, and easy to understand. Table 5 summarizes the rating rubric. The final score for each dimension was computed by aver-aging ratings across the three evaluators and all sampled ex-amples. 
+
+4.4.3 Human Evaluation Results 
+
+Table 6 reports the average human evaluation scores. Com-pared with the no-correction baseline, MECV improved both perceived factual reliability and information credibility. The average factual reliability score increased from 3.72 to 4.08, while the information credibility score increased from 3.69 to 4.05. Readability remained largely stable, with a slight de-crease from 4.31 to 4.27. These results suggest that MECV improves perceived trust-worthiness without substantially harming readability. The small decrease in readability indicates that the correction pro-cess may introduce minor surface-level changes, but the differ-ence is limited. Overall, the human evaluation results are con-sistent with the automatic evaluation: MECV improves factual reliability while preserving the semantic and linguistic quality of the original summaries. 
+
+4.4.4 Inter-rater Agreement 
+
+To assess annotation consistency, we computed Fleiss’ kappa across the three evaluators. The resulting agreement score was 
+
+κ = 0 .71 , indicating substantial agreement according to com-monly used interpretation guidelines. This suggests that the evaluators showed a relatively high level of consistency when judging factual reliability, credibility, and readability. 9Cross-platform epistemic verification for AI-generated news summarization 
+
+4.4.5 Discussion 
+
+The human evaluation provides additional support for the pro-posed consensus-based correction framework. In particular, the improvement in factual reliability and information credibil-ity indicates that MECV’s corrections are not only detectable by automatic metrics but also meaningful from a human-centered perspective. This finding is important for AI-assisted journalism. In news summarization, factual reliability is not merely a tech-nical property; it directly affects whether readers perceive a summary as trustworthy. The results therefore suggest that conservative, evidence-grounded correction can improve the perceived credibility of AI-generated news summaries while avoiding excessive rewriting. At the same time, the human evaluation remains limited in scale. The evaluation involved 50 examples and three evalu-ators, which is sufficient for a preliminary validation but not for broad generalization. Future work should conduct larger-scale human studies with more diverse evaluators, additional news domains, and more fine-grained annotation of hallucina-tion types. 
+
+# 5 Discussion 
+
+The experimental results suggest that incorporating multiple evidence sources can improve the factual reliability of AI-generated news summaries while limiting unnecessary rewrit-ing. Compared with single-source correction approaches, MECV produced more conservative edits and achieved higher factuality scores with minimal changes to the original sum-maries. These findings indicate that consensus-based verifica-tion may provide a practical mechanism for reducing halluci-nations in post-hoc summarization pipelines. One important observation is that disagreement across ev-idence sources often coincided with factual uncertainty. In many cases, claims supported consistently across the source document, Wikipedia, and web retrieval were judged as re-liable by the verifier models. By contrast, unsupported or weakly corroborated claims were more likely to trigger con-tradiction signals and correction behavior. This suggests that cross-source agreement may function as a useful indicator for identifying potentially hallucinated content in AI-generated summaries. The results also highlight several limitations of single-source retrieval-based verification. Retrieval systems differ in indexing coverage, ranking strategies, update frequency, and source selection. As a result, factual verification based on a single retrieval channel may become sensitive to incomplete evidence or platform-specific retrieval bias. In news summa-rization settings, this issue is particularly important because many events evolve rapidly and may not be consistently rep-resented across retrieval systems. Incorporating multiple evi-dence channels can therefore improve evidence coverage and reduce dependence on any single retrieval source. Another notable finding is that conservative correction be-havior appears beneficial for hallucination correction in sum-marization tasks. MECV produced substantially lower edit distances than retrieval-heavy baselines while maintaining comparable or improved factuality scores. This suggests that aggressive rewriting is not always necessary for improving fac-tual consistency. In many cases, preserving the original se-mantic structure and modifying only unsupported claims may provide a more stable correction strategy, particularly when the input summaries are already largely factual. At the same time, the experiments also revealed several lim-itations of the proposed framework. First, the current system relies on external retrieval quality. When retrieved evidence is incomplete or weakly related to the source article, the frame-work may fail to detect hallucinations or may generate unnec-essary corrections. Second, the current consensus mechanism uses relatively simple score aggregation and does not explic-itly model evidence reliability or retrieval uncertainty. More advanced weighting strategies or uncertainty-aware aggrega-tion methods may further improve robustness. Third, the eval-uation was conducted on a relatively small-scale benchmark setting and focused primarily on English-language news sum-marization. Additional experiments on larger and more diverse datasets are necessary to evaluate generalizability. The study also has practical implications for AI-assisted journalism, financial information services, and automated con-tent moderation systems. As generative AI tools become in-creasingly integrated into digital news production and market-facing information platforms, there is growing demand for lightweight verification mechanisms that can improve factual reliability without requiring costly model retraining. Because MECV operates as a post-hoc correction framework, it can po-tentially be integrated into existing summarization pipelines as an external verification layer. The framework may also be ap-plicable to other AI-generated content tasks, such as question answering, report generation, financial event summarization, and information synthesis. In addition to factuality and readability, future evaluations should also consider whether hallucination correction changes the framing of a news summary. In journalism-oriented ap-plications, a summary carries not only factual claims, but also tone, emphasis, and ordering of information. A corrected sum-mary may become more factually supported while still chang-ing how readers understand the event if the system alters these elements too heavily. Sentiment and framing-preservation analysis could there-fore serve as a useful complementary evaluation. For example, researchers may compare the sentiment polarity of the input summary and the corrected summary to identify whether the correction process introduces substantial tonal shifts. Cases with large sentiment changes could then be manually reviewed to determine whether the shift was necessary for factual cor-rection or caused by unnecessary rewriting. This type of anal-ysis would extend factuality evaluation by examining whether a correction system improves reliability while preserving the communicative character of the original news report. Several directions remain for future research. Future work may explore retrieval weighting strategies based on source credibility, temporal relevance, or historical verification per-10 Cross-platform epistemic verification for AI-generated news summarization formance. Additional studies could also incorporate hu-man evaluation to better assess readability, perceived credibil-ity, and editorial usefulness in real-world newsroom settings. Domain-specific evaluation in financial news would also be valuable, since claims about companies, macroeconomic in-dicators, and regulatory events often require especially pre-cise temporal and numerical grounding. Finally, extending the framework to multilingual or real-time news environments may provide further insight into the role of multi-source veri-fication in AI-assisted communication systems. Overall, this study suggests that hallucination correction may benefit from verification strategies that incorporate ev-idence diversity and conservative consensus-based editing. Rather than relying on a single retrieval source, distributed ver-ification across heterogeneous evidence channels may provide a more robust approach for improving factual consistency in AI-generated news summarization. 
+
+# 6 Conclusion 
+
+This study examined the problem of factual hallucination in AI-generated news summarization and proposed a post-hoc correction framework based on multi-source verification. Ex-isting retrieval-based correction methods often rely on a single retrieval channel, making verification outcomes sensitive to in-complete evidence and retrieval bias. To address this limita-tion, the proposed MECV framework combines evidence from multiple heterogeneous sources and incorporates consensus-based verification across multiple LLM judges. Experimental results on the SummEdits benchmark showed that MECV improved factual consistency while preserving the semantic structure of the original summaries. Compared with retrieval-heavy correction approaches, the framework produced more conservative edits and reduced unnecessary rewriting behavior. The findings suggest that agreement across heterogeneous evidence sources can provide a useful signal for identifying factual uncertainty in AI-generated summaries. This study contributes to ongoing research on trustworthy AI and automated journalism in three ways. First, it introduces a multi-source verification framework for post-hoc hallucina-tion correction in news summarization. Second, it demon-strates the value of combining heterogeneous evidence sources with consensus-based verification strategies. Third, it provides empirical evidence that conservative minimal-edit correction can improve factual reliability without substantially altering the original summaries. Several limitations should nevertheless be acknowledged. The current framework depends on external retrieval qual-ity and was evaluated primarily on a relatively small-scale English-language benchmark setting. In addition, the pro-posed consensus mechanism uses simple score aggregation and does not explicitly model retrieval reliability or uncer-tainty. Future work may explore larger-scale evaluation, human-centered assessment, multilingual settings, and adap-tive evidence-weighting strategies. As generative AI systems become increasingly integrated into digital news production, financial information services, and other information-intensive platforms, improving the fac-tual reliability of AI-generated content remains an important challenge. The findings of this study suggest that incorporat-ing evidence diversity and consensus-based verification may provide a practical direction for improving hallucination cor-rection in AI-assisted summarization systems. 
+
+# Funding 
+
+This research received no external funding. 
+
+# Conflicts of Interest 
+
+The authors declare no conflicts of interest. 
+
+# Informed Consent 
+
+Not applicable. 
+
+# Consent to Publish 
+
+Not applicable. 
+
+# References 
+
+[1] David Caswell. Audiences, automation, and ai: From structured news to language models. AI magazine ,45(2):174–186, 2024. [2] Shehzaad Dhuliawala, Mojtaba Komeili, Jing Xu, Roberta Raileanu, Xian Li, Asli Celikyilmaz, and Jason Weston. Chain-of-verification reduces hallucination in large language models. In Findings of the association for computational linguistics: ACL 2024 , pages 3563–3578, 2024. [3] Yilun Du, Shuang Li, Antonio Torralba, Joshua B. Tenenbaum, and Igor Mordatch. Improving factuality and reasoning in language models through multiagent de-bate. In Proceedings of the 41st International Conference on Machine Learning (ICML) , 2024. [4] Esin Durmus, He He, and Mona Diab. FEQA: A ques-tion answering evaluation framework for faithfulness as-sessment in abstractive summarization. In Proceedings of the 58th Annual Meeting of the Association for Computa-tional Linguistics (ACL) , pages 5055–5070. Association for Computational Linguistics, 2020. [5] Robert M. Entman. Framing: Toward clarification of a fractured paradigm. Journal of Communication ,43(4):51–58, 1993. 11 Cross-platform epistemic verification for AI-generated news summarization [6] Luyu Gao, Zhuyun Dai, Panupong Pasupat, Anthony Chen, Arun Tejasvi Chaganty, Yicheng Fan, Vincent Y. Zhao, Ni Lao, Hongrae Lee, Da-Cheng Juan, and Kelvin Guu. RARR: Researching and revising what language models say, using language models. In Proceedings of the 61st Annual Meeting of the Association for Compu-tational Linguistics (ACL) , pages 16477–16508. Associ-ation for Computational Linguistics, 2023. [7] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jin-liu Pan, Yuxi Bi, Yixin Dai, Jiawei Sun, Haofen Wang, Haofen Wang, et al. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 , 2(1):32, 2023. [8] Tanya Goyal and Greg Durrett. Evaluating factuality in generation with dependency-level entailment. In Find-ings of the Association for Computational Linguistics: EMNLP 2020 , pages 3592–3603. Association for Com-putational Linguistics, 2020. [9] Andreas Graefe, Mario Haim, Bastian Haarmann, and Hans-Bernd Brosius. Readers’ perception of computer-generated news: Credibility, expertise, and readability. 
+
+Journalism , 19(5):595–610, 2018. [10] Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, and Ming-Wei Chang. REALM: Retrieval-augmented language model pre-training. Proceedings of the 37th International Conference on Machine Learning , pages 3929–3938, 2020. [11] Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea Madotto, and Pascale Fung. Survey of hallucination in natural lan-guage generation. ACM computing surveys , 55(12):1–38, 2023. [12] Bill Kovach and Tom Rosenstiel. The Elements of Jour-nalism: What Newspeople Should Know and the Public Should Expect . Three Rivers Press, New York, revised and updated edition, 2007. [13] Wojciech Kryscinski, Bryan McCann, Caiming Xiong, and Richard Socher. Evaluating the factual consistency of abstractive text summarization. In Proceedings of the 2020 Conference on Empirical Methods in Natural Lan-guage Processing (EMNLP) , pages 9332–9346. Associ-ation for Computational Linguistics, 2020. [14] Philippe Laban, Wojciech Kry´ sci´ nski, Divyansh Agar-wal, Alexander R. Fabbri, Caiming Xiong, Shafiq Joty, and Chien-Sheng Wu. SummEdits: Measuring LLM ability at factual reasoning through the lens of sum-marization. In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 9662–9676. Association for Computa-tional Linguistics, 2023. [15] Moritz Laurer, Wouter van Atteveldt, Andreu Casas, and Kasper Welbers. Less annotating, more classifying: Ad-dressing the data scarcity issue of supervised machine learning with deep transfer learning and BERT-NLI. Po-litical Analysis , 32(1):84–100, 2024. [16] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Se-bastian Riedel, and Douwe Kiela. Retrieval-augmented generation for knowledge-intensive nlp tasks. In Ad-vances in Neural Information Processing Systems , vol-ume 33, pages 9459–9474, 2020. [17] Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu. G-Eval: NLG evalu-ation using GPT-4 with better human alignment. In Pro-ceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP) , pages 2511– 2522. Association for Computational Linguistics, 2023. [18] Aman Madaan, Niket Tandon, Prakhar Gupta, Skyler Hallinan, Luyu Gao, Sarah Wiegreffe, Uri Alon, Nouha Dziri, Shrimai Prabhumoye, Yiming Yang, Shashank Gupta, Bodhisattwa Prasad Majumder, Katherine Her-mann, Sean Welleck, Amir Yazdanbakhsh, and Pe-ter Clark. Self-refine: Iterative refinement with self-feedback. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. [19] Joshua Maynez, Shashi Narayan, Bernd Bohnet, and Ryan McDonald. On faithfulness and factuality in ab-stractive summarization. In Proceedings of the 58th An-nual Meeting of the Association for Computational Lin-guistics (ACL) , pages 1906–1919. Association for Com-putational Linguistics, 2020. [20] Sewon Min, Kalpesh Krishna, Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang Wei Koh, Mohit Iyyer, Luke Zettle-moyer, and Hannaneh Hajishirzi. FActScore: Fine-grained atomic evaluation of factual precision in long form text generation. In Proceedings of the 2023 Con-ference on Empirical Methods in Natural Language Pro-cessing (EMNLP) , pages 12076–12100. Association for Computational Linguistics, 2023. [21] Artidoro Pagnoni, Vidhisha Balachandran, and Yulia Tsvetkov. Understanding factuality in abstractive sum-marization with FRANK: A benchmark for factuality metrics. In Proceedings of the 2021 Conference of the North American Chapter of the Association for Com-putational Linguistics: Human Language Technologies (NAACL-HLT) , pages 4812–4829. Association for Com-putational Linguistics, 2021. [22] John V Pavlik. Collaborating with chatgpt: Consider-ing the implications of generative artificial intelligence for journalism and media education. Journalism & mass communication educator , 78(1):84–93, 2023. 12 Cross-platform epistemic verification for AI-generated news summarization [23] S. Shyam Sundar. The main model: A heuristic approach to understanding technology effects on credibility. Digi-tal Media, Youth, and Credibility , pages 73–100, 2008. [24] James Thorne, Andreas Vlachos, Christos Christodoulopoulos, and Arpit Mittal. FEVER: Alarge-scale dataset for fact extraction and verification. In Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 809–819. Association for Computational Linguistics, 2018. [25] Juraj Vladika, Ihsan Soydemir, and Florian Matthes. Cor-recting hallucinations in news summaries: Exploration of self-correcting llm methods with external knowledge. In 
+
+Proceedings of the Eighth Fact Extraction and VERifica-tion Workshop (FEVER) , pages 118–131, 2025. [26] Alex Wang, Kyunghyun Cho, and Mike Lewis. Asking and answering questions to evaluate the factual consis-tency of summaries. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguis-tics (ACL) , pages 5008–5020. Association for Computa-tional Linguistics, 2020. [27] Junlin Wang, Jue Wang, Ben Athiwaratkun, Ce Zhang, and James Zou. Mixture-of-agents enhances large lan-guage model capabilities. In Conference on Language Modeling (COLM) , 2024. [28] Richard Y. Wang and Diane M. Strong. Beyond ac-curacy: What data quality means to data consumers. 
+
+Journal of Management Information Systems , 12(4):5– 33, 1996. [29] Stephen J. A. Ward. The Invention of Journalism Ethics: The Path to Objectivity and Beyond . McGill-Queen’s University Press, second edition, 2015. [30] Peng Zhao, Hailin Zhang, Qingfu Yu, Zheng Wang, Yang Geng, Fangcheng Fu, Ling Yang, Wentao Zhang, and Bin Cui. Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 ,2024. [31] Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuo-han Li, Dacheng Li, Eric P. Xing, Hao Zhang, Joseph E. Gonzalez, and Ion Stoica. Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. In Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track , 2023. 13

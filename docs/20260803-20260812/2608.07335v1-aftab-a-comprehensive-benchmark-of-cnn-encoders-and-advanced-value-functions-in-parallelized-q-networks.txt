@@ -1,0 +1,1069 @@
+Title: Aftab: A Comprehensive Benchmark of CNN Encoders and Advanced Value Functions in Parallelized Q-Networks
+
+URL Source: https://arxiv.org/pdf/2608.07335v1
+
+Published Time: Mon, 10 Aug 2026 01:13:15 GMT
+
+Number of Pages: 87
+
+Markdown Content:
+Aftab: A Comprehensive Benchmark of CNN Encoders and Advanced Value Functions in Parallelized Q-Networks 
+
+Taha Shieenavaz 1 (tahashieenavaz@gmail.com), Shabnam Zareshahraki 1
+
+(shabnamzaresh@gmail.com), Loris Nanni 1 (loris.nanni@unipd.it)  
+
+> 1
+
+Department of Information Engineering, University of Padua, Italy 
+
+Corresponding author at: Department of Information Engineering, University of Padua, Italy. 
+
+Taha Shieenavaz Email: tahashieenavaz@gmail.com Shabnam Zareshahraki Email: shabnamzaresh@gmail.com Department of Information Engineering, University of Padua, Italy arXiv:2608.07335v1 [cs.LG] 7 Aug 2026 Aftab: A Comprehensive Benchmark of CNN Encoders and Advanced Value Functions in Parallelized Q-Networks 
+
+Taha Shieenavaz a, ∗, Shabnam Zareshahraki a, Loris Nanni a
+
+> aDepartment of Information Engineering, University of Padua, Italy
+
+Abstract 
+
+Recent advancements in deep reinforcement learning have increasingly favored simplified, highly parallelized paradigms. Notably, the Parallelized Q-Network (PQN) algorithm achieves stable off-policy learning without relying on compu-tationally expensive replay buffers or target networks. However, the represen-tational capacity and parameter efficiency of visual encoders operating in these buffer-free settings remain underexplored. In this work, we systematically in-vestigate the architectural design space of Convolutional Neural Networks for PQN. We design and rigorously evaluate eight distinct CNN topologies, optimiz-ing for sample efficiency under strict parameter constraints. Furthermore, we study the impact of representation and value estimation enhancements by inte-grating the Hadamax encoding paradigm and advanced Q-learning extensions, including distributional, ensemble, and dueling heads. Extensive experiments on the Atari-57 benchmark demonstrate that our proposed composite architecture, Aftab, achieves an Interquartile Mean (IQM) Human-Normalized Score of 6.479, establishing a 0.86 Probability of Improvement over the standard PQN base-line. Additionally, structural resilience evaluations on the highly non-stationary Procgen Hard benchmark confirm out-of-distribution generalization, with Aftab yielding an IQM Procgen Normalized Score of 0.418 compared to the baseline’s       
+
+> ∗Corresponding author.
+> Email addresses: tahashieenavaz@gmail.com (Taha Shieenavaz),
+> shabnamzaresh@gmail.com (Shabnam Zareshahraki), loris.nanni@unipd.it (Loris Nanni)
+> Preprint submitted to Expert Systems with Applications August 10, 2026
+
+0.382. Ultimately, this work establishes an efficient, probabilistically superior structural reference for model-free reinforcement learning, all while preserving the simplicity and memory efficiency of unbuffered, parallelized optimization. The complete Aftab framework, including all model definitions, training con-figurations, and raw experimental logs, is open-sourced and available on our GitHub repository: https://github.com/tahashieenavaz/aftab .
+
+Keywords: Deep Reinforcement Learning, Convolutional Neural Networks, Parallelized Q-Network (PQN), Buffer-Free Learning, Hadamax Representation, Distributional Reinforcement Learning, Deep Ensembles, Dueling Architecture, Out-of-Distribution Generalization. 
+
+1. Introduction 
+
+Since the introduction of the Deep Q-Network (DQN) (Mnih et al., 2013), (Mnih et al., 2015), Deep Reinforcement Learning (DRL) has demonstrated proficiency in solving tasks within high-dimensional visual environments. This is achieved by mapping raw pixel intensities into the latent representations re-quired for value estimation. Central to this performance is the feature extractor, typically a Convolutional Neural Network (CNN) (LeCun et al., 1998), which is crucial for the overall quality of policy optimization. The field of Computer Vision (CV) has experienced a boom in recent years, with the emergence of advanced systems, e.g., deep Residual Networks (ResNets) (He et al., 2016), automated Neural Architecture Search (NASNet) (Zoph et al., 2017), and Vision Transformers (ViTs) (Dosovitskiy et al., 2021). Although re-cent agents have integrated deeper encoders, such as the 15-layer deep Residual Networks (ResNets) used in IMPALA for multi-task environments (Espeholt et al., 2018), or the deep residual architectures in AlphaGo Zero (Silver et al., 2017), many model-free DRL efforts continue to rely on the three-layer CNN architecture established in 2013 (Mnih et al., 2013). Furthermore, the transition to continuous control tasks, exemplified by (Lil-licrap et al., 2015), highlights the necessity for robust feature extraction across 2diverse action spaces. Similarly, the Rainbow agent (Hessel et al., 2018) im-proved performance by combining multiple algorithmic enhancements, including distributional RL (Bellemare et al., 2017) and multi-step returns, into a single framework, though largely retaining standard convolutional principles. Other recent advancements have also automated the discovery of RL rules and stabilized learning objectives in buffer-free regimes. DiscoRL introduced an autonomous method for discovering RL rules represented by meta-networks (Oh et al., 2025). Similarly, the Parallelized Q-Network (PQN) framework addressed off-policy optimization instabilities by leveraging Layer Normalization and vec-torized sampling (Gallici et al., 2024). PQN and subsequent representational adaptations like Hadamax (Kooi et al., 2025) have modernized the learning objective; the underlying convolutional backbone remains largely unexamined. This suggests further potential for architectural improvement within parallelized model-free RL. We address this gap through an empirical evaluation within the PQN frame-work, utilizing the Atari-57 benchmark suite (Bellemare et al., 2013) and vector-ized simulation via EnvPool (Weng et al., 2022). We structured our investiga-tion in three progressive phases to isolate the impact of topological design from algorithmic capacity. First, we evaluated eight parameter-constrained CNN ar-chitectures (denoted Alpha through Theta). By controlling model capacity, we isolated the structural inductive biases that affect agent generalization. While the Alpha variant achieved an Interquartile Mean (IQM) human-normalized score (HNS) of 3.536, our analysis of performance relative to model complexity identified the Gamma model (3.481 IQM HNS) as a balanced foundation, out-performing PQN (Gallici et al., 2024), which is our baseline (2.692 IQM HNS), while maintaining an efficient parameter footprint. The Gamma model inves-tigates the effect of increased hierarchical depth by introducing two additional layers compared to the PQN architecture. To control the parameter count in the encoder, channels are expanded gradually across the first three layers. This results in a model slightly larger than PQN but strictly smaller than Alpha. Based on the performance of the Gamma architecture, the second phase of 3our study evaluated its integration with non-linear feature interaction mecha-nisms. We integrated Hadamax (Hadamard Max-Pooling) (Kooi et al., 2025) principles, evaluating Hadamax against the Gamma-Hadamax-Valid, which in-corporates the same parameter setting as the PQN-Hadamax and sets the ‘pool_padding‘ parameter to 0 to act as a ’valid’ padding, and Gamma-Hadamax-Same, which only sets the ‘pool_padding‘ parameter to 1 in two layers, thus retaining the ’same’ dimensions. Finally, we extend the Gamma-Hadamax-Valid encoder with advanced regression heads. We evaluate the integration of Distributional RL (Bellemare et al., 2017), Deep Ensembles adapted from Boot-strapped exploration (Osband et al., 2016), (Nauman et al., 2024), and Dueling architectures (Wang et al., 2016). By evaluating Gamma-Hadamax-Same with a Distributional Dueling head, an Ensemble Dueling head, and a unified Dis-tributional Ensemble Dueling head, we present an empirical analysis of sample efficiency and performance in off-policy learning. Finally, we report the results of running our final system on the Procgen Benchmark, which provides a direct measure of how quickly a reinforcement learning agent learns generalizable skills (Cobbe et al., 2019). Procgen Bench-mark consists of 16 unique environments designed to measure both sample effi-ciency and generalization in reinforcement learning. All environments support two well-calibrated difficulty settings: easy and hard. This difficulty refers to the level distribution and not to individual levels; in both settings, the difficulty of individual levels has high variance (Cobbe et al., 2019). We report results using the hard difficulty setting. While our approach achieves a median HNS of 4.42, which is inherently lower than the raw state-of-the-art scores produced by massive, replay-buffer-dependent methods like GDI (Fan & Xiao, 2022) or MuZero (Schrittwieser et al., 2020), competing on unconstrained raw performance is not the objective of this work. We position Aftab as an empirically strong buffer-free alternative for memory-constrained and high-throughput environments. Notably, while the original PQN framework utilized ℓ2 regularization to prevent value overestima-tion, we empirically investigate whether architectural topology and normaliza-4tion can support stable training when weight decay is removed under a fixed Atari-57 protocol. In summary, our primary contributions are: • Systematic Encoder Evaluation: A benchmarking of eight parameter-constrained CNN topologies within PQN, identifying Gamma as a favor-able balance of computational efficiency and performance. • Hadamax Synergies: The architectural integration of the Gamma topol-ogy with Hadamard max-pooling mechanisms improves baseline represen-tational capacity. • Advanced Value-Head Ablation: An empirical evaluation of Distribu-tional, Ensemble, and Dueling paradigms applied atop a Hadamax-optimized backbone in a parallelized, replay-free setting. We name our final, composite model Aftab, Persian for sunshine, as a the-matic nod to the Rainbow agent, reflecting our strategy of unifying advanced reinforcement learning paradigms into a single entity. 
+
+2. Related Work 
+
+Different neural network architectures have been applied in reinforcement learning (RL) across online settings (Mnih et al., 2013; Bellemare et al., 2017; Espeholt et al., 2018; Hessel et al., 2018; Gallici et al., 2024; Lee et al., 2024) and offline limited-data scenarios (Bhatt et al., 2019; Chen et al., 2021; Schwarzer et al., 2023). In this work, we focus on model-free agents in the Atari-57 domain, a benchmark requiring discrete action selection from raw pixel inputs. 
+
+2.1. Architectural Evolution of Convolutional Encoders 
+
+The work of (Mnih et al., 2013) introduced the Deep Q-Network (DQN), an agent that learns policies directly from high-dimensional sensory inputs. By utilizing experience replay and target networks, DQN was evaluated across a 5variety of Atari 2600 games. This architecture relied on a three-layer Convolu-tional Neural Network (CNN) feature extractor (Mnih et al., 2015). This backbone remained the standard for many subsequent algorithmic mod-ifications, including Double DQN (Van Hasselt et al., 2016), Dueling DQN (Wang et al., 2016), Categorical DQN (C51) (Bellemare et al., 2017), and the composite Rainbow agent (Hessel et al., 2018). Recent RL agents have inte-grated deeper encoders, such as the 15-layer ResNet structure utilized in IM-PALA for multi-task environments (Espeholt et al., 2018), or the deep residual architectures in AlphaGo Zero (Silver et al., 2017). However, these deeper struc-tures often introduce large parameter counts, reaching into the tens of millions. This scaling makes it difficult to determine whether performance changes are derived from specific structural choices or an increase in raw capacity. Thus, we propose to evaluate the impact of the various CNN encoders by constraining the parameter count to remain comparable to the original DQN, which is the same as PQN. 
+
+2.2. Buffer-Free Optimization and Vectorized Frameworks 
+
+Historically, stabilizing value-based RL required large experience replay buffers to break the temporal correlations of sequential data and anchor moving targets. Efforts to reduce this computational overhead led to the Parallelized Q-Network (PQN) (Gallici et al., 2024). PQN stabilizes training without a target network or a large replay buffer by integrating Layer Normalization (Ba et al., 2016) and targeted ℓ2 regularization, bounding the non-linear updates of off-policy Temporal Difference (TD) learning. Concurrently, advancements in vectorized simulation engines, such as En-vPool (Weng et al., 2022), have drastically accelerated environment sampling throughput. By leveraging these synchronous, highly parallelized environments alongside hardware-accelerated frameworks like JAX (Bradbury et al., 2018), al-gorithms such as PQN can evaluate multi-step λ-returns with computational ef-ficiency. While subsequent representational modifications, such as the Hadamax encoder (Kooi et al., 2025), have adapted PQN by replacing standard convo-6lutional down-sampling with Hadamard products and max-pooling, they have inherited the base CNN topological hierarchy without systematically evaluating the underlying structure. In this study, we not only assess the performance of various CNN archi-tectures against the one implemented in DQN by substituting the CNN feature extractor in the PQN framework, but also we integrate the optimal architecture, Gamma, with the Hadamax architecture to obtain Gamma-Hadamax. 
+
+2.3. Advanced Regression and Representation Synergies 
+
+Beyond the visual feature extractor, the design of the regression head affects sample efficiency. Dueling networks decouple state-value estimation from action-advantage (Wang et al., 2016), while Distributional RL predicts the categorical distribution of returns rather than a single scalar expectation (Bellemare et al., 2017). Furthermore, Bootstrapped DQN utilizes multi-head architectures to approximate Thompson sampling, driving exploration via epistemic uncertainty (Osband et al., 2016). While the Rainbow agent (Hessel et al., 2018) demonstrated that these al-gorithmic extensions are complementary in a replay-buffer-driven setting, their application atop non-linear encoders (like Hadamax) within a buffer-free, paral-lelized regime remains largely unexplored. By evaluating the integration of these advanced heads, adapting bootstrapping into deep ensembles on the Gamma-Hadamax backbone, we aim to provide an empirical reference point for online, off-policy learning. 
+
+3. Preliminaries 
+
+We briefly formalize the general value-based reinforcement learning paradigm, the PQN framework, and the advanced representational and regression mecha-nisms that lay the groundwork for our architectural ablations. 73.1. Value-Based RL and DQN 
+
+We consider tasks where an agent interacts with an environment E (such as an Atari emulator (Bellemare et al., 2013)) through a sequence of actions, observations, and rewards. This interaction is modeled as a Markov Decision Process (MDP), defined by the tuple ⟨S , A, P, R, γ ⟩ (Sutton & Barto, 2018). At each time step t, the agent in state st ∈ S selects an action at from the discrete set of legal actions A = {1, . . . , K }. The environment transitions to the next state st+1 ∼ P (· | st, a t) and emits a scalar reward rt ∼ R (st, a t). In pixel-based environments, the true state is partially observable; thus, the agent’s state 
+
+st is typically constructed by stacking recent raw pixel observations xt ∈ Rd to capture temporal dependencies (Mnih et al., 2013). The goal of the agent is to maximize the expected discounted return Rt:
+
+Rt =
+
+> ∞
+
+X
+
+> k=0
+
+γkrt+k
+
+where γ ∈ [0 , 1) is the discount factor. In value-based methods, we aim to learn the optimal action-value function Q∗(s, a ), which represents the maximum ex-pected return achievable by taking action a in state s and following the optimal policy π thereafter: 
+
+Q∗(s, a ) = max  
+
+> π
+
+E[Rt | st = s, a t = a, π ]
+
+To handle high-dimensional visual spaces, DQN (Mnih et al., 2013) approx-imates the action-value function using a Convolutional Neural Network (CNN) parameterized by θ. The network minimizes the Mean Squared Error (MSE) between its predictions and the Temporal Difference (TD) target yi:
+
+Li(θi) = Es,a,r,s ′
+
+h
+
+(yi − Q(s, a ; θi)) 2i
+
+yi = r + γ max  
+
+> a′∈A
+
+Q(s′, a ′; θi−1)
+
+To prevent divergence caused by the "deadly triad" of off-policy learning, function approximation, and bootstrapping (Sutton & Barto, 2018), DQN relies on two primary stabilizing mechanisms: an Experience Replay buffer to decor-relate temporal transitions, and a periodically updated Target Network ( θi−1)8to stabilize the TD targets. Following the convention in deep reinforcement learning literature, we refer to the 2015 formulation of Deep Q-Networks (Mnih et al., 2015) as ’Nature DQN’, representing the canonical baseline equipped with target networks and the standard Nature CNN architecture. 
+
+3.2. Parallelized Q-Network (PQN) 
+
+PQN (Gallici et al., 2024) is an online RL algorithm that modernizes DQN by eliminating the need for target networks and large replay buffers. By leverag-ing vectorized environments, PQN parallelizes interaction and learning in syn-chronous batches, altering the stability dynamics of off-policy TD learning. Because TD updates are not exact gradients of a global objective function, they must be analyzed as stochastic approximation algorithms. The stability of the parameter vector ϕ is determined via the TD Jacobian: 
+
+J(ϕ) := ∇ϕδ(ϕ)
+
+where δ(ϕ) is the expected TD update vector. The system remains stable if the Jacobian is negative definite, meaning the update acts as a strict contraction mapping: 
+
+v⊤J(ϕ)v < 0, ∀v̸ = 0 
+
+where v is an arbitrary non-zero test vector. This stability criterion decomposes into Off-policy Instability ( COffPolicy ) and Nonlinear Instability ( CNonlinear ). PQN establishes stability by demonstrating that Layer Normalization (Ba et al., 2016) upper-bounds the expected norm of the activations, mitigating COffPolicy ,while increasing network width and applying targeted ℓ2 regularization controls the curvature of CNonlinear .To improve sample efficiency and handle credit assignment over parallel tra-jectories of length T , PQN utilizes λ-returns computed recursively backward in time: 
+
+Rλt = rt + γ
+
+h
+
+λR λt+1 + (1 − λ) max  
+
+> a′
+
+Qϕ(st+1 , a ′)
+
+i
+
+This target interpolates between one-step TD and Monte Carlo returns, provid-ing stable, multi-step gradient flows without a replay buffer (see Figure 1). 9Single Actor/Env 
+
+> Transitions
+> Large Replay Buffer
+> Sampled Minibatch
+> Learner Q-Network
+> Used for Target values
+> Delayed Parameter Copy
+> Target Network (a) Nature DQN Architecture
+
+Vectorized Envs (Parallel Worlds) 
+
+> Synchronous Batch
+
+Current Learning
+Batch 
+
+> Direct Online Update
+
+Regularized Q-network  (b) PQN Architecture 
+
+Figure 1: (a) Nature DQN highlights the standard workflow: a single actor populates a Replay Buffer, and a frozen Target Network is required to calculate stable learning targets. 
+
+(b) PQN demonstrates the streamlined approach: multiple Vectorized Environments provide synchronous batches directly to the Learner Q-Network, eliminating the Target Network and Replay Buffer. 
+
+3.3. Hadamax Encoder 
+
+The Hadamax (Hadamard Max-Pooling) encoder (Kooi et al., 2025) aug-ments standard CNN architectures by replacing spatial convolutional strides with max-pooling and introducing multiplicative non-linear interactions (see Figure 2). It alters representational capacity without expanding hidden layer dimensionality. A Hadamax hidden layer zj is formally defined as the element-wise Hadamard product ( ⊙) of two parallel, normalized projections: 
+
+zj = MP 
+
+
+
+f  LN (zj−1W j−11 ) ⊙ f  LN (zj−1W j−12 )
+
+where W j−11 and W j−12 are the learned weight kernels for the two parallel paths, LN denotes Layer Normalization, and MP is the Max-Pooling operator used for spatial down-sampling. Crucially, Hadamax replaces ReLU with the Gaussian Error Linear Unit (GELU) (Hendrycks & Gimpel, 2016): GELU (x) = x · 12
+
+
+
+1 + erf 
+
+ x
+
+√2
+
+ 
+
+10 By permitting small negative values, GELU prevents zero-saturation during the element-wise multiplication, supporting stable gradient flow within the PQN framework. Convolutional Layer 
+
+ReLU 
+
+(a) Nature DQN Block Convolutional Layer  
+
+> LayerNorm
+> ReLU
+
+(b) PQN Block Convolutional Layer  Convolutional Layer    
+
+> LayerNorm LayerNorm
+> GELU GELU
+> Hadamard Product
+> MaxPool
+
+(c) Hadamax Block 
+
+Figure 2: Evolution of Convolutional Processing Blocks. (a) The standard unnormalized DQN block relying on spatial striding. (b) The PQN block stabilized via Layer Normalization to bound off-policy activations. (c) The Hadamax block replaces spatial strides with max-pooling and utilizes parallel Hadamard multiplicative interactions with zero-saturating GELU activations. 
+
+3.4. Dueling Network Architectures 
+
+The dueling architecture (Wang et al., 2016) explicitly decomposes the action-value function into a state-value function V (s) and a state-dependent action-advantage function A(s, a ). The network represents two separate estimators: one for the state value function, parameterized by β, and one for the state-dependent action advantage function, parameterized by α. To ensure parameter identifiability and zero-mean advantage centering, the streams are aggregated via: 
+
+Q(s, a ; θ, α, β ) = V (s; θ, β ) + A(s, a ; θ, α ) − 1
+
+|A| 
+
+X
+
+a′∈A 
+
+A(s, a ′; θ, α )
+
+!
+
+This baseline subtraction isolates the relative utility of actions, improving policy evaluation in environments with many redundant actions. Figure 3 illustrates this architecture. 11 Convolutional Encoder 
+
+> State-value Stream
+> Advantage Stream
+
++ Q-Value Figure 3: Dueling Network Architecture. The shared convolutional feature extractor bifurcates into separate scalar state-value and vector action-advantage streams before aggregating into the final Q-value. This topology forms the structural backbone for our Phase 3 evaluations. 
+
+3.5. Distributional Reinforcement Learning 
+
+Standard value-based RL models the expected return. Distributional RL (Bellemare et al., 2017), conversely, models the entire probability distribution of the random return, denoted by the random variable Z(s, a ). The distributional Bellman equation establishes that the distribution of this return is characterized by the interaction of the immediate reward, the transition dynamics, and the next-state value distribution. This is formally defined as: 
+
+Z(s, a ) D
+
+= R(s, a ) + γZ (s′, a )
+
+where D
+
+= denotes equality in distribution, meaning that the random variables on both sides of the equation share the same probability distribution.In the C51 algorithmic formulation, the value distribution is approximated by a dis-crete categorical distribution. This distribution is parameterized by N discrete atoms (supports) zi uniformly spaced across a defined range [Vmin , V max ], with corresponding probabilities pi(s, a ). The network outputs these probabilities via a softmax layer, and learning is achieved by minimizing the Kullback-Leibler (KL) divergence between the predicted distribution and the Bellman-projected target distribution, which is formed by shrinking, shifting, and projecting the target back onto the fixed support.Building upon this foundation, recent ad-vancements, most notably the "Stop Regressing" framework (Farebrother et al., 2024), have demonstrated that reframing value estimation entirely as a classifi-cation task significantly enhances scalability and mitigates non-stationarity in deep reinforcement learning. Rather than explicitly modeling the distributional 12 return via the categorical projection of C51, this architectural paradigm casts the scalar expected return directly as a classification problem. As illustrated in Figure X, our model adopts this approach by utilizing the Histogram Loss (HL-Gauss) projection. This projection models the continuous scalar Bellman target as the mean of a Gaussian distribution, which is subsequently integrated across the discrete bin widths to distribute probability mass smoothly across neighboring categorical bins. This approach replaces standard mean-squared error regression with categorical cross-entropy classification, yielding stable gra-dients, mitigating overfitting through label smoothing, and providing superior robustness against the noisy temporal-difference targets inherent to buffer-free regimes. 
+
+3.6. Bootstrapped Exploration 
+
+To drive directed exploration without relying solely on ϵ-greedy heuristics, Bootstrapped DQN (Osband et al., 2016) approximates Thompson sampling via an ensemble of K distinct Q-network heads, sharing a common feature extractor. Each head Qk(s, a ; θ, θ k) is trained on a distinct subset of the data stream, traditionally achieved via a Bernoulli masking distribution mt ∼ Bernoulli (p).During an episode, a single head is sampled uniformly to dictate the policy, allowing the agent to execute temporally extended exploratory behaviors based on the epistemic uncertainty of the ensemble. 
+
+4. Methodology 
+
+4.1. Phase 1: Convolutional Architectures 
+
+In the first phase of our study, we evaluate eight distinct Convolutional Neural Network (CNN) architectures. The objective is to systematically ex-plore how structural characteristics, such as hierarchical depth, receptive field (kernel size), and spatial downsampling (stride), affect the performance of deep reinforcement learning agents. To ensure a rigorous and controlled evaluation, all architectures are im-plemented within the PQN framework (Gallici et al., 2024). Furthermore, all 13 State (s), Action (a)  Scalar Bellman Target: y 
+
+Value Network
+Q(s,a;θ)  Projection Method  
+
+> Two-Hot HL-Gauss
+
+Logits: l2(s, a;θ) 
+
+Mass strictly on 2 adjacent bins zi  Gaussian smoothed mass across bins zi 
+
+> Softmax
+
+Predicted Probabilities: pi(s, a;θ)  Target Probabilities: pi*(s, a;θ-) 
+
+Cross Entropy Loss 
+
+Gradient Update to θ Figure 4: The "Regression as Classification" Optimization Pipeline. The diagram illustrates the parallel transformation of network predictions and scalar Temporal-Difference (TD) tar-gets into categorical probability distributions. On the left pathway, the active Value Network, parameterized by θ, maps a state-action pair (s, a ) to continuous logits, which are subsequently converted into predicted categorical probabilities pi(s, a ; θ) via a softmax operator. On the right pathway, a scalar Bellman target y, derived using the frozen target network parameters 
+
+θ−, is projected onto a set of discrete support bins zi. This transformation utilizes either the Two-Hot projection (which allocates probability mass strictly to the two immediately adjacent bins) or the HL-Gauss projection (which applies a Gaussian smoothing function to distribute mass continuously across multiple neighboring bins) to construct the target prob-abilities p∗ 
+
+> i
+
+(s, a ; θ−). The network is optimized iteratively by minimizing the Cross-Entropy loss between the predicted and target distributions, passing the resulting gradient updates back to θ.
+
+models process a consistent input state: a tensor of four consecutive grayscale environmental frames, stacked to form an input shape of 4 × 84 × 84 .
+
+4.1.1. Architectural Terminology and Baseline Definitions 
+
+To facilitate clarity across varied disciplines, we explicitly define the architec-tural parameters utilized in our study. As detailed in Table 1, each convolutional layer is specified by a five-element tuple: (Input Channels, Output Channels, 14 Kernel Size, Stride, Padding). • Channels: The depth of the feature maps, dictating the network’s ca-pacity to learn independent spatial features. • Kernel Size: The spatial dimensions of the sliding filter used to extract features. • Stride: The step size of the filter across the spatial dimensions, which governs the rate of spatial dimensionality reduction. • Padding: The addition of zero-values to the spatial borders of the input tensor, utilized to control the spatial dimensions of the output feature map. Additionally, all architectures utilize two-dimensional Layer Normalization (to stabilize the learning process by normalizing inputs across the feature dimen-sion) and Rectified Linear Unit (ReLU) activations, defined mathematically as 
+
+f (x) = max(0 , x ), to introduce non-linearity. To measure computational com-plexity, we report the number of Floating Point Operations (FLOPs) required for a single forward pass. 
+
+4.1.2. Controlling Model Capacity 
+
+Our experimental design isolates structural differences from overall capacity scaling by monitoring model complexity across two interdependent dimensions: • Encoder Parameters: The weights contained strictly within the con-volutional feature extractor. To establish a fair baseline, we artificially constrain the encoder parameter count in the Beta, Delta, Epsilon, Eta, Zeta, and Theta variants to closely match that of the baseline PQN model (≈ 78 k parameters). • Regression Head Parameters: The weights in the final fully-connected layers responsible for value estimation. The footprint of this head is inex-tricably linked to the encoder’s output spatial resolution. Variants utiliz-ing fewer strides or smaller kernels output larger flattened feature maps, 15 consequently increasing the number of trainable weights in the regression head. As summarized in Table 2, the total parameter count is largely governed by this final CNN feature map size. By partitioning the parameter counts and FLOPs between the encoder and the regression head, we can effectively discern whether empirical performance changes are driven by the network’s total capacity or by its specific spatial configuration. 
+
+4.1.3. Evaluation Suite Specifications 
+
+We design eight variants ( Alpha through Theta ) to test specific structural hypotheses against the PQN baseline. The baseline features three convolu-tional layers, culminating in a flattened feature vector of size 3,136 and a total parameter count of ≈ 1.76 M. 
+
+Alpha closely mirrors the baseline’s initial channel counts but adds a fourth layer with 64 channels. This nearly doubles the encoder’s parameter count to 174,752, testing the effect of increased representational capacity while yielding a smaller flattened feature vector of size 2,304. Conversely, Beta maintains a four-layer depth but introduces a representational bottleneck by decreasing the channel dimensions in the third and fourth layers. This bottleneck reduces the encoder size relative to Alpha, outputting a vector size of 3,136. To investigate the effects of hierarchical depth, Gamma extends the archi-tecture to five layers. To strictly control the encoder parameter count ( ≈ 117 k), the channel dimensions are expanded gradually. The network topology for this variant is visualized in Figure 5. Exploring depth under tighter constraints, 
+
+Epsilon utilizes a similar structure but is truncated to four layers, matching the ≈ 78 k baseline encoder constraint. However, this configuration results in a larger output vector (size 4,096), pushing the total parameter count to ≈ 2.26 M. To assess spatial receptive fields, Delta utilizes a massive 9 × 9 kernel in the initial layer. Constrained to three layers, this model maintains the baseline encoder footprint while producing a feature vector of size 3,456. Zeta further explores variations within a strict three-layer constraint; it is the second smallest 16 variant in terms of encoder parameters ( ≈ 77 k) but yields the second largest total parameter count ( ≈ 2.61 M) due to a flattened feature vector of size 4,800. Finally, we test structural extremes with Eta and Theta. Eta is the shal-lowest model, employing only two layers but massively expanding the channel width. This spatial preservation results in a vast feature vector of size 46,208, intentionally driving the total parameter count to ≈ 23 .8M to test whether a shallow, high-capacity network can outcompete deeper, constrained architec-tures. In contrast, Theta represents the most compact holistic model ( ≈ 1.2Mtotal parameters). By halving the output channel dimensionality in the final layer relative to the PQN baseline, it tests the network’s resilience to extreme feature compression (vector size 2,048). 
+
+Table 1: Architectural specifications of the CNN feature extractor variants. Each layer is defined by the tuple (Input Channels, Output Channels, Kernel Size, Stride, Padding). All architectures apply two-dimensional Layer Normalization and ReLU activations after each convolution.                                                   
+
+> Variant L1 L2 L3 L4 L5 PQN (4, 32, 8, 4, 0) (32, 64, 4, 2, 0) (64, 64, 3, 1, 0) ––
+> Alpha (4, 32, 4, 2, 1) (32, 64, 4, 2, 1) (64, 64, 3, 2, 1) (64, 64, 5, 1, 0) –
+> Beta (4, 32, 6, 2, 2) (32, 64, 3, 1, 1) (64, 32, 4, 2, 1) (32, 16, 8, 1, 0) –
+> Gamma (4, 32, 3, 2, 1) (32, 48, 3, 2, 1) (48, 64, 3, 1, 0) (64, 64, 3, 2, 0) (64, 64, 3, 1, 0)
+> Delta (4, 24, 9, 4, 0) (24, 48, 5, 2, 0) (48, 96, 3, 1, 0) ––
+> Epsilon (4, 32, 3, 2, 1) (32, 48, 3, 2, 1) (48, 64, 3, 2, 0) (64, 64, 3, 1, 0) –
+> Zeta (4, 48, 4, 2, 1) (48, 48, 4, 2, 1) (48, 48, 4, 2, 1) ––
+> Eta (4, 64, 4, 4, 0) (64, 128, 3, 1, 0) –––
+> Theta (4, 32, 7, 4, 2) (32, 64, 5, 2, 1) (64, 32, 3, 1, 0) ––
+
+17 Table 2: Model complexity and computational footprint of Phase 1 architectures. Floating Point Operations (FLOPs) are reported in millions. The Eta variant exhibits a substantial parameter and computation increase driven by the massive spatial dimensions of the encoder’s output. 
+
+Variant Enc. Params Head Params Total Params Enc. FLOPs Head FLOPs Total FLOPs PQN 78,304 1,686,500 1,764,804 7.734 1.610 9.347 
+
+Alpha 174,752 1,782,948 1,957,700 27.541 1.610 29.151 
+
+Beta 89,008 1,782,948 1,871,956 61.515 1.610 63.126 
+
+Gamma 117,168 1,725,364 1,842,532 22.901 1.610 24.512 
+
+Delta 78,552 1,850,588 1,929,140 6.143 1.774 7.917 
+
+Epsilon 80,112 2,179,828 2,259,940 13.252 2.101 15.354 
+
+Zeta 77,232 2,537,396 2,614,628 25.362 2.462 27.824 
+
+Eta 78,400 23,739,460 23,817,860 28.422 23.663 52.085 
+
+Theta 76,288 1,127,428 1,203,716 9.065 1.053 10.118 18 DQN Block 1
+ch:32, k:8, s:4, p:0 
+
+PQN Block 1
+32ch, 8x8, s4 
+
+DQN Block 2
+ch:64, k:4, s:2, p:0 
+
+PQN Block 2
+64ch, 4x4, s2 
+
+DQN Block 3
+ch:64, k:3, s:1, p:0 
+
+PQN Block 3
+64ch, 3x3, s1 (a) DQN Baseline PQN Block 1
+ch:32, k:8, s:4, p:0 
+
+PQN Block 1
+32ch, 8x8, s4 
+
+PQN Block 2
+ch:64, k:4, s:2, p:0 
+
+PQN Block 2
+64ch, 4x4, s2 
+
+PQN Block 3
+ch:64, k:3, s:1, p:0 
+
+PQN Block 3
+64ch, 3x3, s1  (b) PQN Baseline Gamma Block 1
+ch:32, k:3, s:2, p:1 
+
+> PQN Block 1
+> 32ch, 8x8, s4
+> Gamma Block 2
+> ch:48, k:3, s:2, p:1
+> PQN Block 2
+> 64ch, 4x4, s2
+> Gamma Block 3
+> ch:64, k:3, s:1, p:0
+> PQN Block 3
+> 64ch, 3x3, s1
+> Gamma Block 4
+> ch:64, k:3, s:2, p:0
+> Gamma Block 5
+> ch:64, k:3, s:1, p:0
+
+(c) Gamma (Ours) Hadamax Block 1
+ch:32, k:8, s:1, p:0
+MaxPool k:4, s:4 
+
+Hadamax Block 2
+ch:64, k:8, s:1, p:0
+MaxPool k:2, s:2 
+
+Hadamax Block 3
+ch:64, k:3, s:1, p:0
+MaxPool k:3, s:1, p:1  (d) Gamma-Hadamax (Ours) 
+
+Figure 5: Topological Evolution of Evaluated Encoders. A structural comparison of the core architectures evaluated in this study. The sequence illustrates the progression from the legacy, unnormalized 3-layer DQN (a), to the stabilized PQN baseline (b), to our 5-layer Gamma topology (c), and finally the multiplicative Gamma-Hadamax V1 architecture (d). 
+
+19 4.2. Phase 2: Hadamax Integration 
+
+Following the evaluation of the base topologies in Phase 1, we extend our in-vestigation by integrating the Hadamax representation mechanism (Kooi et al., 2025) into our optimal model, the Gamma architecture. The objective of this phase is twofold: first, to evaluate the relationship between deep hierarchi-cal topologies and multiplicative feature interactions; and second, to determine whether the representational advantages of the Hadamax paradigm can be pre-served while reducing its parameter footprint through the new backbone. A detailed review of the theoretical foundations of Hadamax can be found in Section 3. To ensure clarity within the context of our architectures, we briefly define the core operations introduced in this phase: • Hadamard Product: An element-wise multiplication of two tensors of the same dimensions, used here to foster non-linear feature interactions. • Max-Pooling: A spatial down-sampling operation that extracts the max-imum value within a defined moving window (kernel), enhancing the net-work’s translational invariance. • GELU (Gaussian Error Linear Unit): An activation function that weights inputs by their cumulative Gaussian distribution. Unlike ReLU, which sharply truncates negative values, GELU provides a smoother, non-monotonic nonlinearity. Instead of standard spatial down-sampling via strided convolutions, the Hadamax block relies on a stride of 1 for its convolutional layers, subsequently delegating spatial compression to the max-pooling operation. We formulate three specific test configurations (detailed in Table 3) to rigorously analyze this mechanism: 1. Hadamax (Baseline): This variant serves as the control model for this phase. It mimics the classic three-layer DQN topology but utilizes Hadamax blocks. It employs large initial convolutional kernels ( 8 × 8)and aggressive max-pooling ( 4 × 4 kernel with a stride of 4) in the first 20 layer to rapidly down-sample the input space. Note that Hadamax is also seamlessly integrated into the PQN framework. 2. Gamma-Hadamax-Valid: This model modifies the core five-layer Gamma architecture evaluated in Phase 1 (Figure 5). It substitutes standard con-volutional down-sampling with Hadamax blocks. To maintain the deep topology without prematurely collapsing the spatial dimensions, layers 3 and 5 utilize a pooling kernel of 3, a stride of 1, and no padding ( 0). This "valid" padding configuration slightly reduces the spatial dimensions while avoiding aggressive compression. 3. Gamma-Hadamax-Same: This variant acts as an architectural abla-tion of the previous model. It is identical in its convolutional parameters but alters the pooling hierarchy. Specifically, it introduces a padding of 
+
+1 to the pooling operations in layers 3 and 5. This "same" padding pre-serves the spatial resolution across these specific layers, resulting in a larger flattened feature map. This allows us to analyze the Floating Point Oper-ations (FLOPs)-to-performance ratio and determine if preserving spatial dimensions through padding yields a proportional increase in predictive accuracy. 
+
+4.3. Phase 3: Advanced Regression Head Topologies 
+
+To further evaluate the robustness and expressivity of the latent representa-tions generated by the Gamma-Hadamax-Valid encoder, the final phase of our methodology examines three advanced regression paradigms. While these algo-rithmic enhancements traditionally rely on experience replay buffers to stabilize training (Hessel et al., 2018), we reconstruct them to operate entirely on the synchronous, buffer-free data stream provided by the PQN framework. A detailed review of the theoretical foundations of these topologies can be found in Section 3. To ensure clarity within this context, we briefly introduce them in this section. All regression heads process the flattened, normalized feature vectors output by the encoder. To ensure stable gradient flow, the fully-connected streams 21 Table 3: Architectural specifications of the Hadamax integration variants. To detail both operations within a single block, each variant is split into a Convolutional (Conv) row and a Max-Pooling (Pool) row. Conv is defined by (Input Channels, Output Channels, Kernel Size, Stride, Padding), and Pool is defined by [Kernel Size, Stride, Padding]. All blocks utilize GELU activations.                                    
+
+> Variant Block 1 Block 2 Block 3 Block 4 Block 5 Hadamax (Baseline)
+> Convolutinal (4, 32, 8, 1, 4) (32, 64, 4, 1, 2) (64, 64, 3, 1, 1) ––Max Pool [4, 4, 0] [2, 2, 0] [3, 1, 1] ––
+> Gamma-Hadamax-Valid
+> Convolutinal (4, 32, 3, 1, 1) (32, 48, 3, 1, 1) (48, 64, 3, 1, 1) (64, 64, 3, 1, 1) (64, 64, 3, 1, 1) Max Pool [2, 2, 0] [2, 2, 0] [3, 1, 0] [2, 2, 0] [3, 1, 0]
+> Gamma-Hadamax-Same
+> Convolutinal (4, 32, 3, 1, 1) (32, 48, 3, 1, 1) (48, 64, 3, 1, 1) (64, 64, 3, 1, 1) (64, 64, 3, 1, 1) Max Pool [2, 2, 0] [2, 2, 0] [3, 1, 1] [2, 2, 0] [3, 1, 1]
+
+within these heads consistently apply Layer Normalization prior to their final outputs. We evaluate the following three configurations: • Distributional Dueling Head: This configuration integrates the bifur-cated Dueling architecture (Wang et al., 2016) with Distributional value estimation (Bellemare et al., 2017). 
+
+– Dueling Mechanism: Instead of directly estimating the action-value function ( Q), the network splits into two independent streams: one estimating the scalar state-value ( V ) and the other estimating the state-dependent action advantages ( A). To resolve the issue of uniden-tifiability, the mean of the advantage stream is subtracted from its outputs before aggregating it with the value stream. 
+
+– Distributional Mechanism: Rather than predicting a scalar expected return, the value stream outputs a probability distribution over N =51 discrete atoms, spaced uniformly between Vmin = −10 .0 and 
+
+Vmax = 10 .0. Concurrently, the advantage stream outputs |A| dis-tinct 51-atom distributions. The dueling mean-subtraction is per-formed strictly at the logit level. Temporal Difference (TD) tar-22 gets are computed using λ-returns (with rewards clipped to [−1, 1] )and mapped onto the discrete support using Two-Hot Gaussian (HL-Gauss) projection to smooth the target distributions. For action selection, the greedy policy evaluates the expected value of the re-sulting state-action distribution. • Ensemble Dueling Head: To evaluate directed epistemic exploration (exploration driven by model uncertainty) without a replay buffer, we adapted the multi-head architecture of Bootstrapped DQN (Osband et al., 2016) into a Deep Ensemble (Nauman et al., 2024). The shared Gamma-Hadamax-Valid feature extractor feeds into an ensemble of K = 10 in-dependent dueling networks (heads). Crucially, the primary objective of this ensemble architecture is not to yield direct performance gains through predictive model averaging; rather, it is explicitly designed to drive deep exploration. Unlike traditional bootstrapped approaches that require strict Bernoulli data masking (e.g., dropping transitions with prob-ability p = 0 .5), our framework utilizes a mask probability of p = 1 .0. Con-sequently, every head observes the entirety of the synchronous PQN batch. Ensemble diversity is strictly maintained through independent random weight initializations and the natural trajectory variance generated across the 128 parallel EnvPool environments. Within a batch, all 10 heads are updated simultaneously using a single global optimizer state. This explo-ration mechanism works by approximating Thompson sampling. During environmental interaction, each parallel environment uniformly samples its own active head index at the start of an episode to dictate the policy. Because each independently initialized head, comprising separate value and advantage streams, holds slightly divergent Q-value estimates, the agent can commit to diverse, temporally extended exploratory behaviors for the duration of the episode. This enables the agent to explore based on the epistemic uncertainty of the ensemble, circumventing the limitations of relying solely on random, step-by-step ϵ-greedy heuristics. Finally, when 23 exploration is disabled during final policy evaluation, actions are selected via expected value aggregation by computing the arithmetic mean of the Q-values across all K heads. • Distributional Ensemble Dueling Head: This unified architecture represents our most complex value-estimation topology, combining Dis-tributional RL with the Deep Ensemble formulation. The single shared encoder feeds into an ensemble of K = 10 independent heads, where each individual head is a complete Distributional Dueling module outputting 
+
+|A| categorical distributions of size N = 51 . To manage the high dimen-sionality of the parameter space, this variant specifically employs GELU non-linearities within its dense streams. This configuration allows us to rigorously evaluate whether these composite, heavily parameterized al-gorithms remain stable and sample-efficient when constrained strictly to online, parallelized TD-learning. We designate this final, composite ar-chitecture as Aftab, Persian for sunshine, serving as a thematic nod to the Rainbow agent, reflecting our overarching strategy of unifying these advanced reinforcement learning paradigms into a single, cohesive entity. 
+
+4.4. Training Details and Optimization Stability 
+
+To ensure a consistent comparative analysis, all architectural variants across the three phases were trained using a unified set of hyperparameters, adapted from the original PQN framework and summarized in Table 4. We utilized the Rectified Adam (RAdam) optimizer (Liu et al., 2020) with a learning rate of 2.5 × 10 −4. Each variant was trained for 50 million environmental steps per parallel environment; with a standard frame-skip of 4, this equates to 200 million observed frames. To address the non-stationary data distributions inherent in buffer-free re-inforcement learning, we apply LayerNorm2d (Gallici et al., 2024) after every convolutional operation and prior to the non-linear activation function (ReLU in Phase 1, GELU in Phases 2 and 3). This explicitly normalizes the expected 24 norm of the activations, thereby stabilizing the network against input distribu-tional shifts. The optimization objective minimized the discrepancy between the predicted action-values and the computed λ-return targets. We utilized Mean Squared Error (MSE) for Phases 1 and 2, and the Two-Hot Gaussian (HL-Gauss) loss for the distributional variants in Phase 3. Temporal targets were calculated utilizing a discount factor ( γ) of 0.99 and a Generalized Advantage Estimation (GAE) 
+
+λ of 0.65. Consistent with standard deep RL practices (Mnih et al., 2013), rewards were clipped to the range [−1, 1] , and episodic life-loss termination was employed to prevent the optimization of sub-optimal survival strategies. All experiments were highly parallelized on a high-performance computing cluster utilizing the EnvPool vectorized simulation library (Weng et al., 2022), maintaining 128 parallel training environments and a constant global batch size of 4096. 
+
+4.5. Deviation from Standard PQN Regularization 
+
+Our experimental protocol introduces a critical deviation from the standard PQN implementation (Gallici et al., 2024). Whereas the original framework employs explicit ℓ2 regularization (weight decay) to help mitigate value over-estimation and nonlinear instability in buffer-free temporal-difference learning, we set the weight decay parameter to exactly 0 across all experimental phases. This design choice is intentional: it explicitly isolates the empirical impact of our architectural topologies and multiplicative feature interactions from the damp-ening effects of parameter regularization. We emphasize that this modification is explored purely empirically. We do not claim a formal convergence guarantee, nor do we assert a global bound on the Temporal Difference (TD) Jacobian for the resulting unregularized, nonlinear updates. However, our experimental results demonstrate that the combination of vectorized sampling, Layer Normalization, and our proposed architectural designs maintains operational stability across all tested random seeds on the Atari-57 benchmark. Consequently, the removal of ℓ2 regularization serves as 25 a controlled experimental condition rather than a theoretically guaranteed sub-stitute for the regularization mechanism utilized in the original analysis. 
+
+5. Experimental Setup and Evaluation Metrics 
+
+We evaluate the proposed architectural variants and regression paradigms by comparing their performance against the baseline PQN model. To provide a rigorous evaluation, our primary analysis utilizes the full Atari-57 benchmark suite to measure sample efficiency and representation quality. To further stress-test the out-of-distribution generalization capabilities of our unified framework (Aftab), we complement our evaluation with experiments conducted on the chal-lenging Procgen benchmark suite under its Hard difficulty setting. The complete Aftab framework, including all model definitions, training con-figurations, and raw experimental logs, is open-sourced and available on our GitHub repository: https://github.com/tahashieenavaz/aftab or https: //github.com/LorisNanni/Aftab . Gameplay videos are specifically indexed at https://github.com/tahashieenavaz/aftab/blob/main/videos.md 
+
+5.1. Atari-57 Evaluation Protocol 
+
+To ensure our results are robust and directly comparable to the broader reinforcement learning literature, we strictly adhere to the standardized Atari-57 evaluation protocol. We report performance using the Human-Normalized Score (HNS), which scales the raw agent performance relative to a random baseline and a professional human tester. The HNS is calculated as: HNS = Agent Score − Random Score Human Score − Random Score (1) The reference scores for the random agent and the professional human player are adopted from the standard baseline provided by (Mnih et al., 2015). To aggregate agent performance robustly across the 57 games of the bench-mark suite, we employ the Interquartile Mean (IQM) of the HNS. Unlike the 26 standard mean, which can be easily skewed by extreme outlier scores in a hand-ful of environments, or the median, which can be overly sensitive to minor per-formance shifts in middle-ranking games, the IQM serves as a middle-ground statistical estimator that discards the lowest 25% and highest 25% of the perfor-mance distribution. Formally, given a sorted sequence of M human-normalized scores x1 ≤ x2 ≤ · · · ≤ xM , the IQM is defined mathematically as: IQM = 1
+
+⌊0.75 M ⌋ − ⌈ 0.25 M ⌉ + 1  
+
+> ⌊0.75 M⌋
+
+X 
+
+> i=⌈0.25 M⌉
+
+xi (2) By focusing entirely on the interquartile range, this metric suppresses the vari-ance of outlier tasks while providing a statistically stable reflection of overall algorithmic improvements. To complement the Interquartile Mean (IQM) and provide a robust, proba-bilistic assessment of algorithmic superiority, we incorporate the Probability of Improvement metric. Unlike point estimates which can be skewed by outlier en-vironments, the Probability of Improvement, denoted as P (X > Y ), explicitly conveys the likelihood that a randomly sampled performance from algorithm 
+
+X (Row) will strictly exceed a randomly sampled performance from algorithm 
+
+Y (Column) across the benchmark distribution. A probability greater than 0.50 indicates that the row algorithm is more likely than not to outperform the column algorithm. This metric provides a highly stable, pairwise statistical comparison that is entirely insensitive to the magnitude of performance spikes in individual tasks, thereby isolating true algorithmic consistency. During training, we utilize life-loss termination; the environment trajectory is explicitly terminated upon the loss of an agent’s life to prevent the optimiza-tion of sub-optimal, passive survival strategies. However, during the final policy evaluation, life-loss termination is strictly disabled. For the final evaluation, agents are tested over 100 independent episodes per environment, per random seed. To prevent deterministic overfitting to specific trajectories, we inject stochasticity using up to 30 random no-op starts at the beginning of each episode. Furthermore, we employ sticky actions with a repeat 27 probability of 25%, ensuring the agent’s learned policy is robust to the frame-level action stochasticity inherent in standard Atari-57 benchmarking. 
+
+5.2. Procgen Hard Generalization Protocol 
+
+To evaluate the structural resilience and generalization capacity of our inte-grated architecture against procedural asset and layout variations, we execute an additional suite of evaluations across the 16 distinct environments of the Proc-gen benchmark under the Hard difficulty configuration. This suite includes: 
+
+Bigfish, Bossfight, Caveflyer, Chaser, Climber, Coinrun, Dodgeball, Fruitbot, Heist, Jumper, Leaper, Maze, Miner, Ninja, Plunder , and Starpilot .Unlike the deterministic asset structures found in Atari-57, Procgen dynam-ically synthesizes level layouts, backgrounds, and enemy behaviors for every individual episode. This protocol evaluates whether the representation mech-anisms learned by our system generalize effectively to unseen environmental distributions or merely overfit to fixed pixel configurations. Because Procgen lacks official human baseline standards to compute a stan-dard Human-Normalized Score, we define and calculate the Procgen Normal-ized Score (PNS) . The PNS is computed via a Min-Max Normalization of raw agent scores against the minimum and maximum performance limits observed across our experimental suite: PNS = Agent Score − Score min 
+
+Score max − Score min 
+
+(3) Consistent with our Atari evaluation paradigm, raw scores across the 16 tasks are aggregated using both the Median and the Interquartile Mean (IQM) along-side their corresponding 95% confidence intervals (CI) to offer a statistically stable comparison of generalization performance under severe environmental non-stationarity. Per-game raw data and full step histories for these Procgen runs are provided in full within the Supplementary Material (Tables 3.S4 and 4.S4). 28 Table 4: Hyperparameter settings utilized across all experimental phases. Phase 3 introduces specific modifications to the loss function to accommodate the advanced distributional regres-sion heads. 
+
+Hyperparameter Value 
+
+Learning rate 2.5 × 10 −4
+
+Training environments (Atari-57) 128 Training environments (Procgen) 64 Steps per update (Procgen) 256 Test environments 8Optimizer Rectified Adam (Liu et al., 2020) Weight decay ( ℓ2 penalty) 0Adam ϵ 1 × 10 −5
+
+Adam β1 0.9 Adam β2 0.999 Total Frames 200,000,000 
+
+Loss Function (Phases 1 & 2) Mean Squared Error Loss Function (Phase 3) HL-Gauss (Two-Hot Gaussian) 
+
+Scheduler Linear Annealing 
+
+ϵ-greedy exploration 10% of total frames Discount factor ( γ) 0.99 
+
+λ-return parameter 0.65 Epochs 2Batch size 4096 
+
+5.3. Hardware and Reproducibility 
+
+Due to the inherent stochasticity of deep reinforcement learning, exact re-producibility via fixed datasets is not feasible. Therefore, we ensure statistical reliability by evaluating all architectures across four fixed random seeds: 1, 2, 3, and 4. 29 Crucially, to provide a standardized measure of sample efficiency and termi-nal performance, every experiment across all three phases was strictly allocated a training budget of 200 million environmental frames (equivalent to 50 mil-lion optimization steps with a standard frame-skip of 4). All experiments were executed on a high-performance computing cluster utilizing Nvidia A40 GPUs. Each GPU is equipped with 48 GB of GDDR6 memory with error-correcting code (ECC), providing a memory bandwidth of 696 GB/s and operating under a maximum power consumption of 300 W. Training the most complex architec-tural configuration requires approximately 13 hours of wall-clock time using the PyTorch (Paszke et al., 2019) framework. A JAX-based (Bradbury et al., 2018) implementation is currently under development to further accelerate distributed training. 
+
+6. Results 
+
+6.1. Phase 1: CNN Encoder Capacity and Topological Efficiency 
+
+The initial phase of our experimental protocol isolated the structural design of the convolutional feature extractor to evaluate its impact on agent perfor-mance. As previously detailed in Table 2, the computational footprint of each variant was strictly partitioned between the encoder and the regression head. This complexity profiling highlights the critical relationship between ar-chitectural depth, spatial reduction, and computational bloat. For instance, the Eta variant illustrates the risks of spatial overparameterization; it requires roughly 23.8 million total parameters strictly because its shallow encoder projects an excessively large feature map into the dense regression head. In contrast, the Gamma variant maintains a highly balanced footprint, requiring only 24.5 mil-lion total FLOPs and 1.84 million parameters. To rigorously validate the empirical performance differences associated with these architectures, we conducted pairwise statistical evaluations, visualized in the significance matrix in Figure 6. Furthermore, the complete un-normalized evaluation returns and full operational step histories for all Phase 1 variants, 30 including the baseline PQN and the Alpha through Theta architectures, are provided in Table S1 and Table S5 of the Supplementary Material. Tables 5 and 6 summarize the aggregated performance of the evaluated networks using the Interquartile Mean (IQM) and Median of the Human-Normalized Scores (HNS). To mitigate the risk of overfitting during the architectural selection process, we executed a robustness validation study. We evaluated the generalizability of our selection protocol by repeatedly splitting the Atari-57 benchmark into random validation subsets of 15 games across 10 independent trials. Our selec-tion criterion did not rely exclusively on maximizing the aggregate IQM HNS; rather, it emphasized a strict performance-complexity tradeoff. Among the ar-chitectures demonstrating statistically comparable validation performance, we selected the model with the lowest total parameter count and computational cost. This criterion justifies the selection of the Gamma architecture over the Al-pha variant, despite Alpha achieving the highest aggregate IQM HNS in Phase 1 (3.536 vs. Gamma’s 3.481). While Alpha presented a marginal absolute improvement of 0.055 IQM, Gamma required fewer total parameters (1.84M compared to 1.96M) and lower computational overhead (24.5 vs. 29.1 million FLOPs). Crucially, a pairwise Wilcoxon signed-rank comparison between Al-pha and Gamma revealed no statistically significant difference in performance following a Holm-Bonferroni correction ( p > 0.05 ). Consequently, Gamma was designated as the optimal backbone: it delivers statistically equivalent empirical performance while utilizing a deeper, more computationally efficient convolu-tional hierarchy. Across all 10 randomized validation splits, this selection rule consistently fa-vored the Gamma architecture. This high degree of consistency verifies that the selection of the Gamma encoder reflects a stable performance-efficiency trade-off, rather than a statistical anomaly or an artifact of overfitting to specific environmental dynamics. To further validate the empirical superiority of the deeper topological vari-31 (a) Pairwise Wilcoxon Signed-Rank Matrix (b) Holm-Bonferroni Corrected Matrix 
+
+Figure 6: Phase 1 Statistical Significance Matrices. Significance heatmaps generated via pairwise Wilcoxon Signed-Rank Tests across the Atari-57 suite for the baseline convo-lutional architectures. To maintain statistical integrity across the 36 pairwise comparisons, we applied the Holm-Bonferroni correction to control the family-wise error rate at α = 0 .05 .The light/pale cells ( p < 0.05 ) indicate that the modernized variants—specifically the Alpha, Beta, and Gamma cluster—exhibit a statistically significant performance advantage over the PQN baseline. Conversely, the deep red cells ( p > 0.05 ) indicate pairs where the performance differences are not statistically significant, such as between Alpha and Beta ( p = 0 .847 ) or Zeta and Eta ( p = 0 .967 ). 
+
+ants, we evaluated the pairwise Probability of Improvement across the evaluated encoders (Figure 7). The analysis robustly confirms the advantages of hierar-chical depth over the baseline architecture. Specifically, the Alpha, Beta, and Gamma variants demonstrate high probabilities of improvement over the PQN baseline, yielding scores of 0.85, 0.81, and 0.79, respectively. Conversely, archi-tectures exhibiting spatial bottlenecks or over-extended kernels failed to achieve consistent superiority; the Delta variant, utilizing a large 9 × 9 initial kernel, yielded a severely degraded improvement probability of 0.34 against PQN, while the Theta variant achieved exactly 0.50, indicating no probabilistic advantage over the baseline. To mechanically explain the performance improvement yielded by the inte-gration of Hadamax, we examine the expansion of the network’s effective recep-32 Figure 7: Probability of Improvement (Encoders). A pairwise probability matrix, P (Row > Col ), evaluating the baseline convolutional architectures across the Atari-57 suite. Values greater than 0.50 indicate that the row architecture is statistically more likely to outperform the column architecture. The deep topological variants (Alpha, Beta, and Gamma) consis-tently demonstrate a high probability of improvement (0.79 to 0.85) over the standard PQN baseline. 
+
+tive field (RF)(Luo et al., 2017). The receptive field calculates the spatial region of the input volume that influences a single feature map activation(Araujo et al., 2019). Assuming an initial receptive field RF 0 = 1 and an initial stride product of 1, the receptive field at layer l is defined recursively based on the kernel size (k) and stride ( s) of the current and preceding layers: 
+
+RF l = RF l−1 + ( kl − 1) 
+
+> l−1
+
+Y
+
+> i=1
+
+si
+
+While the standard Gamma encoder preserves spatial resolution through a deep stack of small convolutions, its maximum effective receptive field maps to a 39x39 spatial patch on the original input. By substituting standard spa-33 tial convolutions with explicit, decoupled max-pooling operations, the Gamma-Hadamax architecture (both the Valid and Same variants) alters the downsam-pling hierarchy. This decoupling expands the total effective receptive field to a 70x70 spatial patch. This expansion of the visual region processed by a single feature map provides the theoretical mechanism behind the superior Interquar-tile Mean (IQM) Human-Normalized Scores (HNS) achieved by the Gamma-Hadamax-Valid model. By pairing multiplicative feature interactions with a 70x70 receptive field, the agent captures far broader global spatial dependencies across the environment without prematurely collapsing the state representation or requiring an explosion in parameter count. A more detailed description of this analysis is available in the Supplementary Materials. 34 Table 5: Full Phase 1 Encoder Results (Part 1: PQN to Delta). 
+
+PQN Alpha Beta Gamma Delta Alien 0.542 1.785 2.408 2.845 0.381 Amidar 0.640 1.346 0.862 1.038 0.529 Assault 30.169 24.547 28.574 35.629 24.864 Asterix 40.617 15.338 14.821 14.311 38.146 Asteroids 0.034 1.828 0.349 1.438 0.223 Atlantis 47.172 43.482 44.532 46.336 42.942 Bank Heist 1.885 2.001 2.112 1.721 1.836 Battlezone 1.212 1.425 1.894 1.880 1.197 Beamrider 1.144 2.973 2.355 2.388 1.069 Berzerk 2.251 4.676 0.343 1.227 1.364 Bowling 0.044 0.100 0.037 0.133 0.075 Boxing 8.244 8.325 8.297 8.285 8.325 
+
+Breakout 12.019 15.045 15.712 16.763 11.809 Centipede 0.828 1.300 0.990 1.473 0.693 Chopper Command 2.679 24.380 47.179 55.506 0.839 Crazy Climber 6.268 6.594 7.767 6.467 6.786 Defender 3.173 4.566 4.316 5.861 3.155 Demon Attack 72.523 72.842 73.151 72.884 70.913 Double Dunk 7.763 7.783 7.960 7.804 7.571 Enduro 2.723 2.737 2.709 2.693 2.724 Fishing Derby 2.525 2.623 2.545 2.590 2.459 Freeway 1.132 1.148 1.140 1.112 1.136 Frostbite 1.545 2.564 2.318 2.172 1.179 Gopher 24.506 25.816 33.980 29.682 17.045 Gravitar 0.235 0.267 0.396 0.353 0.188 H.E.R.O. 0.782 0.849 0.754 0.719 0.694 Ice Hockey 0.850 1.183 1.065 1.890 0.703 James Bond 8.134 12.279 6.875 17.127 4.725 Kangaroo 4.480 4.801 4.773 4.623 4.068 Krull 7.621 8.625 8.707 8.474 7.064 Kung-Fu Master 1.415 1.776 1.487 1.377 1.579 Montezuma’s Revenge 0.000 0.000 0.000 0.000 0.000 Ms. Pac-Man 0.454 0.681 0.952 0.812 0.515 Name This Game 2.278 2.825 2.561 3.240 2.322 Phoenix 24.840 41.930 38.203 33.452 7.793 Pitfall! 0.032 0.033 0.026 0.033 0.034 
+
+Pong 1.181 1.181 1.181 1.181 1.181 
+
+Private Eye 0.012 0.000 0.001 0.001 -0.000 Q*bert 1.572 1.851 1.874 1.816 1.332 River Raid 1.355 1.672 1.669 1.737 1.405 Road Runner 7.268 10.362 10.011 21.188 7.391 Robotank 7.109 7.435 7.254 6.960 7.263 Seaquest 0.187 0.235 0.194 0.201 0.198 Skiing -0.581 0.457 -0.179 -0.393 -0.500 Solaris 0.111 0.074 0.153 0.190 0.077 Space Invaders 4.841 3.929 8.819 5.266 4.504 Stargunner 27.278 38.522 43.751 42.478 24.829 Surround 1.069 1.139 1.161 1.123 0.928 Tennis 1.381 2.290 1.375 2.676 1.459 Time Pilot 5.901 15.564 20.210 14.657 4.866 Tutankham 1.519 1.571 1.557 1.538 1.512 Up’n Down 23.231 23.353 23.545 24.046 16.812 Venture 0.000 0.000 0.018 0.001 0.000 Video Pinball 315.049 365.167 312.556 366.645 359.358 Wizard of Wor 4.443 7.319 7.254 6.468 3.191 Yars’ Revenge 2.222 2.632 2.559 2.550 1.820 Zaxxon 1.834 2.109 2.539 2.306 1.739 Median 1.885 2.623 2.408 2.550 1.579 IQM 2.692 3.536 3.472 3.481 2.374 
+
+35 Table 6: Full Phase 1 Encoder Results (Part 2: Epsilon to Theta). 
+
+Epsilon Zeta Eta Theta Alien 2.262 1.840 1.675 0.411 Amidar 1.381 0.726 1.023 0.665 Assault 34.124 29.913 34.288 35.067 Asterix 10.255 12.616 22.730 38.306 Asteroids 1.039 1.752 0.064 0.026 Atlantis 47.557 45.964 44.951 46.165 Bank Heist 1.699 2.131 1.718 1.949 Battlezone 2.121 1.538 1.067 1.073 Beamrider 1.997 1.591 1.348 1.152 Berzerk 1.475 2.984 0.868 1.368 Bowling 0.059 0.092 0.113 0.056 Boxing 8.324 8.310 8.325 8.319 Breakout 12.695 12.870 17.246 14.332 Centipede 0.955 0.665 1.120 0.540 Chopper Command 40.922 31.491 3.387 1.515 Crazy Climber 7.175 6.645 6.839 6.152 Defender 3.876 3.967 3.259 5.806 Demon Attack 72.627 72.075 71.496 70.971 Double Dunk 7.869 7.732 8.171 7.605 Enduro 2.711 2.697 2.696 2.710 Fishing Derby 2.652 2.655 2.559 2.509 Freeway 1.137 1.140 1.140 1.136 Frostbite 1.494 2.108 1.804 1.075 Gopher 21.291 24.041 31.583 18.757 Gravitar 0.255 0.328 0.510 0.118 H.E.R.O. 0.788 0.883 1.069 0.448 Ice Hockey 1.050 1.056 1.253 0.631 James Bond 28.243 12.081 13.439 8.514 Kangaroo 4.584 4.688 4.518 4.652 Krull 8.117 8.678 8.008 7.655 Kung-Fu Master 1.412 1.517 1.478 1.791 
+
+Montezuma’s Revenge 0.000 0.002 0.004 0.000 Ms. Pac-Man 0.745 0.801 1.112 0.657 Name This Game 2.275 2.251 1.877 2.579 Phoenix 29.553 42.589 38.638 13.875 Pitfall! 0.033 0.034 0.033 0.030 Pong 1.181 1.181 1.181 1.181 
+
+Private Eye 0.000 0.000 -0.000 0.001 Q*bert 1.762 1.860 1.881 1.647 River Raid 1.731 1.819 1.495 1.378 Road Runner 10.825 11.094 7.851 7.007 Robotank 7.185 7.369 6.577 6.855 Seaquest 0.210 0.407 0.409 0.192 Skiing 0.554 0.496 0.541 -0.388 Solaris 0.133 0.117 0.180 0.282 
+
+Space Invaders 5.061 1.731 15.333 4.159 Stargunner 32.671 31.591 24.522 24.052 Surround 1.141 1.198 1.197 0.946 Tennis 2.266 1.363 1.875 1.402 Time Pilot 12.508 12.864 14.877 4.423 Tutankham 1.498 1.536 1.601 1.543 Up’n Down 27.409 27.981 7.877 24.057 Venture 0.000 0.000 0.000 0.000 Video Pinball 302.946 365.137 372.327 344.773 Wizard of Wor 7.742 6.266 8.059 5.384 Yars’ Revenge 2.373 2.722 2.653 2.198 Zaxxon 1.617 1.727 2.267 1.904 Median 2.262 2.108 1.877 1.791 IQM 3.315 3.207 3.114 2.649 
+
+36 6.2. Phase 2: Synergies of Hadamard Encoded Representations 
+
+Following the evaluation of the baseline topological characteristics in Phase 1, we integrated Hadamax multiplicative interactions to assess the synergistic effects of non-linear representation mechanisms within our optimized hierar-chy. Table 7 details the computational shifts resulting from these architectural modifications. 
+
+Table 7: Phase 2 Results: The impact of Hadamard max-pooling integration on model com-plexity and computational footprint. Floating Point Operations (FLOPs) are reported in millions.                               
+
+> Variant Enc. Params Head Params Total Params Enc. FLOPs Head FLOPs Total FLOPs Gamma 117,168 1,725,364 1,842,532 22.901 1.610 24.512
+> Hadamax (Baseline) 156,608 3,968,516 4,125,124 159.014 3.969 162.984
+> Gamma-Hadamax-Valid 234,336 1,609,220 1,843,556 122.001 1.610 123.611
+> Gamma-Hadamax-Same 234,336 3,280,388 3,514,724 129.300 3.281 132.581
+
+Our complexity profiling demonstrates that the Gamma topology integrates highly efficiently with Hadamard representations. Specifically, the Gamma-Hadamax-Valid variant maintains a strictly constrained footprint, requiring only 1,843,556 total parameters and 123.611 million total FLOPs. In stark contrast, integrating the baseline Hadamax architecture results in severe computational bloat, expanding the model to 4,125,124 parameters and consuming 162.984 million total FLOPs. To rigorously evaluate the performance impact of these representational shifts, we conducted pairwise statistical analyses, illustrated in the significance matrix in Figure 8. For comprehensive transparency, the un-normalized raw evaluation returns and full operational step histories for the Hadamax variants are documented in Table 3.S2 of the Supplementary Material and Table 8. The Wilcoxon signed-rank tests reveal that the Gamma-Hadamax-Valid model provides a statistically significant performance improvement over the baseline Gamma architecture ( p < 0.001 ). Furthermore, we analyzed the architectural ablation, Gamma-Hadamax-Same, which artificially preserves spatial resolution through padding. Despite Gamma-Hadamax-Same nearly doubling the param-37 (a) Pairwise Wilcoxon Signed-Rank Matrix (b) Holm-Bonferroni Corrected Matrix         
+
+> Figure 8: Phase 2 Statistical Significance Matrices. Significance heatmaps generated via pairwise Wilcoxon Signed-Rank Tests for the Hadamax integration. To maintain statistical validity, the Holm-Bonferroni correction was applied to control the family-wise error rate at
+> α= 0 .05 .The light/pale cells ( p < 0.05 ) confirm that Gamma-Hadamax-Valid provides a statistically significant improvement ( p < 0.001 ) over the base Gamma architecture. Further-more, the deep red cell between Gamma-Hadamax-Valid and Same ( p= 0 .720 ) indicates that Same’s parameter expansion offers no significant functional advantage over Valid.
+
+eter count of Gamma-Hadamax-Valid (3,514,724 compared to 1,843,556), the resulting empirical performance difference between the two variants remains statistically insignificant ( p = 0 .720 ). This finding explicitly confirms that preserving spatial resolution through padding in the later layers yields no functional advantage. Consequently, these statistical results firmly support the selection of Gamma-Hadamax-Valid as the optimal and most efficient representation module for our unified framework. The integration of multiplicative feature interactions yielded a marked prob-abilistic advantage over the purely convolutional Gamma backbone. As detailed in the Probability of Improvement matrix for Phase 2 (Figure 9), all Hadamax-integrated variants demonstrate a high likelihood of outperforming the stan-dard Gamma topology. Specifically, the Gamma-Hadamax-Valid and Gamma-Hadamax-Same variants achieve improvement probabilities of 0.70 and 0.75, re-spectively, when evaluated against the base Gamma architecture. Furthermore, 38 the baseline Hadamax model also exhibits a 0.67 probability of improvement over Gamma, reinforcing the conclusion that non-linear, multiplicative gating serves as a highly consistent driver of policy optimization across diverse task distributions. 
+
+Figure 9: Probability of Improvement (Hadamax Integration). Pairwise probability matrix comparing the standard Gamma backbone against its Hadamax-augmented variations. The integration of multiplicative interactions yields a strict probabilistic advantage, with Gamma-Hadamax-Valid and -Same achieving improvement probabilities of 0.70 and 0.75, respectively, over the standard Gamma encoder. Table 8: Phase 2 Atari-57 Results (HNS). 
+
+Game Gamma Hadamax Gamma-Valid Hadamax Gamma-Same Hadamax 
+
+Alien 2.845 2.702 3.137 2.841 Amidar 1.038 1.356 1.211 1.180 Assault 35.629 41.325 42.903 41.687 Asterix 14.311 39.447 41.385 37.083 Continued on next page 
+
+39 Table 8 – continued from previous page Game Gamma Hadamax Gamma-Valid Hadamax Gamma-Same Hadamax 
+
+Asteroids 1.438 1.592 1.982 1.367 Atlantis 46.336 40.061 37.184 41.708 Bank Heist 1.721 2.082 2.048 2.090 
+
+Battlezone 1.880 2.093 1.870 2.147 
+
+Beamrider 2.388 3.591 4.312 3.238 Berzerk 1.227 21.101 20.160 17.426 Bowling 0.133 0.081 0.036 0.070 Boxing 8.285 8.289 8.325 8.298 Breakout 16.763 17.000 19.525 17.793 Centipede 1.473 2.914 3.150 2.712 Chopper Command 55.506 81.038 97.069 62.657 Crazy Climber 6.467 8.042 8.251 8.388 
+
+Defender 5.861 21.212 20.751 21.023 Demon Attack 72.884 74.515 74.368 74.517 
+
+Double Dunk 7.804 7.684 7.931 7.726 Enduro 2.693 2.731 2.732 2.726 Fishing Derby 2.590 2.581 2.640 2.563 Freeway 1.112 1.147 1.148 1.145 Frostbite 2.172 2.156 2.803 2.262 Gopher 29.682 31.501 26.539 30.023 Gravitar 0.353 0.498 0.574 0.528 H.E.R.O. 0.719 1.198 1.182 1.175 Ice Hockey 1.890 3.657 3.576 2.882 James Bond 17.127 43.753 44.566 35.515 Kangaroo 4.623 4.545 4.424 4.523 Krull 8.474 8.662 8.652 8.697 
+
+Kung-Fu Master 1.377 1.011 0.972 1.270 Montezuma’s Revenge 0.000 0.002 0.001 0.001 Ms. Pac-Man 0.812 1.378 1.578 1.356 Name This Game 3.240 3.260 3.109 3.293 
+
+Phoenix 33.452 39.076 40.162 35.342 Pitfall! 0.033 0.034 0.034 0.034 
+
+Pong 1.181 1.181 1.181 1.181 
+
+Private Eye 0.001 0.000 -0.000 0.000 Continued on next page 
+
+40 Table 8 – continued from previous page Game Gamma Hadamax Gamma-Valid Hadamax Gamma-Same Hadamax 
+
+Q*bert 1.816 3.185 3.087 2.799 River Raid 1.737 1.991 2.148 1.889 Road Runner 21.188 32.833 35.835 28.831 Robotank 6.960 7.567 7.554 7.448 Seaquest 0.201 5.456 5.179 4.132 Skiing -0.393 0.634 0.646 0.585 Solaris 0.190 0.121 0.133 0.132 Space Invaders 5.266 19.712 20.778 19.852 Stargunner 42.478 62.748 62.481 59.544 Surround 1.123 1.149 1.136 1.154 
+
+Tennis 2.676 3.077 3.072 3.077 
+
+Time Pilot 14.657 10.968 9.385 10.432 Tutankham 1.538 1.562 1.439 1.529 Up’n Down 24.046 24.176 24.467 24.297 Venture 0.001 0.105 0.000 0.078 Video Pinball 366.645 319.338 316.253 333.249 Wizard of Wor 6.468 6.483 5.781 5.715 Yars’ Revenge 2.550 7.126 5.906 7.174 
+
+Zaxxon 2.306 2.328 2.360 2.487 Median 2.550 3.260 3.150 3.077 
+
+IQM 3.481 5.325 5.383 5.138 
+
+6.3. Phase 3: Final Experiments and Statistical Validation 
+
+The final phase of our evaluation rigorously assessed the integration of complex, advanced regression architectures on top of our optimally selected backbone. Table 9 details the aggregate Interquartile Mean (IQM) Human-Normalized Scores (HNS) for these composite regression heads when paired with the Gamma-Hadamax-Valid encoder. The 95% Confidence Intervals (CIs) were calculated via stratified bootstrap sampling across the four independent random seeds. By bridging highly parameterized distributional and ensemble heads with the computational efficiency of the Gamma-Hadamax-Valid encoder, this unified 41 Table 9: Phase 3 Global Performance. Aggregate IQM HNS across the Atari-57 suite for advanced regression heads integrated with the Gamma-Hadamax-Valid encoder. 95% Confi-dence Intervals (CIs) are estimated via stratified bootstrap sampling. 
+
+Architecture Configuration IQM HNS (95% CI) 
+
+Gamma-Hadamax-Valid (Baseline) 5.343 [4.812, 5.920] Gamma-Hadamax-Valid + Distributional Dueling 5.812 [5.240, 6.450] Gamma-Hadamax-Valid + Ensemble Dueling 5.940 [5.315, 6.610] 
+
+Aftab 6.479 [5.890, 7.210] 
+
+structural approach, hereafter referred to as the complete Aftab framework, improves aggregate performance metrics in model-free Atari benchmarks. To confirm the validity of this improvement, we applied the Wilcoxon signed-rank test. The unified Distributional Ensemble Dueling head (6.479 IQM) exhibited a statistically significant performance advantage over the standard Gamma-Hadamax-Valid scalar baseline (5.343 IQM) with p = 0 .014 . This provides strong empirical evidence that complex multi-head regression paradigms can successfully drive temporally extended exploration and value estimation strictly within a buffer-free, parallelized framework. To evaluate out-of-distribution generalization capabilities, we extended our final analysis to the Procgen benchmark under its Hard configuration. Unlike the deterministic layouts of Atari, this tests the architectural resilience of Aftab against severe procedural non-stationarity. As documented in the Supplemen-tary Material, the final Aftab configuration achieved an aggregate IQM Procgen Normalized Score (PNS) of 0.418 with a 95% CI of [0.132, 0.730]. This marks an improvement over the baseline PQN model, which yielded an IQM PNS of 0.382 (95% CI: [0.189, 0.540]). The raw agent scores across the Procgen Hard suite corroborate this functional superiority (Table S4), proving that the repre-sentations learned by our composite architecture generalize effectively to unseen environmental dynamics without overfitting to fixed asset structures. Table 10 provides a contextual comparison between our final Aftab agent 42 and representative Atari-57 agents reported in the wider literature, utilizing the Median HNS as the standard performance indicator. 
+
+> Table 10: Comparison of Median Human-Normalized Scores (HNS) on the Atari-57 benchmark evaluated at 200M frames.
+
+Algorithm Median HNS Reference 
+
+DQN 0.79 (Mnih et al., 2015) Double DQN 1.15 (Van Hasselt et al., 2016) Dueling DQN 1.51 (Wang et al., 2016) Rainbow 2.31 (Hessel et al., 2018) Hadamax-PQN 3.10 (Kooi et al., 2025) GDI 11.46 (Fan & Xiao, 2022) MuZero 7.31 (Schrittwieser et al., 2020) 
+
+Ours (Aftab) 4.42 This Work 
+
+These comparative results should be interpreted cautiously, as the listed methods differ significantly in their implementation details, reliance on replay buffers, computational budgets, and specific evaluation protocols. Our primary objective is not to claim state-of-the-art dominance over heavily subsidized, replay-buffer-dependent architectures like GDI or MuZero. Rather, we seek to evaluate the upper limits of a purely buffer-free, PQN-style agent driven solely by structural encoder enhancements and advanced value-head topologies. Under our strict evaluation protocol, Aftab achieves a Median HNS of 4.42, confidently exceeding the human-normalized threshold (1.0) while eliminating the memory and storage constraints of an experience replay buffer. While replay-buffer-based methods achieve exceptional Median HNS scores, large-scale buffers introduce prohibitive Random Access Memory (RAM) overhead, severe I/O bottlenecks, and high sampling latency in long-horizon training regimes. Our results demonstrate that architectural optimizations and multi-head regression paradigms can successfully bridge the performance gap, yielding a highly stable, off-policy framework with a drastically reduced hardware foot-43 print. A more comprehensive Pareto analysis detailing wall-clock time, mem-ory footprint, energy consumption, and implementation-level throughput across these architectures is left for future investigation. Comprehensive evaluation scores, raw data arrays, and Human Normalized Score (HNS) distributions for all individual games in the Final Experiments are detailed in Tables 11 and 12 below and are hosted in full within the results 
+
+directory of our official framework repository. The structural advantage of our unified regression topology is conclusively supported by the final Probability of Improvement analysis (Figure 10). When compared directly to the scalar PQN baseline, the advanced regression heads demonstrate overwhelming consistency. The Bootstrapped Dueling configura-tion achieves a 0.93 probability of improvement over PQN, while the final com-posite Aftab framework (Distributional Ensemble Dueling) yields a 0.86 proba-bility of improvement. Furthermore, the final Distributional Bootstrapped Du-eling architecture maintains a 0.68 probability of improvement when evaluated directly against the singular Distributional Dueling head, confirming that the multi-head ensemble approach effectively stabilizes categorical return estimates across the benchmark.                                 
+
+> Table 11: Phase 3 Atari-57 Results (HNS) - Part 1.
+> Game PQN Gamma Distributional Dueling
+> Alien 0.542 2.845 2.936 Amidar 0.640 1.038 1.563 Assault 30.169 35.629 32.991 Asterix 40.617 14.311 40.500 Asteroids 0.034 1.438 0.853 Atlantis 47.172 46.336 41.771 Bank Heist 1.885 1.721 2.240
+> Battlezone 1.212 1.880 3.442
+> Beamrider 1.144 2.388 4.172
+> Berzerk 2.251 1.227 10.575 Continued on next page
+
+44 Table 11 – continued from previous page Game PQN Gamma Distributional Dueling 
+
+Bowling 0.044 0.133 0.111 Boxing 8.244 8.285 8.322 
+
+Breakout 12.019 16.763 21.954 Centipede 0.828 1.473 19.338 Chopper Command 2.679 55.506 87.416 Crazy Climber 6.268 6.467 7.907 
+
+Defender 3.173 5.861 17.538 Demon Attack 72.523 72.884 74.105 Double Dunk 7.763 7.804 7.852 Enduro 2.723 2.693 2.729 Fishing Derby 2.525 2.590 2.485 Freeway 1.132 1.112 1.149 
+
+Frostbite 1.545 2.172 2.230 Gopher 24.506 29.682 18.667 Gravitar 0.235 0.353 0.581 H.E.R.O. 0.782 0.719 1.721 Ice Hockey 0.850 1.890 3.807 James Bond 8.134 17.127 72.778 Kangaroo 4.480 4.623 4.621 Krull 7.621 8.474 11.218 Kung-Fu Master 1.415 1.377 1.247 Montezuma’s Revenge 0.000 0.000 0.000 Ms. Pac-Man 0.454 0.812 1.582 Name This Game 2.278 3.240 4.226 
+
+Phoenix 24.840 33.452 73.773 Pitfall! 0.032 0.033 0.034 
+
+Pong 1.181 1.181 1.181 
+
+Private Eye 0.012 0.001 0.000 Q*bert 1.572 1.816 3.273 River Raid 1.355 1.737 2.099 Road Runner 7.268 21.188 25.003 Robotank 7.109 6.960 7.692 Seaquest 0.187 0.201 11.129 Skiing -0.581 -0.393 0.093 Continued on next page 
+
+45 Table 11 – continued from previous page Game PQN Gamma Distributional Dueling 
+
+Solaris 0.111 0.190 0.010 Space Invaders 4.841 5.266 22.340 Stargunner 27.278 42.478 62.695 Surround 1.069 1.123 1.189 Tennis 1.381 2.676 3.069 Time Pilot 5.901 14.657 10.613 Tutankham 1.519 1.538 1.443 Up’n Down 23.231 24.046 26.663 Venture 0.000 0.001 0.000 Video Pinball 315.049 366.645 373.477 Wizard of Wor 4.443 6.468 8.275 Yars’ Revenge 2.222 2.550 5.245 Zaxxon 1.834 2.306 3.675 
+
+Median 1.885 2.550 4.172 
+
+IQM 2.692 3.481 6.031 Table 12: Phase 3 Atari-57 Results (HNS) - Continued. 
+
+Game Ensembled Dueling Aftab 
+
+Alien 4.074 3.120 Amidar 1.761 1.726 Assault 40.048 38.902 Asterix 40.495 31.534 Asteroids 0.928 0.693 Atlantis 46.769 143.124 
+
+Bank Heist 2.226 2.141 Battlezone 2.781 3.389 Beamrider 3.272 3.854 Berzerk 16.841 17.892 
+
+Bowling 0.195 0.236 
+
+Boxing 8.316 8.316 Breakout 23.312 49.864 
+
+Continued on next page 
+
+46 Table 12 – continued from previous page Game Ensembled Dueling Aftab 
+
+Centipede 3.934 22.292 
+
+Chopper Command 113.124 108.981 Crazy Climber 7.772 6.849 Defender 23.067 27.015 
+
+Demon Attack 74.434 6.942 Double Dunk 7.873 -1.055 Enduro 2.710 6.434 
+
+Fishing Derby 2.606 2.552 Freeway 1.148 1.148 Frostbite 2.807 2.228 Gopher 32.191 18.371 Gravitar 0.833 1.334 
+
+H.E.R.O. 1.298 2.172 
+
+Ice Hockey 3.645 4.421 
+
+James Bond 32.913 107.082 
+
+Kangaroo 4.625 4.826 
+
+Krull 8.920 12.508 
+
+Kung-Fu Master 1.418 1.301 Montezuma’s Revenge 0.024 0.030 
+
+Ms. Pac-Man 1.789 1.479 Name This Game 3.129 4.163 Phoenix 70.621 152.923 
+
+Pitfall! 0.033 0.033 Pong 1.181 1.180 Private Eye 0.011 0.001 Q*bert 3.629 3.332 River Raid 2.595 2.163 Road Runner 45.446 37.633 Robotank 8.009 7.676 Seaquest 8.602 53.586 
+
+Skiing 0.656 -0.205 Solaris 0.148 0.029 Space Invaders 40.254 39.191 Stargunner 71.937 62.879 Continued on next page 
+
+47 Table 12 – continued from previous page Game Ensembled Dueling Aftab 
+
+Surround 1.158 1.204 
+
+Tennis 3.079 3.079 
+
+Time Pilot 8.945 15.470 
+
+Tutankham 1.613 1.617 
+
+Up’n Down 25.967 29.496 
+
+Venture 0.004 0.486 
+
+Video Pinball 402.971 1113.419 
+
+Wizard of Wor 5.871 8.354 
+
+Yars’ Revenge 5.521 5.677 
+
+Zaxxon 2.171 4.839 Median 3.645 4.421 IQM 5.592 6.479 
+
+48 Figure 10: Probability of Improvement (Final Regression Architectures). Pairwise comparison of the advanced value-estimation heads operating on the Gamma-Hadamax-Valid backbone. The composite Distributional Bootstrapped Dueling architecture (Aftab) exhibits high con-sistency, establishing a 0.86 probability of improvement over the base PQN configuration. 
+
+7. Discussion and Limitations 
+
+7.1. Comprehensive Performance Analysis 
+
+The experimental results across all three phases indicate that the structural configuration of the convolutional neural network, the nature of its feature in-teractions, and the topology of its value regression head serve as critical drivers of agent generalization. Empirically, these architectural choices appear to exert a more pronounced influence on tracking value landscapes than raw parameter capacity scaling within the evaluated online regimes. 1. The Impact of Hierarchical Depth (Phase 1): The Alpha vari-ant achieved the highest Phase 1 IQM HNS of 3.536, followed closely by Gamma at 3.481. Both models leverage increased hierarchical depth 49 (a) Full training duration. (b) Latest 50M frames (zoomed).   
+
+> Figure 11: Global Performance (IQM HNS). The HNS serves as a standardized metric where 0.0 represents random play and 1.0 represents professional human performance. The 5-layer Alpha and Gamma variants outperform the original DQN encoder. Comparison between full training (left) and the final 50M frames (right) highlights depth as a primary factor in generalization.
+
+(four and five layers, respectively) relative to the three-layer baseline ar-chitecture. This observation suggests that moderately deeper receptive fields capture spatial dependencies and abstract environmental features more effectively without requiring excessive parameter expansion in the early layers. 2. Topology vs. Raw Capacity: The Eta variant represents a width-heavy paradigm, featuring a massive regression head containing 23.7M parameters driven by a shallow encoder. Conversely, Zeta restricts itself to a three-layer topology containing only 2.5M total parameters. The pairwise Wilcoxon signed-rank test yields a p-value of 0.967 between these two variants. This statistical equivalence indicates that expanding chan-nel width and linear layer capacity offers negligible functional utility if the underlying spatial feature extractor remains shallow and structurally constrained. 3. Multiplicative Interactions (Phase 2): As visualized in Figure 13, integrating Hadamax multiplicative representation mechanics in Phase 2 drastically altered the parameter-to-performance ratio. Gamma-Hadamax-Valid achieved an IQM HNS of 5.343 while restricting its total parame-50 Figure 12: Wilcoxon Signed Rank Test. A significance heatmap generated via pairwise Wilcoxon Signed-Rank Tests conducted across the Atari-57 suite for Phase 1. To maintain sta-tistical integrity across 36 comparisons, we applied the Holm-Bonferroni correction to control the family-wise error rate at α = 0 .05 . The data indicate that the Alpha, Beta, and Gamma cluster exhibits a statistically significant performance advantage over the PQN baseline. Con-versely, the p < 0.001 results for the Delta variant against superior models suggest that its wide 9 × 9 kernel correlates with a statistically significant decrease in agent performance. 
+
+ter footprint to 1.84M. This is less than half the footprint required by the standard three-layer Hadamax control network (4.12M parameters, 5.149 IQM). Furthermore, although Gamma-Hadamax-Same nearly dou-bled Gamma-Hadamax-Valid’s parameter count (3.51M) by modifying the pooling padding, the performance difference was statistically insignificant (p = 0 .720 ). This underscores that multiplicative Hadamard interactions 51 layered over an optimal topological depth (Gamma) maximize represen-tational capacity, rendering subsequent parameter scaling redundant.     
+
+> (a) Full training duration. (b) Latest 50M frames (zoomed).
+> Figure 13: Phase 2 Global Performance (IQM HNS). The integration of Hadamard max-pooling alters representational capacity. The Gamma-Hadamax V1 and V2 variants diverge from the baseline Hadamax architecture, demonstrating that multiplicative feature interactions pair effectively with the Gamma convolutional depth.
+
+4. Buffer-Free Advanced Regression and Generalization (Phase 3): 
+
+Composite value algorithms like Rainbow (Hessel et al., 2018) traditionally combine multiple estimation frameworks (e.g., distributional value pre-diction, dueling decomposition, and multi-step returns) within off-policy settings stabilized by target networks and experience replay buffers. Our Phase 3 experiments demonstrate that these decoupled regression designs can be successfully adapted to operate in a completely online, buffer-free, parallelized data stream. When integrated with two-dimensional Layer Normalization, large-batch vectorized sampling, and the Gamma-Hadamax-Valid encoder, the unified 
+
+Aftab framework achieved the highest aggregate performance within our evaluation suite, reaching an IQM HNS of 6.479 (95% CI: [5.890, 7.210]). Furthermore, our ensemble variant updates K = 10 distinct heads simul-taneously across the global data batch ( p = 1 .0). While this omits classi-cal bootstrapped data masking, the architectural averaging across heads serves as an effective variance-reduction mechanism for value estimations under rapid updates. More importantly, by approximating Thompson 52 sampling during environment interaction, this multi-head structure drives deep, temporally extended exploration. This prevents the agent from pre-maturely converging on sub-optimal policies, a common pitfall of standard 
+
+ϵ-greedy heuristics, and is a primary driver of the superior sample efficiency observed in the final Aftab framework. This operational stability is noteworthy given the challenges delineated by the "deadly triad" (Sutton & Barto, 2018), which notes that combining function approximation, bootstrapping, and off-policy data characteristics frequently induces severe gradient divergence. Our empirical findings show that Aftab circumvents these nonlinear temporal-difference optimization traps under the tested hyperparameters. This stability is heavily influenced by the structural characteristics of the Gamma-Hadamax-Valid encoder, which establishes a gradual channel ex-pansion ( 32 → 48 → 64 ) and introduces local max-pooling downsampling to stabilize the feature activations processed by the regression streams. Furthermore, our ensemble variant updates K = 10 distinct heads simul-taneously across the global data batch ( p = 1 .0). While this omits classi-cal bootstrapped data masking, the architectural averaging across heads serves as an effective variance-reduction mechanism for value estimations under rapid updates. This resilience is further corroborated by our out-of-distribution general-ization experiments on Procgen Hard. As documented in the Supplemen-tary Material, the Aftab framework demonstrated a measurable advantage over the baseline PQN architecture, yielding an IQM PNS of 0.418 (95% CI: [0.132, 0.730]) compared to PQN’s score of 0.382 (95% CI: [0.189, 0.540]). Raw game data reveals that on environments requiring precise visual tracking amidst high non-stationarity, such as Bigfish (7.233 vs. 31.491) and Dodgeball (0.192 vs. 12.596), the combination of Hadamard representations and ensemble regression heads significantly dampens over-fitting to procedurally generated assets. 53 (a) Full training duration. (b) Latest 50M frames (zoomed).   
+
+> Figure 14: Phase 3 Global Performance (IQM HNS). The ablation of advanced value-estimation heads operating on the Gamma-Hadamax-Valid backbone. Aftab framework yields the highest performance among the evaluated models, reaching 6.479 IQM. The zoomed frame (right) illustrates the stability of these composite algorithms operating in a strictly buffer-free, parallelized regime.
+
+7.2. Statistical Significance and Multi-Comparison Correction 
+
+To verify that the reported performance variations reflect genuine structural advantages rather than stochastic noise, we subjected all three experimental phases to stringent non-parametric hypothesis testing. 1. Robust Performance Aggregation: The significance matrices are eval-uated utilizing the Interquartile Mean (IQM) of the normalized scores. By discarding the lower and upper 25% of the performance distribution across the task suites, the IQM filters out both catastrophically unlearned environments and outlier tasks with hyper-inflated returns, offering a sta-tistically reliable baseline of central performance. 2. Pairwise Hypothesis Testing: For every variant pairing, we applied the Wilcoxon signed-rank test (Wilcoxon, 1945). To rigorously account for inflation of the Type I error rate across our 36 pairwise comparisons in Phase 1 and subsequent comparisons in Phase 2, we enforced the Holm-Bonferroni step-down correction (Holm, 1979) to control the global family-wise error rate strictly at α = 0 .05 .3. Diagnostic Analysis of Structural Bottlenecks: The statistical heatmap effectively diagnoses structural pitfalls in sub-optimal design choices. For 54 instance, by employing an over-extended 9 × 9 kernel in its initial layer, the Delta variant (2.374 IQM) exhibited a statistically significant perfor-mance degradation ( p < 0.001 ) relative to its counterparts, highlighting a loss of fine-grained spatial tracking. Similarly, the Theta variant (2.649 IQM), which halves the terminal encoder channel width, failed to demon-strate a statistically significant departure from the baseline PQN model (p = 0 .431 ), illustrating that excessive feature compression severely bot-tlenecked the downstream policy’s expressivity. 
+
+7.3. Limitations 
+
+While our empirical evaluations demonstrate clear statistical advantages for deeper structural topologies and integrated multi-head regression systems, sev-eral core limitations must be explicitly addressed. First, although the Atari-57 and Procgen Hard benchmarks present highly diverse visual and procedural configurations, our observations remain restricted to discrete-action, frame-stacked reinforcement learning paradigms. The degree to which our architectural findings, specifically the multiplicative Hadamard feature streams and the high-dimensional Distributional Ensemble Dueling head (Aftab), generalize to high-frequency continuous control tasks or long-horizon temporal reasoning suites (such as the DeepMind Control Suite (Tassa et al., 2018)) remains to be empirically verified. Second, to isolate the functional impact of the CNN structures and value-head topologies, all evaluations were constrained to a single, static set of hyper-parameters inherited from the baseline PQN framework. It is highly probable that heavily parameterized, composite networks like Aftab could achieve supe-rior sample efficiency if critical training variables, such as the learning rate, GAE 
+
+λ, or optimizer batch dimensions, were tailored specifically to their complex and highly non-linear loss landscapes. Finally, we emphasize the theoretical limitation regarding the absence of for-mal convergence or stability guarantees for our unregularized network updates. The baseline PQN architecture relies heavily on explicit ℓ2 regularization (weight 55 decay) as an analytical device to bound the spectral norm of the TD Jacobian, suppressing nonlinear divergence. While our experiments show that the combi-nation of Layer Normalization, parallel vectorized sampling, and the structural parameters of the Gamma topology successfully maintains operational stability without weight decay across all evaluated seeds, we do not provide a closed-form mathematical or Lipschitz bound for this behavior. Delineating the formal theoretical relationship between structural network constraints, normalization layers, and TD Jacobian stability in buffer-free, non-linear value function ap-proximation remains an essential direction for future theoretical research. 
+
+8. Conclusion 
+
+The transition toward highly parallelized, buffer-free temporal difference learning, exemplified by the Parallelized Q-Network (PQN) framework, repre-sents a methodological shift in deep reinforcement learning. However, by strictly defaulting to legacy feature extractors, the field may be artificially bottlenecking the representational potential of these streamlined algorithms. In this study, we introduced Aftab, an open-source benchmarking framework designed to system-atically evaluate architectural topology, non-linear representational synergies, and advanced regression paradigms within online, off-policy regimes. Through a comprehensive, multi-phase empirical evaluation across the de-terministic Atari-57 benchmark and the highly non-stationary Procgen Hard suite, our large-scale analysis yields critical insights regarding sample efficiency and neural architecture design: • Topological Depth as a Primary Driver (Phase 1): Our baseline CNN ablations provide strong evidence that structural inductive bias dic-tates generalization capability. While the Alpha variant achieved the high-est aggregate performance among the base architectures (3.536 IQM HNS), the 5-layer Gamma variant emerged as the optimal architectural founda-tion. Gamma achieved a statistically comparable 3.481 IQM while operat-ing with superior computational efficiency, requiring only 1.84 million total 56 parameters and 24.5 million FLOPs. Conversely, the Eta variant, which heavily expanded channel width to drive its parameter count to 23.8 mil-lion, achieved a lower 3.114 IQM. This confirms that, under our evaluation protocol, raw parameter expansion cannot adequately substitute for the hierarchical feature abstraction provided by convolutional depth. • The Penalty of Spatial Bottlenecks (Phase 1): Our experiments identified specific topological pitfalls that severely restrict policy expres-sivity. The significant performance degradation of the Delta variant (2.374 IQM) illustrates that aggressive spatial reduction in early layers, specifi-cally via a 9 × 9 initial kernel, correlates with a critical loss of the fine-grained visual granularity required for reactive control tasks. Similarly, the Theta variant (2.649 IQM) demonstrated that halving the output di-mensionality in the terminal convolutional layer imposes a representational bottleneck prior to the regression head. • Synergies of Multiplicative Feature Interactions (Phase 2): In-tegrating Hadamard non-linearities into the optimal Gamma topology substantially improved representational capacity. The Gamma-Hadamax-Valid architecture substituted standard spatial striding with max-pooling downsampling and element-wise multiplicative interactions, paired with zero-saturating GELU activations. This combination yielded an IQM HNS of 5.343, outperforming the baseline Hadamax control (5.149 IQM) while requiring less than half the parameter count (1.84M vs. 4.12M) and a sig-nificantly reduced computational footprint (123.6M vs. 162.9M FLOPs). This establishes that multiplicative interactions compound effectively with optimized convolutional depth, enhancing representation without relying on massive residual stacks. • Stability of Buffer-Free Algorithmic Integration (Phase 3): We demonstrated that complex regression heads, which traditionally rely on massive experience replay buffers and target networks to stabilize their 57 loss landscapes (Hessel et al., 2018), can operate reliably in a strictly on-line, parallelized regime. By decoupling the advantage stream (Dueling), predicting categorical return distributions (Distributional), and driving directed epistemic exploration via multi-head ensembles, Aftab achieved the highest overall score of 6.479 IQM HNS. • Out-of-Distribution Generalization: To explicitly evaluate structural resilience against high-capacity architectural memorization, our frame-work was tested on the procedurally generated Procgen Hard benchmark. The final Aftab architecture achieved an aggregate IQM Procgen Nor-malized Score (PNS) of 0.418, outperforming the baseline PQN model (0.382 IQM PNS). This validates that the inductive biases established in this study translate effectively to non-deterministic, structurally shifting visual domains without overfitting to fixed pixel configurations. Ultimately, this research suggests that relying on the historically static "Na-ture CNN" backbone restricts algorithmic generalization. By systematically optimizing hierarchical depth, incorporating non-linear multiplicative feature interactions, and deploying variance-reduced, multi-head regression systems, the Aftab framework establishes a stable and computationally efficient architectural reference for parallelized deep reinforcement learning. Future work will focus on integrating these architectural blueprints into compiled JAX environments (Bradbury et al., 2018) to maximize evaluation throughput and minimize hardware latency. Furthermore, we aim to empiri-cally validate whether the structural efficiency and representational stability of the Gamma-Hadamax-Valid backbone translate effectively to high-dimensional continuous control tasks and data-constrained offline reinforcement learning sce-narios. 
+
+References 
+
+Araujo, A., Norris, W., & Sim, J. (2019). Computing receptive fields of con-volutional neural networks. Distill , 4 , e21. URL: https://distill.pub/ 
+
+58 2019/computing-receptive-fields . doi: 10.23915/distill.00021 .Ba, J. L., Kiros, J. R., & Hinton, G. E. (2016). Layer normalization. arXiv preprint arXiv:1607.06450 , . Bellemare, M. G., Dabney, W., & Mnih, V. (2017). A distributional perspec-tive on reinforcement learning. In International Conference on Machine Learning (pp. 449–458). PMLR. Bellemare, M. G., Naddaf, Y., Veness, J., & Bowling, M. (2013). The arcade learning environment: An evaluation platform for general agents. Journal of Artificial Intelligence Research , 47 , 253–279. URL: https://jair.org/ index.php/jair/article/view/10819 . doi: 10.1613/jair.3912 .Bhatt, A., Palenicek, D., Belousov, B., Argus, M., Amiranashvili, A., Brox, T., & Peters, J. (2019). Crossq: Batch normalization in deep reinforce-ment learning for greater sample efficiency and simplicity. arXiv preprint arXiv:1902.05605 , . URL: https://arxiv.org/abs/1902.05605 .Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S., & Zhang, Q. (2018). JAX: composable transformations of Python+NumPy programs. URL: http://github.com/jax-ml/jax .Chen, X., Wang, C., Zhou, Z., & Ross, K. (2021). Randomized ensem-bled double q-learning: Learning fast without a model. arXiv preprint arXiv:2101.05982 , . URL: https://arxiv.org/abs/2101.05982 .Cobbe, K., Hesse, C., Hilton, J., & Schulman, J. (2019). Leveraging pro-cedural generation to benchmark reinforcement learning. arXiv preprint arXiv:1912.01588 , . Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Un-terthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., & Houlsby, N. (2021). An image is worth 16x16 words: Transformers for 59 image recognition at scale. URL: https://arxiv.org/abs/2010.11929 .
+
+arXiv:2010.11929 .Espeholt, L., Soyer, H., Munos, R., Simonyan, K., Mnih, V., Ward, T., Doron, Y., Firoiu, V., Harley, T., Dunning, I., Legg, S., & Kavukcuoglu, K. (2018). Impala: Scalable distributed deep-rl with importance weighted actor-learner architectures. In Proceedings of the 35th International Con-ference on Machine Learning (pp. 1407–1416). Fan, J., & Xiao, C. (2022). Generalized data distribution iteration. URL: 
+
+https://arxiv.org/abs/2206.03192 . arXiv:2206.03192 .Farebrother, J., Orbay, J., Vuong, Q., Taïga, A. A., Chebotar, Y., Xiao, T., Irpan, A., Levine, S., Castro, P. S., Faust, A., Kumar, A., & Agarwal, R. (2024). Stop regressing: Training value functions via classification for scalable deep rl. arXiv preprint arXiv:2403.03950 , . Gallici, M., Fellows, M., Ellis, B., Pou, A., Masmitja, E., Foerster, J., & Martin, M. (2024). Simplifying deep temporal difference learning. arXiv preprint arXiv:2407.04811 , . He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 770–778). Hendrycks, D., & Gimpel, K. (2016). Gaussian error linear units (gelus). arXiv preprint arXiv:1606.08415 , . URL: https://arxiv.org/abs/1606.08415 .Hessel, M., Modayil, J., Van Hasselt, H., Schaul, T., Ostrovski, G., Dabney, W., Horgan, D., Cotton, B., & Silver, D. (2018). Rainbow: Combining improvements in deep reinforcement learning. Proceedings of the AAAI Conference on Artificial Intelligence , 32 .Holm, S. (1979). A simple sequentially rejective multiple test procedure. Scan-dinavian Journal of Statistics , 6 , 65–70. doi: 10.2307/4615733 .60 Kooi, J. E., Yang, Z., & François-Lavet, V. (2025). Hadamax encoding: Ele-vating performance in model-free atari. arXiv preprint arXiv:2505.15345 , . URL: https://arxiv.org/abs/2505.15345 . doi: 10.48550/arXiv.2505. 15345 .LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). Gradient-based learn-ing applied to document recognition. Proceedings of the IEEE , 86 , 2278– 2324. Lee, H., Hwang, D., Kim, D., Kim, H., Tai, J.-J., Subramanian, K., Wurman, P. R., Choo, J., Stone, P., & Seno, T. (2024). Simba: Simplicity bias for scaling up parameters in deep reinforcement learning. arXiv preprint arXiv:2410.09754 , . URL: https://arxiv.org/abs/2410.09754 .Lillicrap, T. P., Hunt, J. J., Pritzel, A., Heess, N., Erez, T., Tassa, Y., Silver, D., & Wierstra, D. (2015). Continuous control with deep reinforcement learning. arXiv preprint arXiv:1509.02971 , . URL: https://arxiv.org/ abs/1509.02971 .Liu, L., Jiang, H., He, P., Chen, W., Liu, X., Gao, J., & Han, J. (2020). On the variance of the adaptive learning rate and beyond. In International Conference on Learning Representations (ICLR) .Luo, W., Li, Y., Urtasun, R., & Zemel, R. (2017). Understanding the effec-tive receptive field in deep convolutional neural networks. URL: https: //arxiv.org/abs/1701.04128 . arXiv:1701.04128 .Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A., Antonoglou, I., Wierstra, D., & Riedmiller, M. (2013). Playing atari with deep reinforcement learning. 
+
+arXiv preprint arXiv:1312.5602 , . Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J., Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K., Ostrovski, G. et al. (2015). Human-level control through deep reinforcement learning. Nature ,
+
+518 , 529–533. doi: 10.1038/nature14236 .61 Nauman, M., Ostaszewski, M., Jankowski, K., Miłoś, P., & Cygan, M. (2024). Bigger, regularized, optimistic: scaling for compute and sample-efficient continuous control. In Advances in Neural Information Processing Systems .URL: https://arxiv.org/abs/2405.16158 .Oh, J., Farquhar, G., Kemaev, I., Calian, D. A., Hessel, M., Zintgraf, L., Singh, S., van Hasselt, H., & Silver, D. (2025). Discovering state-of-the-art reinforcement learning algorithms. Nature , 648 , 312– 319. URL: https://www.nature.com/articles/s41586-025-09761-x .doi: 10.1038/s41586-025-09761-x .Osband, I., Blundell, C., Pritzel, A., & Van Roy, B. (2016). Deep exploration via bootstrapped dqn. arXiv preprint arXiv:1602.04621 , . Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., Killeen, T., Lin, Z., Gimelshein, N., Antiga, L., Desmaison, A., Kopf, A., Yang, E., DeVito, Z., Raison, M., Tejani, A., Chilamkurthy, S., Steiner, B., Fang, L., Bai, J., & Chintala, S. (2019). Pytorch: An imperative style, high-performance deep learning library. In H. Wallach, H. Larochelle, A. Beygelzimer, F. d'Alché-Buc, E. Fox, & R. Garnett (Eds.), Advances in Neural Information Processing Systems 32 (pp. 8024– 8035). Curran Associates, Inc. URL: http://papers.neurips.cc/paper/ 9015-pytorch-an-imperative-style-high-performance-deep-learning-library. pdf .Schrittwieser, J., Antonoglou, I., Hubert, T., Simonyan, K., Sifre, L., Schmitt, S., Guez, A., Lockhart, E., Hassabis, D., Graepel, T., Lillicrap, T., & Silver, D. (2020). Mastering atari, go, chess and shogi by planning with a learned model. Nature , 588 , 604–609. URL: http://dx.doi.org/10. 1038/s41586-020-03051-4 . doi: 10.1038/s41586-020-03051-4 .Schwarzer, M., Obando Ceron, J. S., Courville, A., Bellemare, M. G., Agar-wal, R., & Castro, P. S. (2023). Bigger, better, faster: Human-level 62 Atari with human-level efficiency. In Proceedings of the 40th Interna-tional Conference on Machine Learning (pp. 30365–30380). PMLR. URL: 
+
+https://proceedings.mlr.press/v202/schwarzer23a.html .Silver, D., Schrittwieser, J., Simonyan, K., Antonoglou, I., Huang, A., Guez, A., Hubert, T., Baker, L., Lai, M., Bolton, A., Chen, Y., Lillicrap, T., Hui, F., Sifre, L., van den Driessche, G., Graepel, T., & Hassabis, D. (2017). Master-ing the game of go without human knowledge. Nature , 550 , 354–359. URL: 
+
+https://doi.org/10.1038/nature24270 . doi: 10.1038/nature24270 .Sutton, R. S., & Barto, A. G. (2018). Reinforcement Learning: An Introduction .Adaptive Computation and Machine Learning series (2nd ed.). Cambridge, MA: The MIT Press. Tassa, Y., Doron, Y., Muldal, A., Erez, T., Li, Y., Casas, D. d. L., Budden, D., Abdolmaleki, A., Merel, J., Lefrancq, A., Lillicrap, T., & Riedmiller, M. (2018). Deepmind control suite. arXiv preprint arXiv:1801.00690 , . Van Hasselt, H., Guez, A., & Silver, D. (2016). Deep reinforcement learning with double q-learning. In Proceedings of the AAAI Conference on Artificial Intelligence . volume 30. URL: https://ojs.aaai.org/index.php/AAAI/ article/view/10295 .Wang, Z., Schaul, T., Hessel, M., Hasselt, H., Lanctot, M., & Freitas, N. (2016). Dueling network architectures for deep reinforcement learning. In Interna-tional Conference on Machine Learning (ICML) (pp. 1995–2003). Weng, J., Huang, M. L., Huang, S., Bo, H., & Makoviichuk, D. (2022). En-vpool: A highly parallel reinforcement learning environment execution en-gine. arXiv preprint arXiv:2206.10558 , . Wilcoxon, F. (1945). Individual comparisons by ranking methods. Biometrics Bulletin , 1 , 80–83. 63 Zoph, B., Vasudevan, V., Shlens, J., & Le, Q. V. (2017). Learning transferable architectures for scalable image recognition. arXiv preprint arXiv:1707.07012 , . URL: https://arxiv.org/abs/1707.07012 .64 Supplementary Material for: Aftab: A Comprehensive Benchmark of CNN Encoders and Advanced Value Functions in Parallelized Q-Networks 
+
+Taha Shieenavaz 1 (taha.shieenavaz@studenti.unipd.it), Shabnam Zareshahraki 1 (shabnam.zareshahraki@studenti.unipd.it), Loris Nanni 1
+
+(loris.nanni@unipd.it)  
+
+> 1
+
+Department of Information Engineering, University of Padua, Italy 
+
+Corresponding author at: Department of Information Engineering, University of Padua, Italy. Taha Shieenavaz Email: tahashieenavaz@gmail.com Shabnam Zareshahraki Email: shabnamzaresh@gmail.com 
+
+Document Description: This document acts as the dedicated companion file for the main text, housing un-normalized raw evaluation returns across all 57 benchmark tasks along with their full operational step histories. 1. Receptive Field Analysis 
+
+The receptive field ( RF ) of a convolutional neural network at layer l calcu-lates the spatial region of the input volume that influences a single feature map activation. It is defined recursively based on the kernel size ( k) and stride ( s)of the current and preceding layers: 
+
+RF l = RF l−1 + ( kl − 1) 
+
+> l−1
+
+∏
+
+> i=1
+
+si (S1) where we assume an initial receptive field RF 0 = 1 and an initial stride product of 1. Below, we detail the step-by-step calculation of the maximum theoretical receptive field for both the baseline Nature DQN Encoder , Hadamax Encoder ,and our proposed Gamma Encoder and Hadamax Gamma Encoders .
+
+> Table S1: Summary of the maximum theoretical receptive fields for the Nature DQN, standard Gamma, baseline Hadamax, and Gamma-Hadamax encoders.
+
+Encoder Architecture Effective Receptive Field 
+
+Nature DQN Encoder 36 × 36 
+
+Gamma Encoder 39 × 39 
+
+Hadamax Encoder 59 × 59 
+
+Hadamax Gamma Encoder (Valid & Same) 70 × 70 
+
+1.1. Nature DQN Encoder 
+
+The Nature DQN architecture consists of three convolutional layers with aggressive early spatial downsampling (a stride of 4 in the first layer). The receptive field expands as follows: Layer 1 (k = 8 , s = 4) : RF 1 = 1 + (8 − 1) × 1 = 8 
+
+Layer 2 (k = 4 , s = 2) : RF 2 = 8 + (4 − 1) × 4 = 20 
+
+Layer 3 (k = 3 , s = 1) : RF 3 = 20 + (3 − 1) × (4 × 2) = 36 
+
+The total effective receptive field for the Nature DQN encoder maps to a 36 ×36 
+
+spatial patch on the original input. 11.2. Gamma Encoder 
+
+The Gamma architecture replaces large filters with a deeper, five-layer stack of 3 × 3 convolutions. This preserves spatial resolution longer before downsam-pling. The calculation is as follows: Layer 1 (k = 3 , s = 2) : RF 1 = 1 + (3 − 1) × 1 = 3 
+
+Layer 2 (k = 3 , s = 2) : RF 2 = 3 + (3 − 1) × 2 = 7 
+
+Layer 3 (k = 3 , s = 1) : RF 3 = 7 + (3 − 1) × (2 × 2) = 15 
+
+Layer 4 (k = 3 , s = 2) : RF 4 = 15 + (3 − 1) × (2 × 2 × 1) = 23 
+
+Layer 5 (k = 3 , s = 1) : RF 5 = 23 + (3 − 1) × (2 × 2 × 1 × 2) = 39 
+
+The total effective receptive field for the Gamma encoder maps to a 39 × 39 
+
+spatial patch. This demonstrates that despite using exclusively small 3 × 3
+
+kernels, the depth of the Gamma architecture allows it to achieve a marginally larger global receptive field than the Nature DQN baseline, while simultaneously supporting a highly complex, non-linear hypothesis space. 
+
+1.3. Hadamax Encoder 
+
+The Hadamax variant of the Nature DQN architecture replaces standard convolutional strides with explicit Max Pooling steps for downsampling. Be-cause each block contains both a convolution ( c) and a pooling ( p) operation, the receptive field expands in two stages per block: Block 1 Conv (k = 8 , s = 1) : RF c1 = 1 + (8 − 1) × 1 = 8 
+
+Block 1 Pool (k = 4 , s = 4) : RF p1 = 8 + (4 − 1) × 1 = 11 
+
+Block 2 Conv (k = 4 , s = 1) : RF c2 = 11 + (4 − 1) × (1 × 4) = 23 
+
+Block 2 Pool (k = 2 , s = 2) : RF p2 = 23 + (2 − 1) × 4 = 27 
+
+Block 3 Conv (k = 3 , s = 1) : RF c3 = 27 + (3 − 1) × (4 × 2) = 43 
+
+Block 3 Pool (k = 3 , s = 1) : RF p3 = 43 + (3 − 1) × 8 = 59 
+
+The total effective receptive field for the Hadamax encoder maps to a 59 × 59 
+
+spatial patch. 21.4. Hadamax Gamma Encoder (Valid & Same) 
+
+The Hadamax Gamma architecture utilizes a five-block deep configuration. Note that while Valid and Same differ in their pooling padding, padding does not alter the maximum receptive field calculation of a single unit. Thus, the calculation for both is identical: Block 1 Conv (k = 3 , s = 1) : RF c1 = 1 + (3 − 1) × 1 = 3 
+
+Block 1 Pool (k = 2 , s = 2) : RF p1 = 3 + (2 − 1) × 1 = 4 
+
+Block 2 Conv (k = 3 , s = 1) : RF c2 = 4 + (3 − 1) × (1 × 2) = 8 
+
+Block 2 Pool (k = 2 , s = 2) : RF p2 = 8 + (2 − 1) × 2 = 10 
+
+Block 3 Conv (k = 3 , s = 1) : RF c3 = 10 + (3 − 1) × (2 × 2) = 18 
+
+Block 3 Pool (k = 3 , s = 1) : RF p3 = 18 + (3 − 1) × 4 = 26 
+
+Block 4 Conv (k = 3 , s = 1) : RF c4 = 26 + (3 − 1) × (4 × 1) = 34 
+
+Block 4 Pool (k = 2 , s = 2) : RF p4 = 34 + (2 − 1) × 4 = 38 
+
+Block 5 Conv (k = 3 , s = 1) : RF c5 = 38 + (3 − 1) × (4 × 2) = 54 
+
+Block 5 Pool (k = 3 , s = 1) : RF p5 = 54 + (3 − 1) × 8 = 70 
+
+The total effective receptive field for the Hadamax Gamma encoder maps to a 
+
+70 × 70 spatial patch. This deeper, decoupled pooling approach significantly expands the receptive field compared to both the standard Gamma architecture (39 × 39 ) and the baseline Hadamax ( 59 × 59 ). 32. Individual Environment Learning Curves (Figures) PQN Alpha Beta Gamma Delta Epsilon Zeta Eta Theta             
+
+> Alien Amidar Assault Asterix
+> Asteroids Atlantis Bank Heist Battlezone
+> Beamrider Berzerk Bowling Boxing
+> Breakout Centipede Chopper Cmd Crazy Climber
+
+Figure S1: Phase 1 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the baseline CNN encoders (Alpha through Theta) across all 57 Atari games. (Part 1 of 4) 
+
+4Defender Demon Attack Double Dunk Enduro          
+
+> Fishing Derby Freeway Frostbite Gopher
+> Gravitar H.E.R.O. Ice Hockey James Bond
+> Kangaroo Krull Kung Fu Mstr Montezuma’s
+
+Figure S1: Phase 1 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the baseline CNN encoders (Alpha through Theta) across all 57 Atari games. (Part 2 of 4) 
+
+5Ms. Pac-Man Name This Phoenix Pitfall!          
+
+> Pong Private Eye Q*bert River Raid
+> Road Runner Robo-Tank Seaquest Skiing
+> Solaris Space Inv. Star Gunner Surround
+
+Figure S1: Phase 1 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the baseline CNN encoders (Alpha through Theta) across all 57 Atari games. (Part 3 of 4) 
+
+6Tennis Time Pilot Tutankham Up ’n Down     
+
+> Venture Vid. Pinball Wizard of Wor Yars’ Revenge
+> Zaxxon
+
+Figure S1: Phase 1 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the baseline CNN encoders (Alpha through Theta) across all 57 Atari games. (Part 4 of 4) 
+
+7Gamma Hadamax-Gamma-Valid Hadamax-Gamma-Same Hadamax Alien Amidar Assault Asterix          
+
+> Asteroids Atlantis Bank Heist Battlezone
+> Beamrider Berzerk Bowling Boxing
+> Breakout Centipede Chopper Cmd Crazy Climber
+
+Figure S2: Phase 2 Learning Curves: Un-normalized evaluation returns over 200 million training frames comparing the standard Gamma baseline to the Hadamax-integrated variants across all 57 Atari games. (Part 1 of 4) 
+
+8Defender Demon Attack Double Dunk Enduro          
+
+> Fishing Derby Freeway Frostbite Gopher
+> Gravitar H.E.R.O. Ice Hockey James Bond
+> Kangaroo Krull Kung Fu Mstr Montezuma’s
+
+Figure S2: Phase 2 Learning Curves: Un-normalized evaluation returns over 200 million training frames comparing the standard Gamma baseline to the Hadamax-integrated variants across all 57 Atari games. (Part 2 of 4) 
+
+9Ms. Pac-Man Name This Phoenix Pitfall!          
+
+> Pong Private Eye Q*bert River Raid
+> Road Runner Robo-Tank Seaquest Skiing
+> Solaris Space Inv. Star Gunner Surround
+
+Figure S2: Phase 2 Learning Curves: Un-normalized evaluation returns over 200 million training frames comparing the standard Gamma baseline to the Hadamax-integrated variants across all 57 Atari games. (Part 3 of 4) 
+
+10 Tennis Time Pilot Tutankham Up ’n Down     
+
+> Venture Vid. Pinball Wizard of Wor Yars’ Revenge
+> Zaxxon
+
+Figure S2: Phase 2 Learning Curves: Un-normalized evaluation returns over 200 million training frames comparing the standard Gamma baseline to the Hadamax-integrated variants across all 57 Atari games. (Part 4 of 4) 
+
+11 PQN Distributional Duelling Ensemble Duelling Aftab Alien Amidar Assault Asterix          
+
+> Asteroids Atlantis Bank Heist Battlezone
+> Beamrider Berzerk Bowling Boxing
+> Breakout Centipede Chopper Cmd Crazy Climber
+
+Figure S3: Phase 3 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the advanced value regression architectures (Dueling, Ensemble, and Dis-tributional) across all 57 Atari games. (Part 1 of 4) 
+
+12 Defender Demon Attack Double Dunk Enduro          
+
+> Fishing Derby Freeway Frostbite Gopher
+> Gravitar H.E.R.O. Ice Hockey James Bond
+> Kangaroo Krull Kung Fu Mstr Montezuma’s
+
+Figure S3: Phase 3 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the advanced value regression architectures (Dueling, Ensemble, and Dis-tributional) across all 57 Atari games. (Part 2 of 4) 
+
+13 Ms. Pac-Man Name This Phoenix Pitfall!          
+
+> Pong Private Eye Q*bert River Raid
+> Road Runner Robo-Tank Seaquest Skiing
+> Solaris Space Inv. Star Gunner Surround
+
+Figure S3: Phase 3 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the advanced value regression architectures (Dueling, Ensemble, and Dis-tributional) across all 57 Atari games. (Part 3 of 4) 
+
+14 Tennis Time Pilot Tutankham Up ’n Down     
+
+> Venture Vid. Pinball Wizard of Wor Yars’ Revenge
+> Zaxxon
+
+Figure S3: Phase 3 Learning Curves: Un-normalized evaluation returns over 200 million training frames for the advanced value regression architectures (Dueling, Ensemble, and Dis-tributional) across all 57 Atari games. (Part 4 of 4) 
+
+15 PQN Aftab Big Fish Hard Boss Fight Hard Cave Flyer Hard Chaser Hard          
+
+> Climber Hard Coinrun Hard Dodgeball Hard Fruitbot Hard
+> Heist Hard Jumper Hard Leaper Hard Maze Hard
+> Miner Hard Ninja Hard Plunder Hard Starpilot Hard
+
+Figure S4: Out-of-Distribution Generalization: Un-normalized evaluation returns over 200 million training frames comparing the baseline PQN to the complete Aftab framework across the 16 individual Procgen Hard environments. 
+
+16 3. Raw Evaluation Returns (Tables) 
+
+Table S1: Phase 1 Atari-57 Raw Returns: Final unnormalized evaluation scores for the PQN baseline and the eight parameter-constrained CNN encoders (Alpha through Theta). (Part 1 of 2) 
+
+PQN Alpha Beta Gamma Delta Epsilon Zeta Eta Theta Alien 4688.197 13152.109 14752.177 18963.333 2680.850 17525.578 11592.449 11572.415 3209.184 Amidar 1082.500 2178.153 1139.731 1893.639 974.150 2362.010 1200.925 1726.520 1234.459 Assault 17009.493 12128.391 14126.837 18030.888 13932.092 18513.439 14149.139 17580.704 17846.646 Asterix 366434.014 129816.327 154993.197 126304.082 235632.653 86924.830 103686.395 85679.932 374916.327 
+
+Asteroids 2312.721 103959.762 15110.748 68774.320 11182.687 28792.415 85168.333 2549.150 1950.884 Atlantis 742852.041 728122.789 751796.599 742603.741 736686.735 761386.735 747847.619 751528.912 758324.490 Bank Heist 1402.143 1506.395 1595.000 1288.912 1332.789 1257.517 1588.163 1302.075 1514.762 Battlezone 44176.871 43829.932 64149.660 64085.034 44642.857 65819.728 48993.197 38017.007 37350.340 Beamrider 22017.973 47062.184 39400.667 39152.435 18069.789 33208.973 22814.422 20786.871 19927.231 Berzerk 5877.857 15391.463 958.571 1942.279 3578.537 3434.660 8512.109 2253.231 3921.633 Bowling 30.000 37.830 27.724 30.959 31.333 30.442 34.667 38.007 30.571 Boxing 99.228 100.000 100.000 99.587 100.000 100.000 100.000 100.000 100.000 
+
+Breakout 352.044 436.816 451.425 504.044 326.320 405.925 394.044 431.728 407.690 Centipede 10076.690 13596.034 11219.793 17675.850 8680.939 11957.031 8450.085 12807.017 7412.735 Chopper Command 17155.442 118263.946 334721.088 360188.095 6479.252 258300.000 185923.810 19930.612 11332.993 Crazy Climber 161068.367 179992.517 204894.898 179469.728 185854.422 191479.252 175811.224 179710.884 153729.252 Defender 51787.245 75035.374 66311.905 91159.694 53549.320 61850.510 65859.354 50575.850 62583.844 Demon Attack 132035.357 132607.364 133369.286 132650.221 128967.942 132331.548 131675.442 130311.701 128636.190 Double Dunk -1.782 -1.238 -1.095 -1.707 -1.980 -1.483 -1.442 -0.850 -1.449 Enduro 2360.721 2357.741 2325.959 2341.762 2353.371 2343.173 2339.864 2338.684 2326.656 Fishing Derby 42.286 46.748 42.823 43.272 38.197 49.184 47.177 42.537 41.000 Freeway 33.823 33.983 33.827 32.973 33.653 33.840 33.667 33.820 33.806 Frostbite 6653.946 9596.701 9046.803 9532.925 4842.925 6228.571 8996.667 8130.306 4846.871 Gopher 53851.973 64661.769 72346.054 51893.333 34766.463 39304.626 32817.483 68673.129 45066.190 Gravitar 956.122 645.408 1319.558 1293.367 730.102 1032.483 978.061 1874.830 594.388 H.E.R.O. 24341.207 25199.864 21372.449 24353.571 20274.881 24368.827 30249.847 34076.003 14280.051 Ice Hockey 0.177 2.136 0.895 14.364 -3.622 0.721 1.531 2.235 -3.690 James Bond 2195.068 2500.850 1569.048 5012.245 1360.374 7288.435 2657.653 3470.918 2228.912 Kangaroo 13455.442 14392.857 14387.075 14087.755 11813.605 13774.150 14466.667 14088.095 14328.231 Krull 9707.585 10637.381 10961.361 10724.456 9399.592 10308.878 11143.061 9998.946 10395.680 
+
+17 Table S2: Phase 1 Atari-57 Raw Returns: Final unnormalized evaluation scores for the PQN baseline and the eight parameter-constrained CNN encoders (Alpha through Theta). (Part 2 of 2) 
+
+PQN Alpha Beta Gamma Delta Epsilon Zeta Eta Theta Kung-Fu Master 31990.136 38857.823 31007.823 35474.830 34184.014 35648.299 33834.354 32204.762 41987.075 
+
+Montezuma’s R. 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 
+
+Ms. Pac-Man 3365.340 5302.415 6122.891 5855.238 3515.544 5614.456 5822.483 7529.932 4865.816 Name This Game 15329.014 19033.571 16205.748 21340.510 15285.782 16041.735 15393.265 12873.435 17054.830 Phoenix 177903.333 213915.986 235491.803 190653.197 51112.245 185824.252 283574.218 255857.245 98561.429 Pitfall! -5.344 0.000 -21.105 0.000 0.000 0.000 0.000 -0.871 -22.041 Pong 21.000 21.000 21.000 21.000 21.000 21.000 21.000 21.000 21.000 
+
+Private Eye 66.667 98.639 100.000 87.333 9.524 50.000 50.000 44.983 100.000 
+
+Q*bert 21923.469 25177.296 25397.874 25847.959 17267.262 24266.241 25570.153 26119.218 22553.486 River Raid 21349.014 27019.490 27153.299 29396.327 23497.007 28564.456 30737.823 24621.361 23529.388 Road Runner 57719.048 72455.442 63845.918 175828.571 56056.463 61521.088 81121.769 56501.361 57602.381 Robotank 71.167 76.075 72.412 68.752 72.170 71.554 73.391 64.133 66.609 Seaquest 7978.027 10092.925 7835.646 8228.844 8466.871 8840.816 17571.224 17243.741 8063.129 Skiing -23644.677 -9432.129 -18793.803 -22986.874 -23272.214 -9766.480 -10895.473 -10667.639 -21527.639 Solaris 2605.306 2069.932 2881.837 3081.497 2004.762 2541.542 2247.279 3255.102 4381.088 
+
+Space Invaders 5342.296 2655.680 11072.245 2855.578 6468.639 2966.718 2851.633 24713.435 2864.932 Stargunner 259520.408 371468.027 423331.293 403316.667 241495.918 320142.517 315854.082 237664.966 229308.503 Surround 8.350 8.857 9.248 9.146 6.071 9.262 9.905 9.833 7.112 Tennis -1.333 11.833 -4.316 23.881 -1.092 11.633 -2.500 -1.000 -1.303 Time Pilot 13860.884 27697.619 32540.816 27330.272 11938.095 23786.054 24746.939 26560.544 9999.320 Tutankham 249.473 255.932 264.330 254.279 259.340 248.612 248.173 268.939 246.932 Up’n Down 263719.048 253879.762 295438.095 266537.007 164273.027 307976.429 318144.694 91661.429 268903.095 Venture 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 
+
+Video Pinball 457305.670 542947.592 448438.116 529722.776 510972.653 462849.429 544883.133 529542.265 487644.446 Wizard of Wor 16897.959 28960.544 29923.469 29785.714 13953.401 34776.190 23365.646 33848.980 26704.762 Yars’ Revenge 115017.827 136848.190 138392.262 140728.207 101737.813 124140.105 144543.561 141543.759 115265.139 Zaxxon 16136.735 17865.306 24046.939 20938.435 14489.116 15231.293 15286.395 20634.694 17481.633 Median 6653.946 12128.391 11072.245 10724.456 6479.252 10308.878 11143.061 11572.415 4865.816 IQM 9199.376 14472.442 12906.556 14799.306 8112.347 13152.706 12762.966 12441.939 8813.942 IQM 95% CI [4627, 20442] [7148, 32568] [6080, 29171] [7312, 33077] [3965, 16543] [6180, 27604] [6335, 29271] [6367, 22211] [4295, 19384] 
+
+18 Table S3: Phase 2 Atari-57 Raw Returns: Final un-normalized evaluation scores comparing the standard Gamma encoder against the Gamma-Hadamax-Valid (V1) and Gamma-Hadamax-Same (V2) architectures. 
+
+Gamma Hadamax-Gamma-Valid Hadamax-Gamma-Same Hadamax Alien 2.806 2.262 3.143 2.956 Amidar 1.099 1.538 1.170 0.814 Assault 33.854 40.430 45.000 42.586 Asterix 14.828 37.491 42.532 32.479 Asteroids 1.487 1.346 2.006 1.003 Atlantis 46.256 43.382 37.872 44.555 Bank Heist 1.725 2.113 2.046 2.108 Battlezone 1.914 2.362 1.912 2.275 Beamrider 2.548 2.709 4.126 2.594 Berzerk 1.282 23.230 21.633 10.371 Bowling 0.135 0.131 0.034 0.046 Boxing 8.291 8.248 8.325 8.321 Breakout 17.307 14.305 19.649 20.023 
+
+Centipede 1.432 2.772 3.109 2.261 Chopper Command 63.290 66.259 105.041 27.477 Crazy Climber 6.657 7.892 8.703 8.946 
+
+Defender 6.255 21.932 21.030 20.902 Demon Attack 72.827 74.642 74.361 74.521 Double Dunk 7.739 7.388 7.961 7.807 Enduro 2.685 2.730 2.733 2.711 Fishing Derby 2.582 2.513 2.634 2.523 Freeway 1.112 1.146 1.148 1.140 Frostbite 2.191 1.446 2.729 2.408 Gopher 28.834 37.097 27.959 26.749 Gravitar 0.335 0.422 0.575 0.577 
+
+H.E.R.O. 0.733 1.209 1.188 1.115 Ice Hockey 1.916 3.701 3.498 1.342 James Bond 18.358 43.679 44.754 19.589 Kangaroo 4.612 4.722 4.352 4.491 Krull 8.321 8.800 8.581 8.820 
+
+Kung-Fu Master 1.358 1.069 0.969 1.741 
+
+Montezuma’s Revenge 0.000 0.000 0.001 0.000 Ms. Pac-Man 0.843 1.195 1.600 1.272 Name This Game 3.242 3.405 3.111 3.368 Phoenix 35.263 37.001 44.998 31.553 Pitfall! 0.033 0.034 0.034 0.033 Pong 1.181 1.181 1.181 1.181 
+
+Private Eye 0.001 0.001 -0.000 0.000 Q*bert 1.805 3.322 3.006 2.091 River Raid 1.784 1.787 2.140 1.712 Road Runner 22.764 29.294 37.244 22.406 Robotank 6.975 7.643 7.565 7.174 Seaquest 0.197 5.522 4.914 1.540 Skiing -0.324 0.636 0.649 0.501 Solaris 0.187 0.091 0.134 0.157 Space Invaders 5.194 18.616 19.901 19.767 Stargunner 42.913 63.307 62.754 53.536 Surround 1.122 1.155 1.140 1.167 
+
+Tennis 2.677 3.084 3.075 3.078 Time Pilot 14.722 12.217 9.629 9.367 Tutankham 1.515 1.701 1.460 1.477 Up’n Down 24.246 22.753 25.159 24.811 Venture 0.000 0.203 0.000 0.028 Video Pinball 373.361 321.522 306.502 357.007 Wizard of Wor 6.668 7.758 5.651 4.370 Yars’ Revenge 2.577 8.192 5.519 7.117 Zaxxon 2.319 2.267 2.372 2.829 
+
+Median 2.577 3.322 3.143 2.829 IQM 3.508 5.254 5.360 4.712 IQM 95% CI [2.143, 6.967] [2.926, 10.606] [3.031, 11.030] [2.651, 8.907] 
+
+19 Table S4: Phase 3 Atari-57 Raw Returns: Final un-normalized evaluation scores detailing the ablation of the advanced regression heads (Distributional Dueling, Ensemble Dueling, and Aftab). 
+
+PQN Distributional Duelling Ensemble Duelling Aftab Alien 4688.197 20386.327 24329.320 22953.912 Amidar 1082.500 2634.789 3378.616 2926.568 Assault 17009.493 15812.541 21412.942 20397.452 Asterix 366434.014 340450.680 330103.741 283998.639 Asteroids 2312.721 45602.007 43198.027 24836.667 Atlantis 742852.041 740343.197 773082.653 1922416.327 
+
+Bank Heist 1402.143 1673.741 1657.143 1576.259 Battlezone 44176.871 119812.925 107248.299 111278.912 Beamrider 22017.973 73008.435 53364.939 71070.449 Berzerk 5877.857 27839.252 46650.102 39211.531 Bowling 30.000 28.935 49.541 61.925 
+
+Boxing 99.228 100.000 100.000 100.000 
+
+Breakout 352.044 594.007 699.381 933.010 
+
+Centipede 10076.690 202759.650 35466.418 207815.929 
+
+Chopper Command 17155.442 543812.585 827556.122 568332.993 Crazy Climber 161068.367 216305.102 201359.524 173999.660 Defender 51787.245 297204.762 367071.259 505392.857 
+
+Demon Attack 132035.357 134858.639 135605.238 12853.605 Double Dunk -1.782 -1.245 -1.340 -21.027 Enduro 2360.721 2345.184 2346.575 6165.946 
+
+Fishing Derby 42.286 36.939 45.816 43.054 Freeway 33.823 34.000 34.000 34.000 
+
+Frostbite 6653.946 8145.272 12135.272 9659.218 Gopher 53851.973 44451.429 70625.034 40949.388 Gravitar 956.122 2012.585 2737.075 4410.034 
+
+H.E.R.O. 24341.207 51736.156 37095.714 68036.905 
+
+Ice Hockey 0.177 35.660 31.333 40.592 
+
+James Bond 2195.068 18633.333 7044.728 29409.354 
+
+Kangaroo 13455.442 14308.844 13969.728 14474.830 
+
+Krull 9707.585 13738.367 11224.558 13158.673 Kung-Fu Master 31990.136 29379.592 26209.184 29263.265 Montezuma’s Revenge 0.000 0.000 123.129 148.980 
+
+Ms. Pac-Man 3365.340 11182.350 11885.439 9572.963 Name This Game 15329.014 26781.156 19973.878 26262.517 Phoenix 177903.333 482720.680 483661.565 1104620.680 
+
+Pitfall! -5.344 0.000 -5.007 0.000 
+
+Pong 21.000 21.000 21.000 21.000 
+
+Private Eye 66.667 16.667 100.000 100.000 
+
+Q*bert 21923.469 45021.088 48135.969 44785.119 River Raid 21349.014 33202.007 43151.361 35383.163 Road Runner 57719.048 140571.429 375416.667 257419.048 Robotank 71.167 75.592 78.721 77.527 Seaquest 7978.027 471696.327 365552.687 1909299.898 
+
+Skiing -23644.677 -15831.898 -8677.490 -20213.990 Solaris 2605.306 1216.871 2487.279 1365.850 Space Invaders 5342.296 34645.204 62922.971 54110.289 Stargunner 259520.408 619437.075 692191.497 628127.211 Surround 8.350 9.827 9.500 9.959 
+
+Tennis -1.333 23.833 24.000 24.000 
+
+Time Pilot 13860.884 20004.762 19017.347 28396.259 
+
+Tutankham 249.473 240.306 266.622 258.588 Up’n Down 263719.048 311849.558 271042.823 269188.537 Venture 0.000 0.000 0.000 707.483 
+
+Video Pinball 457305.670 478535.429 547276.806 1700656.636 
+
+Wizard of Wor 16897.959 36559.524 25731.633 36345.578 Yars’ Revenge 115017.827 284535.259 305711.432 293344.007 Zaxxon 16136.735 33449.660 19704.422 39183.333 
+
+Median 6653.946 20004.762 19704.422 22953.912 
+
+IQM 9199.376 25328.197 22998.097 23746.835 IQM 95% CI [4684.833, 19899.239] [11805.560, 69101.979] [11148.088, 73260.157] [12366.775, 67372.868] 
+
+20 Table S5: Phase 3 Procgen Hard Raw Returns: Final un-normalized evaluation scores com-paring the baseline PQN against the final composite Aftab architecture across the out-of-distribution Procgen environments. 
+
+## PQN Aftab BigfishHard 7.233 31.491 
+
+## BossfightHard 0.023 0.000 CaveflyerHard 5.313 0.000 ChaserHard 2.564 8.871 
+
+## ClimberHard 1.049 0.000 CoinrunHard 4.816 0.000 DodgeballHard 0.192 12.596 
+
+## FruitbotHard -0.415 13.647 
+
+## HeistHard 0.418 0.347 JumperHard 2.306 0.000 LeaperHard 5.500 9.520 
+
+## MazeHard 1.449 4.561 
+
+## MinerHard 0.358 10.052 
+
+## NinjaHard 2.898 0.520 PlunderHard 4.983 4.672 StarpilotHard 4.508 0.223 Median 2.435 2.541 
+
+## IQM 2.501 3.589 
+
+## IQM 95% CI [1.000, 4.169] [0.208, 8.426] 
+
+21

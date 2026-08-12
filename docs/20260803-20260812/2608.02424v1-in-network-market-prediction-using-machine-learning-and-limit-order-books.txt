@@ -1,0 +1,639 @@
+Title: In-Network Market Prediction Using Machine Learning and Limit Order Books
+
+URL Source: https://arxiv.org/pdf/2608.02424v1
+
+Published Time: Tue, 04 Aug 2026 02:39:36 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+> 1
+
+# In-Network Market Prediction Using Machine Learning and Limit Order Books 
+
+Xinpeng Hong , Changgang Zheng , Joshua Lilley , Stefan Zohren , and Noa Zilberman 
+
+Abstract —Machine learning is significantly transforming algo-rithmic trading, yet the requirement for rapid execution speeds persists. While both aspects aim to boost profitability, embedding advanced machine-learning techniques with reduced trading la-tency presents a notable challenge. Adopting in-network machine learning, which involves offloading inference to programmable network devices, offers a delicate equilibrium in this trade-off. In this paper, we present LOBIN, a solution that utilizes machine learning within the network for market prediction based on high-frequency market data feeds. LOBIN is adept at constructing limit order books and performing inference di-rectly within programmable switches. When compared to server-based benchmarks, LOBIN not only predicts future stock price movements with higher throughput but also maintains robust machine learning performance. It achieves over a 10% reduction in latency compared to the NASDAQ order-matching server benchmark and delivers microsecond-level latency. Furthermore, the machine learning performance of LOBIN can be further enhanced through the adoption of a hybrid deployment approach that integrates both the switch and the servers. Our evaluation demonstrates that among all data feeds of evaluated stocks, the application of hybrid deployment results in approximately 45% of the traffic and 38% of the total potential transaction value being processed within switches without server intervention, reducing latency while ensuring that the average change in error rate of predictions remains at around 3% relative to benchmarks based solely on server use. 
+
+Index Terms —In-network computing, machine learning, pro-grammable switches, P4, microstructure market data, limit order books, time series prediction. 
+
+I. I NTRODUCTION 
+
+Algorithmic trading has been growing over the past few decades as financial firms automate processes traditionally done by human traders. It uses computer algorithms to auto-matically execute orders under preset trading instructions [1]. As an essential form of algorithmic trading, high-frequency trading (HFT) is characterized by placing larger numbers of orders within a minimum time and being able to react quickly under changing market conditions [2]. The internal latency of HFT systems that do not incorporate ML has been measured in microseconds [3]. The rise of artificial intelligence (AI) further drives the growth of algorithmic HFT, with machine learning (ML) ap-proaches becoming widespread in this field [4], [5]. However, the increasing complexity of ML models used also challenges existing trading systems, driving the need for a decrease in the delays in processing data, running models, and executing trades based on the insights gained. Furthermore, this also results in an escalating demand for more CPU cycles and 
+
+Xinpeng Hong, Changgang Zheng, Joshua Lilley, Stefan Zohren, and Noa Zilberman are with the Department of Engineering Science, University of Oxford, United Kingdom. Stock Exchange(s) 
+
+Traditional Solution 
+
+LOBIN Solution 
+
+Data Plane 
+
+LOB Construction 
+
+Feature Extraction 
+
+ML Model Inference 
+
+Standard Switch Functionality (e.g., Packet Forwarding) LOBIN Processing Flow 
+
+Traditional Processing Flow 
+
+Figure 1. General working scenario of LOBIN. 
+
+electrical power within the HFT industry [6], which are considered detrimental to long-term and sustainable finance. In-network computing offloads applications to run within programmable network devices [7]. In-network ML, as aspecific type of in-network computing, deploys pre-trained ML models within network devices and conducts inference there for lower latency, higher throughput, and more efficient power utilization [8], [9]. By design, in-network ML provides a practical solution for lowering latency in time-sensitive financial applications, such as those in trading scenarios, while also promoting AI and finance sustainability and curbing environmental impact through lower power use. With limited prior works on in-network ML for time-critical financial uses, this paper provides an in-depth study on the application of in-network ML to a common HFT problem: predicting future price movements from market microstructure signals. This strategy has been proven to be feasible and profitable [4]. There are a number of previous works focusing on market forecasting utilizing electronic limit order books (LOBs) combined with ML models [10]–[13]. For a particular stock, a real-time LOB is constructed from unmatched limit orders that are predetermined with specific prices. It contains a wealth of information that can be used as ML features [14]. In this paper, we design and implement LOBIN (Limit Order Books In Network), an in-network prototype for future price movement forecasting by maintaining a LOB based on market-by-order (MBO) data feeds. Figure 1 shows a general working scenario of LOBIN compared with traditional solutions. The deployment location of LOBIN enables im-mediate prediction and decision-making, effectively circum-venting the delay caused by traditional processing flow and server-based inference. Deployed on a Tofino [15] hardware switch, Tofino 2 (emulation environment), and a BMv2 [16] software switch model, LOBIN demonstrates the feasibility of the solution. According to the evaluation results, LOBIN can achieve a minimal loss of prediction performance compared to server-based implementation while lowering latency. By using a hybrid deployment strategy, LOBIN can achieve even higher ML performance while still retaining its ultra-low-arXiv:2608.02424v1 [cs.NI] 3 Aug 2026 2
+
+latency advantage. The main contributions of this paper are as follows:  
+
+> •
+
+We study the application of in-network ML to market prediction from microstructure data and provide a proof of concept demonstrating its feasibility. This is the first of its kind to explore time-sensitive financial applications of in-network ML.  
+
+> •
+
+We design and implement a prototype that builds and updates LOBs in the programmable data plane based on high-frequency market data feeds, entailing the de-velopment of a complex data structure. We integrate the workflow of building and updating LOBs with ML-related processes, deploying it on both hardware and software programmable network devices.  
+
+> •
+
+We evaluate the prototype within a local networked-system testbed in terms of both ML prediction perfor-mance and networking performance. We compare differ-ent ML models, stock sections, and implementation so-lutions. While maintaining ML-based functionalities, the prototype achieves microsecond-level latency, reducing it by over 10% compared to the server benchmark.  
+
+> •
+
+We realize further improvements using a hybrid deploy-ment approach across stocks, in terms of the accuracy, error rate, fraction of ML inference decisions handled by the switch, and latency, as a function of the on-switch ML classification confidence threshold. The analysis shows that hybrid deployment is both viable and beneficial, improving prediction performance, maintaining ultra-low latency, and reducing load on servers. II. B ACKGROUND AND MOTIVATION 
+
+This section provides background about basic concepts and related works from three different domains: ML-based market prediction, trading acceleration using network devices, and in-network ML. It also motivates the need to explore the intersection of ML, programmable networking, and trading. 
+
+A. ML for Market Prediction 
+
+Centering on buying and selling assets in the marketplace, financial trading is an area where the application of ML approaches has become mainstream. Since financial time series data are inherently non-stationary and nonlinear, containing high noise [17], the applicability of traditional statistical methods is often constrained when dealing with this type of data. Aiming for profitability, ML models have been proven to have the capability to help with almost every point in the trading process, including forecasting price movement, generating trading signals, optimizing order execution, and making trading decisions [5]. Among all aforementioned tasks, predictions on stock mar-ket price movement remain a big challenge because future fluctuations are influenced by countless internal and external factors, such as economic factors, investor sentiment, company performance, and industry performance [18]. To perform better in financial forecasting, researchers have applied and assessed different ML approaches based on historical data [19]–[21]. ML model complexity is continuously growing, using mas-sive financial data more efficiently, laying an increasingly high burden on traditional processor-based platforms, and leading to a decrease in computational speed. However, in the scope of HFT, intense competition among traders requires lightning-speed real-time trade execution. Low latency is significantly crucial for generating profits because many of them are often based on short-lived opportunities such as cross-market arbi-trage and breaking news [5]. In today’s competition, a small fraction of trading firms with the fastest HFT systems continue to amass a large share of trading revenues [22]. Therefore, accelerating ML-based market prediction remains a challenge. 
+
+B. Network Devices for Trading Acceleration 
+
+To achieve lower latency, researchers focus not only on the optimization of trading algorithms and strategies but also on system-level solutions based on software design and hardware implementation. To date, different network devices have been used for trading acceleration, including application-specific integrated circuits (ASICs), graphic processing units (GPUs), or field-programmable gate arrays (FPGAs) [23]. Some studies used FPGAs for accelerating market data feed processing or trading applications, e.g. [24], [25] while others also utilized customized network interface cards (NICs) and optimized soft-ware for lower latency [26]. Significant progress was driven by the industry in developing hardware-based acceleration that can support financial services applications, e.g. [27], [28]. However, none of the previous works has attempted to acceler-ate ML-based market prediction for making trading decisions within the network itself . Given the innovative benefits that in-network computing and in-network ML can provide in terms of latency reduction, they may become a potential solution for this gap. If proven to be beneficial, a new generation of trading systems may be derived in the future. Since ASICs can offer superior processing performance compared to their counterparts [29], this work uses switching ASICs for the lowest end-to-end latency. 
+
+C. In-Network ML 
+
+As the root of in-network computing, network programma-bility has facilitated network evolution. The emergence of software-defined networking (SDN) enabled networks to be intelligently controlled by software applications [30]. A spe-cialized language, Programming Protocol-independent Packet Processors (P4), was developed for configuring how network devices process and forward packets within the data plane [31]. Protocol-Independent Switching Architecture (PISA) is a com-mon architecture that represents the data plane model in P4 based on a programmable match-action pipeline [32]. Some P4 targets, such as the behavioral model (BMv2) switch and P4 platform on Raspberry Pi (P4Pi), use standard CPU to run packet forwarding programs [33], while some others are based on hardware including FPGAs [34], switches (e.g., Intel Tofino), and NICs (e.g., NVIDIA BlueField 2). P4 programs run on these target devices for packet forwarding and computing, offering programmability within the data plane. This provides a seedbed for offloading server applications to programmable network devices, which drove the emergence of in-network computing. In-network computing offloads applications in part, or in full, to the data plane. It leverages lower power overheads, as well as higher process efficiency of network devices [7]. In-network computing has been applied in several areas, includ-ing caching [35], DNS [7], and distributed systems [36]. Some 3
+
+studies focused on benefiting ML applications by offloading some parts of ML functions into the data plane such as feature extraction and weight aggregation [37], [38]. To date, a number of ML models have been implemented for in-network ML, making their application to different fields possible [39]. However, the range of in-network ML use cases is still limited and needs further extension. Most relevant works focused on fields such as security and anomaly detection [40], [41], while the domain of financial trading was barely explored. In an early work, we considered market prediction, but only using stateless MBO messages [42]. Our experiments show that ML models perform poorly when using only raw fields from MBO messages as features, akin to a random classifier. This limitation motivates the use of LOBs as model inputs, as they offer richer information for better modeling [43]. However, incorporating complex structures like LOBs within the data plane poses significant implementation challenges. III. O VERVIEW OF LOBIN This section provides an introduction to MBO data and LOBs, along with an explanation of how LOBs update with market data feeds. Our solution, LOBIN, is subsequently introduced, with its key ideas and technical design explained. 
+
+A. Limit Order Books 
+
+Market-by-order (MBO) is an order-based, unencrypted data feed that provides the details of each trade instruction for a certain stock, directly from exchanges to traders [44]. It con-tains an order’s timestamp, unique identifier, action (whether to add a new order, cancel an existing order, or update the price or quantity for the existing order), side (whether to buy or sell the given security), price, and quantity. Implicitly derived from MBO data, LOBs present a collection of unmatched limit orders that are waiting to be executed at pre-specified or better price levels [45]. A limit order used to buy an asset at or below a pre-specified price is also called a bid order. In contrast, an ask order (or an offer) is to sell an asset at or above a given price level [12]. In a LOB, the two types of limit orders reside in the bid side and ask side, correspondingly. The mid-price is defined as the midpoint between the best (highest) bid price and the best (lowest) ask price. In most of today’s securities markets, bid orders and ask orders are executed following the price/time priority princi-ple [46]. This principle dictates how limit orders are prioritized for execution: orders are operated firstly based on the best price, and if the specified prices of multiple orders are the same, the priority is given to the earliest one, breaking ties. When executing a new order within the matching engine, the details it contains are used to decide how to update the LOB. Figure 2 shows the workflow of updating a LOB with MBO data feeds. Taking an ask order as an example to illustrate the process, its limit price is compared to the best bid price, as shown in Step 1 ⃝. If the price of the new order is higher, the new order will be unmatched and reside at its price level of the LOB, as illustrated in Step 2 ⃝. If the price of the new order is equal to or lower than the bid, meaning that it crosses the bid-ask spread, as depicted in Step 3 ⃝, it will be matched with the unexecuted order(s) at the best bid price level. When any quantity of the new order remains after matching, it will be matched with the unexecuted order(s) at lower price level(s), Bid Side   
+
+> Check Side
+> Start
+> Ask Side
+> No Best Bid Price > Order Price?
+> Yes
+> Add Size to Order Price
+> Execute Size from Best Bid Price to Order Price
+> Update Best Bid Price and Best Ask Price
+> Update Best Ask Price If Necessary
+> Update Mid-Price
+> Input MBO
+> No Order Price > Best Ask Price?
+> Yes
+> Add Size to Order Price
+> Execute Size from Best Ask Price to Order Price
+> Update Best Bid Price and Best Ask Price
+> Update Best Bid Price If Necessary
+> Update Mid-Price
+> End
+> 1
+> 3
+> 4
+> 2
+> 4
+> 5
+> Figure 2. Workflow of updating a LOB with MBO feeds.
+
+as long as their price is bigger or equal to the price of the limit order. If unexecuted order(s) with higher price(s) than the new order has (have) been matched, the new order’s remaining quantity will become an offer at its price level. As indicated in Step 4⃝, the best bid price and the best ask price within the LOB are updated if needed – those changes result in the volatility of the mid-price, which is shown in Step 5⃝.Updating the LOB with a bid order is similar. Figure 3 illustrates how MBO data updates a LOB using four examples. Figure 3(a) presents how a new ask order with the price P4 updates a LOB. Since P4 is on the ask side, the quantity of the order settles with the existing volume at 
+
+P4. Similarly, Figure 3(b) shows that the size of a new bid order with the price P1 resides at P1 of the LOB. Figure 3(c) demonstrates the situation when a new bid order with a price higher than the best offer is used to update the LOB. In the example, the price of the bid order is P5 while the existing best offer is P4. The new order is matched with the existing orders at P4 first, and then with the ones at P5 if the unexecuted orders at P4 are not sufficient for matching. After execution, the best offer becomes P5, and thus the mid-price changes from the average of P3 and P4 to P4. Last, in Figure 3(d), the LOB needs to be updated with a new ask order at the price 
+
+P3. Since the price of the new order equals the current best bid of the LOB, only unexecuted orders at P3 are eligible for matching. If they are not enough to match the whole quantity of the new order, the remaining volume of it then resides at 
+
+P3 and P3 becomes the best offer. The mid-price then changes to the average of P2 and P3 as the figure shows. 
+
+B. LOBIN’s Design 
+
+LOBIN accelerates stock price movement prediction through the construction and updating of LOBs, a complex data structure, in the programmable data plane. For a given individual stock, when a new MBO message is received, LOBIN updates the LOB. It then extracts features, obtaining information on both price and quantity from different levels on the bid and ask sides of the LOB. The mid-price at each point in time is also used to create labels, representing the direction of price changes. Figure 4 shows the system architecture of LOBIN, including components on the server, control plane, and data plane. In the first step, running on a server, historical market data feeds 4Size                                                        
+
+> Price
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Size
+> Price
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Size
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Size
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Price
+> Price
+> Size
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Price
+> Size
+> Bid Side Ask Side
+> Mid-Price (Moved)
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Price
+> Size
+> Bid Side Ask Side
+> Mid-Price
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+> Price
+> Size
+> Bid Side Ask Side
+> Mid-Price (Moved)
+> Price
+> An ask order at the price 𝑃 4A bid order at the price 𝑃1 A bid order at the price 𝑃5 An ask order at the price 𝑃3
+> 𝑃1 𝑃2 𝑃3 𝑃 4𝑃5 𝑃6
+
+(a)  (b)  (c)  (d)   
+
+> Figure 3. An illustration of how MBO data updates a LOB. Training Data + Configurations Control Plane & Server
+> Data Plane (Switch)
+
+1   
+
+> Standard P4 Program Feature Extraction & ML Inference
+> LOB Cons.
+> Write/update table rules Load model
+> Trained ML Model Program Generator LOB Code Gen. ML Code Gen. Std Code Generator
+
+2 Mapped ML Model 3
+
+45 
+
+> Figure 4. System design of LOBIN.
+
+are used to train an ML model, using LOB-based features. The trained model 1⃝ is mapped to the data plane 2⃝, and table entries are generated. The mapping includes generating a P4 program 3⃝, which contains both the mapped model and LOB-related logic: LOB construction and update, and feature extraction. The generated P4 program is loaded to the programmable data plane 4⃝, while table entries are loaded through the control plane 5⃝. This design allows for direct prediction results in the data plane using trained ML models. To further enhance LOBIN’s performance, its design sup-ports a hybrid deployment, combining a small model on the switch with a large model on the backend [47]. In a hybrid deployment, a price-movement prediction in the switch will be labeled only if the confidence level of the prediction is high. Otherwise, the MBO would be sent to a server for prediction by a larger-size model. Such a deployment can reduce latency for most MBO messages and ML inferences, without compromising on ML prediction performance. IV. I MPLEMENTATION 
+
+LOBIN is implemented using P4 on BMv2 and Intel Tofino switch-ASIC. Both implementations are based on the same concept: the LOB is initialized with an equal volume at each price level before transactions are executed. For each incoming MBO, the LOB is updated. After each message, the mid-price is computed based on the highest bid and the lowest offer at that timestamp, and LOB status features are extracted and used for ML inference. Programmable data planes are limited by different con-straints, such as the amount of memory, number of stages, and permitted operations. This section explains using pseudocode the update process of a LOB within a data plane, and the solutions used by LOBIN to overcome the key challenges to enabling the logic within switch hardware. 
+
+A. Software Switch Implementation 
+
+BMv2 is an open-source behavioral software switch main-tained by P4 workgroups [16], serving as a functional devel-opment target that can be adapted for various environments, such as P4Pi [33] and eBPF [48]. It is often used as a reference switch for functionality evaluation. As BMv2 is not as constrained as switch-ASICs, it is used as the first P4 data plane target for the general LOBIN process shown in Figure 2. Algorithm 1 presents the pseudocode of the updating process of a LOB with a bid order. The algorithm of updating a LOB with an ask order is similar and omitted for brevity. The algorithm uses three registers ( Ra, Rb, and Rl) to store the lowest ask price, the highest bid price, and current state of the LOB (the current quantity at each price level), respectively. These variables are stateful and need to be maintained and updated over time. Other variables in Algorithm 1 are user-defined metadata, used as intermediates for updating the LOB state and the best prices. First, the algorithm extracts the current best bid and ask prices (line 16). When the order price is lower than the best ask price, the algorithm increases the size at the order’s price level and updates the best bid price if needed (lines 17-20). If the order price is higher, the algorithm iterates from the best ask price to the order price, fulfilling any matching orders and updating the best bid and ask prices as required (lines 21-33). Last, it records the updated best bid and ask prices back into registers (line 34). 
+
+B. Tofino Implementation 
+
+Intel Tofino is a P4-based programmable switch ASIC, which utilizes the Tofino Native Architecture (TNA), an archi-tecture that is very similar to the Portable Switch Architecture (PSA) used in BMv2. Tofino offers Tbps (Terabit-per-second) data rate, with microsecond-scale latency [49], which can potentially be deployed at the network edge or access and pro-vide LOB services. However, similar to other programmable switch-ASICs, it has resource constraints such as stage count and memory capacity [50]. While BMv2 is suitable for P4 5
+
+Algorithm 1 LOB update with a new bid order (General)  
+
+> 1:
+
+- Rl: An array tracking LOB states (Register Array).  
+
+> 2:
+
+- Ra: Position of lowest ask price (Register).  
+
+> 3:
+
+- Rb: Position of highest bid price (Register).  
+
+> 4:
+
+- I: Position of price levels in LOB.  
+
+> 5:
+
+- Pa: Position of lowest ask price (Metadata).  
+
+> 6:
+
+- Pb: Position of highest bid price (Metadata).  
+
+> 7:
+
+- Po: Price level position of a new order.  
+
+> 8:
+
+- So: Size (unexecuted) of a new order.  
+
+> 9: 10:
+
+function UPDATE MIN ASK (I) 
+
+> 11:
+
+while Rl[I] == 0 do  
+
+> 12:
+
+I ← I + 1  
+
+> 13:
+
+Pa ← I ▷ Update the lowest ask price.  
+
+> 14: 15:
+
+function MAIN (Po, S o) 
+
+> 16:
+
+Pa, P b ← Ra, R b ▷ Read values from registers.  
+
+> 17:
+
+if Po < P a then ▷ If order resides in LOB.  
+
+> 18:
+
+Rl[Po] ← Rl[Po] + So ▷ Update LOB.  
+
+> 19:
+
+if Po > P b then  
+
+> 20:
+
+Pb ← Po ▷ Update the highest bid price.  
+
+> 21:
+
+else ▷ Order needs to be matched.  
+
+> 22:
+
+for I = Pa, . . . , P o do ▷ Iteration for matching.  
+
+> 23:
+
+if Rl[I] >= So then ▷ LOB order size at the 
+
+Ith price level is sufficient to match.  
+
+> 24:
+
+Rl[I] ← Rl[I] − So ▷ Update LOB.  
+
+> 25:
+
+UPDATE MIN ASK (I) 
+
+> 26:
+
+break  
+
+> 27:
+
+else ▷ LOB order size at the Ith price level is insufficient to match.  
+
+> 28:
+
+So ← So − Rl[I] ▷ New unexecuted size.  
+
+> 29:
+
+Rl[I] ← 0 ▷ Update LOB.  
+
+> 30:
+
+if I == Po then  
+
+> 31:
+
+Rl[I] ← So ▷ Unmatched size of the new order resides in LOB.  
+
+> 32:
+
+Pb ← I ▷ Update the highest bid.  
+
+> 33:
+
+UPDATE MIN ASK (I + 1 ) 
+
+> 34:
+
+Ra, R b ← Pa, P b ▷ Write values back to registers. prototypes, using Tofino indicates the viability of commodity off-the-shelf devices in a real-world trading environment. The constraints of Tofino’s ASIC design, mean that the general solution previously described needs to be adapted to the hardware. To overcome the limitations of the platform, the process of updating the LOB with MBO data should be modified. The main implementation challenges are:  
+
+> •
+
+Lack of loops: Basic workflow requires loops for several purposes. For instance, to locate maximum bid, minimum offer, or when executing a new bid order that needs to be served by multiple offer levels in the LOB, due to its quantity. While loop unrolling is one solution, its cost in resources and stage consumption is high.  
+
+> •
+
+Cost of comparisons: LOB construction and mainte-nance require a lot of price and order volume compar-isons. For example, for an incoming offer, its price needs to be compared with the best bid and the best offer. If an offer is matched with a bid, their quantities need to be compared, and any remaining unmatched quantity needs to be handled. On hardware, each comparison consumes a processing stage and reduces scalability. 
+
+Algorithm 2 LOB update with a new bid order on Tofino  
+
+> 1:
+
+- F : Recirculation flag ( 1 if a recirculated message).  
+
+> 2:
+
+- SI : Order size at the Ith price level in LOB.  
+
+> 3:
+
+- a, b, c : Temporary variables for comparisons.  
+
+> 4:
+
+- Other variable definitions are as in Algorithm 1.  
+
+> 5: 6:
+
+function OPERATION (I) 
+
+> 7:
+
+SI ← Rl[I] ▷ Read order size at the Ith price level.  
+
+> 8:
+
+a ← I − Pa ▷ Distance from lowest ask price.  
+
+> 9:
+
+b ← Po − I ▷ Distance from new order’s price.  
+
+> 10:
+
+c ← So − SI ▷ Gap between new order’s unexecuted size and LOB size at the Ith price level.  
+
+> 11:
+
+if a ≥ 0 and b > 0 and c ≥ 0 then ▷ Order size at the Ith price level is insufficient to match new order.  
+
+> 12:
+
+SI , S o ← 0, c ▷ Update LOB and unmatched size.  
+
+> 13:
+
+else if a ≥ 0 and b == 0 and c > 0 then ▷ The unmatched size of the new order resides in LOB.  
+
+> 14:
+
+SI , S o ← c, 0 ▷ Update LOB and unmatched size.  
+
+> 15:
+
+Pb ← I ▷ Update the highest bid price.  
+
+> 16:
+
+Pa ← I + 1 ▷ Update the lowest ask price.  
+
+> 17:
+
+else if a ≥ 0 and b == 0 and c == 0 then ▷ Order size at the Ith price level is just enough to match.  
+
+> 18:
+
+SI , S o ← 0, 0 ▷ Update LOB and unmatched size.  
+
+> 19:
+
+Pa ← I + 1 ▷ Update the lowest ask price.  
+
+> 20:
+
+else if a ≥ 0 and b ≥ 0 and c < 0 then ▷ Order size at the Ith price level is more than sufficient to match.  
+
+> 21:
+
+SI , S o ← SI − So, 0 ▷ Update LOB size and unmatched order size.  
+
+> 22:
+
+Pa ← I ▷ Update the lowest ask price.  
+
+> 23: 24:
+
+function MAIN (Po, S o) 
+
+> 25:
+
+if F == 0 then  
+
+> 26:
+
+Pa, P b ← Ra, R b ▷ Read values from registers.  
+
+> 27:
+
+if Po ≤ Pb then ▷ If order resides in LOB.  
+
+> 28:
+
+Rl[Po] ← Rl[Po] + So ▷ Update LOB.  
+
+> 29:
+
+else if Pb < P o < P a then ▷ If order resides in LOB and the highest bid price needs updating.  
+
+> 30:
+
+Rl[Po] ← Rl[Po] + So ▷ Update LOB.  
+
+> 31:
+
+Pb ← Po ▷ Update the highest bid price.  
+
+> 32:
+
+else if Pa ≤ Po then ▷ Order matches.  
+
+> 33:
+
+for I = 0 , . . . , P h do ▷ Iteration for operation.  
+
+> 34:
+
+if So > 0 then ▷ Unexecuted size exists.  
+
+> 35:
+
+OPERATION (I) 
+
+> 36:
+
+F ← 1 ▷ Update recirculation flag.  
+
+> 37:
+
+else if F == 1 then  
+
+> 38:
+
+Ra, R b ← Pa, P b ▷ Write values back to registers.  
+
+> 39:
+
+for I = 0 , . . . , P h do  
+
+> 40:
+
+Rl[I] ← SI ▷ Write back updated LOB size.  
+
+> •
+
+Registers access: LOB must maintain state over MBO messages and be quickly updated, which requires the use of registers. However, a register can be accessed only once in the pipeline, and it is not allowed to read a register at the beginning of the pipeline and then write an updated value back at the end of the pipeline. To overcome this challenge, recirculation can be used, with one pass for reading and the second for writing. In addition to the challenges above, the sequential call to 
+
+if − else conditions, as used in Algorithm 1, can easily exceed the maximum number of pipeline stages. Consequently, 6
+
+LOBIN’s processing flow is modified from a hierarchical structure into a flatter, parallel design. The key idea in the solution is using regular logic to update the quantity at a single price level in the LOB, and operating through all price levels using the same logic, regardless of the current order’s price. The algorithm compares each price level with the price of the new bid order and the current best ask price (lines 8-9). It also compares the quantity of each price level with the order size to be matched (line 10). At each price level, the algorithm’s decision-making is influenced by four possible scenarios arising from the comparisons’ results: 1) The order size at the current price level falls short of fulfilling the order size to be matched (lines 11-12); 2) It is just enough to match the remaining order size (lines 17-19); 3) It surpasses the quantity needed for matching (lines 20-22); 4) The new order’s remaining unmatched size can reside at the current price level (lines 13-16). Based on these outcomes, the algorithm decides if and how to operate on the current price level, as well as if to update the best bid and ask prices. Algorithm 2 shows the pseudocode of updating a LOB with a bid order on Tofino. Updating an ask order follows a similar process. While line 22 of Algorithm 1 and line 33 and 39 of Algorithm 2 use f or commands, these are only for illustration purposes, and loop unrolling is applied in practice. The P4 implementation of LOBIN integrates the LOB-based feature engineering and extraction code as a preprocessing step with ML inference code generated by Planter [39], a framework for mapping trained ML models to programmable network devices. LOB generation and updates require 622 lines of P4 code for BMv2 and 680 lines for Tofino. Auto-matically generated inference code varies across different ML models. For instance, a decision tree model requires 390 lines for BMv2 and 165 lines for Tofino. The code for architecture and network functionality across both targets requires fewer than 100 lines. The implementation also supports Tofino 2 without further code changes. Moreover, the implementation supports a hybrid ML deployment. V. E VALUATION 
+
+This section assesses LOBIN’s performance using pub-licly accessible MBO data, focusing on ML performance, latency, and throughput. It includes a comparative analy-sis of LOBIN on commodity programmable switches and server-based benchmarks, employing different ML models. Additionally, LOBIN is evaluated combined with a hybrid deployment approach. The findings demonstrate LOBIN’s im-proved throughput, reduced latency, and consistent prediction performance compared to server benchmarks. 
+
+Dataset and Tools: The dataset used in this study is NAS-DAQ’s Historical TotalView-ITCH sample data feeds [51]. All MBO messages for each trading day are encapsulated within a compressed binary format file. The data format specification is publicly available [52]. Due to the absence of data feeds spanning consecutive days in the data source, data from a single date is used. MBO messages were extracted on January 30, 2020, representing the most recent date available at the time of analysis. Three stocks are picked for the evaluation, representing companies in the NASDAQ Composite index with the largest market capitalization in three different sec-tors: Diamondback Energy Inc (NASDAQ: FANG, Sector: Energy), Exelon Corp (NASDAQ: EXC, Sector: Utilities), and AstraZeneca PLC (NASDAQ: AZN, Sector: Healthcare). Our evaluation prioritizes a comparative analysis of ML performance relative to established server benchmarks rather than focusing solely on absolute performance. With around 440K entries from three distinct stocks, the dataset provides a diverse representation of market behaviors, allowing for fair comparisons in ML performance. An open-source tool [53] is used for reconstructing MBO messages of one specific stock from the binary format file. The Planter framework [39] is used for in-network ML deployment. 
+
+Experimental Setup: An APS-Networks BF6064T-X Intel Tofino switch is used for evaluation. The 64 ×100G ports switch runs SDE (software development environment) 9.4.0. The system supporting Tofino 2 uses SDE 9.9.0 running on a server. Server-based experiments, including traffic genera-tion, are conducted with two ASUS ESC4000A-E10 servers, equipped with AMD EPYC 7302P CPU and 256GB DDR4 RAM, using Ubuntu 20.04 LTS. Both servers are connected to the switch using NVIDIA ConnectX-5 100G NICs and direct attach cables. Scikit-learn (Sklearn) library [54] is used for ML training and inference on the server. 
+
+A. Prediction Performance 
+
+Model prediction performance is tested for several different ML algorithms that are commonly used for forecasting future stock price movement, including k-means (KM), k-nearest neighbors (KNN), decision trees (DTs), random forests (RFs), and extreme gradient boosting (XGB) [19]–[21]. Some in-network ML models, like support vector machines and naive Bayes, are not feasible, as they consume more hardware stages, preventing their deployment together with LOB-related code. ML model training uses up to ten price level volumes of a LOB and the mid-price as input features for server-based and BMv2-based prediction. For Tofino-based prediction, up to three price level volumes of a LOB and the mid-price are used, due to resource constraints on the switch. Server-based benchmarks are trained with unlimited-size models while avoiding overfitting, as evidenced by our experiments where server-based DTs reach up to 20 in depth and 100000 in leaf nodes, and both RFs and XGB include up to 300 trees, with similar maximum depth and leaf nodes. In contrast, switch-based models are of limited size. For example, switch-based DTs have a maximum depth of 4 and up to 1000 leaf nodes, while RFs and XGB are restricted to 4 trees, a maximum depth of 3, and a limit of 1000 leaf nodes. The labels are used to predict future mid-price movement (up, down, and stationary) over the next 100 ticks. A smoothing labeling method [11] is used to draw more consistent signals from highly stochastic financial feeds. Synthetic minority over-sampling technique (SMOTE) is applied to address class imbalance [55]. To explore performance gains with resources’ scalability, the prediction performance of Tofino 2 is emulated. Tofino 2 is less resource-constrained than Tofino. As it has more stages, it is possible to use larger LOBs, extract more features, increase model sizes, or utilize ML models that consume more stages. Table I presents experimental results using key ML metrics: macro precision (PRE), macro recall (REC), macro F1-score (F1), and accuracy (ACC). Precision measures the ratio of correct predictions in a class to all predictions for that class, and macro precision averages this across classes. Macro re-call calculates the proportion of correct predictions per class 7
+
+NASDAQ: FANG (Sector: Energy) 
+
+Target: Tofino Tofino 2 BMv2 Server Model PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC KM 34.91 33.75 13.43 23.81 30.85 33.91 14.05 24.20 23.68 33.32 27.59 52.90 23.68 33.32 27.59 52.90 KNN 39.89 33.59 12.93 23.13 40.94 33.65 13.00 23.20 41.66 36.63 34.51 44.01 57.76 60.72 58.01 64.58 DT 51.14 57.88 53.36 69.95 50.84 57.88 53.26 69.90 60.61 60.59 56.48 70.83 60.61 60.59 56.48 70.83 RF 62.46 58.27 54.78 69.46 51.28 57.70 53.29 69.93 52.03 59.26 54.60 70.93 59.20 61.49 56.29 70.72 XGB 51.14 57.88 53.36 69.95 50.84 57.88 53.26 69.90 67.65 59.69 56.84 71.92 59.82 61.90 58.17 68.79 
+
+NASDAQ: EXC (Sector: Utilities) 
+
+Target: Tofino Tofino 2 BMv2 Server Model PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC KM 29.99 32.23 28.72 29.76 36.20 33.36 32.10 31.59 36.80 36.89 36.30 35.04 36.80 36.89 36.30 35.04 KNN 22.20 34.78 25.92 30.92 26.77 36.17 24.18 32.26 25.44 42.05 31.55 37.30 48.64 51.08 47.59 49.00 DT 50.84 44.87 43.37 48.03 49.50 45.04 43.92 48.21 55.36 59.81 53.38 55.32 60.12 62.21 59.18 59.41 RF 49.63 45.87 45.06 48.99 49.61 45.94 45.15 49.01 58.94 60.73 52.68 55.55 60.25 61.50 59.34 60.39 XGB 48.00 40.67 35.53 45.96 48.30 41.37 36.99 46.52 58.76 61.17 51.75 55.75 60.70 61.43 59.92 60.85 
+
+NASDAQ: AZN (Sector: Healthcare) 
+
+Target: Tofino Tofino 2 BMv2 Server Model PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC PRE REC F1 ACC KM 7.21 23.41 10.39 17.13 19.33 28.18 16.68 21.84 27.18 37.26 29.59 40.16 27.18 37.26 29.59 40.16 KNN 11.63 33.33 17.25 34.90 13.63 33.33 19.35 40.89 66.54 40.69 32.35 39.22 60.56 58.96 59.18 61.06 DT 29.60 39.09 33.67 44.93 29.54 39.01 33.61 44.84 50.55 50.21 46.92 54.33 57.14 52.43 49.85 55.17 RF 30.37 40.20 33.69 47.16 32.69 42.95 37.05 48.95 45.22 54.83 47.27 61.25 47.69 58.39 50.57 65.74 XGB 34.50 34.31 31.88 37.47 29.54 39.01 33.61 44.84 57.29 63.24 54.74 71.69 60.70 60.67 55.48 67.41             
+
+> Table I ML PREDICTION PERFORMANCE (%) WITH THREE NASDAQ STOCKS FROM THREE DIFFERENT SECTORS . LOBIN RUNS LIMITED -SIZE MODELS ON
+> BM V2AND TOFINO (OR EMULATED ON TOFINO 2). T HE BENCHMARK RUNS ON A SERVER USING SKLEARN AND UNLIMITED -SIZE MODELS .
+
+against actual instances, averaged across all classes. The F1 score, a balance between precision and recall, is their harmonic mean. Accuracy reflects the overall correct predictions over total predictions. The F1 score is often preferred over accuracy as it better addresses class imbalance, providing a more comprehensive model evaluation, especially in skewed class distributions. All four metrics range from 0 to 1, with higher values indicating better performance. The benchmarks’ ML performance results, running on the server, achieve performance comparable to previous (ML-focused) studies that used similar features from LOBs for the same prediction task [12]. Their test results, using different neural networks, achieved F1-score ranging from 40.84% to 76.58%, on the same datasets and with the same prediction horizon of 100 as in our experiments. In comparison, the results of our ML benchmarks are on a par. Additional tests with recurrent neural networks (RNN) and long short-term memory (LSTM) networks across stocks yielded F1-scores of 70.92% to 78.28% after fine-tuning hyperparameters to validate the state-of-the-art performance achievable on servers. As the results in Table I show, the LOBIN solution’s ML performance on a software switch (BMv2) aligns closely with server benchmarks across different models and stocks. Running on BMv2, it has an average accuracy loss of 4.39% with an average F1-score loss of 6.47%. Specifically, the precision and recall experience an average reduction of 3.54% and 4.16%, respectively. This difference is mainly due to the variation in model sizes that can be supported. Notably, even on Tofino, LOBIN’s performance loss is small for FANG stock, highlighting its strengths. For instance, across three tree-ensemble models, LOBIN’s accuracy loss on Tofino is less than 1%, with a loss of 3.15% for the F1-score compared with server benchmarks. The F1-score loss is evidenced by a 3.32% drop in average recall and a more FANG EXC AZN 025 50 75 100                    
+
+> Precision (%)
+> Tofino Tofino 2 BMv2 Server FANG EXC AZN 025 50 75 100
+> Recall (%)  Tofino Tofino 2 BMv2 Server FANG EXC AZN 025 50 75 100
+> F1 Score (%)
+> Tofino Tofino 2 BMv2 Server FANG EXC AZN 025 50 75 100
+> Accuracy (%)
+> Tofino Tofino 2 BMv2 Server
+> Figure 5. Box plots of precision, recall, F1-score, and accuracy across ML models, for different targets, Tofino, Tofino 2, BMv2, and the server.
+
+substantial 4.96% reduction in average precision. Overall, the ML performance of LOBIN, when deployed on Tofino, falls short of BMv2 and server-based solutions due to hardware resource limitations, restricting it to only supporting smaller-sized ML models and fewer features. These constraints also force LOBIN to construct smaller LOBs, thereby diminishing its sensitivity to mid-price shifts. Results from Tofino 2 show an improvement over Tofino as two additional features from a larger LOB can be supported. Consequently, LOBIN can achieve better ML performance on Tofino 2 hardware. Additionally, Tofino2 offers the flexibility 8KM KNN DT RF XGB 025 50 75 100              
+
+> PRE Ratio (%)
+> Tofino Tofino 2 BMv2 Server KM KNN DT RF XGB 025 50 75 100
+> REC Ratio (%)
+> Tofino Tofino 2 BMv2 Server KM KNN DT RF XGB 025 50 75 100
+> F1 Ratio (%)
+> Tofino Tofino 2 BMv2 Server KM KNN DT RF XGB 025 50 75 100
+> ACC Ratio (%)
+> Tofino Tofino 2 BMv2 Server
+> Figure 6. The average ratio (%) of precision, recall, F1-score, and accuracy across models relative to the benchmark, on Tofino, Tofino 2, and BMv2.
+
+to allocate its extra resources to support either larger ML models or larger LOBs with more features. Our experiments indicate that both approaches yield similar performances. In further examining LOBIN’s ML performance, the average ratios of all four metrics on different targets are computed, relative to server benchmarks. On average, Tofino attains 72.20%, 75.21%, 63.50%, and 71.57% of the ML benchmarks’ precision, recall, F1-scores, and accuracy, respectively. The corresponding metrics for Tofino 2 fall within the range of roughly 66% to 77%. For BMv2, these ratios are notably higher, spanning from around 88% to 93%. Figure 5 shows box plots of all metrics on all targets across models, highlight-ing LOBIN’s consistent pattern and robust performance for each stock, with performance differences across targets and benchmarks being most noticeable for AZN. A comparative analysis is also conducted to scrutinize the performance dispar-ities among in-network models. The outcomes, delineated in Figure 6, indicate that tree-based ensemble methods stand out by delivering low loss, high ratios, and consistent performance stability across stocks in ML predictions. 
+
+B. Networking Performance 
+
+The latency of Tofino is under NDA, therefore we report our measurements of pipeline and framework latencies relative to Tofino’s reference switch ( switch.p4 ). LOBIN’s relative pipeline latency is computed based on data reported by its SDE and includes one pipeline recirculation per MBO message. LOBIN’s framework latency is measured between two servers, with a switch positioned in between. Precision Time Protocol (PTP), using the ptp4l toolkit, is used for the measurement, with timestamps taken on both servers. The relative framework latency is the ratio of the measured LOBIN latency to the measurement of simple forwarding through the switch. Measurements are performed across all three stocks, yield-ing consistent results with no significant discrepancies. Conse-quently, we use the FANG stock for illustrative purposes. As shown in Figure 7 (a), all of LOBIN’s models have a similar latency to the reference switch.p4 . This demonstrates that even DT RF XGB KNN KM Ref 0.7 0.8 0.9 1.0 1.1 
+
+> R-Latency
+> LOBIN Switch
+
+(a) Pipeline R-Latency DT RF XGB KNN KM S.B. 1.0 1.5 2.0 2.5 3.0  
+
+> R-Latency  LOBIN Framework Server Benchmark
+
+(b) Framework R-Latency  
+
+> Figure 7. (a) The pipeline relative latency (R-Latency) on Tofino for different models, measured for LOBIN with standalone ML and standalone switch.p 4.(b) The framework R-Latency of LOBIN for different models, compared with a server benchmark (S.B.). (Stock: FANG).
+
+under resource constraints, LOBIN itself achieves comparable latency to simple packet switching. On the framework level, as Figure 7 (b) shows, the latency of LOBIN is higher than simple forwarding due to recirculation. However, LOBIN achieves its microsecond-level latency while doing on top of forwarding also LOB updates and ML inference. LOBIN also achieves over 10% improvement compared to the NASDAQ order-matching server benchmark [56], that only measures LOB updates without ML inference. This indicates even higher improvements if inference were included. In a throughput test, packets are sent using DPDK 20.11.1 and PktGen 21.03.0. Two separate pipelines (32 ports) are connected in a snake configuration where each port is linked to the next one in the pipeline, with recirculation through unused pipelines. LOBIN achieves full 1.6Tbps ( 16 × 100 Gbps ) on each of the switch pipelines, and 3.2Tbps in total. 
+
+C. Hybrid Deployment Performance 
+
+The prediction performance of LOBIN on Tofino can be further improved using a hybrid ML deployment [47]. The performance of LOBIN with the implementation of a hybrid deployment strategy is evaluated across all three stocks. The baseline is an unlimited-size ensemble model running on the servers. On the switch, a limited-size model is deployed for inference. Messages with a low classification confidence level are subsequently forwarded to the servers for more in-depth classification. The switch is configured with a confidence level to decide the on-switch classification threshold. Figure 8 illustrates the relationship between the switch classification confidence threshold and four key performance metrics, including accuracy, misclassification rate, fraction of offloaded traffic, and framework latency relative to simple forwarding through the switch, when using a random forest model for classification with FANG, EXC, and AZN stocks. Several shared findings for the three stocks can be deduced: First, increasing the switch confidence threshold leads to enhanced prediction accuracy on the switch as well as the accuracy on the server for the instances served by the switch. As this threshold is raised, the overall rate of misclassification declines while the F1-score improves. The on-switch classifi-cation accuracy is lower compared to the on-server accuracy for the instances processed by the switch, because the model on the switch, which comprises only 4 trees, is significantly smaller than the one running on the server, which consists of 200 trees with unlimited depth and number of leaf nodes. Second, a higher confidence threshold on the switch results in more order feeds being sent to the server for processing. Consequently, this leads to a decrease in the proportion of traffic that the switch can offload. Third, sending more order feeds to the server for processing also leads to an increase in 90.5 0.6 0.7 0.8 0.9 1.0      
+
+> Switch Confidence Threshold
+> 40 60 80 100
+> Accuracy (%)
+> Server Switch 0.5 0.6 0.7 0.8 0.9 1.0
+
+Switch Confidence Threshold            
+
+> 20 35 50 65
+> Error Rate (%)
+> Baseline (29.28%) f1=0.5336 f1=0.5612 f1=0.5629 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 025 50 75 100
+> Switch Frac. (%) 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 2.0 2.3 2.6 2.9 3.2
+> R-Latency
+> Average Median
+
+(a) Stock: FANG 0.5 0.6 0.7 0.8 0.9 1.0      
+
+> Switch Confidence Threshold
+> 40 60 80 100
+> Accuracy (%)  Server Switch 0.5 0.6 0.7 0.8 0.9 1.0
+
+Switch Confidence Threshold            
+
+> 20 35 50 65
+> Error Rate (%)
+> Baseline (41.06%) f1=0.4339 f1=0.5216 f1=0.5737 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 025 50 75 100
+> Switch Frac. (%) 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 2.0 2.3 2.6 2.9 3.2
+> R-Latency  Average Median
+
+(b) Stock: EXC 0.5 0.6 0.7 0.8 0.9 1.0      
+
+> Switch Confidence Threshold
+> 40 60 80 100
+> Accuracy (%)  Server Switch 0.5 0.6 0.7 0.8 0.9 1.0
+
+Switch Confidence Threshold           
+
+> 20 35 50 65
+> Error Rate (%)
+> Baseline (34.26%) f1=0.3367 f1=0.3757 f1=0.4884 f1=0.5057 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 025 50 75 100
+> Switch Frac. (%) 0.5 0.6 0.7 0.8 0.9 1.0
+> Switch Confidence Threshold
+> 2.0 2.3 2.6 2.9 3.2
+> R-Latency  Average Median
+
+(c) Stock: AZN  
+
+> Figure 8. The accuracy, the error rate, the fraction (Frac.) of traffic offloaded by the switch, and the end-to-end average and median R-latency (latency relative to simple forwarding) of LOBIN with three stocks using Random Forest models, across switch classification confidence thresholds. “Average” is calculated by dividing the total latency by the number of orders processed, whereas “Median” refers to the latency of a single order that divides the feed into two halves, with one half having higher latencies and the other half lower.
+
+the average latency for each processed order. The sharp rise in median latency observed in all latency-related figures indicates the point at which half of the traffic is directed to the server, while the other half is managed entirely on switch. As Figure 8 (a) shows, for stocks like FANG, where LOBIN’s on-switch classification accuracy is nearly equivalent to the server benchmark, offloading all inference to the switch results in a slight increase in error rate of less than 3%. In such scenarios, the average latency can be reduced by approx-imately 9.5%, compared with the NASDAQ server benchmark without using a hybrid setup. The hybrid deployment has nearly no impact on the error rate (within 0.2% margin) while offloading approximately 20% of the traffic to the switch. For stocks such as EXC and AZN, where the ML per-formance gap between LOBIN’s model on hardware and the server benchmark is relatively larger compared to stocks like FANG, adopting a hybrid deployment is more effective. Based on Figure 8 (b) and (c), by adjusting the switch confidence threshold to optimal levels, 0.98 for EXC and 0.96 for AZN, the increase in error rate can be maintained below 5% for both. This approach enables direct on-switch processing of 48.12% of EXC’s orders and 27.81% of AZN’s orders. In practice, a suitable threshold can be selected for each stock to strike a balance across all metrics. When considering the data feeds of all evaluated stocks collectively, a hybrid deployment leads to around 45% of the traffic being processed directly by the switch, bypassing server intervention. In terms of transaction value, this equates to about 1.97 billion dollars out of a total of 5.13 billion, representing 38% of the total value, being managed on-switch. This method also ensures that the average change in misclassification rate is maintained at around 3%, highlighting its efficiency in large-scale trading feed processing. VI. D ISCUSSION 
+
+LOBIN contributes to latency reduction of short-term price predictions from LOBs By Design . Even in comparison with inference solutions using SmartNICs or FPGA, LOBIN elimi-nates the latency of getting to the host, with minimal overhead beyond that of standard switch forwarding. While LOBIN is implemented on Tofino, using low-latency programmable switches can reduce latency further. LOBIN can also be deployed on multiple switches, each managing the LOBs of different stocks or distributing a large ML model [57], thus enhancing scalability. While LOBIN is shown to be feasible on hardware tar-gets, the resources restrict the increase in LOB size. LOBIN does not store MBO states but can update volumes within LOBs, allowing for order cancellations and updates, with minor changes to the current prototype. Recent LOB research shows promising directions for future exploration, such as parallel processing of multiple LOBs within the network [58]. This work may inspire more industry-driven improvement of current programmable switches to support such extensions. VII. C ONCLUSION 
+
+This paper presented a time-sensitive application of in-network ML for HFT. LOBIN, a prototype for constructing and updating limit order books within the data plane, was designed and deployed on programmable network devices. The evaluation shows that LOBIN can maintain high prediction ac-curacy compared with a server-based benchmark while achiev-ing ultra-low microsecond-scale latency. More specifically, it provides over 10% improvement in latency, compared with the NASDAQ order-matching server benchmark. The prediction performance of LOBIN can be further enhanced using a hybrid deployment. This approach proved highly effective, processing about 45% of the traffic and 38% of the potential transaction 10 
+
+value directly on the switch, and keeping the average change in error rate at a stable 3%. LOBIN’s automated implementation streamlines the process of testing new stocks, using different data feeds, and experimenting with other ML models, marking a significant step towards true in-network trading applications. ACKNOWLEDGMENT 
+
+This work was partly funded by VMware and we acknowl-edge support from Intel. For the purpose of Open Access, the author has applied a CC BY public copyright license to any Author Accepted Manuscript (AAM) version arising from this submission. REFERENCES [1] T. Hendershott, C. M. Jones, and A. J. Menkveld, “Does Algorithmic Trading Improve Liquidity?” J Finance , vol. 66, no. 1, pp. 1–33, 2011. [2] P. Gomber et al. , “High Frequency Trading,” in Encyclopedia of Infor-mation Science and Technology . IGI Global, 2015, pp. 1–9. [3] M. Baldauf and J. Mollner, “High-Frequency Trading and Market Performance,” J Finance , vol. 75, no. 3, pp. 1495–1526, 2020. [4] M. Kearns and Y. Nevmyvaka, “Machine Learning for Market Mi-crostructure and High Frequency Trading,” High Frequency Trading: New Realities for Traders, Markets, and Regulators , 2013. [5] B. Huang et al. , “Automated Trading Systems Statistical and Machine Learning Methods and Hardware Implementation: A Survey,” Enterprise Information Systems , vol. 13, no. 1, pp. 132–144, 2019. [6] J. Stokes, “One Day, the Stock Market Could Eat the Power Grid,” 
+
+Wired , 2011. [Online]. Available: https://www.wired.com/insights/2011/ 12/stock-market-power/ [7] Y. Tokusashi et al. , “The Case for In-network Computing on Demand,” in Proceedings of the Fourteenth EuroSys Conference 2019 , 2019. [8] D. Sanvito, G. Siracusano, and R. Bifulco, “Can the Network be the AI Accelerator?” in NetCompute , 2018, pp. 20–25. [9] Z. Xiong and N. Zilberman, “Do Switches Dream of Machine Learning? Toward In-Network Classification,” in HotNets , 2019, pp. 25–33. [10] A. N. Kercheval and Y. Zhang, “Modelling High-Frequency Limit Order Book Dynamics with Support Vector Machines,” Quantitative Finance ,vol. 15, no. 8, pp. 1315–1329, 2015. [11] A. Ntakaris et al. , “Benchmark Dataset for Mid Price Forecasting of Limit Order Book Data with Machine Learning Methods,” Journal of Forecasting , vol. 37, no. 8, pp. 852–866, 2018. [12] Z. Zhang, S. Zohren, and S. Roberts, “DeepLOB: Deep Convolutional Neural Networks for Limit Order Books,” IEEE Transactions on Signal Processing , vol. 67, no. 11, pp. 3001–3012, 2019. [13] A. Tsantekidis et al. , “Using Deep Learning for Price Prediction by Ex-ploiting Stationary Limit Order Book Features,” Applied Soft Computing ,vol. 93, p. 106401, 2020. [14] S. Baruch, “Who Benefits from an Open Limit-Order Book?” The Journal of Business , vol. 78, no. 4, pp. 1267–1306, 2005. [15] “Tofino,” https://www.barefootnetworks.com/products/brief-tofino/. [16] “The Reference P4 Software Switch,” https : / / github. com / p4lang / behavioral-model. [17] C. Cheng et al. , “Time Series Forecasting for Nonlinear and Non-stationary Processes: A Review and Comparative Study,” Iie Transac-tions , vol. 47, no. 10, pp. 1053–1071, 2015. [18] M. Obthong et al. , “A Survey on Machine Learning for Stock Price Prediction: Algorithms and Techniques,” FEMIB , 2020. [19] M. Ballings et al. , “Evaluating Multiple Classifiers for Stock Price Direction Prediction,” Expert systems with Applications , vol. 42, no. 20, pp. 7046–7056, 2015. [20] J. Patel et al. , “Predicting Stock and Stock Price Index Movement Using Trend Deterministic Data Preparation and Machine Learning Techniques,” Expert systems with applications , vol. 42, no. 1, pp. 259– 268, 2015. [21] S. Basak et al. , “Predicting the Direction of Stock Market Prices Using Tree-based Classifiers,” North Am. J. Econ. Finance , vol. 47, pp. 552– 567, 2019. [22] M. Baron et al. , “Risk and Return in High-Frequency Trading,” JFQA ,vol. 54, no. 3, 2019. [23] E. Nurvitadhi et al. , “Accelerating Recurrent Neural Networks in Ana-lytics Servers: Comparison of FPGA, CPU, GPU, and ASIC,” in FPL .IEEE, 2016, pp. 1–4. [24] G. W. Morris, D. B. Thomas, and W. Luk, “FPGA Accelerated Low-Latency Market Data Feed Processing,” in 2009 17th IEEE Symposium on High Performance Interconnects . IEEE, 2009, pp. 83–89. [25] Q. Tang et al. , “A Scalable Architecture for Low-Latency Market-Data Processing on FPGA,” in ISCC . IEEE, 2016, pp. 597–603. [26] H. Subramoni, F. Petrini et al. , “Streaming, Low-latency Communication in On-line Trading Systems,” in IPDPSW . IEEE, 2010, pp. 1–8. [27] V. Santosh and S. Singh, “Announcing DPU-based Ac-celeration for NSX,” VMWare , 2022. [Online]. Avail-able: https : / / blogs . vmware . com / networkvirtualization / 2022 / 08 / announcing-dpu-based-acceleration-for-nsx.html/ [28] AMD, “AMD Announces New Alveo X3 Se-ries for Electronic Trading,” HPC Wire , 2022. [Online]. Available: https : / / www. hpcwire . com / off-the-wire / amd-announces-new-alveo-x3-series-for-electronic-trading/ [29] J. W. Lockwood et al. , “A Low-Latency Library in FPGA Hardware for High-Frequency Trading (HFT),” in HOTI . IEEE, 2012, pp. 9–16. [30] S. Scott-Hayward, G. O’Callaghan, and S. Sezer, “SDN Security: A Survey,” in 2013 IEEE SDN4FNS . IEEE, 2013, pp. 1–7. [31] P. Bosshart et al. , “P4: Programming Protocol-Independent Packet Processors,” ACM SIGCOMM CCR , vol. 44, no. 3, pp. 87–95, 2014. [32] N. McKeown, PISA: Protocol Independent Switch Architecture , 2015, P4 Workshop. [33] S. Laki et al. , “P4Pi: P4 on Raspberry Pi for Networking Education,” 
+
+ACM SIGCOMM CCR , vol. 51, no. 3, pp. 17–21, 2021. [34] S. Ibanez et al. , “The P4 →NetFPGA Workflow for Line-Rate Packet Processing,” in Proceedings of the ACM FPGA 2019 , 2019, pp. 1–9. [35] X. Jin et al. , “NetCache: Balancing Key-Value Stores with Fast In-Network Caching,” in Proceedings of the 26th SOSP , 2017, pp. 121–136. [36] H. T. Dang et al. , “P4xos: Consensus as a Network Service,” IEEE/ACM ToN , vol. 28, no. 4, pp. 1726–1738, 2020. [37] A. Sapio et al. , “Scaling Distributed Machine Learning with In-network Aggregation,” arXiv preprint arXiv:1903.06701 , 2019. [38] C. Lao et al. , “ATP: In-network Aggregation for Multi-tenant Learning,” in NSDI’21 . USENIX Association, Apr. 2021, pp. 741–761. [Online]. Available: https://www.usenix.org/conference/nsdi21/presentation/lao [39] C. Zheng et al. , “Planter: Rapid Prototyping of In-Network Machine Learning Inference,” ACM SIGCOMM Computer Communication Re-view , vol. 54, no. 1, pp. 2–21, 2024. [40] J.-H. Lee and K. Singh, “SwitchTree: In-network Computing and Traffic Analyses with Random Forests,” Neural. Comput. Appl. , pp. 1–12, 2020. [41] M. Zang et al. , “Toward continuous threat defense: In-network traffic analysis for iot gateways,” IEEE Internet of Things Journal , vol. 11, no. 6, pp. 9244–9257, 2023. [42] C. Zheng et al. , “Automating In-Network Machine Learning,” arXiv preprint arXiv:2205.08824 , 2022. [43] P. Nagy, J. Powrie, and S. Zohren, “Machine Learning for Microstructure Data-Driven Execution Algorithms,” Handbook of Artificial Intelligence and Big Data Applications in Investments , p. 100, 2023. [44] Z. Zhang, B. Lim, and S. Zohren, “Deep Learning for Market by Order Data,” Applied Mathematical Finance , vol. 28, no. 1, pp. 79–95, 2021. [45] M. D. Gould et al. , “Limit Order Books,” Quantitative Finance , vol. 13, no. 11, pp. 1709–1742, 2013. [46] C. A. Parlour et al. , “Limit Order Markets: A Survey,” Handbook of financial intermediation and banking , vol. 5, pp. 63–95, 2008. [47] C. Zheng et al. , “IIsy: Hybrid In-Network Classification Using Pro-grammable Switches,” IEEE/ACM Transactions on Networking , 2024. [48] “Compiling P4 to eBPF,” https://github.com/iovisor/bcc/tree/master/src/ cc/frontends/p4. [49] APS Networks, “BF6064X-T Advanced Programmable Switch,” https: //www.aps-networks.com/wp-content/uploads/2021/07/210712 APS BF6064X-T V04.pdf[Online, accessed Feb-2023]. [50] F. Hauser et al. , “A Survey on Data Plane Programming with P4: Fundamentals, Advances, and Applied Research,” Journal of Network and Computer Applications , p. 103561, 2022. [51] “Nasdaq ITCH Data Source,” 2020. [Online]. Available: https: //emi.nasdaq.com/ITCH/Nasdaq%20ITCH/ [52] “Nasdaq TotalView-ITCH 5.0,” 2014. [Online]. Available: https://www.nasdaqtrader.com/content/technicalsupport/specifications/ dataproducts/NQTVITCHSpecification.pdf [53] M. Bernasconi-De-Luca et al. , “martinobdl/ITCH: ITCH50Converter,” 2021. [Online]. Available: https://zenodo.org/record/5209267 [54] F. Pedregosa et al. , “Scikit-learn: Machine Learning in Python,” JMLR ,vol. 12, pp. 2825–2830, 2011. [55] N. V. Chawla et al. , “SMOTE: Synthetic Minority Over-sampling Technique,” JAIR , vol. 16, pp. 321–357, 2002. [56] J. Bonart and M. D. Gould, “Latency and Liquidity Provision in a Limit Order Book,” Quant. Finance , vol. 17, no. 10, pp. 1601–1616, 2017. [57] C. Zheng et al. , “DINC: Toward Distributed In-Network Computing,” 
+
+Proceedings of the ACM on Networking , vol. 1, no. CoNEXT3, pp. 1–25, 2023. [58] S. Y. Frey et al. , “JAX-LOB: A GPU-Accelerated Limit Order Book Simulator to Unlock Large Scale Reinforcement Learning for Trading,” in ICAIF , 2023, pp. 583–591.

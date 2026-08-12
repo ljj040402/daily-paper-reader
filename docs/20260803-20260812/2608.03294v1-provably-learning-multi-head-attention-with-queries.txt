@@ -1,0 +1,3699 @@
+Title: Provably Learning Multi-Head Attention with Queries
+
+URL Source: https://arxiv.org/pdf/2608.03294v1
+
+Published Time: Wed, 05 Aug 2026 00:42:39 GMT
+
+Number of Pages: 39
+
+Markdown Content:
+# Provably Learning Multi-Head Attention with Queries 
+
+# Sunyeop Kim 1,2 , Insung Kim 1, Jian Guo 2
+
+> 1
+
+Korea University, Republic of Korea 
+
+> 2
+
+Nanyang Technological University, Singapore 
+
+kin3548@korea.ac.kr , cmcom35@korea.ac.kr , guojian@ntu.edu.sg 
+
+Abstract 
+
+We study the problem of learning multi-head softmax at-tention from black-box input-output access. The learner may query arbitrary real-valued token sequences and observe only the scalar output at the final token. Recent work gives an al-gorithm using O(d2) value queries to recover the single-head parameters (W, v ). For multiple heads, the same work es-tablishes identifiability under the assumption that the heads occupy pairwise orthogonal subspaces. Applying the single-head recovery algorithm separately to the heads addition-ally requires bases for these subspaces to be known. We re-cover a canonical representation by merging heads with the same Wh, summing their corresponding vh, and discarding a merged head when this sum is zero, without these subspace assumptions. By varying the number of copies of a token, our algorithm obtains samples of a rational function whose in-terpolation separates the canonical heads. Additional queries formed by adding selected token vectors then match the same head across different queries. When the oracle outputs and all subsequent computations are exact, the learner chooses its query vectors at random and recovers the canonical pairs 
+
+{(Wh, v h) : h ∈ [H]} up to permutation with probability one. When H is known, it uses exactly 4Hd 2 − 2H + 1 value queries of maximum length 2H + 1 . If only a known upper bound H0 is available, the algorithm uses 4H0d2 − 2H0 + 1 
+
+value queries of maximum length 2H0 + 1 . For approximate oracle outputs, we give conditions under which the parame-ter error is at most a model- and query-dependent constant multiple of the output error. Finally, we extend our result to a one-layer Transformer with multi-head attention followed by a bias-free ReLU feed-forward network. Under additional conditions, we recover a functionally equivalent Transformer without relying on a separate algorithm for learning the feed-forward network. 
+
+# 1 Introduction 
+
+Multi-head self-attention is a central component of Trans-former architectures (Vaswani et al. 2017). Recent work gives an O(d2)-query algorithm for exactly recovering a scalar-output single-head softmax attention model (Bhattamishra et al. 2026). For multi-head attention, they reduce the prob-lem to independent single-head recovery, assuming that the heads occupy mutually orthogonal subspaces and that a basis for each subspace is known to the learner. We ask whether exact recovery is possible without such a subspace decom-position. We represent head h by a pair (Wh, v h), where a to-ken xi contributes attention score x⊤ 
+
+> i
+
+Whq and value x⊤ 
+
+> i
+
+vh
+
+against the final query token q. If two heads h and g sat-isfy Wh = Wg , every query assigns them identical attention weights. The oracle therefore depends on vh and vg only through their sum vh + vg , so the two vectors cannot be re-covered separately. We therefore merge such heads, sum their vectors vh, and discard groups whose sum is zero. We call the remaining set of head pairs the canonical representation and aim to recover it. Tran et al. (2025) characterize when two multi-head attention models produce the same output at every token. We prove that equality of the scalar outputs at the final token determines the canonical representation. In fact, equality on length-three inputs already suffices. Recovering this representation requires more than run-ning a single-head learner repeatedly. Each oracle response is the sum of H nonlinear head outputs and the individual heads are therefore not observed separately. To overcome this obstacle, our algorithm proceeds in two stages: it first sepa-rates the head contributions for each chosen pair of vectors and then matches these contributions across different pairs. For each chosen pair of vectors u, q , the response to a se-quence containing one perturbed token q + tu and m copies of q is a rational function of m. Interpolation of this ratio-nal function separates the H head contributions and returns an unordered set containing, for each head, the two scalars 
+
+u⊤Whq and u⊤vh. We then make additional queries using sums of the chosen vectors. Only components from the same head combine consistently under these queries, allowing us to match the heads across different queries. Once the heads are matched across queries, the recovered scalars form linear systems whose solutions recover every pair (Wh, v h).
+
+Contributions. We study the recovery of the canonical representation of multi-head softmax attention from value queries and establish the following results: 1. Recovery of canonical multi-head attention. Repeated-token queries make the observed scalar response a ra-tional function of the number of repeated tokens. Ratio-nal interpolation reconstructs this function and separates the canonical heads, initially only as an unordered set. Additional queries formed by adding selected input di-rections align these unordered sets under one common head labeling. For a model with H canonical heads, un-arXiv:2608.03294v1 [cs.LG] 4 Aug 2026 der the computational assumptions stated in Section 3, our algorithm recovers all canonical pairs (Wh, v h) up to permutation with probability one over its random query directions. The algorithm is nonadaptive and, when H is known, uses exactly 4Hd 2 − 2H + 1 value queries, each of length at most 2H + 1 .2. Stability under approximate outputs. When each scalar oracle response is within τ of the exact output, we show that, under quantitative separation and conditioning as-sumptions and for sufficiently small τ , the parameter re-covery error is at most Cstab τ up to permutation, where 
+
+Cstab depends on the target model and the realized query directions. A two-head construction shows that no uni-form bound on Cstab follows from Wh̸ = Wg and 
+
+vh̸ = 0 alone. We also evaluate our algorithm using high-precision oracle responses and responses rounded to IEEE 754 binary64 (IEEE 2019). 3. Extension to a one-layer Transformer with ReLU. We extend our multi-head recovery algorithm to a bias-free one-layer Transformer in which multi-head attention is followed by a ReLU feed-forward network. Following Bhattamishra et al. (2026), subtracting the out-put on −X from that on X simulates one value query to a scalar-output multi-head attention model using two Trans-former queries. Applying our recovery algorithm to these simulated queries recovers (Wh, v h) for every head, up to permutation. We then give a second stage that, under addi-tional conditions on the feed-forward network, constructs a functionally equivalent Transformer without assuming a separate algorithm for learning the feed-forward network and without requiring its width m to satisfy m ≤ d.Complete proofs, recovery when only an upper bound on 
+
+H is known, the low-rank extension, conditional recovery from binary membership queries, and full details of the one-layer Transformer extension are provided in Appendices A–F of the supplementary material. 
+
+# 2 Related Work 
+
+Learning Neural Networks with Queries. Learning with membership and value queries is a classical topic in computa-tional learning theory (Angluin 1988). For neural networks, prior work ranges from identifiability using the full input-output map (Fefferman and Markel 1993) to approximate learning with value queries and reconstruction of shallow ReLU networks from membership queries (Chen, Klivans, and Meka 2021; Daniely and Granot 2023). Related access models also appear in black-box model extraction (Tramèr et al. 2016; Jagielski et al. 2020). For production language models, Carlini et al. (2024) recover the hidden dimension and embedding projection matrix. Other cryptanalytic work studies broader parameter extraction under real-valued, hard-label, nonlinear, and recurrent settings (Carlini, Jagielski, and Mironov 2020; Chen et al. 2024; Carlini et al. 2025; Asse-lineau et al. 2026; Wei et al. 2026). 
+
+Learning Attention with Queries. Brunner et al. (2019) show that attention weights need not be identifiable from con-textualized representations under a different access model. Bhattamishra et al. (2026) recover the parameters (W, v )
+
+of a single-head softmax attention model with v̸ = 0 us-ing O(d2) value queries. They establish identifiability of multi-head attention when the head parameters lie in pair-wise orthogonal subspaces. Their reduction to single-head recovery additionally requires the learner to know a basis for each subspace. Their one-layer Transformer extension uses the odd-component reduction and assumes access to an al-gorithm for learning the ReLU feed-forward network. For example, Milli et al. (2019) provide such a learner under a linear-independence assumption, which requires m ≤ d. We use the same reduction based on the difference between the outputs on X and −X to recover the pairs (Wh, v h) and, under additional conditions, directly construct a functionally equivalent Transformer without requiring m ≤ d. Tran et al. (2025) characterize functional equivalence for full-output multi-head attention, with later work covering positional in-formation (Tran et al. 2026). For scalar outputs at the final token, we prove the corresponding canonical characteriza-tion by merging heads with the same Wh, summing their 
+
+vh, and removing zero aggregates. We recover the canoni-cal pairs for pairwise distinct Wh and nonzero vh without a subspace decomposition. 
+
+Learning Attention from Examples. Unlike our query setting, where the learner chooses each input, these works assume that the learner receives randomly sampled input– output examples. Chen and Li (2025) study softmax multi-head attention under uniformly sampled sign inputs and ob-servation of the full output matrix. Yau et al. (2025) give a polynomial-time learning algorithm for multi-head linear attention, which uses a different attention mechanism. Thus, these results concern prediction from randomly sampled ex-amples, rather than exact recovery of a given softmax atten-tion model using learner-chosen queries. Table 1 compares the access models, assumptions, and guarantees of the most directly related results. 
+
+# 3 Definitions 
+
+Notation 
+
+For an integer n ≥ 1, let [n] := {1, . . . , n }. We write G⊤ for the transpose of a matrix G. All vectors are column vectors, and for y1, . . . , y N ∈ Rd, we write [y⊤ 
+
+> 1
+
+; . . . ; y⊤ 
+
+> N
+
+] ∈ RN ×d
+
+for the matrix whose i-th row is y⊤ 
+
+> i
+
+. We use ∥ · ∥ 2 for the Euclidean norm on vectors and the spectral norm on matrices, and ∥ · ∥ F for the Frobenius norm. 
+
+Multi-Head Attention Model 
+
+Fix a token dimension d ≥ 1. An input sequence of length 
+
+N ≥ 1 is represented by a matrix X ∈ RN ×d with rows 
+
+x⊤ 
+
+> 1
+
+, . . . , x ⊤ 
+
+> N
+
+, where each xi ∈ Rd. The final token q := xN
+
+is used as the query token. The model has H0 ≥ 1 heads, each with head dimension 
+
+dh ≥ 1. For each h ∈ [H0], let Qh, K h, V h ∈ Rdh×d be the query, key, and value projection matrices of head h, and let 
+
+oh ∈ Rdh be a read-out vector mapping the head output to the observed scalar. The query and key projections combine into a single matrix, and the value projection and read-out Result Access and target Assumptions and guarantee Complexity Single head (Bhattamishra et al. 2026) Exact value queries; recover 
+
+(W, v )
+
+v̸ = 0 ; exact recovery O(d2) queries; length at most two Known-subspace MHA (Bhattamishra et al. 2026) Exact value queries; recover multiple heads Pairwise orthogonal subspaces with known bases; exact up to permutation Reduction to single-head learners Passive softmax MHA (Chen and Li 2025) Random examples; observe the full output matrix Uniform sign inputs; approximate prediction (dN )O(H3) running time Ours Exact value queries; recover canonical pairs Pairwise distinct Wh and nonzero vh; exact up to permutation with probability one 
+
+4Hd 2 − 2H + 1 queries; length at most 2H + 1 
+
+Table 1: Comparison of prior work and our result on learning softmax attention. MHA denotes multi-head attention. Query and sample complexities are not directly comparable because the access models and observed outputs differ. vector into a single vector, 
+
+Wh := K⊤ 
+
+> h
+
+Qh
+
+√dh
+
+∈ Rd×d, vh := V ⊤ 
+
+> h
+
+oh ∈ Rd,
+
+so that for every token xi and query q,
+
+(Khxi)⊤(Qhq)
+
+√dh
+
+= x⊤ 
+
+> i
+
+Whq, o⊤ 
+
+> h
+
+(Vhxi) = x⊤ 
+
+> i
+
+vh.
+
+Any two choices of (Qh, K h, V h, o h) that yield the same 
+
+(Wh, v h) produce the same attention scores and scalar token values, hence the same scalar output. We therefore parameter-ize the model by M :=  (W1, v 1), . . . , (WH0 , v H0 ), where 
+
+Wh ∈ Rd×d and vh ∈ Rd. The learner targets only the pairs 
+
+(Wh, v h). The factors (Qh, K h, V h, o h) are not identifiable from scalar outputs. For each h ∈ [H0], the attention weight assigned to token 
+
+xi is 
+
+ah,i (X) := exp( x⊤ 
+
+> i
+
+Whq)
+
+PNj=1 exp( x⊤ 
+
+> j
+
+Whq) , i ∈ [N ],
+
+the scalar output of head h is 
+
+fWh,v h (X) := 
+
+> N
+
+X
+
+> i=1
+
+ah,i (X) x⊤ 
+
+> i
+
+vh,
+
+and the multi-head model returns 
+
+FM (X) := 
+
+> H0
+
+X
+
+> h=1
+
+fWh,v h (X).
+
+Canonical Representation 
+
+Heads sharing the same Wh assign identical attention weights to every input. Since the scalar head output is linear in vh
+
+for fixed Wh, such heads contribute through the sum of their corresponding vectors. For any A ∈ Rd×d, define 
+
+CM (A) := X
+
+> h∈[H0]
+> Wh=A
+
+vh.
+
+The canonical representation of M is 
+
+Can( M ) := 
+
+n
+
+(A, C M (A)) A∈{ Wh:h∈[H0]} 
+
+> CM(A)̸=0
+
+o
+
+.
+
+Thus, heads with the same Wh are merged, their corre-sponding vh are summed, and groups whose sum is zero are removed. We write H := | Can( M )| for the number of canonical heads. From this point on, we reuse the symbols 
+
+(Wh, v h) for the canonical heads and enumerate the canoni-cal representation as Can( M ) = {(Wh, v h) : h ∈ [H]}. By construction, these canonical heads satisfy 
+
+Wh̸ = Wg (h̸ = g), vh̸ = 0 . (1) 
+
+Proposition 3.1 (Canonical identifiability) . Let M and M ′
+
+be two scalar-output multi-head attention models of token dimension d. Then Can( M ) = Can( M ′) if and only if 
+
+FM (X) = FM ′ (X) for every X ∈ R3×d.
+
+Tran et al. (2025) characterize when two multi-head atten-tion models produce identical full outputs for every input se-quence, regardless of its length. Our oracle instead observes only the scalar FM (X) obtained from the output at the fi-nal token. Equality of these scalar observations is a weaker requirement than equality of the full outputs, so their charac-terization does not apply directly to our setting. The proof of Proposition 3.1 is given in Appendix A of the supplementary material. This result concerns identifiability rather than an explicit recovery algorithm. It shows that observations on all inputs of length three uniquely determine Can( M ), but it does not give a procedure that recovers the heads using only such in-puts. Our recovery algorithm uses repeated-token queries to interpolate a rational function and therefore uses sequences of length up to 2H + 1 . Thus, the two sequence lengths describe different results: length three is sufficient for identi-fiability, whereas length 2H + 1 is used by our constructive recovery algorithm. 
+
+Problem Statement 
+
+Value-query oracle. The learner has value-query access to FM . A value query consists of choosing a sequence length 
+
+N ≥ 1 and an arbitrary input X ∈ RN ×d and receiving the exact scalar FM (X). The learner observes neither the attention weights nor the individual head outputs. We count each evaluation of FM as one value query and define the maximum query length as the largest sequence length used by the learner. Recovery objective. The learner knows the token dimen-sion d and the raw head count H0, but does not know the model parameters or the canonical head count H =
+
+| Can( M )|. The goal is to recover the unordered canonical set Can( M ). Our sharp query bound is first stated under the additional assumption that H is known; a subsequent result uses only H0 and determines H from the oracle responses. 
+
+Computational assumptions. For the theoretical analysis, we assume that the oracle returns exact real values and that the learner can perform exact real arithmetic, evaluate expo-nential and logarithmic functions, solve finite-dimensional linear systems, and factor polynomials. We count oracle calls and the number of these operations, rather than finite-bit op-erations. These assumptions are separate from the numerical algo-rithms used to realize the operations in practice. In our imple-mentation, linear systems are solved in multiprecision arith-metic and polynomial roots are computed from the eigenval-ues of a companion matrix. Further implementation details are provided in Appendix G.1 of the supplementary material. 
+
+# 4 Recovery Algorithm 
+
+Repeated-Token Local Decoding 
+
+Fix u, q ∈ Rd and a nonzero scale t. For m ≥ 1, let 
+
+X(t) 
+
+> m
+
+(u, q ) = [( q + tu )⊤; q⊤; . . . ; q⊤], (2) a sequence of length m + 1 whose first token is q + tu and whose remaining m tokens are all equal to q. Define 
+
+sh := tu ⊤Whq, ch := tu ⊤vh, rh := esh .
+
+These are functions of (u, q ), which we make explicit as 
+
+sh(u, q ) and ch(u, q ) when the dependence matters. 
+
+Lemma 4.1 (Repeated-token identity) . For every integer 
+
+m ≥ 1, define R(m) as follows. 
+
+R(m) := FM (X(t) 
+
+> m
+
+(u, q )) − FM ([ q⊤]) . (3) 
+
+Then 
+
+R(m) = 
+
+> H
+
+X
+
+> h=1
+
+chrh
+
+m + rh
+
+. (4) 
+
+Proof. Fix a head h. The query is the final token q, so the first token has attention score (q + tu )⊤Whq and each of the m copies of q has attention score q⊤Whq. Its attention weight is therefore 
+
+e(q+tu )⊤Whq
+
+e(q+tu )⊤Whq + m e q⊤Whq = rh
+
+m + rh
+
+,
+
+and the value of the first token exceeds that of q by (q +
+
+tu )⊤vh − q⊤vh = ch. Hence 
+
+fWh,v h (X(t) 
+
+> m
+
+(u, q )) = rh
+
+m + rh
+
+(q + tu )⊤vh + mm + rh
+
+q⊤vh
+
+= q⊤vh + chrh
+
+m + rh
+
+,
+
+whereas fWh,v h ([ q⊤]) = q⊤vh. Subtracting and summing over the heads gives (4). 
+
+R in (4) can be naturally extended to the rational function of a real variable z:
+
+R(z) = 
+
+> H
+
+X
+
+> h=1
+
+chrh
+
+z + rh
+
+= P(z)
+
+Q(z) , Q(z) = 
+
+> H
+
+Y
+
+> h=1
+
+(z + rh).
+
+(5) For every fixed model satisfying (1), the random choice of 
+
+(u, q ) yields distinct r1, . . . , r H and nonzero c1, . . . , c H with probability one. Consequently, P and Q have no common factor and deg P < deg Q = H. Each −rh is therefore a pole of R. The residue at −rh, namely the coefficient of 1/(z+rh)
+
+in (5), is chrh. Since rh > 0, we also have Q(k)̸ = 0 for 
+
+k = 1 , . . . , 2H. The following lemma therefore applies. 
+
+Lemma 4.2 (Rational interpolation) . Let R = P/Q, where 
+
+P and Q have no common factor, Q is monic, and deg P <
+
+deg Q = H. Suppose that Q(k)̸ = 0 for k = 1 , . . . , 2H.Then R(1) , . . . , R(2 H) uniquely determine P and Q.Proof. Suppose that P1/Q1 and P2/Q2 both satisfy the assumptions and agree at 1, . . . , 2H. Since neither de-nominator vanishes at these points, the polynomial D =
+
+P1Q2 −P 2Q1 vanishes at all 2H points. Moreover, deg D ≤ 
+
+(H − 1) + H = 2 H − 1. Hence D is identically zero, so 
+
+P1Q2 = P2Q1. Since P1 and Q1 have no common fac-tor, Q1 divides Q2. Both denominators are monic and have degree H, so Q1 = Q2, and consequently P1 = P2.Thus, when H is known, R(1) , . . . , R(2 H) determine 
+
+P and Q uniquely by the method of undetermined coeffi-cients. Factoring Q recovers the poles, hence the unordered set {r1, . . . , r H }, and taking logarithms gives each sh. Di-viding each residue by the corresponding rh recovers ch. We write 
+
+Dt(u, q ) := {(sh, c h) : h ∈ [H]}
+
+for the resulting unordered set. We call the procedure that recovers Dt(u, q ) from the repeated-token responses a lo-cal decoder. It recovers one pair (sh, c h) for each head, while leaving the ordering of the heads unknown. Given the one-token output FM ([ q⊤]) , each local decoder uses 2H
+
+repeated-token queries. Under our computation assumptions, the denominator polynomial is factored exactly. Our numerical implementa-tion instead solves the interpolation system in multiprecision and computes the denominator roots as the eigenvalues of a companion matrix. 
+
+Companion-matrix realization. In the main setting, 
+
+deg Q = H and deg P < H . We write P(z) = PH−1 
+
+> ℓ=0
+
+pℓzℓ
+
+and Q(z) = zH + PH−1 
+
+> ℓ=0
+
+qℓzℓ. The observations satisfy 
+
+P(m) = R(m)Q(m) for m = 1 , . . . , 2H, giving a linear system for the 2H coefficients. The standard H ×H compan-ion matrix CQ has last column (−q0, . . . , −qH−1)⊤, subdi-agonal entries equal to one, and satisfies det( zI − CQ) = 
+
+Q(z). Its eigenvalues are therefore −r1, . . . , −rH , from which sh = log rh and ch = P(−rh)/(rhQ′(−rh)) are re-covered. Our numerical implementation uses multiprecision arithmetic. Using conventional linear-system and eigenvalue algorithms, both steps require O(H3) arithmetic operations per local decoder. Head Matching Across Queries 
+
+Because each Dt(u, q ) is unordered, the learner cannot di-rectly determine which outputs from different local decoders were produced by the same head. To align them, let OU and 
+
+OQ be sampled independently and uniformly from the set of orthogonal matrices. Independently, let ΛU and ΛQ be di-agonal matrices with independent entries uniform on [1 , 2] .Set 1
+
+U = Λ UOU, Q = OQΛQ. (6) and write U = [ u1, . . . , u d]⊤ and Q = [ q1, . . . , q d]. All singular values of U and Q lie in [1 , 2] . The learner applies the local decoder to the following pairs: 
+
+Dt(ui, q j ) i, j ∈ [d], (7) 
+
+Dt(u1 + ui, q 1) i = 2 , . . . , d, (8) 
+
+Dt(ui, q 1 + qj ) i ∈ [d], j = 2 , . . . , d. (9) Since sh(u, q ) = tu ⊤Whq is bilinear in (u, q ),
+
+sh(u1 + ui, q 1) = sh(u1, q 1) + sh(ui, q 1), (10) 
+
+sh(ui, q 1 + qj ) = sh(ui, q 1) + sh(ui, q j ). (11) The following lemma uses these identities to match entries across the sets and recover every (Wh, v h).
+
+Lemma 4.3 (Consistent head labeling) . Suppose every set in 
+
+(7) –(9) is recovered exactly, and that for all h1, h 2, h 3 ∈ [H]
+
+and all i, j in the ranges specified in (8) and (9) ,
+
+sh1 (u1 + ui, q 1) = sh2 (u1, q 1) + sh3 (ui, q 1)=⇒ h1 = h2 = h3,sh1 (ui, q 1 + qj ) = sh2 (ui, q 1) + sh3 (ui, q j )=⇒ h1 = h2 = h3.
+
+Then every pair (Wh, v h) is recovered up to permutation. Proof. The learner first queries the one-token output 
+
+FM ([ q⊤ 
+
+> 1
+
+]) , which suffices to decode Dt(ui, q 1) for i ∈ [d]
+
+and Dt(u1 +ui, q 1) for i = 2 , . . . , d . Then the learner assigns arbitrary labels 1, . . . , H to the elements of Dt(u1, q 1). For each i = 2 , . . . , d , (10) propagates these labels to Dt(ui, q 1).Entries of the same head satisfy 
+
+sh(u1 + ui, q 1) = sh(u1, q 1) + sh(ui, q 1),
+
+and by the hypothesis of the lemma no other combination does. For each label h, collect the vector 
+
+ch := ch(u1, q 1), . . . , c h(ud, q 1)⊤ = tUvh.
+
+Since u1, . . . , u d are linearly independent, U is invertible, and hence vh = t−1U−1ch.Let vsum := PHh=1 vh. Since every head places weight one on the single token of a one-token sequence, 
+
+FM ([ q⊤]) = 
+
+> H
+
+X
+
+> h=1
+
+q⊤vh = q⊤vsum for every q ∈ Rd.   
+
+> 1Although the reconstruction formulas permit any invertible U
+> and Qsatisfying the required nondegeneracy conditions, we use this construction so that the matrix inversions remain well conditioned, reducing error amplification in finite-precision computation.
+
+The learner therefore computes the one-token outputs at qj
+
+and q1 + qj without further value queries, and decodes the remaining sets in (7) and (9). For each i ∈ [d] and j = 2 , . . . , d , the set Dt(ui, q 1) is already labeled, and (11) determines the labels in Dt(ui, q j )
+
+through the equality sh(ui, q 1 + qj ) = sh(ui, q 1) + 
+
+sh(ui, q j ), and every set Dt(ui, q j ) thus receives the same labels. Collecting (Sh)ij := sh(ui, q j ) gives Sh = tUWhQ.Since U and Q are invertible, 
+
+Wh = t−1U−1ShQ−1, vh = t−1U−1ch. (12) Thus every (Wh, v h) is recovered, up to the arbitrary labeling of Dt(u1, q 1).
+
+# 5 Recovery Guarantees and Extensions 
+
+Exact Recovery and Query Complexity 
+
+Throughout, we use the fixed public value t = 1 , indepen-dently of the target parameters. Exact recovery holds for every fixed t̸ = 0 . The effect of other choices on numerical conditioning is discussed in Appendix G.1 of the supplemen-tary material. 
+
+Theorem 5.1 (Exact multi-head recovery) . Let d, H ≥ 1,and let M be a model with H canonical heads, enumerated as Can( M ) = {(Wh, v h) : h ∈ [H]}, satisfying (1) . As-suming that every computation is exact, for any fixed t̸ = 0 ,Algorithm 1 recovers every pair (Wh, v h) up to permutation with probability one. It uses exactly 
+
+4Hd 2 − 2H + 1 (13) 
+
+value queries, each of length at most 2H + 1 .Proof. For every fixed model satisfying (1), the choice in (6) satisfies the local-decoding and head-matching conditions of Lemma 4.3 with probability one (see Appendix B of the supplementary material). Applying Lemma 4.3 then yields recovery of every (Wh, v h) up to permutation. The algorithm evaluates d2 +( d−1)+ d(d−1) = 2 d2 −1 sets Dt(u, q ), each using 2H repeated-token queries, together with the single one-token query FM ([ q⊤ 
+
+> 1
+
+]) . Hence the total query count is 
+
+2H(2 d2 − 1) + 1 = 4 Hd 2 − 2H + 1 . The maximum query length is 2H + 1 .Note that all value queries in Algorithm 1 are fixed before any oracle response is observed. The recovered pairs contain 
+
+H(d2 + d) real entries, while the algorithm uses 4Hd 2 −
+
+2H + 1 value queries. Both quantities are of order Hd 2.
+
+Further variants. Theorem 5.1 assumes that the canonical head count H is known. If only the raw head count H0 is known, then H ≤ H0. The learner can use 2H0 repeated-token queries for each (u, q ) and determine H as the small-est denominator degree consistent with the observed values. This uses 4H0d2 − 2H0 + 1 queries with maximum query length 2H0 + 1 . Complete constructions and proofs, includ-ing a low-rank variant that uses O(Hrd ) value queries when 
+
+rank( Wh) ≤ r under additional matrix-recovery assump-tions, are given in Appendix C of the supplementary mate-rial. Algorithm 1 Exact recovery from value queries 
+
+Require: Dimensions d, H ≥ 1, a fixed t̸ = 0 and value-query access to FM 
+
+> 1:
+
+Choose U, Q according to (6).  
+
+> 2:
+
+Query FM ([ q⊤ 
+
+> 1
+
+]) and, for every pair in (7)–(9) and ev-ery m = 1 , . . . , 2H, query the corresponding repeated-token sequence  
+
+> 3:
+
+Using FM ([ q⊤ 
+
+> 1
+
+]) , recover Dt(ui, q 1) for all i ∈ [d] and 
+
+Dt(u1 + ui, q 1) for i = 2 , . . . , d  
+
+> 4:
+
+Assign arbitrary labels to the elements of Dt(u1, q 1) 
+
+> 5:
+
+Use (10) to assign the same labels to every Dt(ui, q 1) 
+
+> 6:
+
+Recover every vh from the labeled ch(ui, q 1)-values  
+
+> 7:
+
+Compute FM ([ q⊤ 
+
+> j
+
+]) and FM ([( q1 + qj )⊤]) from 
+
+PHh=1 vh 
+
+> 8:
+
+Recover all remaining sets in (7) and (9)  
+
+> 9:
+
+Use (11) to assign the same labels to every Dt(ui, q j ) 
+
+> 10:
+
+Recover every Wh and return the pairs (Wh, v h) using (12) 
+
+Offline computational complexity. The exact reconstruc-tion performs 2d2 − 1 local decodings. Each local decoding solves a rational-interpolation system of dimension 2H and factors one degree-H denominator polynomial. Hence the exact algorithm makes 2d2 − 1 calls to degree-H univariate polynomial factorization. Under our computational assump-tions, each such factorization is treated as an exact primitive operation. Apart from these factorization calls, rational interpolation, coefficient recovery, and exhaustive head matching require 
+
+O(d2H3) exact arithmetic operations. The inverses U−1 and 
+
+Q−1 are computed once in O(d3) operations, and forming 
+
+U−1ShQ−1 for all H heads requires O(d3H) operations. The algorithm additionally uses O(d2H) exact logarithm evaluations and polynomially many comparison and equality tests. In the numerical implementation, each degree-H polyno-mial factorization is replaced by an eigenvalue computation for an H ×H companion matrix. Using a conventional dense eigensolver, this requires O(H3) arithmetic operations per local decoding and therefore O(d2H3) operations in total. Thus the numerical realization has overall arithmetic com-plexity O(d2H3 + d3H).
+
+Recovery from Approximate Outputs 
+
+We next consider an oracle whose returned value satisfies 
+
+eF (X) − FM (X) ≤ τ for every queried X. (14) All subsequent computations on the returned values are as-sumed exact. Thus, the result concerns errors in the scalar oracle outputs and excludes offline rounding errors. In the approximate-output variant, we directly query all 
+
+2d − 1 one-token outputs. Subtracting the corresponding one-token output from a repeated-token response produces error at most 2τ . After recovering the approximate poles, we estimate the coefficients ch by least squares and replace exact additive equalities with closest-candidate matching. 
+
+Theorem 5.2 (Conditional recovery from approximate out-puts) . Fix a model with H ≥ 2 canonical heads and fix U
+
+and Q as in (6) . Assume that, for every pair (u, q ) appear-ing in (7) –(9) , the values r1, . . . , r H are pairwise distinct, 
+
+ch̸ = 0 for every h, and the equalities in (10) and (11) hold only when all terms belong to the same head. There exist explicit constants 
+
+τ0 > 0 and Cstab < ∞,
+
+depending on the target model and the chosen U and Q,such that whenever 0 ≤ τ < τ 0, the recovery algorithm returns estimates {(cWh, bvh) : h ∈ [H]} and a permutation 
+
+π satisfying 
+
+max 
+
+> h∈[H]
+
+
+
+∥cWh − Wπ(h)∥F + ∥bvh − vπ(h)∥2
+
+
+
+≤ Cstab τ. 
+
+The algorithm uses 4Hd 2 − 2H + 2 d − 1 value queries, each of length at most 2H + 1 .Proof sketch. For the finitely many pairs in (7)–(9), the as-sumed inequalities have positive minimum gaps. Since the recovered roots are simple and the relevant linear systems are nonsingular, rational interpolation and coefficient estima-tion are locally Lipschitz near the exact responses. Closest-candidate matching therefore remains unchanged for suffi-ciently small τ . Applying (12) gives the stated bound. The complete proof, precise definitions, and explicit constants are given in Appendix D of the supplementary material. The same appendix gives a two-head construction showing that no uniform bound on Cstab follows from (1) alone. 
+
+Extension to a One-Layer ReLU Transformer 
+
+Consider 
+
+TF( X) = w⊤ 
+
+> o
+
+ReLU 
+
+> H
+
+X
+
+> h=1
+
+A⊤ 
+
+> h
+
+yh(X)
+
+!
+
+,yh(X) = X⊤ softmax( XW hq),
+
+where Ah ∈ Rd×m, wo ∈ Rm, and q is the final token. We assume that the learner may query both X and −X.The odd-component reduction of Bhattamishra et al. (2026, Section 4.1) gives 
+
+TF( X) − TF( −X) = 
+
+> H
+
+X
+
+> h=1
+
+v⊤ 
+
+> h
+
+yh(X), vh = Ahwo.
+
+Thus, two Transformer queries simulate one value query to the scalar-output multi-head attention model. Theorem 5.1 therefore recovers the pairs (Wh, v h) up to permutation using 
+
+2(4 Hd 2 − 2H + 1) Transformer queries. To recover the remaining ReLU part, first observe that length-one queries give 
+
+TF([ x⊤]) = 
+
+> m
+
+X
+
+> j=1
+
+wj ReLU( ¯b⊤ 
+
+> j
+
+x), ¯bj =
+
+> H
+
+X
+
+> h=1
+
+bhj ,
+
+where Ah = [ bh1, . . . , b hm ] and wo = ( w1, . . . , w m)⊤.For each nonzero ¯bj , let nj be the unique element of {± ¯bj /∥¯bj ∥2} whose first nonzero coordinate is positive, and set γj = wj ∥¯bj ∥2. For σ ∈ {− 1, +1 }m, define Z(σ) = Pmj=1 γj σj nj .
+
+Theorem 5.3 (Functional recovery) . Assume that (i) H, d, m 
+
+are known, (ii) the Wh are pairwise distinct and vh̸ = 0 ,(iii) every wj and ¯bj is nonzero and no two ¯bj are scalar multiples of one another, and (iv) Z is one-to-one. Then there is an algorithm that, with probability one over its sampled query directions and scales, halts after finitely many exact Transformer queries, each of length at most 2H + 1 , and returns a bias-free one-layer ReLU Transformer of width at most 2m + 2 that has the same output as TF for every input 
+
+X.Proof sketch. For length-one inputs, TF([ x⊤]) =P 
+
+> j
+
+wj ReLU( ¯b⊤ 
+
+> j
+
+x). Slope changes along the queried lines recover all (nj , γ j ). Crossing each hyperplane away from the others yields sign-vector differences ±2ej , so the recovered sign vectors span Rm even when m > d .Queries from m linearly independent sign vectors at increasing scales then separate the ReLU units and attention heads. Each preactivation changes sign at most once, and the one-to-one property of Z distinguishes different sign configurations, yielding eventual recovery. Finally, 
+
+ReLU( z) = ( z + |z|)/2 gives an equivalent representation of width at most 2m + 2 . Complete details are given in Appendix F of the supplementary material. 
+
+# 6 Experiments 
+
+Setup. Unless otherwise stated, each tested (d, H ) config-uration contains 100 independently sampled target models. For each target and each h ∈ [H], the entries of Wh ∈ Rd×d
+
+and vh ∈ Rd are drawn independently from N (0 , 1/d ). This scaling keeps their typical norms comparable as d varies. We use the same fixed scale t = 1 for every target, independently of its parameters. Let {(cWh, bvh) : h ∈ [H]} denote the esti-mates returned by the recovery algorithm. We compute 
+
+Eparam = min 
+
+> π∈ΠH
+
+max 
+
+> h∈[H]
+
+
+
+∥cWh − Wπ(h)∥F + ∥bvh − vπ(h)∥2
+
+
+
+,
+
+where ΠH is the set of permutations of [H].
+
+High-precision recovery. We approximate the exact set-ting of Theorem 5.1 using 180-digit oracle responses and offline computation. Across all tested configurations, every run recovers all heads with Eparam < 10 −100 . Table 2 shows representative settings. Complete results are given in Ap-pendix G.3 of the supplementary material. 
+
+Approximate oracle outputs. We first test the local sta-bility prediction by adding errors bounded by τ to high-precision oracle responses while using sufficiently accurate offline arithmetic to make rounding errors negligible. For each of (d, H ) = (3 , 2) , (3 , 3) , (4 , 4) , we sample 10 models and run 10 independent perturbations per model at each value of τ . The median slope of log Eparam against log τ is 1.00 
+
+in every setting, while the empirical amplification Eparam /τ 
+
+varies by more than eight orders of magnitude, supporting                                   
+
+> Eparam
+> (d, H )Params. Queries Min. Median Max.
+> (3 ,8) 96 273 3.67e −142 1 .46e −133 3 .60e −124 (8 ,8) 576 2,033 9.55e −133 7 .63e −128 9 .72e −121 (16 ,8) 2,176 8,177 2.47e −128 7 .18e −125 5 .95e −118 (32 ,8) 8,448 32,753 1.58e −125 1 .54e −121 1 .22e −115 (64 ,4) 16,640 65,529 2.03e −153 3 .45e −151 1 .20e −145 (64 ,8) 33,280 131,057 8.29e −121 5 .12e −118 7 .70e −113 (128 ,4) 66,048 262,137 2.02e −152 3 .24e −149 1 .23e −144 (128 ,8) 132,096 524,273 8.23e −117 3 .38e −114 9 .97e −110
+
+Table 2: Representative 180-digit recovery results with t = 1 .Each setting contains 100 targets, and the algorithm recovers all H heads for every target. Params. denotes H(d2 + d).local linear scaling with a highly variable proportionality factor. As a practical instance, we round only the scalar oracle responses to IEEE 754 binary64 (IEEE 2019) while keeping the target models, queried inputs, and offline arithmetic fixed. The algorithm returns all H heads with Eparam < 10 −2 in 99/100 runs for (d, H ) = (3 , 2) , 1/100 for (3 , 4) , and 0/100 for (3 , 8) and (8 , 4) . All paired high-precision runs satisfy the same criterion. Thus, the failures arise from oracle round-ing and persist despite high-precision offline computation. Full results are given in Appendix G.4 of the supplementary material. 
+
+# 7 Conclusion 
+
+We present a randomized algorithm for recovering the canon-ical representation of multi-head softmax attention from scalar final-token outputs without orthogonal-subspace as-sumptions or known subspace bases. Under exact oracle re-sponses and the stated computational assumptions, the al-gorithm recovers this representation up to permutation with probability one. Repeated-token rational interpolation sepa-rates the head contributions. Queries formed by adding se-lected directions establish a consistent head labeling across local decoders, after which linear systems recover every canonical pair (Wh, v h). When H is known, the algorithm uses exactly 4Hd 2 − 2H + 1 value queries of maximum length 2H + 1 . If only an upper bound H0 is known, the bounds become 4H0d2 − 2H0 + 1 and 2H0 + 1 .For approximate outputs, we give conditions under which queries distinguish the heads and reconstruction is well con-ditioned. Sufficiently small output errors then yield propor-tional parameter errors with a model- and query-dependent constant. A two-head construction rules out a uniform bound over all identifiable models. Experiments confirm end-to-end recovery with high-precision outputs and show sensitivity to IEEE 754 binary64 outputs. Finally, the odd-component reduction recovers the effective attention heads through a bias-free ReLU feed-forward network. Under additional as-sumptions, we construct a functionally equivalent one-layer ReLU Transformer without a separate feed-forward-network learner or the restriction m ≤ d.References 
+
+Angluin, D. 1988. Queries and Concept Learning. Machine Learning , 2(4): 319–342. Asselineau, R.; Derbez, P.; Fouque, P.-A.; and Minaud, B. 2026. Cryptanalytic Extraction of Deep Neural Networks with Non-Linear Activations. Cryptology ePrint Archive, Paper 2026/253. Bhattamishra, S.; Shah, K.; Hahn, M.; and Kanade, V. 2026. Provably Learning Attention with Queries. Accepted at the 43rd International Conference on Machine Learning (ICML 2026), arXiv:2601.16873. Brunner, G.; Liu, Y.; Pascual, D.; Richter, O.; Ciaramita, M.; and Wattenhofer, R. 2019. On identifiability in transformers. 
+
+arXiv preprint arXiv:1908.04211 .Cai, T. T.; and Zhang, A. 2015. ROP: Matrix recovery via rank-one projections. The Annals of Statistics , 43(1): 102– 138. Carlini, N.; Chávez-Saab, J.; Hambitzer, A.; Rodríguez-Henríquez, F.; and Shamir, A. 2025. Polynomial Time Cryptanalytic Extraction of Deep Neural Networks in the Hard-Label Setting. In Fehr, S.; and Fouque, P.-A., eds., Ad-vances in Cryptology – EUROCRYPT 2025 , volume 15601 of Lecture Notes in Computer Science , 364–396. Springer. Carlini, N.; Jagielski, M.; and Mironov, I. 2020. Crypt-analytic extraction of neural network models. In Annual international cryptology conference , 189–218. Springer. Carlini, N.; Paleka, D.; Dvijotham, K.; Steinke, T.; Hayase, J.; Cooper, A. F.; Lee, K.; Jagielski, M.; Nasr, M.; Conmy, A.; Wallace, E.; Rolnick, D.; and Tramèr, F. 2024. Stealing Part of a Production Language Model. In Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , 5680–5705. PMLR. Chen, S.; Klivans, A. R.; and Meka, R. 2021. Efficiently Learning One Hidden Layer ReLU Networks From Queries. In Advances in Neural Information Processing Systems , vol-ume 34, 24087–24098. Chen, S.; and Li, Y. 2025. Provably Learning a Multi-Head Attention Layer. In Proceedings of the 57th Annual ACM Symposium on Theory of Computing , 1744–1754. Chen, Y.; Dong, X.; Guo, J.; Shen, Y.; Wang, A.; and Wang, X. 2024. Hard-label cryptanalytic extraction of neural net-work models. In International Conference on the Theory and Application of Cryptology and Information Security ,207–236. Springer. Daniely, A.; and Granot, E. 2023. An Exact Poly-Time Membership-Queries Algorithm for Extracting a Three-Layer ReLU Network. In The Eleventh International Con-ference on Learning Representations .Fefferman, C.; and Markel, S. 1993. Recovering a Feed-Forward Net From Its Output. In Cowan, J.; Tesauro, G.; and Alspector, J., eds., Advances in Neural Information Process-ing Systems , volume 6, 335–342. IEEE. 2019. IEEE Standard for Floating-Point Arithmetic. 
+
+IEEE Std 754-2019 (Revision of IEEE 754-2008) , 1–84. Jagielski, M.; Carlini, N.; Berthelot, D.; Kurakin, A.; and Pa-pernot, N. 2020. High Accuracy and High Fidelity Extraction of Neural Networks. In 29th USENIX Security Symposium (USENIX Security 20) , 1345–1362. USENIX Association. ISBN 978-1-939133-17-5. Milli, S.; Schmidt, L.; Dragan, A. D.; and Hardt, M. 2019. Model Reconstruction from Model Explanations. In Pro-ceedings of the Conference on Fairness, Accountability, and Transparency , 1–9. ACM. Tramèr, F.; Zhang, F.; Juels, A.; Reiter, M. K.; and Ristenpart, T. 2016. Stealing Machine Learning Models via Prediction APIs. In 25th USENIX Security Symposium (USENIX Secu-rity 16) , 601–618. Austin, TX: USENIX Association. ISBN 978-1-931971-32-4. Tran, V.-H.; Bui, K. V.; Trinh, V.-H.; Ngoc, T. L.; and Nguyen, T. M. 2026. Functional Equivalence in Attention: A Comprehensive Study with Applications to Linear Mode Connectivity. In Forty-third International Conference on Machine Learning .Tran, V.-H.; Vo, T. N.; Nguyen The, A.; Tran Huu, T.; Nguyen-Nhat, M.-K.; Tran, T.; Pham, D.-T.; and Nguyen, T. M. 2025. Equivariant Neural Functional Networks for Transformers. In International Conference on Learning Rep-resentations .Vaswani, A.; Shazeer, N.; Parmar, N.; Uszkoreit, J.; Jones, L.; Gomez, A. N.; Kaiser, Ł.; and Polosukhin, I. 2017. Attention is all you need. Advances in neural information processing systems , 30. Wei, L.; Lei, H.; Qi, X.; Sun, X.; Gao, L.; Hu, K.; Wang, W.; and Wang, M. 2026. Cryptanalytic Extraction of Recurrent Neural Network Models. Cryptology ePrint Archive, Paper 2026/168. Yau, M.; Akyürek, E.; Mao, J.; Tenenbaum, J.; Jegelka, S.; and Andreas, J. 2025. Learning linear attention in polynomial time. Advances in Neural Information Processing Systems ,38: 152765–152801. Supplementary Material A Canonical Identifiability 
+
+This section proves Proposition 3.1. We first record that canonicalization preserves the scalar input–output function. For every 
+
+A ∈ Rd×d, the attention weights of all raw heads with Wh = A are identical. Since a head output is linear in its value vector, 
+
+X
+
+> h∈[H0]
+> Wh=A
+
+fA,v h (X) = fA,C M (A)(X).
+
+Terms for which CM (A) = 0 vanish. Consequently, for every input sequence X,
+
+FM (X) = X 
+
+> (A,c )∈Can( M)
+
+fA,c (X). (15) It remains to show that heads with distinct matrices Wh are linearly independent even when only the scalar output at the final token is observed. For the three-token input family used below, the part of a head output that depends on the perturbation parameter t is proportional to 
+
+ps(t) := exp( st )2 + exp( st ) , s, t ∈ R,
+
+where s = u⊤Aq for the corresponding matrix A. The following lemma shows that these functions cannot cancel when their scalar parameters are pairwise distinct. 
+
+Lemma A.1 (Linear independence of three-token curves) . If s1, . . . , s k are pairwise distinct real numbers, then the functions 
+
+ps1 , . . . , p sk are linearly independent over R.Proof. For s̸ = 0 , define the complex-valued function 
+
+Ps(z) := exp( sz )2 + exp( sz ) , z ∈ C,
+
+and set P0(z) := 1 /3. The function Ps agrees with ps on the real line. Since its numerator and denominator are entire and the denominator has only isolated zeros, Ps is meromorphic. For s̸ = 0 , the poles of Ps are 
+
+z = log 2 + i(2 n + 1) πs , n ∈ Z.
+
+Every such pole is simple with residue 1/s . Moreover, the pole sets corresponding to two distinct nonzero real numbers s and 
+
+s′ are disjoint. Indeed, equality of one pole from each set implies, by comparing real parts, 
+
+log 2 
+
+s = log 2 
+
+s′ ,
+
+and hence s = s′.Now suppose that kX
+
+> ℓ=1
+
+aℓpsℓ (t) = 0 
+
+for every real t. Let P be the union of the poles of Ps1 , . . . , P sk , and define 
+
+D := C \ P .
+
+The set P is discrete, so D is connected. The function 
+
+F (z) := 
+
+> k
+
+X
+
+> ℓ=1
+
+aℓPsℓ (z)
+
+is holomorphic on D and vanishes on the real line. The identity theorem therefore gives F = 0 throughout D.Consider a pole belonging to Psℓ for some sℓ̸ = 0 . Since the pole sets are disjoint, the residue of F at this pole is aℓ/s ℓ.Because F vanishes on the corresponding punctured neighborhood, this residue must be zero. Hence aℓ = 0 for every sℓ̸ = 0 .If one of the sℓ is zero, the only remaining term is the constant aℓP0 = aℓ/3, so its coefficient is also zero. Lemma A.1 applies once the scalars sℓ = u⊤Aℓq are pairwise distinct. We next show that, for pairwise distinct matrices 
+
+A1, . . . , A k, one can choose u and q so that this condition holds simultaneously for every ℓ.Lemma A.2 (Linear independence of distinct scalar-output heads) . Let A1, . . . , A k ∈ Rd×d be pairwise distinct. If 
+
+> k
+
+X
+
+> ℓ=1
+
+fAℓ,c ℓ (X) = 0 for every X ∈ R3×d,
+
+then cℓ = 0 for every ℓ ∈ [k].Proof. For u, q ∈ Rd and t ∈ R, consider 
+
+X(t) = [( q + tu )⊤; q⊤; q⊤].
+
+The final token is q. For head ℓ, the quantities inside the exponential for the first token and either copy of q differ by tu ⊤Aℓq.Writing 
+
+sℓ = u⊤Aℓq, bℓ = u⊤cℓ,
+
+gives 
+
+fAℓ,c ℓ (X(t)) = q⊤cℓ + tb ℓpsℓ (t). (16) Define 
+
+U := Rd \ [
+
+> 1≤ℓ<j ≤k
+
+ker  (Aℓ − Aj )⊤.
+
+Every kernel removed in this definition is a proper linear subspace because Aℓ̸ = Aj . Hence U is a nonempty open set. Fix 
+
+u ∈ U . For every ℓ̸ = j, the linear functional 
+
+q 7 −→ u⊤(Aℓ − Aj )q
+
+is nonzero. We may therefore choose q outside the finite union of its zero hyperplanes. For this choice, s1, . . . , s k are pairwise distinct. Apply the assumed head identity to X(t), subtract its value at t = 0 , and use (16). For every t̸ = 0 ,
+
+> k
+
+X
+
+> ℓ=1
+
+bℓpsℓ (t) = 0 .
+
+Continuity gives the same identity at t = 0 . By Lemma A.1, bℓ = u⊤cℓ = 0 for every ℓ. This conclusion holds for every u in the nonempty open set U. A linear functional that vanishes on a nonempty open set vanishes everywhere, so cℓ = 0 for all ℓ.
+
+Proof of Proposition 3.1. If Can( M ) = Can( M ′), then (15) immediately gives FM (X) = FM ′ (X) for every sequence X,and in particular for every X ∈ R3×d.Conversely, suppose that FM (X) = FM ′ (X) for every X ∈ R3×d. Enumerate the distinct matrices appearing as head parameters Wh in either raw model as A1, . . . , A k, and define 
+
+cℓ := CM (Aℓ) − CM ′ (Aℓ).
+
+Applying (15) to both models yields 
+
+> k
+
+X
+
+> ℓ=1
+
+fAℓ,c ℓ (X) = 0 for every X ∈ R3×d.
+
+Lemma A.2 gives cℓ = 0 for all ℓ. Thus CM (A) = CM ′ (A) for every A ∈ Rd×d. Removing the zero aggregates from these identical collections proves Can( M ) = Can( M ′).
+
+# B Probability-One Local Recovery and Consistent Head Labeling 
+
+This section proves that the randomized construction in (6) satisfies all local-recovery and consistent head-labeling conditions simultaneously with probability one. Throughout, the model is fixed, t̸ = 0 is fixed, and the probability is only over the learner’s draw of U and Q.Write 
+
+ΛU = diag( λ1, . . . , λ d), ΛQ = diag( μ1, . . . , μ d),
+
+where the λi and μj are independent and uniform on [1 , 2] . Let a⊤ 
+
+> i
+
+be row i of OU, and let bj be column j of OQ. Then 
+
+ui = λiai, qj = μj bj .
+
+The two orthonormal systems (ai)di=1 and (bj )dj=1 are independent. Let g, h ∈ Rd be independent random vectors with i.i.d. standard Gaussian entries. For every fixed i and j, the pair (ai, b j ) has the same distribution as 
+
+ g
+
+∥g∥2
+
+, h
+
+∥h∥2
+
+
+
+.
+
+The two orthonormal systems are also independent of all λi and μj .Lemma B.1 (Probability-zero identities for the sampled vectors) . The following statements hold. 1. For every fixed nonzero x ∈ Rd and every i, Pr( u⊤ 
+
+> i
+
+x = 0) = 0 .2. For every fixed nonzero A ∈ Rd×d and every i, Pr( A⊤ui = 0) = 0 .3. For i̸ = j and fixed matrices A, B ∈ Rd×d that are not both zero, 
+
+Pr( A⊤ui + B⊤uj = 0) = 0 .
+
+4. The analogous statements hold for qi, q j .Proof. For the first statement, u⊤ 
+
+> i
+
+x = 0 if and only if g⊤x = 0 , because ui = λiai, λi̸ = 0 , and ai has the same distribution as 
+
+g/ ∥g∥2. For every fixed x̸ = 0 , the scalar g⊤x is Gaussian with variance ∥x∥22 > 0. Hence 
+
+Pr( u⊤ 
+
+> i
+
+x = 0) = 0 .
+
+For the second statement, choose y ∈ Rd such that Ay ̸ = 0 . The event A⊤ui = 0 implies u⊤ 
+
+> i
+
+Ay = 0 , so the first statement gives 
+
+Pr( A⊤ui = 0) = 0 .
+
+For the third statement, the second statement implies that, with probability one over the orthogonal matrix, at least one of 
+
+A⊤ai and B⊤aj is nonzero. On this event, condition on the orthogonal matrix and on λj . If A⊤ai̸ = 0 , the equation 
+
+λiA⊤ai + λj B⊤aj = 0 
+
+determines at most one value of λi. Since λi is uniform on [1 , 2] , this occurs with probability zero. If A⊤ai = 0 , then B⊤aj̸ = 0 ,so the equality is impossible. The proof for qi, q j is identical. We will also use the following consequence. Let Z ∈ Rd be determined by U, and suppose that Pr( Z̸ = 0) = 1 . Conditional on Z, the independence of Q and U and the Gaussian representation above give 
+
+Pr( q⊤ 
+
+> j
+
+Z = 0 | Z) = 0 .
+
+Therefore 
+
+Pr( q⊤ 
+
+> j
+
+Z = 0) = 0 . (17) The same statement holds with the roles of U and Q interchanged. 
+
+Proposition B.2 (Local recovery and consistent head labeling succeed with probability one) . For every fixed canonical model satisfying (1) , the following events occur simultaneously with probability one. 1. For every pair (u, q ) in (7) –(9) , the values s1(u, q ), . . . , s H (u, q ) are pairwise distinct and every ch(u, q ) is nonzero. 2. For all indices in Lemma 4.3, each identity in (10) and (11) can hold only when the entries belong to the same head. Proof. Fix two heads h̸ = g and write ∆hg = Wh − Wg̸ = 0 . For (u, q ) = ( ui, q j ), the equality sh(u, q ) = sg (u, q ) is equivalent to 
+
+u⊤ 
+
+> i
+
+∆hg qj = 0 .
+
+By Lemma B.1, ∆⊤ 
+
+> hg
+
+ui̸ = 0 with probability one. Equation (17) shows that this equality has probability zero. For (u, q ) = ( u1 + ui, q 1), the corresponding equality is 
+
+(u1 + ui)⊤∆hg q1 = 0 .
+
+Lemma B.1, applied with A = B = ∆ hg , gives ∆⊤ 
+
+> hg
+
+(u1 + ui)̸ = 0 with probability one, after which (17) applies. For (u, q ) = ( ui, q 1 + qj ), the same argument with the roles of U and Q interchanged excludes 
+
+u⊤ 
+
+> i
+
+∆hg (q1 + qj ) = 0 .
+
+The possible choices of u are ui and u1 + ui. For every vh̸ = 0 , the first part of Lemma B.1 gives u⊤ 
+
+> i
+
+vh̸ = 0 with probability one. For the sum, let e1 be the first standard basis vector and apply the third part of the lemma with A = B = vhe⊤ 
+
+> 1
+
+. Since 
+
+A⊤(u1 + ui) = e1v⊤ 
+
+> h
+
+(u1 + ui),
+
+we also obtain 
+
+(u1 + ui)⊤vh̸ = 0 
+
+with probability one. Since t̸ = 0 , all corresponding ch(u, q ) = tu ⊤vh are nonzero. The exponential function is injective on R,so pairwise distinct sh-values also give pairwise distinct rh = exp( sh)-values. It remains to exclude incorrect head-labeling equalities. For heads h1, h 2, h 3, the equality in (10) is 
+
+sh1 (u1 + ui, q 1) = sh2 (u1, q 1) + sh3 (ui, q 1).
+
+After division by t and rearrangement, this is 
+
+q⊤
+
+> 1
+
+(Wh1 − Wh2 )⊤u1 + ( Wh1 − Wh3 )⊤ui
+
+ = 0 . (18) Unless h1 = h2 = h3, pairwise distinctness of the Wh implies that the two matrix differences appearing in the brackets are not both zero. Lemma B.1 makes the bracketed vector nonzero with probability one, and independence of q1 then makes (18) a probability-zero event. Similarly, the equality in (11) is equivalent to 
+
+u⊤ 
+
+> i
+
+[( Wh1 − Wh2 )q1 + ( Wh1 − Wh3 )qj ] = 0 . (19) If the three indices are not all equal, the bracketed vector is nonzero with probability one by the version of Lemma B.1 for Q.Independence of ui excludes (19). When all three indices agree, both additive identities hold deterministically by bilinearity. There are finitely many choices of (u, q ) and finitely many head and index combinations. The union of their probability-zero failure events still has probability zero, proving both assertions simultaneously. When d = 1 , no consistent head labeling is required, and the arguments for (u1, q 1) prove the proposition. 
+
+Completion of exact recovery. On the event of Proposition B.2, every local response has the reduced rational representation 
+
+R(z) = 
+
+> H
+
+X
+
+> h=1
+
+chrh
+
+z + rh
+
+.
+
+Indeed, the rh are pairwise distinct and the residue chrh at the pole −rh is nonzero. Thus no pole cancels, the reduced denominator has degree H, and the rational interpolation lemma of Section 4 recovers precisely 
+
+Dt(u, q ) = {(tu ⊤Whq, tu ⊤vh) : h ∈ [H]}.
+
+Proposition B.2 also verifies exactly the hypotheses of Lemma 4.3. That lemma assigns one common head labeling to all sets 
+
+Dt(ui, q j ) and then applies (12). Since every singular value of U and Q lies in [1 , 2] , both matrices are invertible for every draw. This proves the probability-one recovery claim in Theorem 5.1. For completeness, the algorithm uses 
+
+d2 + ( d − 1) + d(d − 1) = 2 d2 − 1
+
+local decoders. Each uses the 2H repeated-token responses with m = 1 , . . . , 2H. All local decoders using q1 use the same queried one-token output, FM ([ q⊤ 
+
+> 1
+
+]) . After they recover the vh, every other one-token output is computed exactly from 
+
+FM ([ q⊤]) = q⊤
+
+> H
+
+X
+
+> h=1
+
+vh.
+
+The resulting query count is 
+
+2H(2 d2 − 1) + 1 = 4 Hd 2 − 2H + 1 ,
+
+and the largest value of m gives maximum sequence length 2H + 1 . All query directions and repetition counts are chosen before any oracle response is observed, so the algorithm is nonadaptive. 
+
+# C Further Exact-Recovery Variants 
+
+This section proves two exact-recovery variants. Section C.1 considers the case where the learner knows H0, but not H.Section C.2 considers the case where each Wh satisfies the known rank bound rank( Wh) ≤ r.
+
+C.1 Recovery with a Known Upper Bound on H
+
+Let H0 be the raw head count. Canonicalization gives 0 ≤ H ≤ H0, but H need not be known to the learner. We extend the rational interpolation argument in Section 4 to the case where only H0 is known. 
+
+Lemma C.1 (Least-degree interpolation) . Let R = P/Q be a reduced proper rational function whose monic denominator has degree H ≤ H0, and assume that Q(m)̸ = 0 for m = 1 , . . . , 2H0. Then the values R(1) , . . . , R(2 H0) uniquely determine 
+
+R among all proper rational functions with denominator degree at most H0 whose denominators are nonzero at 1, . . . , 2H0.Moreover, H is the smallest integer k ∈ { 0, . . . , H 0} for which the samples admit such a rational representation of denominator degree k.Proof. Let P1/Q1 and P2/Q2 satisfy the stated conditions and agree at all 2H0 sample points. The polynomial 
+
+P1Q2 − P 2Q1
+
+has degree at most 2H0 − 1 and vanishes at 2H0 distinct points. It is therefore zero, so the two rational functions are identical. The true reduced fraction is feasible for k = H. If some k < H were feasible, uniqueness would give a representation of R
+
+with denominator degree less than H, contradicting the definition of H. For k = 0 , properness permits only the zero function, so k = 0 is feasible exactly when all samples are zero. The learner determines H by considering k = 0 , . . . , H 0 in increasing order. The case k = 0 is feasible exactly when all samples are zero. For k ≥ 1, the numerator and denominator take the form 
+
+Qk(z) = zk +
+
+> k−1
+
+X
+
+> ℓ=0
+
+qℓzℓ, Pk(z) = 
+
+> k−1
+
+X
+
+> ℓ=0
+
+pℓzℓ,
+
+and their coefficients must satisfy 
+
+Pk(m) = R(m)Qk(m), m = 1 , . . . , 2H0. (20) The value k is discarded if (20) has no solution. It is also discarded if, for some m ∈ { 1, . . . , 2H0}, every solution satisfies 
+
+Qk(m) = 0 ; otherwise it is retained. Whether Qk(m) = 0 holds for every solution can be determined by exact linear algebra. Over R, finitely many such equalities cannot cover the nonempty solution set unless one of them holds for every solution. Thus a retained k has a solution satisfying Qk(m)̸ = 0 for every m. By Lemma C.1, the smallest retained k is H.
+
+Theorem C.2 (Exact recovery from a known head-count upper bound) . Let M be a raw H0-head model with canonical representation Can( M ) = {(Wh, v h) : h ∈ [H]}, where 0 ≤ H ≤ H0. Suppose the learner knows d, H 0, but not H. For any fixed t̸ = 0 , a nonadaptive randomized algorithm recovers Can( M ) exactly with probability one. It uses exactly 
+
+2H0(2 d2 − 1) + 1 = 4 H0d2 − 2H0 + 1 
+
+value queries, each of length at most 2H0 + 1 .Proof. The algorithm samples U, Q according to (6). It first queries FM ([ q⊤ 
+
+> 1
+
+]) . It then makes the corresponding repeated-token query for every pair listed in (7)–(9) and every m = 1 , . . . , 2H0. If H = 0 , then (15) gives FM ≡ 0. Hence every queried output difference is zero, and the algorithm returns the empty canonical set. For H ≥ 1, Proposition B.2 shows that, with probability one, for every pair listed in (7)–(9), the values s1, . . . , s H are pairwise distinct and every ch is nonzero. Hence the values rh = exp( sh) are pairwise distinct and every residue chrh is nonzero. Therefore, R is reduced and deg Q = H. Since its poles are −rh < 0, Q(m)̸ = 0 for m = 1 , . . . , 2H0.Applying Lemma C.1 to the response for (u1, q 1) determines H. Applying the same interpolation and the local-decoding procedure in Section 4 to every pair listed in (7)–(9) recovers every corresponding set Dt(u, q ). Consistent head labeling and reconstruction then follow from Lemma 4.3. There are 2d2 − 1 local decoders, each using 2H0 repeated-token responses, and the only one-token output queried directly is FM ([ q⊤ 
+
+> 1
+
+]) . Thus the stated query count follows. The largest repetition count is 2H0, giving maximum sequence length 
+
+2H0 + 1 .
+
+C.2 Low-Rank Recovery 
+
+We extend the single-head low-rank recovery construction of Bhattamishra et al. (2026, Theorem 5.1) to canonical multi-head models. Suppose that H is known and that rank( Wh) ≤ r for every h ∈ [H]. Let u0, . . . , u L−1, q 0, . . . , q L−1 ∈ Rd be independent random vectors with i.i.d. standard Gaussian entries. Define 
+
+AL(Z) :=  u⊤ 
+
+> k
+
+Zq k
+
+L−1 
+
+> k=0
+
+.
+
+For Z ∈ Rd×d, let ∥Z∥∗ denote the sum of its singular values. By Corollary 2.1 of Cai and Zhang (2015), there are universal constants Crop , c rop > 0 such that, if 
+
+L ≥ 2Crop rd, (21) then, with probability at least 1 − exp( −crop L), every Z ∈ Rd×d satisfying rank( Z) ≤ r is the unique solution of 
+
+min 
+
+> X∈Rd×d
+
+∥X∥∗ subject to AL(X) = AL(Z). (22) This statement holds simultaneously for every such Z, so the same operator AL recovers all Wh. We assume that (22) can be solved exactly. Query directions. The construction uses Dt(u0, q 0) and, for every k = 1 , . . . , L − 1, the four sets 
+
+Dt(uk, q 0), Dt(u0 + uk, q 0), Dt(uk, q k), Dt(uk, q 0 + qk). (23) Together with Dt(u0, q 0), the sets in (23) give 
+
+1 + 4( L − 1) = 4 L − 3
+
+local decoders. 
+
+Lemma C.3 (Probability-one local recovery and consistent head labeling) . Fix pairwise distinct W1, . . . , W H and nonzero 
+
+v1, . . . , v H . With probability one, the following statements hold simultaneously. 1. For Dt(u0, q 0) and every set in (23) , the values s1(u, q ), . . . , s H (u, q ) are pairwise distinct and every ch(u, q ) is nonzero. 2. For every k = 1 , . . . , L − 1 and h1, h 2, h 3 ∈ [H],
+
+sh1 (u0, q 0) + sh2 (uk, q 0) = sh3 (u0 + uk, q 0)=⇒ h1 = h2 = h3, (24) 
+
+and sh1 (uk, q 0) + sh2 (uk, q k) = sh3 (uk, q 0 + qk)=⇒ h1 = h2 = h3. (25) 
+
+Consequently, every local decoder used above recovers all H elements of Dt(u, q ), and (24) and (25) determine consistent head labels. Proof. A nonzero polynomial in the independent standard Gaussian coordinates defined above vanishes with probability zero. For h̸ = g, the equality sh(u, q ) = sg (u, q ) is equivalent to 
+
+u⊤(Wh − Wg )q = 0 .
+
+This is a nonzero polynomial because Wh̸ = Wg . Similarly, ch(u, q ) = 0 is equivalent to u⊤vh = 0 , which is nonzero because 
+
+vh̸ = 0 . For the polynomial expressing the equality at (u0 + uk, q 0), setting uk = 0 yields the nonzero polynomial associated with (u0, q 0). For the polynomial expressing the equality at (uk, q 0 + qk), setting qk = 0 yields the nonzero polynomial associated with (uk, q 0). For ch(u, q ) = 0 , the only additional case is (u0 + uk)⊤vh = 0 , whose polynomial is nonzero after setting uk = 0 . Hence item 1 holds with probability one. For indices h1, h 2, h 3 that are not all equal, the equality in (24) is equivalent to 
+
+u⊤ 
+
+> 0
+
+(Wh1 − Wh3 )q0 + u⊤ 
+
+> k
+
+(Wh2 − Wh3 )q0 = 0 .
+
+This polynomial is identically zero only if Wh1 = Wh3 and Wh2 = Wh3 , which would imply h1 = h2 = h3. Therefore, it is nonzero for every prohibited match. Likewise, the equality in (25) is equivalent to 
+
+u⊤ 
+
+> k
+
+(Wh1 − Wh3 )q0 + u⊤ 
+
+> k
+
+(Wh2 − Wh3 )qk = 0 .
+
+This polynomial is identically zero only when h1 = h2 = h3. There are finitely many pairs and head triples, so the probability that any prohibited equality holds is zero. 
+
+Recovery of vh and measurements of Wh. The elements of Dt(u0, q 0) are given arbitrary initial labels. For every k =1, . . . , L − 1, (24) assigns consistent labels to Dt(uk, q 0) using Dt(u0 + uk, q 0).
+
+sh(u0 + uk, q 0) = sh(u0, q 0) + sh(uk, q 0).
+
+The local decoder keeps each ch-value paired with its sh-value, so this step labels 
+
+zkh := ch(uk, q 0) = tu ⊤ 
+
+> k
+
+vh, k = 0 , . . . , L − 1.
+
+Let 
+
+UL = [ u⊤ 
+
+> 0
+
+; . . . ; u⊤
+
+> L−1
+
+] ∈ RL×d, zh = ( z0h, . . . , z L−1,h )⊤.
+
+When L ≥ d, the Gaussian matrix UL has full column rank with probability one, and hence 
+
+vh = t−1(U ⊤ 
+
+> L
+
+UL)−1U ⊤ 
+
+> L
+
+zh. (26) This argument does not require the vh to be distinct or linearly independent. After recovering the vh, every one-token output follows from 
+
+FM ([ q⊤]) = q⊤
+
+> H
+
+X
+
+> h=1
+
+vh.For every k = 1 , . . . , L − 1, the algorithm next recovers Dt(uk, q k) and Dt(uk, q 0 + qk). Since Dt(uk, q 0) is already labeled, the implication in (25) uniquely determines the labels of Dt(uk, q k). Together with the measurement from Dt(u0, q 0), this gives 
+
+ykh := t−1sh(uk, q k) = u⊤ 
+
+> k
+
+Whqk, k = 0 , . . . , L − 1. (27) Thus (ykh )L−1 
+
+> k=0
+
+= AL(Wh), and the simultaneous guarantee stated above implies that (22) recovers all Wh with probability at least 1 − exp( −crop L).
+
+Theorem C.4 (Exact low-rank multi-head recovery) . Let 1 ≤ r ≤ d. Suppose that the learner knows H and r, and that the canonical heads satisfy (1) and rank( Wh) ≤ r for every h. Let t̸ = 0 , and let L be any integer satisfying 
+
+L ≥ max {d, ⌈2Crop rd ⌉} .
+
+Under the exact computation assumptions, augmented by exact solution of (22) , the construction in (23) recovers every (Wh, v h)
+
+up to one common permutation with probability at least 1 − exp( −crop L). It uses exactly 
+
+2H(4 L − 3) + 1 = 8 HL − 6H + 1 
+
+value queries, each of length at most 2H + 1 . Choosing the smallest admissible L gives O(Hrd ) value queries. Proof. The probability-one event in Lemma C.3 makes every local decoder and head-labeling step valid. Since L ≥ d, it also holds with probability one that UL has full column rank, so (26) recovers all value vectors. Equation (27) gives AL(Wh) with consistent head labels for every h. With probability at least 1 − exp( −crop L), every rank-r matrix is the unique solution of (22); on this event, the program recovers every Wh simultaneously. Intersecting this event with the probability-one event in Lemma C.3 and the probability-one full-column-rank event for UL preserves the lower bound 1 − exp( −crop L).There are 4L − 3 local decoders, each using 2H repeated-token value queries, and only the one-token output at q0 is queried. This gives 2H(4 L − 3) + 1 queries. The largest repeated-token query has 2H copies of its base token and one perturbed token, so its length is 2H + 1 .
+
+# D Stability under Approximate Outputs 
+
+We prove Theorem 5.2 under the quantitative separation and conditioning assumptions defined below. Throughout this section, the model, the matrices U and Q, and the nonzero scale t are fixed. 
+
+Approximate outputs. The approximate oracle satisfies 
+
+eF (X) − FM (X) ≤ τ for every queried X. (28) We assume that all subsequent computations on the returned values are exact. Let 
+
+A = {(ui, q j ) : i, j ∈ [d]} ∪ { (u1 + ui, q 1) : i = 2 , . . . , d } ∪ { (ui, q 1 + qj ) : i ∈ [d], j = 2 , . . . , d }. (29) be the 2d2 − 1 pairs in (7)–(9). In addition to the repeated-token queries, the approximate-output algorithm queries 
+
+{[q⊤ 
+
+> 1
+
+]} ∪ { [q⊤ 
+
+> j
+
+], [( q1 + qj )⊤] : j = 2 , . . . , d }. (30) Consequently, the required one-token output is observed directly for every (u, q ) ∈ A . For (u, q ) ∈ A , m ∈ [2 H], and h ∈ [H],define, consistently with Section 4, 
+
+sh(u, q ) = tu ⊤Whq, ch(u, q ) = tu ⊤vh, rh(u, q ) = exp( sh(u, q )) ,ym(u, q ) = FM (X(t) 
+
+> m
+
+(u, q )) − FM ([ q⊤]) = 
+
+> H
+
+X
+
+> h=1
+
+ch(u, q )rh(u, q )
+
+m + rh(u, q ) . (31) The algorithm observes the corresponding output difference 
+
+eym(u, q ) = eF (X(t) 
+
+> m
+
+(u, q )) − eF ([ q⊤]) . (32) Since each of the two queried outputs has error at most τ ,
+
+|eym(u, q ) − ym(u, q )| ≤ 2τ. (33) Directly querying the required one-token outputs prevents errors in the recovered vh from propagating to later local recoveries. Quantitative separation and conditioning. We first record the ranges and separations of the quantities recovered at each pair. All extrema below range over (u, q ) ∈ A and, where applicable, h, g ∈ [H]. Define 
+
+rmin = min rh(u, q ), rmax = max rh(u, q ), (34) 
+
+δr = min  
+
+> (u,q )∈A
+
+min  
+
+> h̸=g
+
+|rh(u, q ) − rg (u, q )|, cmin = min |ch(u, q )|, (35) 
+
+Bc = max  
+
+> (u,q )∈A
+
+∥(c1(u, q ), . . . , c H (u, q )) ∥2 . (36) For the random construction used in the exact-recovery theorem, rmin > 0, δr > 0, and cmin > 0 with probability one. Once U
+
+and Q have been drawn, however, these are fixed instance-dependent quantities and may be arbitrarily small. We next quantify the conditioning of the two linear systems used in local recovery. For m ∈ [2 H] and a = 0 , . . . , H − 1, let 
+
+Vm,a = ma, wm = mH . (37) For y = ( y1, . . . , y 2H )⊤, define 
+
+A(y) = [ V, − diag( y)V ] , b(y) = diag( y)w. (38) If 
+
+P(z) = 
+
+> H−1
+
+X
+
+> a=0
+
+paza, Q(z) = zH +
+
+> H−1
+
+X
+
+> a=0
+
+qaza,
+
+then the coefficient vector θ = ( p0, . . . , p H−1, q 0, . . . , q H−1)⊤ satisfies A(y)θ = b(y).For r = ( r1, . . . , r H ), define the 2H × H coefficient-recovery matrix 
+
+G(r)m,h = rh
+
+m + rh
+
+, m ∈ [2 H], h ∈ [H]. (39) To obtain bounds that hold for every pair in A, define 
+
+γint = min  
+
+> (u,q )∈A
+
+σmin (A(y(u, q ))) , γc = min  
+
+> (u,q )∈A
+
+σmin (G(r(u, q ))) . (40) Appendix D.1 shows that distinct poles and nonzero coefficients make A(y) nonsingular. Distinct positive poles also make G(r)
+
+have full column rank. Since A is finite, γint and γc are positive whenever these conditions hold for every (u, q ) ∈ A .
+
+Consistent head labeling. Recovery at each pair determines the heads only up to a permutation. To ensure that selecting the candidate with the smallest absolute residual preserves a common labeling, define, for d ≥ 2,
+
+∆u = min  
+
+> i=2 ,...,d
+> (h1,h 2,h 3)∈[H]3
+> h1,h 2,h 3not all equal
+
+|sh1 (u1 + ui, q 1) − sh2 (u1, q 1) − sh3 (ui, q 1)| , (41) 
+
+∆q = min  
+
+> i∈[d], j =2 ,...,d
+> (h1,h 2,h 3)∈[H]3
+> h1,h 2,h 3not all equal
+
+|sh1 (ui, q 1 + qj ) − sh2 (ui, q 1) − sh3 (ui, q j )| , (42) 
+
+∆match = min {∆u, ∆q }. (43) The identities hold only for triples from the same head precisely when ∆match > 0. When d = 1 , no head labeling is required, and we set ∆match = + ∞.The final linear reconstruction also depends on the conditioning of the two basis matrices. Write 
+
+U = [ u1, . . . , u d]⊤, Q = [ q1, . . . , q d],γU = σmin (U), γQ = σmin (Q). (44) The construction in (6) gives γU , γ Q ≥ 1. The proof uses only their positivity and therefore applies to any fixed invertible U
+
+and Q satisfying the preceding assumptions. 
+
+Recovery from approximate outputs. For each (u, q ) ∈ A , reconstruction begins by solving 
+
+A(ey)bθ = b(ey).
+
+The values br1, . . . , brH are then obtained as the negatives of the roots of bQ, and bsh = log brh. For this pair, write 
+
+c = ( c1(u, q ), . . . , c H (u, q )) ⊤.
+
+The coefficient estimate is the least-squares solution 
+
+bc := arg min 
+
+> z∈RH
+
+∥G(br)z − ey∥2. (45) This solution is unique whenever G(br) has full column rank. To obtain a common head labeling across different choices of 
+
+(u, q ), the algorithm selects the candidate with the smallest absolute residual for each identity in (10) and (11). D.1 Proof and Explicit Constants 
+
+We now derive explicit values of τ0 and Cstab . The bounds are conservative, but display how the final error depends on the conditioning quantities defined above. 
+
+Interpolation coefficients. Let 
+
+VH = ∥V ∥2, SH = ∥w∥2, (46) where V and w are defined in (37), and set 
+
+Bθ = (1 + rmax )H + √H B crmax (1 + rmax )H−1, (47) 
+
+Cθ = 4( SH + VH Bθ )
+
+γint 
+
+. (48) 
+
+Lemma D.1 (Interpolation perturbation) . If 
+
+τ ≤ γint 
+
+4VH
+
+, (49) 
+
+then every noisy interpolation system is nonsingular and 
+
+∥bθ − θ∥2 ≤ Cθ τ. (50) 
+
+Proof. We first show that the exact interpolation matrix is nonsingular. Suppose A(y)( P0, Q 0) = 0 , where both P0 and Q0
+
+have degree less than H. For the reduced rational function P/Q, the polynomial P0Q − P Q0 has degree at most 2H − 1 and vanishes at 1, . . . , 2H. It is therefore the zero polynomial. Distinct rh and nonzero ch imply that P and Q are coprime. Hence 
+
+Q divides Q0. Since deg Q0 < H = deg Q, this gives Q0 = 0 , and then P0 = 0 . Thus A(y) is nonsingular. The coefficient ℓ1 norm of Q(z) = Q
+
+> h
+
+(z + rh) is at most (1 + rmax )H . Moreover, 
+
+P(z) = 
+
+> H
+
+X
+
+> h=1
+
+chrh
+
+Y 
+
+> g̸=h
+
+(z + rg ). (51) Cauchy–Schwarz therefore gives 
+
+∥P∥ coeff ,2 ≤ √H B crmax (1 + rmax )H−1.
+
+Consequently, ∥θ∥2 ≤ Bθ .Let e = ey − y. By (33), 
+
+∥A(ey) − A(y)∥2 ≤ 2τ V H , ∥b(ey) − b(y)∥2 ≤ 2τ S H . (52) Weyl’s inequality and (49) give 
+
+σmin (A(ey)) ≥ γint − 2τ V H ≥ γint 
+
+2 .
+
+Subtracting the exact and perturbed systems yields 
+
+A(ey)( bθ − θ) = [ b(ey) − b(y)] − [A(ey) − A(y)] θ. 
+
+Taking norms and using ∥A(ey)−1∥2 ≤ 2/γ int proves (50). 
+
+Perturbation of rh and sh. Define 
+
+KQ =
+
+> H−1
+
+X
+
+> a=0
+
+(rmax + δr /2) 2a
+
+!1/2
+
+, (53) 
+
+Cr = 2KQCθ
+
+(δr /2) H−1 , Cs = 2Cr
+
+rmin 
+
+. (54) 
+
+Lemma D.2 (Perturbation bounds for rh and sh). Suppose Lemma D.1 applies and 
+
+Cr τ < min 
+
+ δr
+
+2 , rmin 
+
+2
+
+
+
+. (55) 
+
+Then bQ has H distinct negative real roots. The recovered values can be relabeled separately for each (u, q ) so that 
+
+max  
+
+> h
+
+|brh − rh| ≤ Cr τ, max  
+
+> h
+
+|bsh − sh| ≤ Csτ. (56) Proof. The claim is immediate when τ = 0 . Assume τ > 0, put ϵθ = Cθ τ , and define 
+
+ρ = 2KQϵθ
+
+(δr /2) H−1 = Cr τ. 
+
+On the circle |z + rh| = ρ, the separation condition gives 
+
+|Q (z)| =
+
+> H
+
+Y
+
+> g=1
+
+|z + rg | ≥ ρ(δr /2) H−1 = 2 KQϵθ .
+
+Because |z| ≤ rmax + δr /2 on these circles, (50) gives 
+
+| bQ(z) − Q (z)| ≤ KQϵθ .
+
+Rouché’s theorem places exactly one root of bQ in each disk centered at −rh with radius ρ. The disks are disjoint and account for all H roots. The coefficients of bQ are real, and each disk is invariant under complex conjugation. Uniqueness of the root in each disk therefore forces that root to be real. The bound ρ < r min /2 makes every root negative. It remains to take logarithms. Both rh and brh are at least rmin /2, so the mean-value theorem for log r gives 
+
+| log brh − log rh| ≤ 2
+
+rmin 
+
+|brh − rh|.
+
+This proves (56). 
+
+Perturbation of the recovered coefficients. Set 
+
+LG = 11 + rmin /2 , CG = √2 HL GCr , (57) 
+
+Cc = 4√2H + 2 CGBc
+
+γc
+
+. (58) 
+
+Lemma D.3 (Perturbation bound for c). Suppose Lemma D.2 applies and 
+
+CG · τ ≤ γc
+
+2 . (59) 
+
+After relabeling the entries of bc in the same way as the recovered brh in Lemma D.2, the least-squares estimate in (45) satisfies 
+
+∥bc − c∥2 ≤ Cc · τ. (60) 
+
+If additionally Cc · τ < c min /2, every recovered coefficient remains nonzero and has the same sign as its corresponding exact coefficient. Proof. For gm(r) = r/ (m + r) and r ≥ rmin /2,
+
+|g′
+
+> m
+
+(r)| = m
+
+(m + r)2 ≤ 11 + rmin /2 = LG.
+
+There are 2H2 entries in G. Hence 
+
+∥G(br) − G(r)∥2 ≤ ∥ G(br) − G(r)∥F ≤ √2 HL GCr τ = CG · τ. (61) Weyl’s inequality gives σmin (G(br)) ≥ γc/2. Therefore, G(br) has full column rank, so the least-squares solution is unique. Since 
+
+y = G(r)c, the vector G(br)( bc − c) is the orthogonal projection of 
+
+(ey − y) − (G(br) − G(r)) c
+
+onto the column space of G(br). Its norm is therefore no larger than the norm of this vector. Hence 
+
+γc
+
+2 ∥bc − c∥2 ≤ ∥ ey − y∥2 + ∥G(br) − G(r)∥2∥c∥2.
+
+Using ∥ey − y∥2 ≤ 2√2Hτ , (61), and ∥c∥2 ≤ Bc proves (60). The final statement follows from |bch − ch| ≤ ∥ bc − c∥2.Pole separation also gives an explicit lower bound on γc. Taking the first H rows of G(r) and applying the Cauchy determinant formula yields 
+
+γc ≥ rH
+
+> min
+
+δH(H−1) /2
+
+> r
+
+(H + rmax )H2 HH−1 . (62) To obtain this bound, consider the H × H matrix formed by the first H rows of G(r). Its Cauchy determinant contains the factor 
+
+Y
+
+> 1≤i<j ≤H
+
+(j − i),
+
+which is at least one, and the factor Y
+
+> h<g
+
+|rh − rg |,
+
+which is at least δH(H−1) /2 
+
+> r
+
+. Since every entry of this submatrix is at most one, its spectral norm is at most its Frobenius norm and hence at most H. The determinant identity relating the singular values then gives (62). Adding the remaining rows cannot decrease the smallest singular value. 
+
+Stability of consistent head labeling. Lemma D.4 (Preservation of head labels) . Suppose that, after relabeling as in Lemma D.2, the recovered values satisfy 
+
+|bsh(u, q ) − sh(u, q )| ≤ ϵs
+
+for every (u, q ) ∈ A and h ∈ [H]. If 
+
+6ϵs < ∆match , (63) 
+
+then selecting the candidate with the smallest absolute residual in every instance of (10) and (11) recovers the exact common head labeling. Proof. For a triple from the same head, the exact residual is zero, so the recovered residual is at most 3ϵs. For every incorrect triple, the exact residual has magnitude at least ∆match , so the recovered residual is at least ∆match − 3ϵs > 3ϵs. Thus the true triple is the unique closest candidate. Applying this argument to every anchor label gives a consistent labeling of all recovered sets. 
+
+End-to-end constants. Define 
+
+τ0 = min 
+
+ γint 
+
+4VH
+
+, δr
+
+2Cr
+
+, rmin 
+
+2Cr
+
+, γc
+
+2CG
+
+, cmin 
+
+2Cc
+
+, ∆match 
+
+6Cs
+
+
+
+, (64) where the last term is omitted when d = 1 , and define 
+
+Cstab = 1
+
+|t|
+
+dC s
+
+γU γQ
+
++
+
+√d C c
+
+γU
+
+!
+
+. (65) 
+
+Theorem D.5 (Explicit conditional stability) . Fix a model with H ≥ 2 canonical heads, fixed invertible bases U, Q, and a fixed t̸ = 0 . Suppose all quantities in (34) –(44) have the stated positive margins. If 0 ≤ τ < τ 0, the approximate-output reconstruction returns estimates and a permutation π satisfying 
+
+max 
+
+> h∈[H]
+
+
+
+∥cWh − Wπ(h)∥F + ∥bvh − vπ(h)∥2
+
+
+
+≤ Cstab τ. (66) 
+
+It uses 4Hd 2 − 2H + 2 d − 1 value queries, each of length at most 2H + 1 .Proof. Lemmas D.1–D.3 give, within every local decoder, 
+
+max  
+
+> h
+
+|bsh − sh| ≤ Csτ, ∥bc − c∥2 ≤ Ccτ. 
+
+The last condition in (64) and Lemma D.4 place every local output under one common permutation. For a matched head, form 
+
+(Sh)ij = sh(ui, q j ), (ch)i = ch(ui, q 1),
+
+and define bSh, bch from the decoded values. Then 
+
+∥ bSh − Sh∥F ≤ dC sτ, ∥bch − ch∥2 ≤ √d C cτ. (67) The scale t appears in both exact reconstruction identities: 
+
+Sh = tUWhQ, ch = tUvh. (68) Consequently, 
+
+cWh = t−1U−1 bShQ−1, bvh = t−1U−1bch.
+
+Using ∥U−1∥2 = 1 /γ U and ∥Q−1∥2 = 1 /γ Q in (67) proves (66). There are 2d2 − 1 local decoders, each requiring 2H repeated-token queries, together with the 2d − 1 one-token queries in (30). Hence the query count is 
+
+2H(2 d2 − 1) + (2 d − 1) = 4 Hd 2 − 2H + 2 d − 1.
+
+The largest multiplicity is 2H, so the maximum sequence length is 2H + 1 .The conditioned construction in (6) gives γU , γ Q ≥ 1, but does not uniformly control δr , cmin , γint , γc, or ∆match . These quantities are positive with probability one for each fixed model, but can be arbitrarily small across models. Theorem D.5 is therefore a local stability result rather than a uniform finite-precision guarantee. 
+
+D.2 No Model-Independent Bound on Cstab 
+
+We show that Cstab cannot be bounded independently of the target model under the qualitative identifiability assumptions alone, even for two heads. The argument is information-theoretic and does not rely on rational interpolation. Let ΠH denote the set of permutations of [H]. It suffices to consider d = 1 and H = 2 . In this case, each Wh and vh is a scalar, which we denote by wh and vh, respectively. For a sequence X = ( x1, . . . , x N )⊤, define 
+
+gw(X) = 
+
+> N
+
+X
+
+> i=1
+
+exp( wx ixN )
+
+PNj=1 exp( wx j xN ) xi. (69) Thus a scalar head (w, v ) contributes vg w(X). For B > 0, let 
+
+XB = [ 
+
+> N≥1
+
+
+
+X ∈ RN : max   
+
+> i∈[N]
+
+|xi| ≤ B
+
+
+
+. (70) For a target model M and a query domain D, an additive-τ oracle is a deterministic response function eF : D → R satisfying 
+
+| eF (X) − FM (X)| ≤ τ for every X ∈ D . (71) Apart from the error bound in (71), eF is arbitrary. For two unordered two-head models M and M ′, define the bottleneck parameter distance 
+
+dpar (M, M ′) = min 
+
+> π∈Π2
+
+max 
+
+> h∈[2]
+
+
+
+|wh − w′
+
+> π(h)
+
+| + |vh − v′
+
+> π(h)
+
+|
+
+
+
+. (72) This is exactly the error metric in Theorem 5.2 specialized to d = 1 .
+
+Lemma D.6 (Lipschitz continuity with respect to w). For every X ∈ X B and every w, w ′ ∈ R,
+
+|gw(X) − gw′ (X)| ≤ B3|w − w′|. (73) 
+
+Proof. Let ai(w) be the softmax weight in (69), and view the token value xi as a random variable under the distribution a(w).Differentiating the softmax expectation gives 
+
+ddw gw(X) = xN
+
+ Ea(w)[x2 
+
+> i
+
+] − Ea(w)[xi]2
+
+= xN Var a(w)(xi).
+
+(74) A random variable supported on [−B, B ] has variance at most B2, and |xN | ≤ B. Therefore |g′
+
+> w
+
+(X)| ≤ B3. The mean-value theorem proves (73). 
+
+Theorem D.7 (Indistinguishable models under approximate outputs) . Fix B, μ, τ > 0 and distinct centers a, b ∈ R. For any 
+
+δ > 0 satisfying 
+
+μδB 3 ≤ τ, (75) 
+
+define 
+
+Ma(δ) = {(a, μ ), (a + δ, −μ)},Mb(δ) = {(b, μ ), (b + δ, −μ)}. (76) Each model satisfies w1̸ = w2 and v1, v 2̸ = 0 . Nevertheless, the deterministic oracle 
+
+eF (X) = 0 , X ∈ X B , (77) 
+
+is an additive-τ oracle for both models. Their parameter distance satisfies 
+
+dpar (Ma(δ), M b(δ)) ≥ D, D = min {| a − b|, 2μ} > 0. (78) 
+
+Consequently, under the common oracle (77) , every deterministic learner that queries only inputs in XB and returns an unordered two-head model incurs parameter error at least D/ 2 on at least one of the two models. Proof. The output of the first model is 
+
+FMa(δ)(X) = μ ga(X) − ga+δ (X).
+
+Lemma D.6 and (75) imply 
+
+|FMa(δ)(X)| ≤ μδB 3 ≤ τ (X ∈ X B ).
+
+The same bound holds for Mb(δ), so the all-zero oracle is valid for both models. There are only two possible matchings between the heads. The matching that pairs μ with μ and −μ with −μ incurs a difference of |a − b| in the w-parameters. The other matching pairs μ with −μ and therefore incurs a difference of 2μ in the 
+
+v-parameters. This proves (78). A deterministic learner receives the same responses under both models and therefore returns the same estimate. By the triangle inequality for dpar , this estimate cannot be at distance strictly less than D/ 2 from both models. 
+
+Corollary D.8 (Lower bound for randomized learners) . Let L be a randomized learner that queries only inputs in XB and returns an unordered two-head model. Run L with the common oracle (77) , and let cMa and cMb denote its outputs when the target models are Ma(δ) and Mb(δ), respectively. Then 
+
+max 
+
+n
+
+Edpar ( cMa, M a(δ)) , Edpar ( cMb, M b(δ)) 
+
+o
+
+≥ D
+
+2 . (79) 
+
+Moreover, 
+
+min 
+
+n
+
+P
+
+
+
+dpar ( cMa, M a(δ)) < D/ 2
+
+
+
+,
+
+P
+
+
+
+dpar ( cMb, M b(δ)) < D/ 2
+
+o 
+
+≤ 12 .
+
+(80) 
+
+Proof. Use the same internal randomness in the two executions. Because the oracle returns the same response under both models, the two executions produce the same sequence of queries and responses and therefore the same output for every realization of the learner’s internal randomness. Denote this output by cM . The triangle inequality and (78) give 
+
+dpar ( cM , M a(δ)) + dpar ( cM , M b(δ)) ≥ D
+
+for every such realization. Taking expectations proves (79). No estimate can be at distance strictly less than D/ 2 from both models. Therefore, for every seed, at most one of the two success events in (80) can occur. Taking probabilities proves the second claim. 
+
+Corollary D.9 (No model-independent stability constant) . Fix B > 0. There do not exist constants 0 < C < ∞ and τ⋆ > 0 and a deterministic learner returning an unordered two-head model such that, for every two-head model with distinct w-parameters and nonzero v-parameters, every 0 < τ < τ ⋆, and every additive-τ oracle on XB , the learner guarantees parameter error at most C · τ . No randomized learner can provide the same guarantee with success probability strictly greater than 1/2 for every such model, noise level, and oracle. Proof. Fix distinct a, b and μ > 0, and let D = min {| a − b|, 2μ}. If such C, τ⋆, and a deterministic learner existed, choose 
+
+δ > 0 sufficiently small that 
+
+τ = μδB 3 < min 
+
+
+
+τ⋆, D
+
+2C
+
+
+
+.
+
+Theorem D.7 gives an additive-τ oracle under which at least one of the two models has parameter error at least 
+
+D/ 2 > C · τ, 
+
+contradicting the assumed guarantee. For a randomized learner, C · τ < D/ 2 implies that the event of parameter error at most C · τ is contained in the event of error strictly less than D/ 2. Corollary D.8 shows that the latter event has probability at most 1/2 for at least one of the two models. The preceding result assumes a uniform bound on token magnitudes. For a deterministic learner, the execution obtained by returning zero to every query uses only finitely many token coordinates and therefore has a finite bound. This yields the finite-query statement below. 
+
+Corollary D.10 (Finite-query impossibility) . Fix τ > 0. Let L be a deterministic adaptive learner that makes at most Q < ∞
+
+value queries for every sequence of oracle responses and returns an unordered two-head model. Then there exist two canonical two-head models at parameter distance at least one and valid additive-τ oracles under which L receives the same response at every step. Consequently, L incurs parameter error at least 1/2 on at least one of the two models. Proof. Run L while returning zero in response to every query. This determines a finite set S of at most Q queried sequences. Define 
+
+BL = max 
+
+
+
+1, max  
+
+> X∈S
+
+max  
+
+> i
+
+|xi|
+
+
+
+, (81) where the maximum over an empty set is zero. Take a = 0 , b = 1 , μ = 1 , and choose 
+
+0 < δ ≤ τB3
+
+> L
+
+.
+
+For each M ∈ { M0(δ), M 1(δ)}, define 
+
+eFM (X) = 
+
+0, X ∈ S ,FM (X), X / ∈ S . (82) Theorem D.7 shows that | eFM (X) − FM (X)| ≤ τ for every X ∈ S . Outside S, the error is zero. Hence both eFM0(δ) and eFM1(δ)
+
+are valid additive-τ oracles. Each oracle returns zero on every sequence queried in the initial execution. Therefore, by induction over the adaptive queries, 
+
+L makes the same queries and receives the same responses under both models. It consequently returns the same estimate, whereas 
+
+dpar (M0(δ), M 1(δ)) ≥ 1.
+
+The triangle inequality implies that this estimate has parameter error at least 1/2 on at least one of the two models. This construction does not show that every quantitative condition in Appendix D is individually necessary. It only shows that 
+
+W1̸ = W2 and v1, v 2̸ = 0 do not by themselves imply a model-independent bound on Cstab .
+
+# E Conditional Recovery from Binary Membership Queries 
+
+We consider the binary membership oracle 
+
+MQ M (X) = 1{FM (X) > 0}. (83) The learner chooses an arbitrary finite real sequence X but observes only the bit in (83). We assume that the learner knows d
+
+and the number H ≥ 2 of canonical heads. As in the main paper, the canonical heads have pairwise distinct Wh and nonzero vh.The positive result assumes that the learner knows constants τsafe > 0, Cub < ∞, and ηdir > 0. They satisfy 
+
+τsafe ≤ τ0, Cub ≥ Cstab ,
+
+where τ0 and Cstab are the threshold and stability constant from Theorem D.5. The quantity ηdir specifies the required accuracy of the direction estimate defined below. We do not claim that these quantities can be obtained from binary membership queries alone, and the cost of obtaining or verifying them is not included in the query count of Theorem E.6. 
+
+E.1 Normalization and Scale Ambiguity 
+
+Let 
+
+S =
+
+> H
+
+X
+
+> h=1
+
+vh. (84) 
+
+Lemma E.1 (Scaling is unidentifiable) . For every α > 0, replacing all value vectors vh by αv h leaves the membership oracle unchanged. Proof. The replacement multiplies FM (X) by α for every X. Multiplication by a positive number preserves whether the output is strictly positive. Suppose first that S̸ = 0 . Define 
+
+aS = ∥S∥2, ω = SaS
+
+, ¯vh = vh
+
+aS
+
+, ¯FM = FM
+
+aS
+
+. (85) Then ∥ω∥2 = 1 , P 
+
+> h
+
+¯vh = ω, and ¯FM induces the same membership oracle as FM . Therefore, this section recovers 
+
+{(Wh, ¯vh) : h ∈ [H]} =
+
+(
+
+Wh, vh
+
+∥ P 
+
+> g
+
+vg ∥2
+
+!
+
+: h ∈ [H]
+
+)
+
+, (86) up to a permutation in ΠH .For a one-token input, every head assigns attention weight one to the unique token, and hence 
+
+MQ M ([ x⊤]) = 1{x⊤ω > 0}. (87) Thus length-one membership queries determine the homogeneous halfspace with unit normal ω.
+
+E.2 Recovering Rational-Function Values from Membership Queries 
+
+Fix a known scale t > 0. The main paper uses t = 1 ; retaining t here makes the connection to the repeated-token local decoder explicit. For (u, q ) ∈ Rd × Rd, define 
+
+sh(u, q ) = tu ⊤Whq, ch(u, q ) = tu ⊤ ¯vh, rh(u, q ) = exp( sh(u, q )) ,R(t) 
+
+> u,q
+
+(m) = ¯FM (X(t) 
+
+> m
+
+(u, q )) − ¯FM ([ q⊤]) = 
+
+> H
+
+X
+
+> h=1
+
+ch(u, q )rh(u, q )
+
+m + rh(u, q ) . (88) The fixed scale t appears in both sh and ch.Use the same collection of pairs as the value-query algorithm: 
+
+Amq = {(ui, q j ) : i, j ∈ [d]}∪ { (u1 + ui, q 1) : i = 2 , . . . , d }∪ { (ui, q 1 + qj ) : i ∈ [d], j = 2 , . . . , d }.
+
+(89) Its cardinality is 
+
+K = |A mq | = 2 d2 − 1. (90) For a positive scaling variable a, define 
+
+X(t)
+
+> m,a
+
+(u, q ) = (q/a + atu )⊤; ( q/a )⊤; . . . ; ( q/a )⊤ , (91) where q/a occurs m times, including as the final token. The variable a is distinct from the fixed repeated-token scale t.
+
+Lemma E.2 (Scale-preserving identity) . Let B(q) = q⊤ω. For every a > 0,
+
+¯FM (X(t)
+
+> m,a
+
+(u, q )) = B(q)
+
+a + aR (t) 
+
+> u,q
+
+(m). (92) 
+
+Consequently, the membership query at X(t)
+
+> m,a
+
+(u, q ) determines the sign of 
+
+Φu,q,m (a) = B(q) + a2R(t) 
+
+> u,q
+
+(m). (93) 
+
+Proof. The difference between the first token and each repeated token is atu , while the final query token is q/a . The difference between their attention logits for head h is 
+
+(atu )⊤Wh(q/a ) = tu ⊤Whq = sh(u, q ),
+
+which is independent of a. The attention weight of the first token is rh/(m + rh). Its value difference from a repeated token is 
+
+atu ⊤ ¯vh = ac h, while the repeated-token value is q⊤ ¯vh/a . Summing the head outputs proves (92). Since aS > 0 and a > 0, the sign of the original output equals the sign of (93). Bounds on B(q) and R(t) 
+
+> u,q
+
+(m). Assume that the learner knows finite constants 
+
+0 < B − ≤ B+, 0 < D − ≤ D+, (94) such that, for every (u, q ) ∈ A mq and m ∈ [2 H],
+
+B− ≤ B(q) ≤ B+, −D+ ≤ R(t) 
+
+> u,q
+
+(m) ≤ − D−. (95) Define 
+
+a− =
+
+s
+
+B−
+
+2D+
+
+, a+ =
+
+s
+
+2B+
+
+D−
+
+. (96) The bounds above imply that Φu,q,m (a−) > 0 and Φu,q,m (a+) < 0. Starting from the interval [a−, a +], the learner queries its midpoint. If the returned bit is one, the lower endpoint is replaced by the midpoint; otherwise, the upper endpoint is replaced by the midpoint. Repeating this step halves an interval containing the unique positive root of Φu,q,m .
+
+Lemma E.3 (Recovery of the root from membership queries) . Under (95) , the function Φu,q,m is strictly decreasing on (0 , ∞)
+
+and has the unique positive root 
+
+a⋆ =
+
+s B(q)
+
+−R(t) 
+
+> u,q
+
+(m) . (97) 
+
+The interval-halving procedure above returns ba satisfying 
+
+|ba − a⋆| ≤ ηa (98) 
+
+using at most 
+
+2 + 
+
+
+
+log +2
+
+a+ − a−
+
+ηa
+
+
+
+(99) 
+
+membership queries, where log +2 (x) = max {0, log 2 x}.Proof. By (95), 
+
+Φ′
+
+> u,q,m
+
+(a) = 2 aR (t) 
+
+> u,q
+
+(m) < 0 (a > 0) ,
+
+so Φu,q,m is strictly decreasing. Moreover, 
+
+Φu,q,m (a−) ≥ B− − a2
+
+> −
+
+D+ = B−
+
+2 > 0
+
+and 
+
+Φu,q,m (a+) ≤ B+ − a2+D− = −B+ < 0.
+
+Therefore, Φu,q,m has exactly one positive root in [a−, a +], and solving B(q) + a2R(t) 
+
+> u,q
+
+(m) = 0 gives (97). Each midpoint query preserves an interval containing a⋆ and reduces its length by a factor of two. Let 
+
+Nhalf =
+
+
+
+log +2
+
+a+ − a−
+
+ηa
+
+
+
+be the number of interval-halving steps. After these Nhalf steps, the remaining interval has length at most ηa. Returning its midpoint therefore gives (98). The two additional queries evaluate the initial endpoints. If a queried midpoint is exactly the root, the membership oracle returns zero. Treating that midpoint as the nonpositive endpoint still preserves an interval containing 
+
+a⋆.Suppose a unit-vector estimate bω satisfies 
+
+∥bω − ω∥2 ≤ ηω . (100) Let Qmax be a known bound such that 
+
+max 
+
+> (u,q )∈A mq
+
+∥q∥2 ≤ Qmax , (101) and define 
+
+bB(q) = q⊤ bω, bR(t) 
+
+> u,q
+
+(m) = − bB(q)
+
+ba2 . (102) Lemma E.4 (Error in the recovered rational-function values) . If ηa ≤ a−/2, then 
+
+bR(t) 
+
+> u,q
+
+(m) − R(t) 
+
+> u,q
+
+(m) ≤ 4Qmax ηω
+
+a2
+
+> −
+
++ 16 B+ηa
+
+a3
+
+> −
+
+. (103) 
+
+In particular, the error is at most ηR whenever 
+
+ηω ≤ ηRa2
+
+> −
+
+8Qmax 
+
+, ηa ≤ min 
+
+ a−
+
+2 , ηRa3
+
+> −
+
+32 B+
+
+
+
+. (104) 
+
+Proof. Equation (100) gives | bB(q) − B(q)| ≤ Qmax ηω . The true root is at least a−, and |ba − a⋆| ≤ a−/2, so both ba and a⋆ are at least a−/2. Therefore 
+
+| bB(q) − B(q)|
+
+ba2 ≤ 4Qmax ηω
+
+a2
+
+> −
+
+.
+
+The derivative magnitude of a 7 → a−2 on [a−/2, ∞) is at most 16 /a 3
+
+> −
+
+. Since R = −B/a 2 
+
+> ⋆
+
+and B ≤ B+, the second source of error is at most 16 B+ηa/a 3
+
+> −
+
+. This proves (103); the two bounds in (104) assign at most ηR/2 to each term. 
+
+E.3 Estimating the Direction of S
+
+Let x be uniform on the unit sphere in Rd. Rotational invariance gives 
+
+E[sign( x⊤ω)x] = ρdω, ρd = Γ( d/ 2) 
+
+√π Γ(( d + 1) /2) = Θ( d−1/2). (105) Indeed, the expectation must be parallel to ω, and its inner product with ω equals E|x⊤ω| = ρd.
+
+Lemma E.5 (Direction-estimation error) . For ηω ∈ (0 , 1/2) and δ ∈ (0 , 1) , length-one membership queries return a unit vector 
+
+bω satisfying (100) with probability at least 1 − δ using 
+
+Qdir = O
+
+ d2
+
+η2
+
+> ω
+
+log 2dδ
+
+
+
+(106) 
+
+queries. Proof. Draw independent sphere points x1, . . . , x n and set 
+
+Zk =  2 MQ M ([ x⊤ 
+
+> k
+
+]) − 1 xk.
+
+The probability that x⊤ 
+
+> k
+
+ω = 0 is zero, so Zk = sign( x⊤ 
+
+> k
+
+ω)xk with probability one. Estimate ω by normalizing 
+
+eω = 1
+
+nρ dnX
+
+> k=1
+
+Zk.
+
+Each coordinate of Zk/ρ d has magnitude at most 1/ρ d = O(√d). Coordinatewise Hoeffding bounds with coordinate accuracy 
+
+ηω /(4 √d), followed by a union bound over the d coordinates, give 
+
+∥eω − ω∥2 ≤ ηω /4
+
+with probability at least 1 − δ for the sample size in (106). If a vector lies within distance less than 1/2 of a unit vector, normalization increases its distance by at most a universal constant factor. Thus the normalized estimate satisfies (100). 
+
+E.4 Conditional Recovery Guarantee 
+
+Theorem D.5 applies to the normalized model {(Wh, ¯vh) : h ∈ [H]}, the pairs in (89), and the fixed scale t. It requires U and Q
+
+to be invertible and the stated quantitative conditions to hold over all these pairs, but it does not otherwise require the distribution used in (6). For every fixed choice satisfying these conditions, the theorem provides a threshold τ0 > 0 and a stability constant 
+
+Cstab < ∞.In the binary membership-query procedure, the basis directions are constructed from an estimate of ω. Their stability must therefore be controlled not only at the exact direction ω, but also at every sufficiently accurate estimate. We assume that the learner knows constants 
+
+τsafe > 0, Cub < ∞, ηdir ∈ (0 , 1/2) 
+
+with the following property. For every unit vector ω′ satisfying 
+
+∥ω′ − ω∥2 ≤ ηdir ,
+
+the construction specified below produces invertible matrices U and Q, satisfies (95) with the same constants B−, B +, D −, D +,and yields constants τ0 and Cstab satisfying 
+
+τsafe ≤ τ0, Cstab ≤ Cub . (107) Thus, the assumption requires these bounds throughout a neighborhood of ω.Theorem E.6 (Conditional binary membership recovery) . Let H ≥ 2. Suppose that S̸ = 0 , that Wh̸ = Wg whenever h̸ = g,and that vh̸ = 0 for every h. Suppose also that the known bounds in (94) –(95) and the neighborhood condition above hold. For ϵ, δ ∈ (0 , 1) , define 
+
+ηR = min 
+
+
+
+τsafe , 2ϵCub 
+
+
+
+, η⋆ω = min 
+
+
+
+ηdir , ηRa2
+
+> −
+
+8Qmax 
+
+
+
+, η⋆a = min 
+
+ a−
+
+2 , ηRa3
+
+> −
+
+32 B+
+
+
+
+. (108) 
+
+Then a randomized membership-query algorithm returns estimates and a permutation π ∈ ΠH satisfying 
+
+max 
+
+> h∈[H]
+
+
+
+∥cWh − Wπ(h)∥F + ∥b¯vh − ¯vπ(h)∥2
+
+
+
+≤ ϵ (109) 
+
+with probability at least 1 − δ.The number of membership queries is at most 
+
+O
+
+ d2
+
+(η⋆ω )2 log 2dδ
+
+
+
++ 2 H(2 d2 − 1) 
+
+
+
+2 + 
+
+
+
+log +2
+
+a+ − a−
+
+η⋆a
+
+ 
+
+. (110) 
+
+Every queried sequence has length at most 2H + 1 . This count includes the length-one queries used to estimate ω and all queries used to halve the root-containing intervals. It does not include the cost of obtaining or verifying the quantitative bounds assumed above. Proof. The algorithm first invokes Lemma E.5 with accuracy η⋆ω and failure probability δ. Consider the event 
+
+∥bω − ω∥2 ≤ η⋆ω .
+
+On this event, the basis directions constructed from bω satisfy the neighborhood condition above. The algorithm forms the summed directions in (89) and, for each of the 2H(2 d2 − 1) required rational-function values, applies Lemma E.3 with accuracy 
+
+η⋆a. The resulting estimate is given by (102). Lemma E.4 then gives 
+
+bR(t) 
+
+> u,q
+
+(m) − R(t) 
+
+> u,q
+
+(m) ≤ ηR
+
+for every recovered value. All interval-halving steps are deterministic conditional on the binary membership oracle, so they introduce no additional failure probability. The approximate-output reconstruction is applied with 
+
+τ = ηR
+
+2 .
+
+This is valid because its proof requires |eym − ym| ≤ 2τ . Moreover, 
+
+τ ≤ τsafe 
+
+2 < τ 0, Cstab τ ≤ Cub ηR
+
+2 ≤ ϵ. 
+
+Theorem D.5 therefore gives (109). Lemma E.5 gives the first term in (110). Applying Lemma E.3 to all 2H(2 d2 − 1) recovered values gives the second term. A query with multiplicity m contains m + 1 ≤ 2H + 1 tokens, which proves the maximum sequence length. 
+
+E.5 Sufficient Conditions for the Sign Bounds 
+
+We next give a concrete construction that ensures (95) without imposing a sign condition on each ω⊤ ¯vh. Assume known bounds 
+
+∥¯vh∥2 ≤ Vmax , ∥Wh∥F ≤ Wmax (h ∈ [H]) (111) hold. Fix known ηdir ∈ (0 , 1/2) , κ > 0, and ζ > 0. Given a unit estimate bω, extend b1 = bω to an orthonormal basis b1, . . . , b d,and define 
+
+q01 = bω, q0 
+
+> j
+
+= bω + κb j (j = 2 , . . . , d ), z01 = −bω, z0 
+
+> i
+
+= −bω + κb i (i = 2 , . . . , d ). (112) Let Q0 = [ q01 , . . . , q 0
+
+> d
+
+], and let Z0 have rows (z01 )⊤, . . . , (z0 
+
+> d
+
+)⊤. Both matrices are invertible. Put 
+
+γ0 = min {σmin (Q0), σ min (Z0)} > 0 (113) and assume 
+
+c0 = 1 − η2dir 
+
+2 − κη dir − ζ > 0, √d ζ ≤ γ0
+
+2 . (114) Draw independent perturbations ξqj , ξ zi from distributions that have densities on the Euclidean ball of radius ζ, and set 
+
+qj = q0 
+
+> j
+
++ ξqj , zi = z0 
+
+> i
+
++ ξzi , ui = εz i (115) for a known ε > 0. Only the basis vectors are perturbed. Every summed direction is then formed exactly as u1 + ui = ε(z1 + zi)
+
+or q1 + qj .On the event ∥bω − ω∥2 ≤ ηdir , every unscaled left vector z and right vector q appearing in (89) satisfies 
+
+z⊤ω ≤ − c0, q⊤ω ≥ c0, ∥z∥2 ≤ Zmax , ∥q∥2 ≤ Qmax . (116) Set 
+
+Zmax = Qmax = 2(1 + κ + ζ). (117) These bounds cover all individual and summed directions. To verify the sign bounds, note that 
+
+bω⊤ω = 1 − ∥bω − ω∥22
+
+2 , |b⊤ 
+
+> j
+
+ω| = |b⊤ 
+
+> j
+
+(ω − bω)| ≤ ηdir (j ≥ 2) .
+
+The perturbations change an inner product with the unit vector ω by at most ζ, and exact sums only strengthen the corresponding one-sided bound. Define 
+
+L = Zmax Wmax Qmax , α = tε. (118) For m ≥ 1, let 
+
+ϑm(x) = ex
+
+m + ex .
+
+Since ϑ′
+
+> m
+
+(x) = me x/(m + ex)2 ≤ 1/4,
+
+ϑm(x) − 1
+
+m + 1 ≤ |x|
+
+4 . (119) 
+
+Lemma E.7 (Sign bounds from small left directions) . Suppose (111) – (118) hold. If L > 0, choose ε > 0 so that 
+
+α = tε ≤ 2c0
+
+(2 H + 1) HZ max Vmax L . (120) 
+
+If L = 0 , any ε > 0 is allowed. On the event ∥bω − ω∥2 ≤ ηdir , the resulting pairs satisfy (95) with 
+
+B− = c0, B+ = Qmax , D− = αc 0
+
+2(2 H + 1) , D+ = αHZ max Vmax . (121) 
+
+The two direction matrices U and Q are invertible. Proof. Equation (116) and ∥ω∥2 = 1 give 
+
+c0 ≤ B(q) = q⊤ω ≤ Qmax .
+
+For (u, q ) = ( εz, q ) ∈ A mq , put 
+
+ℓh = sh(εz, q ) = αz ⊤Whq. 
+
+Using P 
+
+> h
+
+¯vh = ω, the rational-function value decomposes as 
+
+R(t) 
+
+> εz,q
+
+(m) = αz ⊤ωm + 1 + Em, (122) where 
+
+|Em| ≤ 
+
+> H
+
+X
+
+> h=1
+
+α|z⊤ ¯vh| ϑm(ℓh) − 1
+
+m + 1 ≤ α2HZ max Vmax L
+
+4 . (123) Here |ℓh| ≤ αL , and (119) was used in the second line. Because m ≤ 2H, condition (120) makes (123) at most half the smallest magnitude of the negative leading term in (122). Therefore 
+
+R(t) 
+
+> εz,q
+
+(m) ≤ − αc 0
+
+2H + 1 + αc 0
+
+2(2 H + 1) = − αc 0
+
+2(2 H + 1) .
+
+Also, 0 < ϑ m < 1 gives 
+
+|R(t) 
+
+> εz,q
+
+(m)| ≤ αHZ max Vmax .
+
+These inequalities prove (121). Let Z have rows z⊤ 
+
+> i
+
+, and let Q have columns qj . The perturbation matrices have Frobenius norm at most √d ζ , so Weyl’s inequality and (114) give 
+
+σmin (Q) ≥ γ0
+
+2 , σmin (U) = εσ min (Z) ≥ εγ 0
+
+2 .
+
+Thus both U and Q are invertible. The perturbations in (115) have densities on open sets. For pairwise distinct Wh and nonzero vh, equalities among distinct 
+
+sh(u, q ), zero ch(u, q ), and incorrect additive equalities are zero sets of nonzero polynomials in the basis directions. They therefore occur with probability zero. Forming the summed directions exactly preserves the true additive identities. The norm bounds and Lemma E.7 provide the required sign bounds, but they do not provide useful quantitative lower bounds on cmin , δr , γint , γc, or ∆match . The known bounds in (107) remain separate instance-dependent assumptions. In particular, making ε smaller can worsen these constants because it also shrinks the sh(u, q ) and ch(u, q ) values. 
+
+Corollary E.8 (Recovery under known norm bounds) . Suppose S̸ = 0 , the Wh are pairwise distinct, every vh is nonzero, and the known norm and direction conditions (111) – (120) are satisfied. Assume additionally that the directions constructed whenever ∥bω − ω∥2 ≤ ηdir have constants satisfying (107) . Then Theorem E.6 recovers all Wh and all normalized values 
+
+¯vh = vh
+
+∥ P 
+
+> g
+
+vg ∥2
+
+up to a permutation in ΠH , with the error, success probability, query count, and maximum sequence length stated there. 
+
+E.6 Impossibility when S = 0 
+
+When S = 0 , all one-token outputs are zero and B(q) in (93) vanishes. The following result shows that this is an information-theoretic obstruction, not only a limitation of the bisection construction. 
+
+Proposition E.9 (Indistinguishable models when S = 0 ). Let d = 1 , H = 2 , and, for real a < b , define 
+
+Ma,b = {(a, 1) , (b, −1) }. (124) 
+
+Then S = 0 , the two w-parameters are distinct, and both v-parameters are nonzero. For any a < b and a′ < b ′,
+
+MQ Ma,b (X) = MQ Ma′,b ′ (X) (125) 
+
+for every real sequence X of every finite length. Proof. For scalar tokens x1, . . . , x N and final query q = xN , define 
+
+yX (w) = 
+
+PNi=1 xiewqx i
+
+PNj=1 ewqx j
+
+. (126) Differentiation gives 
+
+ddw yX (w) = q Var w(xi), (127) where the variance is computed under the softmax weights at w. If the tokens are not all equal, the variance is strictly positive. Hence yX (w) is strictly increasing when q > 0, strictly decreasing when q < 0, and constant when q = 0 or all tokens are equal. The two-head output is 
+
+FMa,b (X) = yX (a) − yX (b).
+
+For every a < b , this output has sign − sign( q) when q̸ = 0 and the tokens are not all equal, and it is zero otherwise. This description does not depend on the values of a and b, proving (125). For two unordered scalar two-head models M = {(wh, v h) : h ∈ [2] } and M ′ = {(w′
+
+> h
+
+, v ′
+
+> h
+
+) : h ∈ [2] }, define the distance between their w-parameters by 
+
+dW (M, M ′) = min 
+
+> π∈Π2
+
+max  
+
+> h∈[2]
+
+|wh − w′
+
+> π(h)
+
+|. (128) In particular, 
+
+dW (M0,1, M 0,2) = 1 . (129) 
+
+Corollary E.10 (Impossibility when S = 0 ). Consider any binary membership-query learner that returns an unordered two-head model. If the learner is deterministic, its error measured by dW is at least 1/2 on at least one of M0,1 and M0,2.If the learner is randomized, let cM01 and cM02 denote its outputs for these two models. Then 
+
+max 
+
+n
+
+EdW ( cM01 , M 0,1), EdW ( cM02 , M 0,2)
+
+o
+
+≥ 12 , (130) 
+
+and 
+
+min 
+
+n
+
+P(dW ( cM01 , M 0,1) < 1/2) ,
+
+P(dW ( cM02 , M 0,2) < 1/2) 
+
+o
+
+≤ 12 .
+
+(131) 
+
+These conclusions hold regardless of the number or adaptivity of the membership queries. Proof. Proposition E.9 shows that every query receives the same answer for the two models. A deterministic learner therefore returns the same output in both cases. The triangle inequality and (129) force at least one of its two errors to be at least 1/2.For a randomized learner, couple the two runs with the same internal randomness. The two runs then produce the same sequence of queries and answers, and hence the same output cM . For every realization of this randomness, 
+
+dW ( cM , M 0,1) + dW ( cM , M 0,2) ≥ 1.
+
+Taking expectations proves (130). No estimate can have dW -distance strictly less than 1/2 from both models, so the two success indicators sum to at most one for every realization. Taking expectations proves (131). Therefore the qualitative conditions Wh̸ = Wg and vh̸ = 0 do not suffice for binary membership recovery. The positive result above necessarily uses S̸ = 0 , fixes the unavoidable common positive value scale through (85), and remains conditional on known quantitative bounds that ensure the required sign changes and stability of the reconstruction. 
+
+# F One-Layer ReLU Transformer 
+
+This section proves Theorem 5.3 using the notation of Section 5. In particular, 
+
+TF( X) = w⊤ 
+
+> o
+
+ReLU 
+
+> H
+
+X
+
+> h=1
+
+A⊤ 
+
+> h
+
+yh(X)
+
+!
+
+,yh(X) = X⊤ softmax( XW hq),
+
+where the final token of X is q, Ah = [ bh1, . . . , b hm ] ∈ Rd×m, and wo = ( w1, . . . , w m)⊤. For j ∈ [m] and h ∈ [H], define 
+
+zj (X) := 
+
+> H
+
+X
+
+> g=1
+
+b⊤ 
+
+> gj
+
+yg (X), ¯bj := 
+
+> H
+
+X
+
+> g=1
+
+bgj , vh := Ahwo =
+
+> m
+
+X
+
+> k=1
+
+wkbhk .
+
+Thus TF( X) = Pmj=1 wj ReLU( zj (X)) .
+
+Recovering the effective attention heads. Negating every token leaves every attention weight unchanged. Indeed, if the final token of X is q, then the final token of −X is −q, and 
+
+(−X)Wh(−q) = XW hq. 
+
+Consequently, yh(−X) = −yh(X) and zj (−X) = −zj (X). The identities ReLU( a) − ReLU( −a) = a and ReLU( a) + ReLU( −a) = |a| therefore give 
+
+TF( X) − TF( −X) = 
+
+> H
+
+X
+
+> h=1
+
+v⊤ 
+
+> h
+
+yh(X), (132) 
+
+TF( X) + TF( −X) = 
+
+> m
+
+X
+
+> j=1
+
+wj |zj (X)|. (133) The right-hand side of (132) is precisely the scalar-output multi-head attention model with effective parameters {(Wh, v h) : 
+
+h ∈ [H]}. Hence two Transformer queries, at X and −X, provide one value query to that model. Under the assumptions of Theorem 5.3, applying Theorem 5.1 with the fixed choice t = 1 recovers all pairs (Wh, v h) up to permutation using 
+
+2(4 Hd 2 − 2H + 1) 
+
+Transformer queries. Every such query has length at most 2H + 1 .
+
+Information from length-one inputs. For a length-one input X = [ x⊤], we have yh([ x⊤]) = x for every head. Define the restriction of the Transformer to length-one inputs by 
+
+f1(x) := TF([ x⊤]) = 
+
+> m
+
+X
+
+> j=1
+
+wj ReLU( ¯b⊤ 
+
+> j
+
+x)
+
+and 
+
+g1(x) := f1(x) + f1(−x) = 
+
+> m
+
+X
+
+> j=1
+
+wj |¯b⊤ 
+
+> j
+
+x|.The theorem assumes that every wj and ¯bj is nonzero and that no two vectors ¯b1, . . . , ¯bm are scalar multiples of one another. Let ξj ∈ {− 1, +1 } be the unique sign for which 
+
+nj = ξj¯bj
+
+∥¯bj ∥2
+
+has first nonzero coordinate positive, and let 
+
+γj = wj ∥¯bj ∥2, vsum =
+
+> m
+
+X
+
+> j=1
+
+wj¯bj .
+
+Then 
+
+g1(x) = 
+
+> m
+
+X
+
+> j=1
+
+γj |n⊤ 
+
+> j
+
+x|, (134) 
+
+f1(x) − f1(−x) = v⊤
+
+> sum
+
+x. (135) The signs ξj are used only in the proof; the recovery algorithm does not need to identify them. Appendix F.1 gives an algorithm that terminates after finitely many exact value queries with probability one and recovers the unordered collection {(nj , γ j ) : j ∈ [m]} and vsum using only length-one inputs. Appendix F.2 then combines these quantities with the recovered effective attention heads to construct a bias-free one-layer ReLU Transformer that computes the same function as the original model. 
+
+F.1 Recovery from Critical Points 
+
+Following the terminology of the ReLU model-extraction literature (Carlini, Jagielski, and Mironov 2020; Jagielski et al. 2020), we call a point at which the left and right slopes of a one-dimensional piecewise-linear restriction differ a critical point . More precisely, on an interval where ϕ(t) = ct + d, the coefficient c is its slope . If c− and c+ are the slopes immediately to the left and right of a critical point, respectively, we call c+ − c− its signed change in slope. The proof sketch in the main paper recovers the pairs (nj , γ j ) from such changes along queried lines. To explain this step, restrict (134) to a line x = a + tb :
+
+g1(a + tb ) = 
+
+> m
+
+X
+
+> j=1
+
+γj n⊤ 
+
+> j
+
+a + tn ⊤ 
+
+> j
+
+b .
+
+This is a continuous piecewise-linear function of t. If n⊤ 
+
+> j
+
+b̸ = 0 , its j-th term changes slope when n⊤ 
+
+> j
+
+a + tn ⊤ 
+
+> j
+
+b = 0 . When a
+
+and b are sampled from continuous distributions, these locations are distinct with probability one. Each critical point is then caused by one term, and its signed change in slope is 2γj |n⊤ 
+
+> j
+
+b|. Observing how the critical point moves when the line is shifted determines nj . We first give a general procedure for recovering these quantities from exact value queries. 
+
+Lemma F.1 (Recovery of a univariate piecewise-linear function) . Let ϕ : R → R be continuous and piecewise linear. Suppose that ϕ has exactly k ≥ 1 critical points and that k is known. Exact value queries recover their locations, the changes in slope, and every linear piece with probability one after finitely many queries. Without known bounds on the critical-point locations and their minimum separation, the required number of queries is model-dependent. Proof. The procedure samples λgrid from an absolutely continuous distribution on (0 , 1) . At round r ≥ 1, it sets hr = 2 −r and 
+
+Rr = 2 r and considers every shifted grid cell 
+
+Ir,i = [ λgrid + ih r , λ grid + ( i + 1) hr ] ⊆ [−Rr , R r ].
+
+For a cell with endpoints L, R and midpoint M = ( L + R)/2, the procedure marks the cell if 
+
+ϕ(L) + ϕ(R)̸ = 2 ϕ(M ). (136) The search stops as soon as k pairwise disjoint cells are marked. On any cell containing no critical point, ϕ is affine and satisfies equality in (136), so every marked cell contains a critical point. The random shift avoids, with probability one, the countable set of shifts for which a critical point is a grid endpoint or a grid midpoint in some round. If a cell contains exactly one critical point t⋆ in its interior, let a− and a+ be the slopes on its two sides. If M < t ⋆, then the secant slope on [L, M ] is a−, whereas the secant slope on [M, R ] is a strict convex combination of 
+
+a− and a+. Since a−̸ = a+, (136) holds. The case M > t ⋆ is symmetric. For all sufficiently large r, the search interval contains all critical points and hr is smaller than the minimum distance between two distinct critical points. Each critical point then lies in its own marked cell. Conversely, k disjoint marked cells contain at least k distinct critical points. Since there are exactly k, the stopping rule cannot omit a critical point, and each retained cell contains exactly one. For each retained cell, the procedure repeatedly divides it into two halves and applies (136) to both. It retains the marked half and records the line determined by the endpoints of the unmarked half. Because t⋆ is not one of the subdivision points, this process eventually records a line from each side of t⋆. Once both slopes have been obtained, the two recorded lines have different slopes, so their exact intersection is t⋆, and their slope difference is the signed change in slope. Repeating this construction for the k retained cells recovers the complete piecewise-linear formula. 
+
+Proposition F.2 (Recovery from length-one inputs) . Under the assumptions of Theorem 5.3, exact Transformer queries on length-one inputs recover the unordered collection 
+
+{(nj , γ j ) : j ∈ [m]}
+
+and vsum = P 
+
+> j
+
+wj¯bj with probability one after finitely many queries. For every x ∈ Rd, these quantities satisfy 
+
+f1(x) = 12
+
+> m
+
+X
+
+> j=1
+
+γj |n⊤ 
+
+> j
+
+x| + 12 v⊤
+
+> sum
+
+x. (137) 
+
+Proof. For r ∈ [d], let er denote the r-th standard basis vector of Rd. Equation (135) gives 
+
+(vsum )r = f1(er ) − f1(−er ),
+
+so 2d length-one queries recover vsum . A value query to g1 is implemented by two length-one queries to f1.The algorithm samples independent vectors a, b ∈ Rd from absolutely continuous distributions and restricts (134) to 
+
+ϕ0(t) = g1(a + tb ).
+
+For each j ∈ [m], write 
+
+αj = n⊤ 
+
+> j
+
+a, βj = n⊤ 
+
+> j
+
+b, tj = − αj
+
+βj
+
+.
+
+The event βj = 0 is a proper hyperplane in b. For j̸ = k, equality tj = tk is equivalent to 
+
+(n⊤ 
+
+> j
+
+a)( n⊤ 
+
+> k
+
+b) − (n⊤ 
+
+> k
+
+a)( n⊤ 
+
+> j
+
+b) = 0 .
+
+Because nj and nk are not scalar multiples of one another, the left-hand side is a nonzero polynomial in (a, b ). Thus, with probability one, ϕ0 has exactly the m distinct critical points t1, . . . , t m. The signed change in slope at tj is 
+
+∆j = 2 γj |βj |̸ = 0 . (138) Lemma F.1 therefore recovers the unordered pairs (tj , ∆j ).It remains to recover the vector nj associated with each critical point. For each r ∈ [d], the algorithm samples two independent nonzero shifts ϵr, 1, ϵ r, 2 from absolutely continuous distributions and queries 
+
+ϕr,ν (t) = g1(a + ϵr,ν er + tb ), ν ∈ { 1, 2}.
+
+The critical point corresponding to ReLU unit j on the line shifted by ϵ is 
+
+tj (ϵ) = tj + κjr ϵ, κjr = − (nj )r
+
+n⊤ 
+
+> j
+
+b . (139) Two shifted critical-point locations can coincide only at an isolated value of ϵ, because their values at ϵ = 0 are distinct. Hence both shifted restrictions have m distinct critical points with probability one, and Lemma F.1 recovers their two unordered sets of critical points. To match the shifted critical points to the base critical points, enumerate the finitely many pairs of bijections (π1, π 2) and retain those satisfying 
+
+tπ1(j)(ϵr, 1) − tj
+
+ϵr, 1
+
+= tπ2(j)(ϵr, 2) − tj
+
+ϵr, 2
+
+for every j ∈ [m]. (140) The true matching satisfies this identity. For a false assignment, let j1 and j2 be the indices assigned to the base critical point tj
+
+in the two shifted restrictions. The required equality becomes 
+
+tj1 − tj
+
+ϵr, 1
+
++ κj1r = tj2 − tj
+
+ϵr, 2
+
++ κj2r .
+
+As an identity in the two independent continuous shifts, this can hold only when j1 = j2 = j; otherwise, distinctness of the base critical points leaves a nonzero coefficient of 1/ϵ r, 1 or 1/ϵ r, 2. There are finitely many false assignments. Therefore the true matching is unique with probability one, and (140) recovers every κjr .Let κj = ( κj1, . . . , κ jd )⊤. By (139), 
+
+κj = − nj
+
+n⊤ 
+
+> j
+
+b , ∥κj ∥2 = 1
+
+|n⊤ 
+
+> j
+
+b| .
+
+Normalize κj and apply the fixed orientation convention that the first nonzero coordinate is positive. This returns nj . Equa-tions (138) and (139) then give 
+
+γj = ∆j ∥κj ∥2
+
+2 .
+
+Finally, ReLU( z) = ( |z| + z)/2 proves (137). The procedure applies Lemma F.1 to 1 + 2 d univariate restrictions. Each application terminates after finitely many queries with probability one, and all other exceptional events form a finite union of zero sets of nonzero polynomials. Thus the complete procedure terminates with probability one after finitely many exact Transformer queries on length-one inputs. 
+
+Remark F.3 (No uniform query bound) . The expanding searches in Lemma F.1 must accommodate model-dependent critical-point locations and separations. The proposition therefore guarantees termination after finitely many queries with probability one, but it does not give a uniform query bound over all admissible models. Known location and separation bounds would turn the expanding search into an explicit finite grid, but such bounds are not assumed in Theorem 5.3. 
+
+F.2 Constructing a Functionally Equivalent Transformer 
+
+We now use the recovered quantities to construct a Transformer that computes the same function as the original model. The pairs (Wh, v h) and all quantities obtained from the preceding critical-point recovery are already known. It remains to recover how each attention head contributes to each ReLU unit. We first choose input vectors whose ReLU sign patterns are linearly independent, then recover these head-specific contributions from scaled repeated-token queries, and finally assemble them into a functionally equivalent Transformer. 
+
+Linearly independent sign patterns. For q outside the hyperplanes {x : n⊤ 
+
+> j
+
+x = 0 }, define 
+
+σ(q) =  sign( n⊤ 
+
+> 1
+
+q), . . . , sign( n⊤
+
+> m
+
+q) ∈ {− 1, +1 }m.
+
+A sign vector in the image of this map is called a realized sign pattern . Let S be the set of all realized sign patterns. 
+
+Lemma F.4 (Spanning by realized sign patterns) . If n1, . . . , n m are nonzero and pairwise nonproportional, then 
+
+span( S) = Rm.
+
+In particular, there are m realized sign patterns that form the rows of a nonsingular m × m matrix, including when m > d .Proof. Fix j ∈ [m], and let Hj = {x : n⊤ 
+
+> j
+
+x = 0 }. Since the normals are pairwise nonproportional, the central hyperplanes 
+
+H1, . . . , Hm are distinct. The finite union of proper subspaces 
+
+[ 
+
+> k̸=j
+
+(Hj ∩ H k)
+
+cannot cover Hj . Choose 
+
+xj ∈ H j \ [ 
+
+> k̸=j
+
+Hk
+
+and choose rj such that n⊤ 
+
+> j
+
+rj̸ = 0 . For all sufficiently small ϵ > 0, the points xj + ϵr j and xj − ϵr j have the same sign against every nk with k̸ = j, and opposite signs against nj . Their realized sign patterns therefore differ by 2ej or −2ej , where ej is the 
+
+j-th standard basis vector of Rm. Thus ej ∈ span( S) for every j, proving the claim. The construction can be implemented under the computational assumptions of Section 3. When d = 1 , pairwise nonpro-portionality implies m = 1 , and any nonzero q1 gives a nonsingular 1 × 1 sign matrix. When d ≥ 2, for each j, sample a random point in Hj from a continuous distribution on Hj , perturb it to the two sides of that hyperplane, collect the resulting sign patterns, and use exact Gaussian elimination to select m independent patterns. For each selected pattern, choose a point qℓ
+
+that realizes it, and define the matrix Σ ∈ {− 1, +1 }m×m by 
+
+Σℓj = sign( n⊤ 
+
+> j
+
+qℓ), ℓ, j ∈ [m]. (141) By construction, Σ is nonsingular. The points qℓ may also be chosen to satisfy the following two conditions. First, 
+
+(Wh − Wg )qℓ̸ = 0 for every h̸ = g. (142) For fixed h̸ = g, the excluded set is a proper subspace because Wh̸ = Wg . Second, writing 
+
+Z(σ) = 
+
+> m
+
+X
+
+> j=1
+
+γj σj nj
+
+as in Section 5, choose qℓ so that 
+
+q⊤ 
+
+> ℓ
+
+{Z(τ ) − Z(σ(qℓ)) }̸ = 0 for every τ ∈ {− 1, +1 }m \ { σ(qℓ)}. (143) The injectivity of Z makes every vector in braces nonzero. For each ℓ, the set of points q satisfying sign( n⊤ 
+
+> j
+
+q) = Σ ℓj for every 
+
+j is nonempty and open. The finitely many proper subspaces and hyperplanes excluded by (142) and (143) cannot cover this set. Sampling from a continuous distribution supported on it therefore produces a valid qℓ with probability one. 
+
+Recovering head contributions to ReLU units. To describe the remaining unknown contributions, recall the orientation signs ξj from Appendix F. Define 
+
+dhj = ξj bhj 
+
+∥¯bj ∥2
+
+, phj = γj dhj = ξj wj bhj . (144) These definitions imply 
+
+> H
+
+X
+
+> h=1
+
+dhj = nj ,
+
+> H
+
+X
+
+> h=1
+
+phj = γj nj . (145) Although the individual signs ξj need not be recovered, the vectors phj will be recovered directly from even Transformer responses. For each ℓ ∈ [m], choose d linearly independent directions uℓ1, . . . , u ℓd such that 
+
+u⊤ 
+
+> ℓr
+
+Whqℓ̸ = u⊤ 
+
+> ℓr
+
+Wg qℓ for every r ∈ [d] and h̸ = g. (146) Such directions can be sampled without additional oracle queries because the Wh and qℓ have already been recovered. For each fixed triple (ℓ, h, g ), the excluded directions form a proper hyperplane by (142); linear dependence of the d directions is also a measure-zero event. For ν ∈ [H] and a scale T > 0, query the sequence 
+
+Xℓrν (T ) = 
+
+(T q ℓ + uℓr /T )⊤; ( T q ℓ)⊤; . . . ; ( T q ℓ)⊤
+
+| {z } 
+
+> νcopies
+
+ . (147) The final token is one of the ν copies of T q ℓ. Let 
+
+ηℓrh = u⊤ 
+
+> ℓr
+
+Whqℓ, rℓrh = exp( ηℓrh ), θℓrνh = rℓrh 
+
+ν + rℓrh 
+
+.
+
+The factor T cancels from the difference between the attention logits of the perturbed token and a repeated token. Direct substitution into the attention formula therefore yields 
+
+yh(Xℓrν (T )) = T q ℓ + θℓrνh 
+
+T uℓr . (148) Define 
+
+αℓj = n⊤ 
+
+> j
+
+qℓ, βℓrνj =
+
+> H
+
+X
+
+> h=1
+
+θℓrνh d⊤ 
+
+> hj
+
+uℓr .
+
+After orienting and normalizing the scalar input to the j-th ReLU unit, we obtain 
+
+ξj zj (Xℓrν (T )) 
+
+∥¯bj ∥2
+
+= T α ℓj + βℓrνj 
+
+T . (149) Because αℓj ̸ = 0 , its sign eventually equals Σℓj as T increases. 
+
+Lemma F.5 (Recovery when the ReLU signs are stable) . Suppose that, at a scale T , every quantity in (149) has sign Σℓj . Then the even responses at that scale recover every vector phj .Proof. For each outer query, define the even response 
+
+Eℓrν (T ) = TF( Xℓrν (T )) + TF( −Xℓrν (T )) .
+
+The function g1 is already known from Appendix F.1. Under the stated sign condition, (133), (149), and (144) give 
+
+Yℓrν (T ) := T {Eℓrν (T ) − T g 1(qℓ)} =
+
+> H
+
+X
+
+> h=1
+
+θℓrνh u⊤ 
+
+> ℓr
+
+p(ℓ) 
+
+> h
+
+, (150) 
+
+p(ℓ) 
+
+> h
+
+:= 
+
+> m
+
+X
+
+> j=1
+
+Σℓj phj . (151) For fixed (ℓ, r ), let 
+
+Θℓr [ν, h ] = rℓrh 
+
+ν + rℓrh 
+
+, ν, h ∈ [H].
+
+The numbers rℓr 1, . . . , r ℓrH are positive and pairwise distinct by (146). Factoring rℓrh from column h leaves the Cauchy matrix 
+
+[1 /(ν + rℓrh )] ν,h , which is nonsingular. Inverting Θℓr in (150) recovers u⊤ 
+
+> ℓr
+
+p(ℓ) 
+
+> h
+
+for every h. Since uℓ1, . . . , u ℓd are linearly independent, these d directional measurements recover each vector p(ℓ) 
+
+> h
+
+.For a fixed head h, form ePh ∈ Rm×d whose ℓ-th row is (p(ℓ) 
+
+> h
+
+)⊤, and form Ph ∈ Rm×d whose j-th row is p⊤ 
+
+> hj
+
+. Equation (151) becomes ePh = Σ Ph.
+
+The nonsingularity of Σ gives Ph = Σ −1 ePh, recovering all phj .
+
+Finding a scale with stable ReLU signs. For every (ℓ, r, ν, j ), the quantity in (149) has the form T α ℓj + βℓrνj /T , where 
+
+sign( αℓj ) = Σ ℓj . Its sign is therefore Σℓj for all sufficiently large T . The required value of T , however, depends on the unknown 
+
+βℓrνj . We therefore increase T until two consecutive reconstructions agree exactly. At every evaluated T > 0, the algorithm applies the same linear-algebra steps as in Lemma F.5, regardless of the signs. It arranges the resulting vectors in a fixed order and denotes their concatenation by C(T ). If all signs equal their corresponding 
+
+Σℓj , the components of C(T ) are exactly the vectors phj in that order. 
+
+Proposition F.6 (Finite search for stable ReLU signs) . Assume that Z : {− 1, +1 }m → Rd is one-to-one. Let λ ∈ (1 , 2) and 
+
+ρ ∈ (3 /2, 2) be independent random variables drawn from continuous distributions, and define 
+
+Tk = λρ k, k = 0 , 1, . . . . 
+
+The algorithm evaluates these scales in order and stops at the first k ≥ 1 for which C(Tk−1) = C(Tk). With probability one, it stops after finitely many evaluations and only after every quantity in (149) has sign Σℓj .Proof. Let τℓrν (T ) ∈ {− 1, +1 }m record the signs of the m quantities in (149). Direct expansion of the even response gives 
+
+Yℓrν (T ) = T 2Aℓrν (T ) + Bℓrν (T ), (152) 
+
+Aℓrν (T ) = q⊤ 
+
+> ℓ
+
+{Z(τℓrν (T )) − Z(σ(qℓ)) }. (153) As long as these signs do not change, both Aℓrν (T ) and Bℓrν (T ) are constant. By (143), Aℓrν (T ) = 0 exactly when 
+
+τℓrν (T ) = σ(qℓ).The linear-algebra operations used to form C(T ) do not depend on T . Hence, while the complete collection of signs remains unchanged, 
+
+C(T ) = T 2U + V, (154) for some constant vectors U and V. Moreover, U̸ = 0 whenever at least one sign differs from its corresponding Σℓj . Once all signs are correct, U = 0 , and C(T ) is the true collection of phj , independent of T .There are finitely many expressions in (149). Each has the form T a + b/T with a̸ = 0 , and hence has at most one positive zero. Beyond the largest such zero, all signs equal their corresponding Σℓj . For each expression and each k, the probability that 
+
+Tk is exactly its zero is zero. Since there are finitely many expressions and countably many evaluated scales, with probability one no evaluated Tk is a zero. Eventually two consecutive evaluations therefore return the same true collection of phj , so the rule terminates. It remains to exclude premature termination. For a fixed k and fixed collections of signs at Tk−1 and Tk, the two instances of (154) are 
+
+T 2
+
+> k−1
+
+U + V and T 2 
+
+> k
+
+U′ + V′.If at least one sign is wrong at either scale, then at least one of U, U′ is nonzero. Equality of the two reconstructions would require 
+
+λ2ρ2k−2(U − ρ2U′) + ( V − V ′) = 0 . (155) There are only finitely many possible collections of signs. A continuously sampled ρ avoids every value for which U − ρ2U′ = 0 
+
+when at least one of the two vectors is nonzero. Conditional on such a ρ, (155) has at most one positive solution for λ. Taking the union over the countably many k and the finitely many possible sign collections still gives a probability-zero event. Thus the rule does not stop prematurely with probability one. 
+
+Constructing the functionally equivalent Transformer. After the scale search, define 
+
+tj (X) = 
+
+> H
+
+X
+
+> h=1
+
+p⊤ 
+
+> hj
+
+yh(X), L(X) = 
+
+> H
+
+X
+
+> h=1
+
+v⊤ 
+
+> h
+
+yh(X).
+
+By (144), 
+
+tj (X) = ξj wj zj (X).
+
+Equations (132) and (133) therefore imply, for every input sequence X,
+
+TF( X) = 12
+
+> m
+
+X
+
+> j=1
+
+sign( γj )|tj (X)| + 12 L(X). (156) This representation is independent of the unknown orientation signs ξj .An explicit bias-free ReLU Transformer realizing (156) uses the recovered matrices Wh and, for each head h, the 2m + 2 
+
+columns 
+
+ph1, −ph1, . . . , p hm , −phm , v h, −vh.
+
+The two columns associated with unit j both receive output weight sign( γj )/2; the last two columns receive output weights 1/2
+
+and −1/2, respectively. Since |z| = ReLU( z) + ReLU( −z) and z = ReLU( z) − ReLU( −z), this Transformer has width at most 2m + 2 and agrees with TF on every input. For completeness, let Q1 be the model-dependent finite number of Transformer queries used in Proposition F.2, and let Rscale 
+
+be the number of evaluated scales. The effective attention stage uses 2(4 Hd 2 − 2H + 1) Transformer queries. At each evaluated scale there are m choices of qℓ, d directions, and H multiplicities, and each even response uses the pair X, −X. Therefore the complete query count is 
+
+Q1 + 2(4 Hd 2 − 2H + 1) + 2 mHdR scale .
+
+Both Q1 and Rscale are finite with probability one but have no uniform upper bound under the stated assumptions. The scaled queries have length at most H + 1 , while the effective attention stage has length at most 2H + 1 . This proves all claims of Theorem 5.3. 
+
+# G Numerical Implementation and Experiments 
+
+The guarantee in Theorem 5.1 assumes exact scalar oracle responses and exact arithmetic, as specified in Section 3. This section describes our numerical implementation and reports three finite-precision experiments. First, we run Algorithm 1 using 180-significant-digit scalar responses and 180-digit offline arithmetic. Second, we add controlled perturbations to the scalar responses and measure the resulting parameter error. Third, we compare 180-digit and IEEE 754 binary64 responses while keeping the model, query directions, query inputs, t = 1 , and offline arithmetic fixed. We perform this comparison both for Algorithm 1 and for a variant that directly queries all required one-token outputs. These experiments provide empirical validation of Algorithm 1 on the sampled models and measure how errors in the scalar responses affect the recovered parameters. Success with 180-significant-digit scalar responses and 180-digit offline arithmetic on these models does not imply that the same precision suffices for every model. 
+
+G.1 Numerical Realization and Choice of t
+
+Rational interpolation. For each local decoder Dt(u, q ), the implementation first forms 
+
+R(m) = FM (X(t) 
+
+> m
+
+(u, q )) − FM ([ q⊤]) , m = 1 , . . . , 2H. 
+
+Write 
+
+P(z) = 
+
+> H−1
+
+X
+
+> ℓ=0
+
+pℓzℓ, Q(z) = zH +
+
+> H−1
+
+X
+
+> ℓ=0
+
+qℓzℓ.
+
+The interpolation equations P(m) = R(m)Q(m) become 
+
+> H−1
+
+X
+
+> ℓ=0
+
+pℓmℓ − R (m)
+
+> H−1
+
+X
+
+> ℓ=0
+
+qℓmℓ = R(m)mH , m = 1 , . . . , 2H. (157) Thus, for each local decoder, the implementation solves one 2H-dimensional linear system for the coefficients of P and Q. The numerical experiments solve this system in multiprecision arithmetic. Companion-matrix roots and residues. For the monic denominator Q(z) = zH +qH−1zH−1 +· · · +q0, form the companion matrix 
+
+CQ =
+
+
+
+0 0 · · · 0 −q0
+
+1 0 · · · 0 −q1
+
+0 1 · · · 0 −q2
+
+... ... . . . ... ...
+
+0 0 · · · 1 −qH−1
+
+ .
+
+The characteristic polynomial of CQ is Q. Hence, in exact arithmetic, its eigenvalues are −r1, . . . , −rH , where 
+
+rh = exp( tu ⊤Whq) > 0.
+
+For each recovered root −rh, the local quantities are computed as 
+
+sh = log rh, ch = P(−rh)
+
+rhQ′(−rh) . (158) Indeed, the residue of P/Q at −rh is P(−rh)/Q′(−rh) = chrh. The implementation computes the companion eigenvalues and all subsequent quantities at the prescribed multiprecision level. The unordered local outputs are aligned using the additive identities 
+
+sh(u1 + ui, q 1) = sh(u1, q 1) + sh(ui, q 1)
+
+and 
+
+sh(ui, q 1 + qj ) = sh(ui, q 1) + sh(ui, q j ).
+
+After consistent labeling, the implementation applies 
+
+cWh = t−1U−1ShQ−1, bvh = t−1U−1ch.
+
+No target parameter is used in interpolation, root recovery, residue recovery, consistent head labeling, or these final linear solves. 
+
+Conditioning and the scale t. The exact theorem holds for every fixed t̸ = 0 , but t changes the conditioning of a finite-precision realization through 
+
+rh = exp( tu ⊤Whq), ch = tu ⊤vh.
+
+As t → 0,
+
+rh = 1 + tu ⊤Whq + O(t2), chrh = tu ⊤vh + O(t2).
+
+Thus the values rh cluster near 1, the poles −rh cluster near −1, and the residues approach zero. When |t| is large, the exponential can produce a wide dynamic range among the rh, which can amplify numerical errors in the interpolation and companion-root steps. These observations explain why the exact condition t̸ = 0 is not, by itself, a finite-precision prescription. All experiments use t = 1 , fixed before target generation and not adjusted for individual target models. 
+
+G.2 Experimental Setup 
+
+Targets. For each reported pair (d, H ), every entry of Wh and vh, h ∈ [H], is sampled independently from a Gaussian distribution with mean 0 and variance 1/d . For each reported (d, H ), the high-precision and binary64 experiments use 100 independently sampled target models, and all 100 are included in the reported results. The controlled-perturbation experiment uses 10 independently sampled target models and 10 noise patterns per model. 
+
+Direction bases and query pairs. Independently of Wh and vh, the implementation generates two independent matrices whose entries are i.i.d. Gaussian random variables with mean 0 and variance 1. It takes the orthogonal factors from their QR factorizations as OU and OQ. Independently, it draws diagonal matrices ΛU and ΛQ whose diagonal entries are i.i.d. uniform random variables on [1 , 2] , and sets 
+
+U = Λ UOU, Q = OQΛQ.
+
+All singular values of U and Q lie in [1 , 2] . The algorithm uses the 2d2 − 1 pairs specified in Equations (7)–(9) of the main paper. For each pair, the repeated-token queries use m = 1 , . . . , 2H. The high-precision exact-recovery experiment directly queries only the one-token output FM ([ q⊤ 
+
+> 1
+
+]) and computes all other required one-token outputs after recovering the vh. Its query count is therefore 
+
+1 + 2 H(2 d2 − 1) = 4 Hd 2 − 2H + 1 ,
+
+and its maximum sequence length is 2H + 1 . The value t = 1 is fixed before the target models are generated. The matrices 
+
+U, Q and all query inputs are generated without using Wh or vh.Information separation. The learner is given d, H, t, U, Q and the query inputs, and observes the corresponding scalar responses. It is not given Wh or vh. The learner’s output is saved before the evaluator reads Wh and vh, and no quantity computed by the evaluator is returned to the learner. 
+
+Precision terminology. A p-digit oracle response means that the scalar response is rounded to p significant decimal digits. Offline arithmetic at p digits means multiprecision arithmetic with p decimal digits of working precision. Thus, “180-digit” refers to decimal, rather than binary, precision. IEEE 754 binary64 (IEEE 2019) has 53 bits of significand precision, including the implicit leading bit. For each target model and query schedule, we run the learner once with 180-significant-digit scalar responses and once with responses rounded to binary64. The two runs use the same target model, U, Q, query inputs, t = 1 , and 180-digit offline arithmetic. In each run, the learner sets its numerical acceptance tolerances according to the response precision. 
+
+Evaluation metric. If the learner returns H heads, denote them by {(cWh, bvh) : h ∈ [H]}, and let ΠH be the set of permutations of [H]. Define 
+
+Eparam := min 
+
+> π∈ΠH
+
+max 
+
+> h∈[H]
+
+
+
+∥cWh − Wπ(h)∥F + ∥bvh − vπ(h)∥2
+
+
+
+.
+
+The same permutation is used for the Wh and vh errors. For the high-precision experiment, the minimum, median, and maximum of Eparam are reported over the 100 target models. In both the controlled-perturbation and binary64 experiments, a run is counted as successful when it returns all H heads and Eparam < 10 −2.
+
+G.3 High-Precision Recovery 
+
+The high-precision experiment uses 180-significant-digit scalar oracle responses and 180-digit offline arithmetic. It runs Algo-rithm 1 with t = 1 , using m = 1 , . . . , 2H for each local decoder and directly querying only FM ([ q⊤ 
+
+> 1
+
+]) among the one-token outputs. Table 3 reports the minimum, median, and maximum values of Eparam for the eight tested pairs (d, H ).
+
+Eparam 
+
+(d, H ) Params. Queries Min. Median Max. 
+
+(3 , 8) 96 273 3.67 × 10 −142 1.46 × 10 −133 3.60 × 10 −124 
+
+(8 , 8) 576 2,033 9.55 × 10 −133 7.63 × 10 −128 9.72 × 10 −121 
+
+(16 , 8) 2,176 8,177 2.47 × 10 −128 7.18 × 10 −125 5.95 × 10 −118 
+
+(32 , 8) 8,448 32,753 1.58 × 10 −125 1.54 × 10 −121 1.22 × 10 −115 
+
+(64 , 4) 16,640 65,529 2.03 × 10 −153 3.45 × 10 −151 1.20 × 10 −145 
+
+(64 , 8) 33,280 131,057 8.29 × 10 −121 5.12 × 10 −118 7.70 × 10 −113 
+
+(128 , 4) 66,048 262,137 2.02 × 10 −152 3.24 × 10 −149 1.23 × 10 −144 
+
+(128 , 8) 132,096 524,273 8.23 × 10 −117 3.38 × 10 −114 9.97 × 10 −110 
+
+Table 3: High-precision results with t = 1 . Each row contains 100 independently sampled target models, and the algorithm returns H heads for every model. Params. denotes H(d2 + d), and Queries denotes 4Hd 2 − 2H + 1 .Across the 800 target models, every run returns H heads and satisfies Eparam < 10 −100 . The query counts agree with Theorem 5.1 and range from 273 at (d, H ) = (3 , 8) to 524 ,273 at (d, H ) = (128 , 8) . The maximum sequence length is 17 for 
+
+H = 8 and 9 for H = 4 .Together, these results provide empirical validation of the theoretical recovery method in Theorem 5.1: the high-precision implementation reproduces the theorem’s conclusion that Algorithm 1 recovers all H heads when the scalar oracle responses and the prescribed algebraic computations are exact. 
+
+G.4 Approximate and IEEE 754 binary64 Oracle Outputs 
+
+Controlled perturbations. Let yk denote the unperturbed response to the k-th value query. For a noise pattern η = ( ηk)k,the perturbed response is 
+
+eyk(τ ) = yk + τ η k. (159) Independently for each k, the implementation samples Jk uniformly from {0, . . . , 264 − 1} and sets 
+
+ηk = 2Jk
+
+264 − 1 − 1.
+
+For each noise pattern, the same η is used for every value of τ . The learner receives eyk(τ ), but not ηk.The experiment uses 
+
+(d, H ) ∈ { (3 , 2) , (3 , 3) , (4 , 4) }.For each pair (d, H ), the experiment samples 10 independent models. Each model is evaluated using the same collection of 10 independently generated noise patterns. The value t = 1 is used throughout. The tested values of τ are 
+
+τ ∈ { 0, 10 −80 , 10 −74 , 10 −68 , 10 −62 ,
+
+10 −56 , 10 −50 , 10 −44 , 10 −38 , 10 −32 ,
+
+10 −26 , 10 −20 , 10 −16 , 10 −12 , 10 −8}.
+
+The unperturbed scalar responses are evaluated with 220 decimal digits, and the learner uses 180-digit offline arithmetic. The reported results use only m = 1 , . . . , 2H. The stored records also contain responses for m > 2H, but removing them does not change any learner output or reported value of Eparam .The learner directly queries the 2d − 1 one-token responses FM ([ q⊤]) for 
+
+q ∈ { q1} ∪ { qj , q 1 + qj : j = 2 , . . . , d }.
+
+It therefore uses 
+
+(2 d − 1) + 2 H(2 d2 − 1) 
+
+value queries: 73 , 107 , and 255 for (d, H ) = (3 , 2) , (3 , 3) , (4 , 4) , respectively. For each model and noise pattern, let Eparam (τ ) denote the error at perturbation level τ . The analysis fits the least-squares slope of log Eparam (τ ) against log τ using every positive tested value of τ for which the learner returns H heads and 
+
+Eparam (τ ) < 10 −2, Eparam (τ ) > 10 6Eparam (0) .
+
+For each model, the median is taken over the slopes obtained from its 10 noise patterns. For each pair (d, H ), Table 4 reports the median of the resulting 10 values. At τref = 10 −80 , define 
+
+Aref = Eparam (τref )
+
+τref 
+
+.
+
+For each model, the median of Aref is taken over its 10 noise patterns. The table reports the median and interquartile range of the resulting 10 values.                                  
+
+> (d, H )
+> Median slope Median
+> Aref
+> Aref
+> IQR
+> (3 ,2) 1.0000000 6.98 ×10 6[5 .25 ×10 6,3.53 ×10 8](3 ,3) 1.0000000 5.37 ×10 11 [1 .20 ×10 10 ,2.95 ×10 12 ](4 ,4) 1.0000000 1.27 ×10 15 [2 .44 ×10 14 ,6.50 ×10 16 ]
+
+Table 4: Controlled-perturbation results. The median slopes are rounded to seven decimal places. For each model, the median is first taken over its 10 noise patterns. The displayed median and interquartile range are then computed over the 10 models. In table order, the three median slopes before rounding are approximately 
+
+(0 .9999999986 , 1.0000000000 , 0.9999999996) .
+
+They therefore round to 1.0000000 , as reported in Table 4. For the points used in the slope fits, Eparam (τ ) is approximately proportional to τ . The median Aref ranges from 6.98 × 10 6 to 1.27 × 10 15 , a factor greater than 10 8.The experiment performs 30 × 10 × 15 = 4 ,500 runs. The learner returns H heads in 3,987 runs, and 3,891 of these also satisfy Eparam < 10 −2.
+
+IEEE 754 binary64 outputs. For each target model and each of the two query schedules, the experiment performs one run with 180-significant-digit scalar responses and one run with responses rounded to IEEE 754 binary64. The two runs use the same target model, U, Q, query inputs, t = 1 , and 180-digit offline arithmetic. Thus, within each pair, the target model, query schedule, and offline arithmetic are fixed; only the precision of the scalar responses changes. The learner computes its numerical acceptance tolerances from that precision. A run is successful if it returns all H heads and satisfies Eparam < 10 −2.
+
+Queries from Algorithm 1. The first experiment uses the queries specified by Algorithm 1. It directly queries only FM ([ q⊤ 
+
+> 1
+
+]) 
+
+among the one-token outputs and computes the remaining required one-token outputs from the recovered bvh. The number of queries in each run is 
+
+1 + 2 H(2 d2 − 1) .
+
+Table 5 reports the results. (d, H ) Queries 180-digit binary64                 
+
+> (3 ,2) 69 100/100 99/100
+> (3 ,4) 137 100/100 1/100
+> (3 ,8) 273 100/100 0/100
+> (8 ,4) 1,017 100/100 0/100
+
+Table 5: Results using the queries specified by Algorithm 1. For each model, the model parameters, query directions, query inputs, and offline arithmetic are the same in the 180-digit and binary64 runs. All 400 runs with 180-significant-digit scalar responses are successful. The binary64 runs are successful for 99 , 1, 0, and 0
+
+of the 100 models, in table order. 
+
+Direct one-token outputs. The second experiment directly queries all 2d − 1 one-token outputs, so no output is computed from 
+
+bvh. It uses 2d − 2 more queries than Algorithm 1. 2 Thus, each run uses 
+
+(2 d − 1) + 2 H(2 d2 − 1) 
+
+queries. It uses the same 100 models in each row as the first experiment. Table 6 reports the results.                    
+
+> (d, H )Queries 180-digit binary64
+> (3 ,2) 73 100/100 100/100
+> (3 ,4) 141 100/100 31/100
+> (3 ,8) 277 100/100 0/100
+> (8 ,4) 1,031 100/100 0/100
+
+Table 6: Results obtained by directly querying all one-token outputs. For each model, the model parameters, query directions, query inputs, and offline arithmetic are the same in the 180-digit and binary64 runs. All 400 runs with 180-significant-digit scalar responses are successful. The binary64 runs are successful for 100 , 31 , 0, and 
+
+0 of the 100 models, in table order. In exact arithmetic, the outputs computed from vh equal the corresponding directly queried outputs. In finite precision, however, an error in bvh also affects every output computed from bvh. The first experiment therefore evaluates Algorithm 1 with its stated query count. The second uses 2d − 2 additional queries to remove this additional source of error and more directly measure the effect of rounding the scalar responses to binary64. The controlled-perturbation results are consistent with the linear-in-τ upper bound in Theorem 5.2. For sufficiently small scalar-response perturbations, Eparam is approximately proportional to the perturbation size, although the proportionality factor varies substantially across models. The binary64 results show that IEEE 754 binary64 scalar responses can be insufficient for satisfying the success criterion even when the offline computations use 180-digit arithmetic.

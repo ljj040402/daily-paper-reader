@@ -1,0 +1,654 @@
+Title: TEMPER: Tensorized Efficient Manifold-constrained Parameterization for Expressive Residual Routing
+
+URL Source: https://arxiv.org/pdf/2608.07851v1
+
+Published Time: Tue, 11 Aug 2026 00:21:21 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# TEMPER: Tensorized Efficient Manifold-constrained Parameterization for Expressive Residual Routing 
+
+## Yuxuan Gu 1, Wuyang Zhou 1, Huijun Xing 1, Danilo Mandic 1
+
+> 1
+
+Department of Electrical and Electronic Engineering, Imperial College London {yuxuan.gu21, wuyang.zhou19, h.xing23@imperial.ac.uk, d.mandic}@imperial.ac.uk 
+
+Abstract 
+
+Residual connections rely on a static residual pathway, and are essential for training deep neural networks. Hyper-connections (HC) increase the expressivity of residual routing by incorporating multiple residual streams and learning dy-namic information flow, while manifold-constrained (mHC) variants stabilize training through doubly stochastic residual mixing. However, a generator-level bottleneck remains in ex-isting methods: they use dense, unstructured generators for pre-branch aggregation, residual mixing, and post-branch re-distribution, which results in parameter count growing rapidly with the number of streams. To address this issue, we propose 
+
+Tensorized Efficient Manifold-constrained Parameterization for Expressive Residual Routing ( TEMPER ), which repre-sents these generators as multi-way tensors over the input-stream, feature, and output-stream modes, and parameter-izes them using tensor networks. Such a structured low-rank formulation is shown to preserve token-dependent manifold-constrained routing interface while substantially reducing pa-rameter growth. It also promotes interpretability and intuition, as: i) tensor ranks control the dimensionality of the learned routing subspace, with full ranks recovering dense routing; while ii) the generator approximation errors bound differ-ences in routing logits and, consequently, in the routed-block outputs. Comprehensive experiments show that TEMPER matches or outperforms existing methods across language modeling and commonsense reasoning tasks, while requiring substantially fewer additional parameters. At eight residual streams, TEMPER achieves the best CORE score while using about 84% fewer additional parameters than mHC, thus show-ing a stronger performance-parameter efficiency trade-off. 
+
+## 1 Introduction 
+
+Residual connections (He et al. 2016) are central to the sta-bility and scalability of modern Transformers (Vaswani et al. 2017; Brown et al. 2020). In a standard residual block, a mod-ule computes an update which is added back to the token’s current representation. This design is simple and effective, but it routes every token via the same fixed residual path. Recently, hyper-connections (HC) (Zhu et al. 2025) have enriched this design by maintaining multiple residual streams and learning token-dependent routing among them, thus en-abling more complex residual topologies and information flow patterns. Instead of applying an identical and fixed residual connection to all tokens, these methods allow each 0 2 4 6 8 10 12 
+
+> Additional learnable parameters ↓ (M)
+> 0.18 0.19 0.20
+> CORE score ↑
+> Residual
+> mHC KromHC
+> TEMPER-CP TEMPER-Tucker
+> mHC-lite: OOM (~5.95B Δ params)
+
+Performance-Param. efficiency trade-off 
+
+Figure 1: Comparison of CORE score and additional pa-rameter cost at n = 8 . Our TEMPER method provides the strongest trade-off among all hyper-connection variants. token to adaptively aggregate, mix, and redistribute infor-mation across several streams. Manifold-constrained hyper-connections (mHC) (Xie et al. 2026) further improve the training stability of HC by using the iterative Sinkhorn-Knopp (SK) optimization (Sinkhorn 1964) to constrain the residual mixing matrix, Ares , to be doubly stochastic. Sub-sequent variants have reparameterized this residual mixing step. Among these, the mHC-lite method (Yang and Gao 2026) achieves exact doubly stochastic residual mixing by constructing Ares as a convex combination of permutation matrices (Birkhoff 1946), while KromHC (Zhou et al. 2026) uses Kronecker products of smaller doubly stochastic matri-ces (Taranenko 2023), in order to avoid factorial growth of parameters with the number of streams incurred by mHC-lite. Figure 1 summarizes the performance-parameter trade-offs of the existing methods and the proposed TEMPER, and highlights the remaining parameter efficiency gap. Although these HC variants improve the parameterization of the residual mixing matrix, the generator-level bottleneck still remains an open issue. For example, mHC uses unstruc-tured dense generators to produce all three token-dependent routing projectors from stream-feature representations. As the number of streams increases, these generators become increasingly expensive in terms of both parameter count and computation, limiting the scalability of the expressive token-dependent routing. This raises the following question: arXiv:2608.07851v1 [cs.LG] 8 Aug 2026 Residual   
+
+> mixing
+> Pre-branch
+> aggregation
+> Post-branch
+> redistribution
+> Layer
+> =
+> Normalized
+> input
+> Tensorized
+> Generator
+> Routing
+> logits Activation Routing
+> projectors
+> =
+> =
+
+TEMPER-CP projection generators   
+
+> or =
+> or =
+
+TEMPER routing generators 
+
+TEMPER-Tucker projection generators 
+
+Hyper Connections  
+
+> Tucker rank =
+> CP rank =
+> Routing module (outputs token-dependent projectors)
+
+Figure 2: Overview of TEMPER architecture. TEMPER replaces unstructured dense hyper-connections routing generators with tensorized TEMPER-CP or TEMPER-Tucker generators, while preserving the same token-dependent routing interfaces. 
+
+• Can we replace the dense unstructured routing generators in mHC with structured, parameter-efficient alternatives, while achieving on par or even better performance? 
+
+To answer this question, we propose Tensorized Efficient 
+
+Manifold-constrained Parameterization for Expressive Residual Routing ( TEMPER ), which replaces the dense routing generators with parameter-efficient tensor-network parameterizations. By exploiting the inherently multi-way structure of mHC routing, TEMPER represents the genera-tors for pre-branch aggregation, residual mixing, and post-branch redistribution as higher-order tensors over their input-stream, feature, and output-stream modes, and factorizes each independently using a low-rank tensor network. TEMPER retains the original token-dependent routing in-terface, including doubly stochastic residual mixing, while inducing structured parameter sharing within each generator across stream–feature–output interactions. Its tensor ranks provide an explicit capacity control. Compact ranks restrict routing to low-dimensional learned subspaces, whereas suffi-ciently large ranks recover the dense parameterization. TEM-PER thus reduces routing-generator parameter growth with-out altering the surrounding hyper-connection architecture. Empirically, we instantiate TEMPER with Canonical Polyadic (CP) (Hitchcock 1927) and Tucker (Tucker 1966) parameterizations. Both outperform prior hyper-connection baselines in downstream performance while using substan-tially fewer additional parameters. At eight residual streams, TEMPER-Tucker obtains the best CORE score ( 0.206 versus 
+
+0.195 for both mHC and KromHC) with 1.93 M additional parameters, which is 84% fewer than 11 .95 M in mHC. In summary, our contributions are as follows: 
+
+• We introduce TEMPER , a tensorized manifold-constrained hyper-connections method that replaces dense token-dependent routing generators with struc-tured efficient tensor-network parameterizations, while preserving the original mHC routing interface. 
+
+• We analyze TEMPER’s scaling and expressivity. At fixed rank, routing-generator parameter grows linearly with the number of streams. Full-rank TEMPER-Tucker recov-ers dense routing, while generator approximation errors bound routing-logit and block-output deviations. 
+
+• We instantiate TEMPER with CP and Tucker parame-terizations and evaluate them on language modeling and commonsense reasoning. TEMPER achieves a stronger performance–parameter efficiency trade-off than the ex-isting residual and hyper-connection baselines. 
+
+## 2 Related Work 
+
+In a Transformer block f (·), standard residual connections (He et al. 2016) update every token’s latent representation using the same pre-defined residual pathway 
+
+h′ = h + f (h), (1) where h is the hidden representation. While this design is computationally efficient and stable in optimization, it im-poses the identical information flow pattern across all tokens. 
+
+2.1 Hyper-Connections Variants 
+
+Hyper-connections (HC) (Zhu et al. 2025) address this limitation by expanding the residual path to n streams and introducing token-specific routing over these streams. This increases the topological and representational complexity of the residual path, enabling richer and more diverse feature interactions across streams. Specifically, at a block l, each token’s representation is repeated n times to obtain the expanded state matrix 1 H(l) =
+
+h
+
+h(l)⊤ 
+
+> 1
+
+, . . . , h(l)⊤
+
+> n
+
+i⊤
+
+∈ Rn×d. A routing module produces three token-dependent projection matrices apre ∈ R1×n,
+
+Ares ∈ Rn×n, and apost ∈ R1×n, with the resulting update 
+
+H′ = Ares H + ( apost )T f (apre H) . (2) Thus, the residual mixing is no longer globally fixed. Instead, it is selected dynamically for each token. 
+
+Manifold-Constrained Hyper-Connections (mHC) (Xie et al. 2026) constrains the residual mixing matrix, Ares ,to be doubly stochastic, since an unconstrained matrix can disrupt the identity-mapping behavior which is the key to training stability in standard residual networks. Let ˆh =vec(RMSNorm( H)) ∈ R1×nd be the normalized flattened state. Then, mHC generates the routing parameters through 
+
+apre = σ
+
+
+
+αpre ˆhW pre + bpre 
+
+,
+
+Ares = SK 
+
+
+
+exp 
+
+
+
+mat 
+
+
+
+αres ˆhW res + bres  
+
+.
+
+apost = 2 σ
+
+
+
+αpost ˆhW post + bpost 
+
+,
+
+(3) Here, Wpre , Wpost ∈ Rnd ×n, bpre , bpost ∈ R1×n, Wres ∈
+
+Rnd ×n2
+
+, bres ∈ R1×n2
+
+, α pre , α post , α res ∈ R, and σ(·)
+
+denotes the Sigmoid( ·) function. Moreover, SK( ·) denotes the Sinkhorn–Knopp operator (Sinkhorn 1964), which iter-atively normalizes Ares towards a doubly stochastic matrix. As a result, residual mixing becomes a non-expansive convex combination over streams, which improves training stability. 
+
+mHC-lite and KromHC. The mHC-lite method (Yang and Gao 2026) replaces iterative SK normalization with a Birkhoff–von Neumann mixture, while KromHC (Zhou et al. 2026) factorizes that mixture using smaller Kronecker factors. Both leave the pre- and post-routing generators un-changed. Their residual mixers can be summarized as 
+
+Ares lite =
+
+> n!
+
+X
+
+> m=1
+
+πmPm,
+
+Ares Krom =
+
+> 1
+
+O
+
+> k=K
+
+Uk, Uk = 
+
+> ik!
+
+X
+
+> m=1
+
+πkmPkm,
+
+(4) 
+
+> 1
+
+The superscript (l) is omitted for clarity from here onwards. 
+
+where n = QKk=1 ik, and π and πk are token-dependent SoftMax weights over the corresponding permutation ma-trices. Both constructions are exactly doubly stochastic, but mHC-lite requires O(n!) mixture components, whereas KromHC reduces this cost via smaller Kronecker factors. 
+
+2.2 Tensor Methods in Large Language Models (LLMs) 
+
+Tensor decompositions, by their nature, improve parame-ter efficiency across LLM components. The Tensor Train decomposition (Oseledets 2011) compresses dense layers (Novikov et al. 2015), while TensorGPT (Xu, Xu, and Mandic 2023) extends this approach to token embeddings. Tensor-LLM (Gu et al. 2025) and Tucker Attention (Klein et al. 2026) apply Tucker-style factorizations to multi-head attention. In parameter-efficient fine-tuning, LoRETTA (Yang et al. 2024) uses Tensor Train adapters, whereas TeRA (Gu et al. 2026) enables high-rank adaptation with a Tucker-like network. The performance of tensorized models depends critically on their ranks and network structures. Zhou et al. (2025) study tensor-network ranks as design parameters, while Zeng et al. (2024) and Iacovides et al. (2025) explore domain-aware tensor-network structure search with LLM assistance. 
+
+## 3 Preliminaries 
+
+Notation. Scalars, vectors, matrices, and tensors are de-noted by x, x, X, and X , respectively (Kolda and Bader 2009; Cichocki et al. 2015, 2016). We use (·)⊤ for matrix transpose, A(i1, . . . , i N ) for the (i1, . . . , i N )-th tensor entry, 
+
+×n for the mode-n product, ◦ for the outer product, and ⊗
+
+for the Kronecker product. The operators vec( ·) and mat( ·)
+
+denote the vectorization and matricization, respectively. 
+
+Tensor Contraction. Contractions are used to sum over shared modes of compatible tensors. For A ∈ RI1×I2×···× IN
+
+and X ∈ RI1×I2 , the contraction over the first two modes is 
+
+(A × 1,2 X)i3,...,i N =
+
+> I1
+
+X
+
+> u=1
+> I2
+
+X
+
+> v=1
+
+Au,v,i 3,...,i N Xu,v . (5) For A and B with mode a of A and mode b of B both of size 
+
+R, tensor–tensor contraction 
+
+(A× baB)i1,...,i N −1, j 1,...,j M −1 =
+
+> R
+
+X
+
+> t=1
+
+Ai1,...,i N −1,t Bt,j 1,...,j M −1 ,
+
+(6) with all other modes remaining uncontracted. 
+
+Unfolding. Unfolding, or matricization, reshapes a tensor into a matrix by mapping the indices of selected modes to the matrix rows and the indices of the remaining modes to the matrix columns. For A ∈ RI1×I2×···× IN , the unfolding that groups the first two modes against the remaining modes is given by 
+
+mat( A) ∈ RI1I2×QNm=3 Im , (7) while the entries of the unfolded matrix are given by 
+
+mat( A)(i1−1) I2+i2, 1+ PNm=3 (im−1) QNℓ=m+1 Iℓ = Ai1,i 2,...,i N .
+
+(8) 4 Methodology 
+
+Existing hyper-connection variants mainly differ in how they constrain or parameterize the residual mixing matrix, Ares .Our focus is on re-designing the dense routing generators through the lens of tensor factorization. The overall architec-ture is illustrated in Figure 2. 
+
+4.1 A Tensor View of Dense Routing Generators 
+
+We now focus on the generators that produce the routing projectors. While prior methods differ in their construction of Ares , they all produce apre , Ares , and apost using dense maps. Our TEMPER replaces these dense generators with tensorized maps, while preserving the same routing interface. Let ˆH = RMSNorm( H) ∈ Rn×d denote the normalized stream state. Instead of flattening ˆH into a length-nd vector, we retain its stream and feature modes. The dense genera-tors can then be viewed as the unfolding of tensors Wpre ∈
+
+Rn×d×n, Wpost ∈ Rn×d×n, and Wres ∈ Rn×d×n×n, where the first two modes correspond to the input-streams and fea-tures, and the remaining modes index the routing output-streams dimensions. With this tensor view, dense mHC gen-erators can be re-written as 
+
+apre = σ
+
+
+
+αpre Zpre + bpre 
+
+,
+
+Ares = SK 
+
+
+
+exp 
+
+
+
+αres Zres + mat( bres )
+
+ 
+
+,
+
+apost = 2 σ
+
+
+
+αpost Zpost + bpost 
+
+,
+
+(9) where the three routing logits Zpre , Zres , Zpost are obtained by contracting the input-stream and feature modes as 
+
+Zpre = Wpre ×1,2 ˆH, Zpre  
+
+> i
+
+=
+
+> n
+
+X
+
+> s=1
+> d
+
+X
+
+> c=1
+
+ˆHs,c Wpre 
+
+> s,c,i
+
+,
+
+Zres = Wres ×1,2 ˆH, Zres  
+
+> i,j
+
+=
+
+> n
+
+X
+
+> s=1
+> d
+
+X
+
+> c=1
+
+ˆHs,c Wres  
+
+> s,c,i,j
+
+,
+
+Zpost = Wpost ×1,2 ˆH, Zpost  
+
+> i
+
+=
+
+> n
+
+X
+
+> s=1
+> d
+
+X
+
+> c=1
+
+ˆHs,c Wpost  
+
+> s,c,i
+
+.
+
+(10) 
+
+Remark 1. The tensor view in Eq. (9) and (10) is equivalent to the original dense generators as matricizing each gener-ator tensor recovers its corresponding dense weight matrix. TEMPER changes only how these tensors are parameterized. 
+
+Thus, dense routing learns independent parameters for each stream-feature-output interaction, with no explicit shar-ing across modes. This can be inefficient when routing deci-sions depend on reusable shared stream-feature-output pat-terns. TEMPER introduces such parameter sharing by factor-izing the generator tensors with structured tensor networks. 
+
+4.2 Tensorizing the Routing Generators 
+
+The tensorization is achieved by keeping the contractions in Eq. (10) fixed and by replacing each dense generator tensor with a structured CP or Tucker tensor factorization. 
+
+TEMPER-CP. TEMPER-CP uses CP decomposition to factorize each generator tensor into rank-one outer products 
+
+Wpre =
+
+> r
+
+X
+
+> q=1
+
+upre  
+
+> q
+
+◦ cpre  
+
+> q
+
+◦ vpre  
+
+> q
+
+,
+
+Wres =
+
+> r
+
+X
+
+> q=1
+
+ures  
+
+> q
+
+◦ cres  
+
+> q
+
+◦ vres 1,q ◦ vres 2,q ,
+
+Wpost =
+
+> r
+
+X
+
+> q=1
+
+upost  
+
+> q
+
+◦ cpost  
+
+> q
+
+◦ vpost  
+
+> q
+
+.
+
+(11) Here, uq ∈ Rn and cq ∈ Rd are factors for the input-stream and feature mode, respectively, while vq ∈ Rn is the output-stream mode factor. For Wres , v1,q , v2,q ∈ Rn
+
+denote factors for its two output-stream modes. Within each generator, the component index, q, couples the mode-specific factors in each rank-one term, inducing structured parameter sharing across stream-feature-output interactions. 
+
+TEMPER-Tucker. TEMPER-Tucker employs Tucker de-composition to factorize each generator tensor using factor matrices and a small tensor core as 
+
+Wpre = Gpre ×1 Upre ×2 Cpre ×3 Vpre ,
+
+Wres = Gres ×1 Ures ×2 Cres ×3 Vres 1 ×4 Vres 2 ,
+
+Wpost = Gpost ×1 Upost ×2 Cpost ×3 Vpost .
+
+(12) We use Tucker ranks (rn, r d, r n) for the pre- and post-branch generators and (rn, r d, r n, r n) for the residual generator, with input- and output-stream factors U, V ∈ Rn×rn and feature factors C ∈ Rd×rd . Given ˆH ∈ Rn×d, the input is first projected into a compressed stream–feature representation: 
+
+Tpre = ( Upre )⊤ ˆHC pre ,
+
+Tres = ( Ures )⊤ ˆHC res ,
+
+Tpost = ( Upost )⊤ ˆHC post .
+
+(13) The routing logits are then obtained by contracting this rep-resentation with the core and the output modes: 
+
+Zpre = ( Gpre ×1,2 Tpre ) ×1 Vpre ,
+
+Zres = ( Gres ×1,2 Tres ) ×1 Vres 1 ×2 Vres 2 ,
+
+Zpost = ( Gpost ×1,2 Tpost ) ×1 Vpost .
+
+(14) TEMPER-Tucker therefore constrains routing to depend on a compressed stream-feature representation rather than on an unrestricted dense map. 
+
+Parameter Efficiency. Factorizing the routing generators substantially reduces the parameter cost of token-dependent routing. The pre-, residual-, and post-routing outputs lie in 
+
+Rn, Rn×n, and Rn, respectively. Counting generator weights only, the parameter count for each parameterization is 
+
+PmHC = d(n3 + 2 n2),PCP = 3 dr + 7 nr, PTucker = 7 nr n + 3 dr d + 2 r2
+
+> n
+
+rd + r3
+
+> n
+
+rd.
+
+(15) 2 4 8                                         
+
+> Number of Residual Streams n
+> 10 4
+> 10 5
+> 10 6
+> 10 7
+> 10 8
+> Trainable Param. per Hyper-Connection
+> mHC :n3d+ (2 d+ 1) n2+nd + 2 n+ 3
+> mHC lite : ( nd + 1) n! + 2 n2d+nd + 2 n+ 3
+> KromHC : 2 n2d+ ( nd + 1)
+> Kk= 1
+> ik! + nd + 2 n+ 3
+> TEMPER CP : (7 n+ 3 d)r+n2+nd + 2 n+ 3
+> TEMPER Tucker : 7 nr n+ 3 dr d+ 2 r2
+> nrd+r3
+> nrd+n2+nd + 2 n+ 3
+
+Figure 3: Trainable parameters per hyper-connection, includ-ing routing generators, biases, scalar gates, and RMSNorm. TEMPER scales more favorably with the number of streams. Here, the rank r is shared across the three TEMPER-CP generators, while TEMPER-Tucker uses input- and output-stream rank, rn, and feature rank, rd. Thus, for fixed d and tensor ranks, dense mHC scales as O(n3) in the number of streams, whereas both TEMPER parameterizations scale as 
+
+O(n). Figure 3 reports the complete learnable parameter counts in hyper-connections, including biases, scalar gates, and RMSNorm scales. 
+
+Remark 2. Prior work improves parameter efficiency mainly by reparameterizing Ares . To our knowledge, TEMPER is the first to jointly reparameterize the pre-, residual-, and post-routing generators, thus achieving greater parameter efficiency while matching or improving performance. 
+
+4.3 Inductive Bias and Approximation Guarantees 
+
+As TEMPER-Tucker routes through the three compressed representations in Eq. (13), its ranks restrict which stream-feature directions affect routing and control how closely the tensorized generators approximate their dense counterparts. We formalize both properties below. TEMPER-CP is a spe-cial case of TEMPER-Tucker with a superdiagonal core. 
+
+Theorem 1. (Rank and Null-space Dimension of the Tucker Compression ) For any of the three generators in Eq. (12) , assume that U ∈ Rn×rn and C ∈ Rd×rd have full column rank. Given the normalized input ˆH ∈ Rn×d, define 
+
+L : Rn×d → Rrn×rd , L( ˆH) = U⊤ ˆHC . (16) 
+
+Then, rank( L) = rnrd and dim N (L) = nd − rnrd.
+
+Theorem 1 shows that routing depends only on an rnrd-dimensional learned subspace and is invariant to the re-maining directions. Increasing ranks enlarges this subspace, whereas low ranks impose a stronger bottleneck that may suppress noisy or redundant directions. At full multilinear rank, TEMPER-Tucker recovers the dense mHC generator, so Tucker ranks interpolate between compact and dense routing. 
+
+Remark 3. Full-rank recovery is an expressivity guaran-tee rather than our design objective. When routing-relevant interactions lie in a low-dimensional structured subspace, compact ranks can provide sufficient routing capacity. 
+
+Lemma 1. (Generator-to-logit Error Bound). Let W and 
+
+fW denote any corresponding dense and tensorized rout-ing generators. For any normalized stream state ˆH, define 
+
+ZW ( ˆH) = W × 1,2 ˆH, and similarly for fW. Then, the cor-responding routing logits satisfy 
+
+ZW ( ˆH) − Z fW ( ˆH) F
+
+≤ ∥ ˆH∥F W − fW F
+
+. (17) 
+
+Theorem 2. (End-to-End Routed-Block Approximation Bound ) Let ˆH = RMSNorm( H) be the normalized stream state, and H′ and eH′ the outputs of the dense and tensorized routed blocks. Let f be the shared residual transformation. Suppose that f is Lf -Lipschitz and satisfies ∥f (x)∥2 ≤ Mf
+
+for all relevant inputs, and that Φ( Z) = SK(exp( Z)) is 
+
+LSK -Lipschitz on the residual-logit domain. Then, 
+
+H′ − eH′ 
+
+> F
+
+≤ | αres |LSK ∥ ˆH∥F ∥H∥F Wres − fWres 
+
+> F
+
++ |αpost |
+
+2 Mf ∥ ˆH∥F Wpost − fWpost 
+
+> F
+
++ |αpre |
+
+2
+
+√n L f ∥ ˆH∥F ∥H∥F Wpre − fWpre 
+
+> F
+
+.
+
+(18) Lemma 1 quantifies how tensor approximation error prop-agates to the routing logits. It shows that the discrepancy between dense and tensorized routing logits is bounded by the generator error W − fW F
+
+scaled by the normalized in-put magnitude ∥ ˆH∥F . Since RMS normalization keeps this magnitude controlled, the resulting logit discrepancy is gov-erned primarily by the quality of tensor approximation. Theorem 2 extends this result to the complete routed block. Under the regularity assumptions, the block-output difference is bounded by the approximation errors of the pre-, residual-, and post-routing generators. Together, these results show how approximation errors are controlled as the routing parame-terization moves from compact low-rank structure towards the dense unrestricted model. These guarantees consider ex-pressivity and approximation, rather than generalization, and Section 5.4 empirically examines why increasing the rank might not necessarily improve performance. The proofs of theorems and lemma are given in the Supplement Section 1. 
+
+## 5 Experiments 
+
+To evaluate the performance of TEMPER, we used the nanochat (Karpathy 2025) backbone and apply different hyper-connections modules in different methods. The base model had D = 12 Transformer blocks, hidden dimension 
+
+d = 768 , 6 attention heads, context length 2048 . We re-placed residual branches in both attention and feed-forward network in every block, yielding 24 residual modules per model. The pretraining used ClimbMix-400B dataset (Diao et al. 2025) with a 32 ,768 -token BPE tokenizer. 4× NVIDIA A100 (80GB) GPUs are used for the experiments. All hyper-parameters are provided in Supplement Section 4. Table 1: Additional parameters, training loss, validation BPB, and CORE score for hyper-connections variants with D = 12 
+
+blocks and two residual connections per block. The n = 4 and n = 8 settings are respectively trained for 6,000 and 7,000 steps.                                                                        
+
+> Method n= 4 (6000 steps) n= 8 (7000 steps)
+> ∆Params (K) ↓Train Loss ↓Val BPB ↓CORE Score ↑∆Params (K) ↓Train Loss ↓Val BPB ↓CORE Score ↑
+> Residual 02.705 0.816 0.182 02.645 0.811 0.184 mHC 1,844 2.714 0.819 0.177 11,946 2.627 0.811 0.195 mHC-lite 2,434 2.724 0.812 0.183 5,948,900 –––KromHC 959 2.691 0.812 0.186 3,392 2.612 0.807 0.195 TEMPER-CP (Ours) 186 2.692 0.812 0.189 376 2.613 0.807 0.201 TEMPER-Tucker (Ours) 744 2.720 0.811 0.192 1,934 2.613 0.807 0.206
+
+5.1 Initialization 
+
+We followed KromHC (Zhou et al. 2026) for routing-bias and scalar-gate initialization, yielding stream-biased pre- and post-routing and near-identity residual mixing. Beyond this, all TEMPER-CP factor entries were initialized independently from N (0 , r −1/2), where r is the CP rank. For TEMPER-Tucker, all factor and core entries are initialized indepen-dently from N (0 , r −1/2max ), where rmax is the maximum mode rank. This rank-scaled initialization keeps factor magnitudes controlled and improves optimization stability. 
+
+5.2 Evaluation Metrics 
+
+Following KromHC (Zhou et al. 2026), to measure efficiency and language-modeling quality, we report additional learn-able parameters, training cross-entropy (CE) loss, and valida-tion bits-per-byte (BPB). Additionally, we report the CORE score (Li et al. 2024), the mean-centered accuracy over 22 tasks (20 shown here), as a summary of downstream perfor-mance (See Supplement Section 3). For each task, we report task accuracy (%). Language-modeling tasks were scored by exact continuation match, while multiple-choice tasks select the option with the lowest continuation loss. 
+
+5.3 Downstream Performance 
+
+Tables 1, 2, and 3 report downstream performance for n = 4 
+
+and n = 8 hyper-connection streams. Across both settings, TEMPER provides the strongest performance–parameter ef-ficiency trade-off among the hyper-connection baselines, matching or improving the downstream performance with substantially fewer additional parameters. mHC-lite results at n = 8 are unavailable because its O(n!) residual-routing parameter growth led to an out-of-memory (OOM) error. As shown in Table 1, TEMPER-Tucker achieves the highest CORE score at both n = 4 and n = 8 , improving over KromHC from 0.186 to 0.192 and from 0.195 to 0.206 ,respectively. At n = 8 , it uses 1.93 M additional parameters, compared with 3.39 M for KromHC and 11 .95 M for mHC. TEMPER-Tucker also achieves the highest average accu-racy on the commonsense and reasoning benchmark in Ta-ble 2, reaching 50 .0% and 51 .3% , respectively. At n = 8 ,it outperformed the strongest existing baseline by 1.5% . For the language-modeling and BBH-oriented suite in Table 3, TEMPER-CP achieves the highest average accuracy in both stream counts, with 27 .1% for n = 4 and 27 .3% for n = 8 .0 2000 4000 6000          
+
+> Training step
+> 2
+> 02
+> Validation BPB Gap  1e 3n = 4
+> 02000 4000 6000
+> Training step
+> 01234
+> 1e 4n = 8 Tucker Tucker-frozenCore TT
+
+Figure 4: Smoothed validation BPB gaps relative to TEMPER-Tucker for the frozen-core and TT variant at n = 4 
+
+and n = 8 . Positive values indicate worse BPB. These results suggest an expressivity–regularization trade-off. TEMPER-Tucker’s learned core captures richer cross-mode interactions, which may benefit tasks requiring diverse routing patterns, such as commonsense reasoning. In com-parison, TEMPER-CP imposes a stronger separable prior with greater parameter sharing, which may improve general-ization on language-modeling and BBH-oriented tasks. 
+
+5.4 Ablation Studies 
+
+Frozen Tucker Core Eq. (14) separates Tucker routing into two stages. First, factor matrices construct a compressed input-stream-feature and output-stream representation, and then the core tensor models interactions among the com-pressed coordinates. The frozen-core variant isolates these roles by keeping the factor matrices trainable but fixing the core at initialization. As shown in Figure 4, the frozen-core model has consistently worse validation BPB than the fully trainable Tucker model. Thus, learning the projection sub-spaces alone is insufficient. Adapting the interactions among those subspaces also contributes to the routing quality. 
+
+Effect of Tensor Network Topology Beyond the CP and Tucker decompositions, we evaluated a Tensor Train (TT) variant (See Supplement Section 2), given by 
+
+W = G1 ×13 G2 ×14 G3 ×15 · · · × 1 
+
+> m+1
+
+Gm, (19) where m = 3 for the pre- and post-branch generators and 
+
+m = 4 for the residual generator. TT represents each gener-ator as a chain of low-rank cores, rather than Tucker’s single global core. Figure 4 shows that TT has worse validation BPB than Tucker at both n = 4 and n = 8 , suggesting that a global core better suits this routing setting. Table 2: Commonsense reasoning results for two stream counts. Best results are bolded. Second best results are underlined. 
+
+n Method Avg HS HS-ZS PIQA ARC-E ARC-C COPA CSQA OBQA WG WGrande BoolQ Residual (6000 steps) 49.0 41.8 39.4 71.0 61.8 33.0 65.0 25.6 35.0 61.9 49.2 55.4 mHC 48.3 39.4 38.0 70.4 60.4 30.8 59.0 28.8 34.2 60.1 52.8 57.2 mHC-lite 48.9 42.6 40.6 71.0 60.2 33.2 60.0 22.4 33.0 61.5 56.0 57.4 KromHC 49.1 41.0 40.6 70.8 60.8 32.8 60.0 29.8 33.2 58.2 53.0 60.0 
+
+TEMPER-CP (Ours) 48.9 39.2 39.2 70.6 59.8 31.6 61.0 34.4 32.4 62.3 52.4 55.2 4TEMPER-Tucker (Ours) 50.0 41.0 41.6 68.2 60.2 30.8 62.0 39.6 34.8 60.1 52.2 59.8 Residual (7000 steps) 48.6 40.0 41.4 71.6 63.2 32.8 66.0 22.8 33.8 60.4 51.8 51.0 mHC 49.5 40.6 41.2 72.2 61.6 32.0 64.0 31.6 33.8 61.9 50.4 55.4 mHC-lite – – – – – – – – – – – –KromHC 49.8 40.6 40.6 72.4 62.6 33.2 65.0 29.0 33.8 63.0 53.0 54.2 TEMPER-CP (Ours) 50.1 41.6 41.0 73.0 63.4 32.2 63.0 29.8 34.2 60.8 54.4 57.6 8TEMPER-Tucker (Ours) 51.3 42.0 40.8 72.6 62.8 32.6 65.0 42.2 35.6 58.2 54.2 58.0 
+
+Table 3: Language modeling results for the two stream counts. Best results are bolded. Second best results are underlined. 
+
+n Method Avg Lamb SQuAD CoQA BBH-QA BBH-CS BBH-Op BBH-Dyck LSAT LangID Residual (6000 steps) 25.2 35.2 25.2 19.4 36.4 45.0 11.0 5.0 21.7 28.2 mHC 25.0 33.6 22.8 20.6 37.0 40.2 15.2 5.2 22.6 28.0 mHC-lite 25.3 33.2 25.8 22.0 34.6 45.0 12.4 5.0 22.2 27.2 KromHC 25.7 35.4 25.0 22.4 36.0 40.4 15.2 2.8 25.2 29.0 TEMPER-CP (Ours) 27.1 34.8 27.2 22.4 38.8 45.4 13.8 7.6 26.5 27.2 4TEMPER-Tucker (Ours) 25.9 33.4 26.0 21.8 37.4 44.4 10.5 8.6 21.7 29.4 
+
+Residual (7000 steps) 26.9 34.2 25.8 23.0 39.6 46.2 13.8 9.6 23.9 25.6 mHC 27.1 32.8 30.6 22.4 38.0 45.6 13.8 9.2 27.4 24.4 mHC-lite – – – – – – – – – –KromHC 26.7 35.2 31.8 20.8 33.6 42.4 13.8 9.2 26.1 27.4 TEMPER-CP (Ours) 27.3 35.0 34.4 22.2 37.8 42.2 12.9 7.4 25.7 28.2 
+
+8TEMPER-Tucker (Ours) 26.4 33.8 31.2 20.8 33.4 43.4 14.3 9.0 25.2 26.4 n = 4 n = 8 No. of streams 0.17 0.18 0.19 0.20 0.21 CORE score          
+
+> 0.192 0.206 0.176 0.189
+> 2 4 816 32 CP rank 0.1825 0.1850 0.1875 0.1900 0.1925 CORE score
+> Tensorize Wpre ,Wres , and Wpost Tensorize Wres only
+
+Figure 5: Ablations on TEMPER routing design. Left : CORE score comparison at the final step for full TEMPER-Tucker against a residual-only variant that tensorizes Wres only. 
+
+Right : CORE score at final step for TEMPER-CP with ranks 
+
+r ∈ { 2, 4, 8, 16 , 32 } at n = 4 .
+
+Tensorizing only Wres Theorem 2 decomposes the block-output discrepancy into contributions from the three routing generators. To isolate the effect of the residual generator, we tensorized only Wres , while keeping Wpre and Wpost dense. As shown in Figure 5 (left), this variant underperformed full TEMPER-Tucker, whose CORE score increased from 0.176 
+
+to 0.192 at n = 4 , and from 0.189 to 0.206 at n = 8 . These results show that tensorizing the residual generator, Wres ,is beneficial, while jointly tensorizing all three generators yields the best performance. 
+
+Tensor ranks Theorem 1 shows that tensor rank controls the dimension of the learned stream-feature subspace avail-able for routing. Figure 5 (right) studies the effect of CP rank at n = 4 under a fixed 6000-step budget. The final CORE score varied only from 0.184 to 0.189 , with the best results at r = 2 . This weak performance sensitivity to rank suggests that the dense generator is over-parameterized for routing in this setting. A small number of shared low-rank components provides sufficient expressivity, while the resulting structural constraint may also act as an implicit regularizer. 
+
+## 6 Conclusion 
+
+We have introduced TEMPER, which jointly tensorizes pre-aggregation, residual-mixing, and post-redistribution routing generators in hyper-connections, reducing parameter growth while retaining effective routing capacity. Our theoretical analysis characterizes routing capacity through tensor ranks and bounds how generator approximation errors propagate to routing logits and block outputs. Across language mod-eling and reasoning benchmarks, TEMPER has matched or outperformed prior hyper-connection methods, while requir-ing substantially fewer additional parameters, providing a scalable approach to expressive hyper-connections in LLMs. References 
+
+Birkhoff, G. 1946. Tres Observaciones Sobre el Algebra Lineal. Rev. Univ. Nac. Tucumán Ser. A , 5: 147–151. Brown, T.; Mann, B.; Ryder, N.; Subbiah, M.; Kaplan, J. D.; Dhariwal, P.; Neelakantan, A.; Shyam, P.; Sastry, G.; Askell, A.; Agarwal, S.; Herbert-Voss, A.; Krueger, G.; Henighan, T.; Child, R.; Ramesh, A.; Ziegler, D.; Wu, J.; Winter, C.; Hesse, C.; Chen, M.; Sigler, E.; Litwin, M.; Gray, S.; Chess, B.; Clark, J.; Berner, C.; McCandlish, S.; Radford, A.; Sutskever, I.; and Amodei, D. 2020. Language Models are Few-Shot Learners. In Larochelle, H.; Ranzato, M.; Hadsell, R.; Bal-can, M.; and Lin, H., eds., Advances in Neural Information Processing Systems , volume 33, 1877–1901. Curran Asso-ciates, Inc. Cichocki, A.; Lee, N.; Oseledets, I.; Phan, A.-H.; Zhao, Q.; and Mandic, D. P. 2016. Tensor Networks for Dimensionality Reduction and Large-scale Optimization Part 1 Low-rank Tensor Decompositions. Foundations and Trends in Machine Learning , 9(4-5): 249–429. Cichocki, A.; Mandic, D.; De Lathauwer, L.; Zhou, G.; Zhao, Q.; Caiafa, C.; and Phan, H. A. 2015. Tensor Decompositions for Signal Processing Applications: From Two-way to Multi-way Component Analysis. IEEE signal processing magazine ,32(2): 145–163. Diao, S.; Yang, Y.; Fu, Y.; Dong, X.; Su, D.; Kliegl, M.; Chen, Z.; Belcak, P.; Suhara, Y.; Yin, H.; Patwary, M.; Lin, C.; Kautz, J.; and Molchanov, P. 2025. CLIMB: CLustering-based Iterative Data Mixture Bootstrapping for Language Model Pre-training. arXiv preprint .Gu, Y.; Zhou, W.; Iacovides, G.; and Mandic, D. 2025. Ten-sorLLM: Tensorising Multi-Head Attention for Enhanced Reasoning and Compression in LLMs. In 2025 Interna-tional Joint Conference on Neural Networks (IJCNN) , 1–8. IEEE. Gu, Y.; Zhou, W.; Iacovides, G.; and Mandic, D. 2026. TeRA: Vector-based Random Tensor Network for High-rank Adap-tation of Large Language Models. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , 2314–2329. He, K.; Zhang, X.; Ren, S.; and Sun, J. 2016. Deep Residual Learning for Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition ,770–778. Hitchcock, F. L. 1927. The Expression of a Tensor or a Polyadic as a Sum of Products. Journal of Mathematics and Physics , 6(1-4): 164–189. Iacovides, G.; Zhou, W.; Li, C.; Zhao, Q.; and Mandic, D. 2025. Domain-aware Tensor Network Structure Search. 
+
+arXiv preprint arXiv:2505.23537 .Karpathy, A. 2025. nanochat: The best ChatGPT that $100 can buy. Klein, T.; Kusch, J.; Sager, S.; Schnake, S.; and Schotthöfer, S. 2026. Tucker Attention: A Generalization of Approximate Attention Mechanisms. arXiv preprint arXiv:2603.30033 .Kolda, T. G.; and Bader, B. W. 2009. Tensor Decompositions and Applications. SIAM Review , 51(3): 455–500. Li, J.; Fang, A.; Smyrnis, G.; Ivgi, M.; Jordan, M.; Gadre, S.; Bansal, H.; Guha, E.; Keh, S.; Arora, K.; Garg, S.; Xin, R.; Muennighoff, N.; Heckel, R.; Mercat, J.; Chen, M.; Gururan-gan, S.; Wortsman, M.; Albalak, A.; Bitton, Y.; Nezhurina, M.; Abbas, A.; Hsieh, C.-Y.; Ghosh, D.; Gardner, J.; Kilian, M.; Zhang, H.; Shao, R.; Pratt, S.; Sanyal, S.; Ilharco, G.; Daras, G.; Marathe, K.; Gokaslan, A.; Zhang, J.; Chandu, K.; Nguyen, T.; Vasiljevic, I.; Kakade, S.; Song, S.; Sanghavi, S.; Faghri, F.; Oh, S.; Zettlemoyer, L.; Lo, K.; El-Nouby, A.; Pouransari, H.; Toshev, A.; Wang, S.; Groeneveld, D.; Sol-daini, L.; Koh, P. W.; Jitsev, J.; Kollar, T.; Dimakis, A. G.; Carmon, Y.; Dave, A.; Schmidt, L.; and Shankar, V. 2024. DataComp-LM: In Search of the Next Generation of Training Sets for Language Models. In Advances in Neural Informa-tion Processing Systems , volume 37, 14200–14282. Curran Associates, Inc. Novikov, A.; Podoprikhin, D.; Osokin, A.; and Vetrov, D. P. 2015. Tensorizing Neural Networks. Advances in neural information processing systems , 28. Oseledets, I. V. 2011. Tensor-Train Decomposition. SIAM Journal on Scientific Computing , 33(5): 2295–2317. Sinkhorn, R. 1964. A Relationship Between Arbitrary Pos-itive Matrices and Doubly Stochastic Matrices. The Annals of Mathematical Statistics , 35(2): 876–879. Taranenko, A. A. 2023. Products of Multidimensional Ma-trices, Stochastic Matrices, and Permanents. arXiv preprint arXiv:2303.17278 .Tucker, L. R. 1966. Some Mathematical Notes on Three-mode Factor Analysis. Psychometrika , 31(3): 279–311. Vaswani, A.; Shazeer, N.; Parmar, N.; Uszkoreit, J.; Jones, L.; Gomez, A. N.; Kaiser, Ł.; and Polosukhin, I. 2017. Attention is All You Need. Advances in Neural Information Processing Systems , 30. Xie, Z.; Wei, Y.; Cao, H.; Zhao, C.; Deng, C.; Li, J.; Dai, D.; Gao, H.; Xu, M.; Yu, K.; Zhao, L.; Zhou, S.; Xu, Z.; Zhang, Z.; Zeng, W.; Hu, S.; Wang, Y.; Yuan, J.; Wang, L.; and Liang, W. 2026. mHC: Manifold-Constrained Hyper-Connections. In Forty-third International Conference on Machine Learning .Xu, M.; Xu, Y. L.; and Mandic, D. P. 2023. Ten-sorgpt: Efficient Compression of Large Language Mod-els based on Tensor-Train Decomposition. arXiv preprint arXiv:2307.00526 .Yang, Y.; and Gao, J. 2026. mHC-lite: You Don’t Need 20 Sinkhorn-Knopp Iterations. arXiv preprint arXiv:2601.05732 .Yang, Y.; Zhou, J.; Wong, N.; and Zhang, Z. 2024. LoRETTA: Low-Rank Economic Tensor-Train Adaptation for Ultra-Low-Parameter Fine-Tuning of Large Language Models. In Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Lin-guistics: Human Language Technologies (Volume 1: Long Papers) . Mexico City, Mexico: Association for Computa-tional Linguistics. Zeng, J.; Li, C.; Sun, Z.; Zhao, Q.; and Zhou, G. 2024. TNGPS: Discovering Unknown Tensor Network Structure Search Algorithms via Large Language Models (LLMs). 
+
+arXiv preprint arXiv:2402.02456 .Zhou, W.; Gu, Y.; Iacovides, G.; and Mandic, D. 2026. KromHC: Manifold-Constrained Hyper-Connections with Kronecker-Product Residual Matrices. In Forty-third Inter-national Conference on Machine Learning .Zhou, W.; Iacovides, G.; Konstantinidis, K.; Kisil, I.; and Mandic, D. 2025. Understanding the Rank of Tensor Net-works via an Intuitive Example-Driven Approach. arXiv preprint arXiv:2507.10170 .Zhu, D.; Huang, H.; Huang, Z.; Zeng, Y.; Mao, Y.; Wu, B.; Min, Q.; and Zhou, X. 2025. Hyper-Connections. In Inter-national Conference on Learning Representations , volume 2025, 97183–97219.

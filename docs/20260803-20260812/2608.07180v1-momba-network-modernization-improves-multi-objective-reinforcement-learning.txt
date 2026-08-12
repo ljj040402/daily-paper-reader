@@ -1,0 +1,636 @@
+Title: Momba: Network Modernization Improves Multi-Objective Reinforcement Learning
+
+URL Source: https://arxiv.org/pdf/2608.07180v1
+
+Published Time: Mon, 10 Aug 2026 00:54:01 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+Cover Page 
+
+# Momba: Network Modernization Improves Multi-Objective Reinforcement Learning 
+
+## Adam Štafa, Santeri Heiskanen, Petr Novotný, Joni Pajarinen 
+
+Keywords: Reinforcement Learning, Multi-objective Reinforcement Learning, Distributional Reinforcement Learning, Neural Architectures 
+
+# Summary 
+
+Recent advances in deep reinforcement learning (RL) have shown that improving neural network architectures can yield substantial gains in sample efficiency and asymptotic perfor-mance without altering the underlying algorithms. In contrast, work on multi-objective rein-forcement learning (MORL), which aims to discover a set of policies that balance trade-offs among conflicting objectives, has predominantly focused on algorithmic innovations, leaving the area of architectures underexplored. While the optimal policies and value functions can differ significantly depending on the trade-offs, MORL algorithms commonly represent them with simple feedforward networks conditioned on the trade-off. This raises the question of whether the performance of the algorithms could be improved with more expressive function approximators. In this paper, we integrate recent advances in neural network design: (i) obser-vation and feature normalization, (ii) weight normalization, and (iii) modeling of distributional returns with an entropy-regularized MORL algorithm. The empirical results across standard continuous control benchmarks demonstrate that these changes substantially improve the qual-ity of the produced solution sets without requiring major changes to the underlying algorithm. 
+
+# Contribution(s) 
+
+1. We showcase that employing more expressive neural network architectures with a distribu-tional critic in a MORL algorithm substantially improves the performance on continuous control tasks without requiring complex preference selection algorithms or MORL-specific update rules. 
+
+Context: Previous works in MORL achieved improvements in sample efficiency and asymptotic performance by employing advanced preference selection algorithms (Alegre et al., 2023) or specialized update rules (Yang et al., 2019; Li et al., 2025). In single-objective RL, in contrast, a range of studies (Nauman et al., 2024; Lee et al., 2025a;b; Palenicek et al., 2025; 2026) has shown that the combination of (i) feature normalization, (ii) weight normalization, and (iii) categorical critic loss can improve the sample efficiency and asymptotic performance of existing reinforcement learning algorithms, without altering them. We apply the same principles to multi-objective reinforcement learning and showcase that improvements in the architecture outperform selected baselines. Additionally, we study these design choices and identify the distributional critic as a major component. 2. We propose a simple adaptation of the categorical critic to the multi-objective domain by directly learning to predict the scalarized return distribution, motivated by the commonplace scalarized expected return objective. 
+
+Context: Previous research applying the distributional critic (Bellemare et al., 2017) to multi-valued return functions by modeling the multivariate joint distribution of rewards has been limited to tabular cases (Wiltzer et al., 2024), or required specifying a kernel function for measuring distance between distributions (Zhang et al., 2021). Instead, we specifically target multi-objective reinforcement learning, under the prevalent linear scalarization as-sumption (Abels et al., 2019; Xu et al., 2020; Kyriakis et al., 2022; Basaklar et al., 2023; Alegre et al., 2023), and propose a simple approach where the Q-network directly predicts the scalarized return distribution. Through extensive empirical studies, we validate the ef-fectiveness of the proposed approach. arXiv:2608.07180v1 [cs.LG] 7 Aug 2026 Momba: Network Modernization Improves Multi-Objective Reinforcement Learning 
+
+## Adam Štafa 1, Santeri Heiskanen 2, Petr Novotný 1, Joni Pajarinen 2
+
+stafa@mail.muni.cz, petr.novotny@fi.muni.cz {santeri.heiskanen,joni.pajarinen}@aalto.fi 
+
+> 1
+
+Faculty of Informatics, Masaryk University 
+
+> 2
+
+Department of Electrical Engineering and Automation, Aalto University 
+
+## Abstract 
+
+Recent advances in deep reinforcement learning (RL) have shown that improving neural network architectures can yield substantial gains in sample efficiency and asymptotic performance without altering the underlying algorithms. In contrast, work on multi-objective reinforcement learning (MORL), which aims to discover a set of policies that balance trade-offs among conflicting objectives, has predominantly focused on algo-rithmic innovations, leaving the area of architectures underexplored. While the optimal policies and value functions can differ significantly depending on the trade-offs, MORL algorithms commonly represent them with simple feedforward networks conditioned on the trade-off. This raises the question of whether the performance of the algorithms could be improved with more expressive function approximators. In this paper, we integrate recent advances in neural network design: (i) observation and feature nor-malization, (ii) weight normalization, and (iii) modeling of distributional returns with an entropy-regularized MORL algorithm. The empirical results across standard con-tinuous control benchmarks demonstrate that these changes substantially improve the quality of the produced solution sets without requiring major changes to the underlying algorithm. 0.0 0.4 0.8       
+
+> 1.00 0.74 0.43 0.40 Normalized HV (IQM)
+> 0.0 0.4 0.8
+> 1.00 0.86 0.74 0.68 Normalized EUM (IQM)
+> 1000 2000 3000
+> X-axis speed
+> 1000 2000 3000
+> Y-axis speed Ant-v4
+> Momba (ours) PGMORL CAPQL DPMORL GPI-LS
+
+Figure 1: Momba improves performance on 7 continuous control tasks . Left and center columns show the normalized hypervolume (HV) and expected utility (EUM) (IQM and 95% SBCIs over 10 seeds), aggregated over 7 tasks. Momba outperforms both the runner-up, PGMORL, and CAPQL, our underlying algorithm. We report GPI results separately in Figure 3 due to a different evaluation protocol. The right column displays the generated solution sets in the challenging Ant environment, demonstrating that Momba can generate solutions with good coverage. 11 Introduction 
+
+Multi-Objective Reinforcement Learning (MORL) offers a principled approach for identifying a set of policies, considering different trade-offs between multiple, conflicting objectives (Roijers et al., 2013), often seen in real-world problems such as drug design (Olivecrona et al., 2017; Zhou et al., 2019), medical treatment (Jalalimanesh et al., 2017), or even robotics (Haarnoja et al., 2018a; Xie et al., 2019). While single-objective reinforcement learning (SORL) can achieve similar results by encoding the trade-off into the reward function (Skalse et al., 2022; Muslimani et al., 2025), MORL allows one to make an informed decision on the desired trade-off after the policies are generated (Hayes et al., 2022). Existing work has developed various learning algorithms for MORL (Abels et al., 2019; Xu et al., 2020; Lu et al., 2023; Cai et al., 2023), yet many of them still suffer from poor sample efficiency (Li et al., 2025). One approach for improving sample efficiency in MORL is to learn a single policy, conditioned on the desired trade-off (Yang et al., 2019; Basaklar et al., 2023). In theory, efficient information sharing via a single policy should speed up learning, yet in practice, this approach faces signifi-cant challenges. As the behaviors between different trade-offs may differ significantly, the policy’s ability to generalize is hindered. The previous work on MORL largely addressed this issue by de-veloping new algorithmic frameworks while customarily using simple feedforward networks for the conditioned value function and policy representation (Yang et al., 2019; Lu et al., 2023). At the same time, recent advances in single-objective RL (SORL) have demonstrated that enhanced neural network architectures can significantly improve performance and sample efficiency (Nikishin et al., 2022; Nauman et al., 2024; Lee et al., 2025a;b; Palenicek et al., 2025; 2026). Therefore, we raise a natural question: Could multi-objective reinforcement learning benefit from recent advances in neural network design for deep RL? 
+
+In this paper, we study this question by building on top of SimbaV2 (Lee et al., 2025b), a recent architecture designed for deep RL that utilizes (i) observation & feature normalization, (ii) weight normalization, and (iii) distributional critic to improve the training dynamics of neural networks. To adapt the distributional critic to the multivariate return distribution, we propose to learn the scalarized distributional returns. We apply the SimbaV2 architecture with the proposed changes on top of an existing entropy-regularized MORL algorithm, CAPQL (Lu et al., 2023), and perform extensive evaluations in 7 continuous control tasks, commonly used in MORL research. Our findings demonstrate that the performance of an existing MORL algorithm can be significantly boosted by adopting the above-mentioned techniques to the neural networks used to represent conditioned value functions and policies. Moreover, we perform comprehensive ablations on our design choices and uncover that the distributional critic is a central component behind the performance improvement. 
+
+## 2 Related Work 
+
+Our work is focused on advancing MORL in continuous control tasks by using techniques from scaling of deep RL and modeling of multivariate distributional returns. Thus, various parts of our work exist in the literature. 
+
+Multi-objective reinforcement learning can be roughly divided into three fields: 1) single-policy methods, 2) multi-policy methods, and 3) general policy methods. The single-policy methods con-sider only a single preference, and then transform the problem to a single objective problem, making it difficult to adapt to new, unseen preferences (Roijers et al., 2013; Hayes et al., 2022; Roijers et al., 2018). Multi-policy methods seek to find a set of solutions by training separate policies for dif-ferent trade-offs, which often results in poor sample efficiency (Roijers et al., 2013; Hayes et al., 2022; Xu et al., 2020). General policy methods sidestep these issues by learning a universal pol-icy, often conditioned on the trade-off, which is used to approximate the whole Pareto front (Abels et al., 2019; Yang et al., 2019; Basaklar et al., 2023). Related to our work, Shu et al. (2024) use a  
+
+> Code to reproduce the experiments is available at https://github.com/adamstafa/momba
+> Correspondence to: stafa@mail.muni.cz
+
+2trade-off conditioned hypernetwork for generating the weights for the policy, while Li et al. (2025) learn a common latent space using self-consistency loss to avoid redundant learning under different trade-offs. However, these methods also introduce changes to algorithmic components, while we explicitly change only the critic loss and preference sampling frequency. 
+
+Specializing architectures for RL is a recent trend that aims to boost the performance and sample efficiency of existing RL algorithms by updating the neural network designs. The approaches have considered biasing the network to use simpler features for predictions (Lee et al., 2025a), pairing strong regularization with optimistic exploration (Nauman et al., 2024), or even designing a network that improves the loss landscape of the Bellman error (Palenicek et al., 2026). Regardless, to our knowledge, the application of these ideas to the multi-objective domain has been limited, with the exception of GPI-LS (Alegre et al., 2023), which used layer normalizations and DroQ networks (Hiraoka et al., 2022). Yet, the authors did not study the effects of these choices. 
+
+Multivariate distributional reinforcement learning extends distributional RL, a framework for modeling distribution over returns (Bellemare et al., 2017), to multi-valued reward functions. Pre-viously, Zhang et al. (2021) modeled the complex multivariate distribution by minimizing the max-imum mean discrepancy over the joint returns, while Wiltzer et al. (2024) proposed a provably convergent algorithm for learning multivariate return distributions in tabular MDPs. Instead, we propose to learn the scalarized distributional returns directly, offering a pragmatic approach specif-ically targeted for MORL under the common linear scalarization assumption. Cai et al. (2023) also consider the MORL setting without the linearity assumption. They propose to model the distribu-tion of user preferences by learning a set of plausible scalarization functions, yet they train separate policies for each function, resulting in poor sample efficiency. 
+
+## 3 Background 
+
+Multi-Objective Reinforcement Learning tasks are formally defined via Multi-objective Markov Decision Process (MOMDP) (Chatterjee et al., 2006), which is a tuple ⟨S , A, P, R, γ, Ω, f Ω⟩, con-sisting of state-space S, action-space A, transition function P : S × A × S → [0 , 1] , vector-valued reward function R : S × A × S → Rd, where d ≥ 2 is the number of objectives, discount factor 
+
+γ ∈ [0 , 1) , preference space Ω and a scalarization function fω : Rd × Ω → R. In this paper, we limit our discussion to preference space Ω = {ω ∈ Rd| Pdi=1 ωi = 1 }, and to linear utility functions: 
+
+fω (r, ω) = ωT r, as is commonly done in existing MORL research (Abels et al., 2019; Kyriakis et al., 2022; Lu et al., 2023; Shu et al., 2024). As there is generally no policy that can maximize all objectives simultaneously, one seeks to find a set of Pareto-optimal policies (Roijers et al., 2013). We say that a policy π dominates another policy π′ (denoted by π′ ≺ π) if ∀i : V π′ 
+
+> i
+
+≤ V πi with at least one strict inequality, where V π = Eπ [P∞ 
+
+> t=0
+
+γtrt] ∈ Rd is vector-valued value function. A policy is considered Pareto-optimal if there is no policy that dominates it. The set of all such poli-cies is called the Pareto-optimal set, and their induced value functions form the Pareto-front (Roijers et al., 2013). In this paper, we focus on general policy methods that try to solve the above problem by finding a preference-conditioned policy π(·| s, ω) that maximizes the scalarized expected returns (SER) for any preference ω ∈ Ω:
+
+π∗ 
+
+> ω
+
+= arg max 
+
+> π∈Π
+
+ωT Eπ(·|· ,ω)
+
+" ∞X
+
+> t=0
+
+γtrt
+
+#
+
+(1) The final solution set is generated by conditioning the policy on a range of preferences. 
+
+Stabilizing deep RL : The non-stationarity of targets in RL can lead to overfitting and unstable learn-ing. The existing literature has addressed this issue using several techniques. Feature normalization and weight normalization prevent plasticity loss and reduce overfitting to early behaviors (Lee et al., 2025a;b). To prevent overfitting on high-variance features, observation normalization and feature normalization are used to bring the magnitudes of hidden values in the network to a comparable scale (Huang et al., 2023; Lee et al., 2025a). Finally, distributional critic bounds gradient norms, 3leading to more stable learning dynamics (Lee et al., 2025b; Palenicek et al., 2026). In this work, we will use the architecture from SimbaV2 (Lee et al., 2025b). Namely, SimbaV2 uses (i) l2 (hy-perspherical) hidden feature normalization and running statistics observation normalization; (ii) the weights are normalized after every gradient update; and (iii) a distributional critic. Additionally, the architecture features scaling layers and learnable residual connections. 
+
+Distributional Critic : While classical value-based algorithms approximate the expected returns of a policy by a state-action value function Q(s, a ), the C51 algorithm (Bellemare et al., 2017) extends on this idea by modeling the distribution of returns instead. The distributions are approx-imated as categorical distributions over a discrete set of atoms {zi = Vmin + i∆z : 0 ≤ i < N }, ∆z := ( Vmax − Vmin )/(N − 1) using a parametric critic Zθ (s, a ). Given a sample transi-tion (s, a, r, s ′) and next state action a′, the critic is trained by minimizing the cross-entropy loss 
+
+L(θ) = H( ˆZ(r, s ′), Z θ (s, a )) , where the target returns distribution ˆZ is computed by projecting the distribution r + γZ (s′, a ′) onto the common support. Given the output of the critic as probabilities 
+
+pi over the atoms zi, the expected return can be computed as Qθ (s, a ) = E[Zθ (s, a )] = PN −1 
+
+> i=0
+
+pizi.
+
+Empirical results have shown that the distributional critic can greatly improve and stabilize learn-ing (Bellemare et al., 2017) and a study of the loss landscape showed that the distributional critic improves the conditioning of the problem, stabilizing the optimization (Palenicek et al., 2026). 
+
+## 4 Methodology 
+
+In this section, we introduce Momba, a new algorithm that integrates recent advancements in neural network design into the multi-objective setting. We build the algorithm on top of CAPQL (Lu et al., 2023), which is an entropy-regularized algorithm akin to Soft Actor-Critic (SAC) (Haarnoja et al., 2018b). This offers two benefits: First, as shown by Lu et al. (2023), the entropy bonus ensures that the induced solution sets are strictly convex, promoting numerically stable optimization under linear scalarization. Second, SAC has been used as the backbone in many recent works on neural architectures in deep RL (Lee et al., 2025a;b; Palenicek et al., 2026), motivating the choice of using a similar algorithm in the multi-objective case. For the architecture, we adopt SimbaV2 (Lee et al., 2025b), a recent architecture for SORL, that adopts the three main components, (i) feature normalization, (ii) weight normalization, and (iii) distributional critic as mentioned in Section 3. We provide a detailed description of the architectural components and normalizations in Appendix C. 
+
+CAPQL: Consider a stochastic policy π(a | s, ω) and let Gπ (s0, a 0) = PTt=0 γtr(st, a t) + 
+
+PTt=1 γt1dH(π(· | st, ω )) denote the entropy-augmented discounted returns of the policy π when starting in state s0 and selecting action a0. CAPQL trains a parametric Q-network Qθ (s, a, ω) and a policy πϕ(a | s, ω). The Q-network is trained by minimizing the mean squared error (MSE) loss 
+
+LQ(θ) = E(s,a, r,s ′,ω)∼D ∥ ˆQ − Qθ (s, a, ω)∥22 (2) where ˆQ = r + γ(Qθ (s′, a ′, ω) − α1 log πϕ(a′ | s′, ω)) , a′ ∼ πϕ(·| s′, ω) denotes the target Q-value estimate, and θ denotes the target network parameters. Intuitively, the Q-value approximates the expected vector returns E Gπ(·|· ,ω)(s, a ). The policy is trained for each state s and preference 
+
+ω to maximize the scalarized value 
+
+Ea∼πϕ [ωT Qθ (s, a, ω)] + αH (πϕ(· | s, ω)) . (3) 
+
+Multi-objective distributional critic : C51-style (Bellemare et al., 2017) distributional critic has been a crucial component in improving the performance of existing deep RL algorithms (Lee et al., 2025b; Palenicek et al., 2026). However, the categorical critic cannot be directly applied to model the multivariate returns distribution in MORL. Instead, we notice that the critic predictions only affect the policy optimization via the scalarized Q-value ωT Q(s, a, ω). Thus, we can avoid learning the multivariate return distribution, and propose to use a conditioned distributional critic Zθ (s, a, ω),which learns the univariate distribution of the scalarized returns ωT Gπ(·|· ,ω)(s, a ). This is done by 4minimizing the cross-entropy (CE) loss 
+
+LZ (θ) = E(s,a, r,s ′,ω)∼D H( ˆZ(ωT r, s ′), Z θ (s, a, ω)) (4) where ˆZ is the TD(0) bootstrap estimate of the scalarized returns distribution computed using the scalarized reward ωT r. The actor then maximizes the value 
+
+Ea∼πϕ [E[Zθ (s, a, ω)]] + αH (πϕ(· | s, ω)) . (5) In order to bound the Q-values to the support of the distributional critic, SORL algorithms commonly normalize the rewards by the running standard deviation of the returns (Lee et al., 2025b; Palenicek et al., 2026). However, in MORL, the magnitude of returns can change significantly based on the preference, and thus, we propose to normalize the rewards component-wise by the maximum returns encountered throughout the training. Finally, in Appendix B we describe how the distributional critic can be modeled while retaining the non-scalarized expected returns, which are required, for instance, by envelope style algorithms (Yang et al., 2019; Li et al., 2025). 
+
+Preference selection : One crucial question in MORL algorithms is how the preference ω, used as conditioning variable, is selected during training (Xu et al., 2020; Hayes et al., 2022; Alegre et al., 2023). Indeed, identifying promising preferences can improve the convergence speed of the algorithms (Hayes et al., 2022; Alegre et al., 2023). As our goal is to study the effect of the architectural changes, we choose a fairly unsophisticated approach: We sample a new preference at the beginning of each episode from a static uniform distribution over the preference space. While this differs from CAPQL (Lu et al., 2023), where the authors sample a new preference at each timestep, the proposed approach is more in line with other work in MORL (Abels et al., 2019; Alegre et al., 2023; Xu et al., 2020; Li et al., 2025), thus supporting our goal of studying the effect of architectural changes. We provide the complete pseudocode, with our changes highlighted in Appendix E. 
+
+## 5 Experiments 
+
+This section is structured as follows: Firstly, Section 5.1 describes the experimental setup, includ-ing the baselines and benchmarks. Then Section 5.2 evaluates whether the proposed method results in improvements in asymptotic performance and sample efficiency. Lastly, Section 5.3 performs ablations over the three key components: (i) observation and feature normalization, (ii) weight nor-malization, and (iii) distributional critic, validating our proposed strategies. 
+
+5.1 Experiment Setup 
+
+We compare the proposed approach to 4 baselines. CAPQL (Lu et al., 2023) is the underlying al-gorithm behind Momba, without any architectural improvements. PGMORL (Xu et al., 2020) and DPMORL (Cai et al., 2023) are multi-policy methods that train separate policies for each scalariza-tion function, thus leading to a discrete approximation of the Pareto-front. GPI-LS (Alegre et al., 2023) obtains best-in-class sample efficiency by using General Policy Improvement (GPI) for se-lecting preferences during training. However, this comes with the downside of high computational cost (300k timesteps taking more than 120 hours in our experiments). We provide a more detailed discussion of the baselines and details on how they were run in Appendix F. We use 7 continuous control tasks from Xu et al. (2020) for evaluating our methods. These tasks consist of 6 environments, implemented in the MuJoCo physics engine (Todorov et al., 2012): Ant, Swimmer, HalfCheetah, Humanoid, Walker2D, and Hopper. For Hopper, we consider a two- and three-objective variant (referred to as Hopper-v4 and Hopper-v3, respectively). Since SimbaV2 targets continuous control domains, we omit evaluation on discrete environments. Additionally, existing discrete benchmarks for MORL consist of small state or action spaces (Vamplew et al., 2011; Michailidis et al., 2026); thus, function approximation is unlikely to be the limiting factor. Adetailed description of the environments, including the reference points used to compute the results, is provided in Appendix G. 5For measuring the quality of the solution sets, we use two common metrics in MORL research, Hypervolume (HV) and Expected Utility Metric (EUM): • Hypervolume HV (⇑) (Zitzler & Thiele, 1998) measures the space or volume enclosed by the solutions in the set P: HV( P ) = R 
+
+> Rn
+
+1H(P )(z)dz where H(P ) = {z ∈ Z|∃ i : 0 ≤ i ≤ | P |, r 0 ⪯
+
+z ⪯ P (i)}. Here P (i) is the ith solution, r0 is the reference point and 1H(P ) is an indicator function. • Expected Utility Metric EUM (⇑) (Zintgraf et al., 2015) captures the expected utility for a user from a given solution set, defined as EUM( P ) = Ef ∼Pf [max π∈P f (V π )] , where P is the solu-tion set and Pf is distribution over scalarization functions, which simplifies to distribution over the preferences, as we are limited to linear scalarization functions. As noted by Zintgraf et al. (2015), hypervolume can detect improvements in uniformity, spread, and convergence of the solution set, making it a good indicator of the overall quality, and thus, we use HV as our main metric. When reporting aggregate metrics, we normalize the HV and EUM values by the mean values Momba obtained after being trained for 1M steps. Regardless, we report both HV and EUM when comparing against the baselines, while for ablations, we only report HV, as we notice that both metrics behave similarly under linear scalarization. Notably, both metrics fail to explicitly capture the diversity of the generated Pareto front. Ideally, a high-quality solution set exhibits both high density and uniform dispersion across the objective space, thereby facilitating fine-grained trade-off exploration (Hayes et al., 2022). However, standard metrics, such as sparsity, rely on Euclidean distances between solutions, rendering them ill-suited for comparing fronts with varying convergence rates; Indeed, optimal sparsity can be trivially achieved by clustering solutions (Zhu et al., 2023; Liu et al., 2025). Consequently, we resort to visualizing the obtained solution sets for qualitative assessment. To measure performance, we first approximate the Pareto front by averaging returns across 5 episodes for different preferences. Following Alegre et al. (2023), we use 100 equally spaced pref-erences for general policy methods, while PGMORL and DPMORL are evaluated based on their current (policy, utility function) pairs. Finally, we compute HV and EUM from the approximated Pareto front. When reporting results, we use interquartile mean (IQM) and stratified bootstrapped confidence intervals (SBCIs) as recommended by Agarwal et al. (2021). 
+
+5.2 Experimental Validation 
+
+We begin by investigating whether the proposed method can improve in i) asymptotic performance and ii) sample efficiency over the baselines. Figure 1, displayed on the first page, answers the former question, showcasing the performance of the final solution set, aggregated over all environments. The proposed approach outperforms baselines , achieving ∼ 35% improvement in HV and ∼ 16% 
+
+improvement in EUM over the runner-up, PGMORL. When compared to CAPQL, the underlying algorithm behind Momba, we achieve ∼ 132% and ∼ 35% improvements in aggregate HV and EUM, respectively. However, we wish to acknowledge that the performance we report for DPMORL (Cai et al., 2023) is worse than expected based on the original paper. We discuss the possible reasons for the discrepancy in DPMORL performance in Appendix F. To examine if the proposed approach improves the sample efficiency of the underlying algorithm, Figure 2 displays the training curves of CAPQL and Momba in 3 environments. In addition to im-proving on CAPQL, in Ant and Humanoid, Momba reaches the final performance of PGMORL after training only for 100k and 200k steps respectively. We highlight that while CAPQL could not match the performance of PGMORL in any of the shown environments, Momba outperforms PGMORL in 2 of the 3 environments, and matches it in the challenging 3-objective Hopper environment, while requiring a fraction of the training steps. To further study the sample efficiency of our method, we compare it against GPI-LS, a method with best-in-class sample efficiency. Figure 3 displays the training curves for normalized HV and EUM with 95% SBCIs aggregated over all environments. To remove the effect of update-to-data (UTD) 605Hypervolume  ×10 6 Ant-v4                  
+
+> 0.0 2.5
+> ×10 7Humanoid-v4
+> 0.0 2.5
+> ×10 10 Hopper-v3
+> 0.00 0.25 0.50 0.75 1.00 12EUM
+> ×10 3
+> 0.00 0.25 0.50 0.75 1.00 Steps ( ×10 6)
+> 05
+> ×10 3
+> 0.00 0.25 0.50 0.75 1.00 0.0 2.5
+> ×10 3
+> Momba (ours) CAPQL PGMORL DPMORL
+
+Figure 2: Momba substantially improves sample efficiency against CAPQL . The figures show HV (top) and EUM (bottom) (IQM and 95% SBCIs over 10 seeds) during training. Horizontal lines indicate final performance of PGMORL at 4.8 × 10 7 timesteps for Ant and 12 × 10 7 timesteps for Humanoid and Hopper, and final performance of DPMORL at 1 × 10 7 timesteps. 0.5 1.0 1.5 2.0 0.25 0.50 0.75 Norm. HV (IQM)       
+
+> 0.5 1.0 1.5 2.0 0.50 0.75 Norm. EUM (IQM)
+> Steps ( ×10 5)
+> Momba (UTD=1) GPI-LS (UTD=1) Momba (UTD=8) GPI-LS (UTD=20)
+
+Figure 3: Momba outperforms GPI-LS at similar UTD after 200k steps . We compare the nor-malized HV and EUM (IQM and 95% SBCIs over 7 seeds) of Momba and GPI-LS with different UTD-ratios during the first 200k steps. ratio, we show the results at UTD = {1, 8} for Momba and at UTD = {1, 20 } for GPI-LS, where the default value is bolded. The results demonstrate that when paired with a similar UTD ratio, Momba can beat the sample efficiency of GPI-LS. We want to emphasize that this result is achieved by training Momba using preferences sampled from a static distribution , whereas GPI-LS uses a sophisticated strategy for preference selection, highlighting the importance of an expressive neural network. Lastly, we display the generated solution sets in 3 environments in Figure 4 for qualitative analy-sis. In Walker2d and Hopper-v4, Momba produces solution sets with good coverage, outperforming other methods. In HalfCheetah, Momba has a more limited coverage, while still producing a so-lution set that dominates most of the baselines. We note that in Walker2d and HalfCheetah, the upper left corner contains gaps, which we attribute to our use of linear scalarization. While entropy regularization turns the set of induced value functions strictly convex (Lu et al., 2023), it is possible that a stronger regularization would be required to reliably obtain policies in these regions. 
+
+5.3 Validating design choices 
+
+In this section, we explore the effectiveness of our three key components: (i) distributional critic, (ii) feature and observation normalization, and (iii) weight normalization. We begin by compar-ing the distributional critic with the cross-entropy loss (CE) to the non-distributional critic with standard mean squared error loss (MSE). To ensure that any performance improvements are not due to architectural changes introduced in Simba, such as normalizations and residual connec-7800 1600 Forward speed 1500 2000 2500 Energy efficiency  Walker2d-v4        
+
+> 800 1600 2400 Forward speed 1200 1800 2400 Energy efficiency  HalfCheetah-v4
+> 1500 3000 Forward speed 3000 4500 Jumping height  Hopper-v4
+> Momba (ours) CAPQL PGMORL DPMORL GPI-LS
+
+Figure 4: Momba produces solution sets with good coverage . We visualize the generated solution sets in Walker2d (left), HalfCheetah (middle), and Hopper (right). Momba produces superb solution sets in Walker2d and Hopper. Gaps in the upper left corner of Walker2d and HalfCheetah are likely a result of poor numerical properties caused by linear scalarization. tions, we test the performance of the proposed distributional critic with the standard 2-layer MLP, commonly used to represent the Q-network in MORL algorithms. In order to eliminate the ef-fect of the size of the critic, we vary the hidden dimension from 256 to 2048 and from 64 to 512 for MLP and Simba, respectively, resulting in networks with approximately similar parame-ter sizes. Figure 5 showcases that the proposed approach (Momba=Simba+CE) clearly outperforms the Simba+MSE variant across all critic sizes. Perhaps surprisingly, the standard MLP with cate-gorical loss (MLP+CE) matches or even outperforms Simba+MSE , showcasing the effectiveness of the proposed categorical critic adaptation to the multi-objective domain. The default MLP with MSE loss corresponds to a parameter-scaled version of CAPQL, the base algorithm behind Momba. 100k 300k 1M 4M Number of Critic Parameters 0.7 0.8 0.9 1.0 Normalized Hypervolume 
+
+> MLP+MSE MLP+CE Simba+MSE Simba+CE
+
+Figure 5: The categorical critic adap-tation is highly effective . The figure displays normalized HV (IQM and 95% SBCIs over 10 seeds) as a function of the critic size. Momba is Simba+CE. As expected, this combination retains poor performance, regardless of the critic size, implying that the perfor-mance gains are not due to the increase in the parameter counts , but rather stem from the improvements to func-tion approximation and critic loss. To validate the effect of the (i) weight normalization (WN), (ii) feature normalization (FN), and (iii) obser-vation normalization (ON), we evaluate Momba under all combinations of these normalization methods. Fig-ure 6 displays the normalized HV and 95% SBCIs over 10 seeds, aggregated over all tasks, and the Shapley val-ues of the three different normalization techniques. The results demonstrate that observation normalization was the most effective technique on our benchmarks, ac-counting for ≈ 55% of the improvements according to the Shapley values. While feature and weight normaliza-tion provide more modest improvements, all normaliza-tion schemes synergistically improve the performance. 
+
+## 6 Conclusions & Discussions 
+
+In this paper, we investigated whether the recent advances in neural network design, such as i) fea-ture & observation normalization, ii) weight normalization, and iii) distributional critic, can improve the performance of an existing MORL algorithm. We applied and adapted a recent deep RL archi-tecture, SimbaV2, to an existing entropy-regularized MORL algorithm, which we kept close to the original, only changing the preference sampling rate and critic loss. To deal with the multivariate return distribution, we proposed a simple yet effective tactic of modeling scalarized return distri-80.925 0.950 0.975 1.000 Normalized Hypervolume (IQM) FN+ON+WN FN+ON ON+WN FN+WN ON WN FN None 0.000 0.015 0.030 Shapley values ON FN WN 
+
+> 54.8% 24.8% 20.4%
+
+Figure 6: Observation normalization is the most effective component . Left: We investigate the effect of i) Feature Normalization (FN), ii) Observation normalization (ON), and iii) Weight Normalization (WN) to the final HV (IQM and 95% SBCIs over 10 seeds). Momba is FN+ON+WN. Right: Observation normalization is associated with the highest Shapley value, while weight and feature normalization are given similar importance. bution, motivated by the prevalent scalarized expected return objective. Our extensive experiments demonstrated that one can achieve competitive performance while matching or improving the sam-ple efficiency of the base algorithm in multi-objective continuous control tasks. We demonstrated the effectiveness of our adaptations via ablations. We acknowledge that our study has several limitations. First, we restrict attention to linear scalar-ization. While common in MORL, nonlinear or learned scalarization may be preferable in some settings (Hayes et al., 2022; Cai et al., 2023). Notably, our distributional critic does not assume a specific scalarization form; the constraint arises from TD learning via the Bellman error, which may not hold under nonlinear scalarization (Roijers et al., 2018; Hayes et al., 2022). Second, our bench-marks are limited to continuous control tasks, with 2 objectives, with only one with 3 objectives. This makes it difficult to assess how applicable the proposed changes would be in discrete state and action spaces, and how well the approach would scale with increasing number of objectives. Finally, our more expressive function approximators can increase wall-clock time, though recent systems advances (e.g., JIT compilation) can mitigate this (Frostig et al., 2018; Ansel et al., 2024), and replacing SimbaV2 with the XQC architecture may offer similar gains with simpler designs (Palenicek et al., 2026). 
+
+Acknowledgments 
+
+Adam Štafa and Petr Novotný were supported by U.S. Army Research Office under contract num-ber W911NF261A180. Santeri Heiskanen was supported by the Ministry of Education and Culture’s Doctoral Education Pilot in Finland (Decision No. VN/3137/2024-OKM-6; Finnish Doctoral Pro-gram Network in Artificial Intelligence, AI-DOC). We acknowledge the computational resources provided by the Aalto Science-IT project. 
+
+## References 
+
+Axel Abels, Diederik Roijers, Tom Lenaerts, Ann Nowé, and Denis Steckelmacher. Dynamic Weights in Multi-Objective Deep Reinforcement Learning. In Proceedings of the 36th Inter-national Conference on Machine Learning , 2019. Rishabh Agarwal, Max Schwarzer, Pablo Samuel Castro, Aaron C Courville, and Marc Bellemare. Deep reinforcement learning at the edge of the statistical precipice. In Advances in Neural Infor-mation Processing Systems , 2021. Lucas N. Alegre, Ana L. C. Bazzan, Diederik M. Roijers, Ann Nowé, and Bruno C. da Silva. Sample-Efficient Multi-Objective Learning via Generalized Policy Improvement Prioritization. In Proceedings of the 2023 International Conference on Autonomous Agents and Multiagent Sys-tems , 2023. 9Jason Ansel, Edward Yang, Horace He, Natalia Gimelshein, Animesh Jain, Michael Voznesensky, Bin Bao, Peter Bell, David Berard, Evgeni Burovski, et al. Pytorch 2: Faster machine learning through dynamic python bytecode transformation and graph compilation. In Proceedings of the 29th ACM international conference on architectural support for programming languages and operating systems, volume 2 , 2024. Toygun Basaklar, Suat Gumussoy, and Umit Ogras. PD-MORL: Preference-driven multi-objective reinforcement learning algorithm. In The Eleventh International Conference on Learning Repre-sentations , 2023. Marc G. Bellemare, Will Dabney, and Rémi Munos. A Distributional Perspective on Reinforcement Learning. In Proceedings of the 34th International Conference on Machine Learning , 2017. Xin-Qiang Cai, Pushi Zhang, Li Zhao, Jiang Bian, Masashi Sugiyama, and Ashley Juan Llorens. Distributional Pareto-Optimal Multi-Objective Reinforcement Learning. In Thirty-seventh Con-ference on Neural Information Processing Systems , 2023. Krishnendu Chatterjee, Rupak Majumdar, and Thomas A Henzinger. Markov decision processes with multiple objectives. In STACS 2006 , 2006. Florian Felten, Lucas Nunes Alegre, Ann Nowe, Ana L. C. Bazzan, El Ghazali Talbi, Grégoire Danoy, and Bruno Castro da Silva. A Toolkit for Reliable Benchmarking and Research in Multi-Objective Reinforcement Learning. In Thirty-seventh Conference on Neural Information Process-ing Systems Datasets and Benchmarks Track , 2023. Roy Frostig, Matthew James Johnson, and Chris Leary. Compiling machine learning programs via high-level tracing. In SysML conference , 2018. Tuomas Haarnoja, Vitchyr Pong, Aurick Zhou, Murtaza Dalal, Pieter Abbeel, and Sergey Levine. Composable deep reinforcement learning for robotic manipulation. In 2018 IEEE International Conference on Robotics and Automation (ICRA) , 2018a. Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine. Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor. In International con-ference on machine learning , 2018b. Conor F. Hayes, Roxana R˘ adulescu, Eugenio Bargiacchi, Johan Källström, Matthew Macfarlane, Mathieu Reymond, Timothy Verstraeten, Luisa M. Zintgraf, Richard Dazeley, Fredrik Heintz, Enda Howley, Athirai A. Irissappane, Patrick Mannion, Ann Nowé, Gabriel Ramos, Marcello Restelli, Peter Vamplew, and Diederik M. Roijers. A Practical Guide to Multi-Objective Rein-forcement Learning and Planning. Autonomous Agents and Multi-Agent Systems , 36(1), 2022. Takuya Hiraoka, Takahisa Imagawa, Taisei Hashimoto, Takashi Onishi, and Yoshimasa Tsuruoka. Dropout q-functions for doubly efficient reinforcement learning. In International Conference on Learning Representations , 2022. Lei Huang, Jie Qin, Yi Zhou, Fan Zhu, Li Liu, and Ling Shao. Normalization techniques in train-ing dnns: Methodology, analysis and application. IEEE Transactions on Pattern Analysis and Machine Intelligence , 45(8), 2023. Ammar Jalalimanesh, Hamidreza Shahabi Haghighi, Abbas Ahmadi, Hossein Hejazian, and Madjid Soltani. Multi-objective optimization of radiotherapy: distributed Q-learning and agent-based simulation. Journal of Experimental & Theoretical Artificial Intelligence , 29(5), 2017. Panagiotis Kyriakis, Jyotirmoy Deshmukh, and Paul Bogdan. Pareto policy adaptation. In Interna-tional Conference on Learning Representations , 2022. 10 Hojoon Lee, Dongyoon Hwang, Donghu Kim, Hyunseung Kim, Jun Jet Tai, Kaushik Subramanian, Peter R. Wurman, Jaegul Choo, Peter Stone, and Takuma Seno. SimBa: Simplicity Bias for Scal-ing Up Parameters in Deep Reinforcement Learning. In The Thirteenth International Conference on Learning Representations , 2025a. Hojoon Lee, Youngdo Lee, Takuma Seno, Donghu Kim, Peter Stone, and Jaegul Choo. Hyper-spherical Normalization for Scalable Deep Reinforcement Learning. In Proceedings of the 42nd International Conference on Machine Learning , 2025b. Pengyi Li, Hongyao Tang, Yifu Yuan, Jianye Hao, Zibin Dong, and Yan Zheng. Cola: Towards efficient multi-objective reinforcement learning with conflict objective regularization in latent space. In Advances in Neural Information Processing Systems (NeurIPS) , 2025. Ruohong Liu, Yuxin Pan, Linjie Xu, Lei Song, Pengcheng You, Yize Chen, and Jiang Bian. Ef-ficient discovery of pareto front for multi-objective reinforcement learning. In The Thirteenth International Conference on Learning Representations , 2025. Haoye Lu, Daniel Herman, and Yaoliang Yu. Multi-Objective Reinforcement Learning: Convex-ity, Stationarity and Pareto Optimality. In The Eleventh International Conference on Learning Representations , 2023. Dimitris Michailidis, Willem Röpke, Diederik M. Roijers, Sennay Ghebreab, and Fernando P. San-tos. Scalable multi-objective reinforcement learning with fairness guarantees using lorenz domi-nance. Journal of Artificial Intelligence Research , 85, 2026. Calarina Muslimani, Kerrick Johnstonbaugh, Suyog Chandramouli, Serena Booth, W. Bradley Knox, and Matthew E. Taylor. Towards improving reward design in RL: A reward alignment metric for RL practitioners. Reinforcement Learning Journal , 6, 2025. Michal Nauman, Mateusz Ostaszewski, Krzysztof Jankowski, Piotr Miło´ s, and Marek Cygan. Big-ger, regularized, optimistic: scaling for compute and sample efficient continuous control. In The Thirty-eighth Annual Conference on Neural Information Processing Systems , 2024. Evgenii Nikishin, Max Schwarzer, Pierluca D’Oro, Pierre-Luc Bacon, and Aaron Courville. The Primacy Bias in Deep Reinforcement Learning. In Proceedings of the 39th International Confer-ence on Machine Learning . PMLR, 2022. Marcus Olivecrona, Thomas Blaschke, Ola Engkvist, and Hongming Chen. Molecular de-novo design through deep reinforcement learning. Journal of Cheminformatics , 9(1), 2017. Daniel Palenicek, Florian Vogt, Joe Watson, and Jan Peters. Scaling off-policy reinforcement learn-ing with batch and weight normalization. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. Daniel Palenicek, Florian Vogt, Joe Watson, Ingmar Posner, and Jan Peters. XQC: Well-conditioned optimization accelerates deep reinforcement learning. In The Fourteenth International Conference on Learning Representations , 2026. Diederik M. Roijers, Peter Vamplew, Shimon Whiteson, and Richard Dazeley. A Survey of Multi-Objective Sequential Decision-Making. Journal of Artificial Intelligence Research , 48, 2013. Diederik M. Roijers, Denis Steckelmacher, and Ann Nowé. Multi-objective reinforcement learn-ing for the expected utility of the return. In Proceedings of the Adaptive and Learning Agents workshop at FAIM , 2018. Tianye Shu, Ke Shang, Cheng Gong, Yang Nan, and Hisao Ishibuchi. Learning pareto set for multi-objective continuous robot control. In Proceedings of the Thirty-Third International Joint Conference on Artificial Intelligence, IJCAI-24 , 2024. 11 Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. Defining and character-izing reward gaming. In Advances in Neural Information Processing Systems , 2022. Emanuel Todorov, Tom Erez, and Yuval Tassa. Mujoco: A physics engine for model-based control. In 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems , 2012. Peter Vamplew, Richard Dazeley, Adam Berry, Rustam Issabekov, and Evan Dekker. Empirical evaluation methods for multiobjective reinforcement learning algorithms. Machine Learning , 84: 51–80, July 2011. Harley Wiltzer, Jesse Farebrother, Arthur Gretton, and Mark Rowland. Foundations of Multivariate Distributional Reinforcement Learning. In Advances in Neural Information Processing Systems ,2024. Jiexin Xie, Zhenzhou Shao, Yue Li, Yong Guan, and Jindong Tan. Deep reinforcement learning with optimized reward functions for robotic trajectory planning. IEEE Access , 7, 2019. Jie Xu, Yunsheng Tian, Pingchuan Ma, Daniela Rus, Shinjiro Sueda, and Wojciech Matusik. Prediction-Guided Multi-Objective Reinforcement Learning for Continuous Robot Control. In 
+
+Proceedings of the 37th International conference on Machine learning , 2020. Runzhe Yang, Xingyuan Sun, and Karthik Narasimhan. A Generalized Algorithm for Multi-Objective Reinforcement Learning and Policy Adaptation. In Advances in Neural Information Processing Systems , 2019. Pushi Zhang, Xiaoyu Chen, Li Zhao, Wei Xiong, Tao Qin, and Tie-Yan Liu. Distributional Rein-forcement Learning for Multi-Dimensional Reward Functions. In Advances in Neural Information Processing Systems , 2021. Zhenpeng Zhou, Steven Kearnes, Li Li, Richard N. Zare, and Patrick Riley. Optimization of Molecules via Deep Reinforcement Learning. Scientific Reports , 9(1), 2019. Baiting Zhu, Meihua Dang, and Aditya Grover. Scaling pareto-efficient decision making via of-fline multi-objective RL. In The Eleventh International Conference on Learning Representations ,2023. Luisa M Zintgraf, Timon V Kanters, Diederik M Roijers, Frans A Oliehoek, and Philipp Beau. Qual-ity assessment of MORL algorithms: A utility-based approach. In Benelearn 2015: Proceedings of the 24th Annual Machine Learning Conference of Belgium and the Netherlands , 2015. Eckart Zitzler and Lothar Thiele. Multiobjective optimization using evolutionary algorithms — a comparative case study. In Parallel Problem Solving from Nature — PPSN V , 1998. 12 Supplementary Materials 
+
+The following content was not necessarily subject to peer review. 
+
+## A Full Evaluation Results 
+
+To facilitate more detailed analysis of the proposed method, we report the performance metrics of Momba and baselines across all environments in Table 1. The results showcase that Momba can outperform all the baselines in most of the continuous control tasks, with the exception of Swimmer, where PGMORL outperforms Momba. However, this environment is clearly difficult for general policy methods, likely due to high imbalance between the objective difficulties. It should be noted that in the rest of the environments, Momba’s and the runner-up methods 95% SBCIs for Hypervolume don’t overlap. While GPI-LS is trained for considerably fewer timesteps, this matches the default training protocol used in the original paper. Moreover, as is mentioned in Section 5.1, training GPI-LS for more timesteps is extremely time-consuming. The hyperparameters for Momba and a detailed description of the baselines are given in Appendix D and Appendix F respectively. Table 1: Full results of our evaluation. We report the IQM and 95% SBCIs of hypervolume ( ⇑) and EUM ( ⇑) across 10 seeds for each algorithm and environment. The best and runner-up methods for each environment are bolded and underlined respectively. 
+
+Environment Metric MOMBA PGMORL GPI-LS CAPQL DPMORL 
+
+ANT -V4Steps ( ×10 6) 1 48 0.20 1 10 HV ( ×10 6) 7.78 [7.61, 7.97] 4.01 [3.16, 4.57] 4.23 [3.73, 4.49] 1.69 [1.08, 2.33] 1.28 [1.17, 1.40] 
+
+EUM ( ×10 3) 2.58 [2.55, 2.61] 1.88 [1.66, 2.00] 1.93 [1.81, 1.99] 1.23 [0.96, 1.42] 1.13 [1.07, 1.19] 
+
+HALF CHEETAH -V4Steps ( ×10 6) 1 30 0.20 1 10 HV ( ×10 6) 5.84 [5.79, 5.87] 4.86 [4.58, 5.01] 5.53 [4.70, 5.61] 5.42 [4.20, 5.52] 2.39 [2.31, 2.46] 
+
+EUM ( ×10 3) 2.34 [2.33, 2.35] 2.07 [2.02, 2.11] 2.30 [2.10, 2.33] 2.23 [1.99, 2.26] 1.56 [1.54, 1.58] 
+
+HOPPER -V3Steps ( ×10 6) 1 120 0.20 1 10 HV ( ×10 10 ) 2.95 [2.85, 3.02] 2.68 [2.62, 2.80] 2.07 [1.72, 2.23] 1.68 [1.05, 1.99] 1.12 [0.96, 1.30] 
+
+EUM ( ×10 3) 3.12 [3.09, 3.13] 2.95 [2.92, 3.00] 2.81 [2.65, 2.84] 2.53 [2.10, 2.69] 2.25 [2.12, 2.38] 
+
+HOPPER -V4Steps ( ×10 6) 1 48 0.20 1 10 HV ( ×10 7) 1.81 [1.78, 1.85] 1.53 [1.40, 1.64] 1.35 [1.29, 1.42] 1.21 [1.11, 1.30] 0.88 [0.75, 1.00] 
+
+EUM ( ×10 3) 4.07 [4.03, 4.10] 3.76 [3.60, 3.90] 3.55 [3.48, 3.63] 3.43 [3.27, 3.54] 2.92 [2.70, 3.10] 
+
+HUMANOID -V4Steps ( ×10 6) 1 120 0.20 1 10 HV ( ×10 7) 3.96 [3.69, 4.05] 2.12 [2.02, 2.27] 0.00 [0.00, 0.00] 0.65 [0.51, 0.86] 0.02 [0.01, 0.02] 
+
+EUM ( ×10 3) 5.99 [5.81, 6.05] 4.54 [4.48, 4.63] -0.01 [-0.02, 0.16] 2.65 [2.47, 2.94] 0.41 [0.39, 0.46] 
+
+SWIMMER -V4Steps ( ×10 6) 1 12 0.20 1 10 HV ( ×10 4) 1.66 [1.57, 1.74] 1.75 [1.10, 2.29] 0.75 [0.73, 0.98] 0.56 [0.52, 0.61] 1.20 [1.17, 1.31] 
+
+EUM ( ×10 2) 1.23 [1.21, 1.25] 1.27 [1.07, 1.45] 0.99 [0.98, 1.04] 0.93 [0.92, 0.94] 1.10 [1.09, 1.13] 
+
+WALKER 2D-V4Steps ( ×10 6) 1 30 0.20 1 10 HV ( ×10 6) 5.15 [4.17, 5.32] 3.47 [3.23, 3.64] 3.33 [3.03, 3.67] 2.38 [1.82, 2.66] 2.54 [2.33, 2.70] 
+
+EUM ( ×10 3) 2.12 [1.76, 2.15] 1.80 [1.77, 1.83] 1.78 [1.72, 1.84] 1.62 [1.54, 1.67] 1.66 [1.61, 1.70] 
+
+## B Vectorized Versus Scalarized Returns 
+
+In Section 4, we propose to directly learn the scalarized distributional returns. However, in MORL literature, it is customary to predict the vector returns, which allows algorithms to take advantage of this information, for e.g., envelope-style updates (Yang et al., 2019; Li et al., 2025). We show that it is possible to learn the vector returns with the distributional critic by approximating the marginals of 13 the returns distributions, from which one can recover the vector Q-values by taking component-wise expectation of the critic output. To achieve this, we implemented the vector distributional critic as d distributional critics Z1 
+
+> θ
+
+, . . . , Z dθ ,each predicting the distribution of one component of the d-dimensional returns. The critic loss is 
+
+LZ (θ) = E(s,a, r,s ′,ω)∼D 
+
+> d
+
+X
+
+> i=1
+
+H( ˆZi, Z iθ (s, a, ω)) . (6) where ˆZi is computed from the i-th component of the reward ri. The actor then maximizes the value 
+
+Ea∼πϕ
+
+" dX
+
+> i=1
+
+ωiE Ziθ (s, a, ω)#
+
++ αH (πϕ(· | s, ω)) . (7) In practice, the vector critic is implemented as separate output layers, thus sharing most of their parameters. Analogously to CAPQL, we implement clipped double Q-learning by taking argmin of the scalarized (non-distributional) value. We compared the vector critic to the scalarized critic, used in the main text, in Figure 7. Similarly to Section 5.3, the comparison is performed with Simba and MLP architecture. For completeness, we also report the performance of the non-distributional vector critic. As can be seen in Figure 7, the performance of the two approaches is nearly identical, demonstrating that our proposed adaptation of the distributional critic could also be considered in cases where the vector-values are required. Vector Scalarized 0.00 0.25 0.50 0.75 1.00 Normalized Hypervolume  Simba+CE    
+
+> Vector Scalarized
+> Simba+MSE
+> Vector Scalarized
+> MLP+CE
+> Vector Scalarized
+> MLP+MSE
+
+Figure 7: Normalized HV (IQM and 95% SBCIs from 10 seeds), aggregated over all environments, with all proposed components. Learning the distribution of each reward component separately matches the performance of learning the scalarized return distribution. Momba is Simba+CE. 
+
+## C Detailed Description of Architectural Improvements 
+
+As mentioned in Section 3, SimbaV2 architecture (Lee et al., 2025b) consists of three main compo-nents, which we describe in detail here. 
+
+Observation and feature normalization : We follow Lee et al. (2025b), and apply Running Statistic Normalization (RSNorm) to normalize each dimension of the observations o to zero mean and unit variance. More specifically, at each timestep t, the running mean μt ∈ R|O| and variance σ2 ∈ R|O|
+
+are updated with the standard online algorithm 
+
+μt = μt−1 + 1
+
+t δt, σ2 
+
+> t
+
+= σ2 
+
+> t−1
+
++ 1
+
+t (δ2 
+
+> t
+
+− σ2
+
+> t−1
+
+) (8) where δt = ot − μt−1. Using these running statistics, a given observation is then normalized as 
+
+ot = RSNorm( ot) = ot − μt
+
+pσ2 
+
+> t
+
++ ϵ (9) 14 The normalized observation o is then mapped onto a unit hypersphere to stabilize learning. To ensure that the magnitude information is not lost during the mapping, Lee et al. (2025b) propose to concatenate a positive constant cshift to the observation vector before mapping the vector. Then, the final normalized observation becomes 
+
+˜ot = L2norm([ ot, c shift ]) (10) where L2norm divides each component of the vector by the square root of sum of squares of the vector, and [·, ·] denotes the concatenation operation. 
+
+Architecture : SimbaV2 introduces two new formulations for the learnable layers. Firstly, instead of using standard linear layers, Lee et al. (2025b) decompose the standard linear layer into a linear layer (without a bias) with weights that are constrained to the unit hypersphere, and a learnable scaling vector that is applied element-wise. To ensure that the weights remain in the hypersphere, L2Norm 
+
+is applied after each gradient update. Secondly, instead of using traditional skip-connections, the authors propose the use of learnable interpolation layers (LERP), which can interpolate between the original input hl and non-linearly transformed input ˜hl:
+
+hl+1 = L2Norm((1 − α) ⊙ hlt + α ⊙ ˜hlt) (11) where α is a learnable parameter. 
+
+Reward scaling : as noted in Section 4, the C51-style categorical critic requires one to map the re-turns to interval [Gmin , G max ]. We follow SimbaV2 (Lee et al., 2025b), and achieve this by applying the normalization to rewards directly. In addition to limiting the returns to a given interval, this also i) provides stable gradient for both actor and critic, and ii) ensures that the reward components have similar magnitudes, which is crucial when applying reward scalarization. In detail, we normalize each reward component based on the observed maximum returns so far: 
+
+˜Rit = vmax · Rit
+
+Git, max 
+
+, i = 1 , . . . d (12) where vmax ∈ R is the desired normalized return, Rit is the ith reward component and Git, max is the maximum observed return for the ith reward component. Intuitively, this normalization simply en-sures that the normalized returns are in the symmetric range [−vmax , v max ]. SimbaV2 also included an additional term to ensure that the variance of the rewards is close to 1, but we found that to bring no benefits, and thus excluded it. 
+
+## D Training Details 
+
+We report the default hyperparameters used in our experiments in Table 2. We did not perform exten-sive hyperparameter optimization, and thus, it is possible that better performance could be extracted via large-scale hyperparameter search. Best return scale denotes the coefficient used to compute the scaling factor for rewards. Notably, we automatically tune the entropy regularization coefficient, while the original CAPQL implementation used fixed entropy coefficients, tuned specifically for each environment. 
+
+## E Algorithmic Modifications 
+
+As noted in the main text, while our goal was to avoid making algorithmic changes, we ended up doing three changes to the original CAPQL (Lu et al., 2023) to make our results more broadly applicable. Firstly, instead of using normal distribution as our preference sampling distribution, as done by Lu et al. (2023), we opt to use Dirichlet distribution Dir( 1k) instead. This choice was made mostly due to convenience, as the Dirichlet distribution has exactly the same support as our preference space Ω. Secondly, we sample a new preference once per episode (Line 4, Algorithm 1), 15 Table 2: Default hyperparameters for Momba, used in our main experiments 
+
+Parameter Value(s) Parameter Value(s) 
+
+Training steps 1M Actor blocks 2Replay buffer size 1M Actor hidden dim 128 Initial training steps 500 Critic blocks 2
+
+γ 0.99 Critic hidden dim 256 Target critic momentum 0.05 Number of critics 2Optimizer Adam Number of atoms 101 Policy LR 1 × 10 −4 Best return scale 3.0 Critic LR 1 × 10 −4 Categorical support [−5, 5] 
+
+Initial α 0.2 UTD 1Target α −| A| Batch size 256 
+
+as opposed to sampling a new preference for each timestep. This change was done, since this is a far more common choice in MORL algorithms (Abels et al., 2019; Xu et al., 2020; Alegre et al., 2023; Li et al., 2025). Lastly, we update the critic loss function (Line 11 in Algorithm 1) to use the categorical loss, similar to Bellemare et al. (2017). As discussed in the main text, using categorical loss for the critic is one of the main components driving the improved performance of the proposed architecture. The complete algorithm, with the proposed changes highlighted, is displayed in Algorithm 1. 
+
+Algorithm 1: CAPQL algorithm Lu et al. (2023) with the modifications highlighted in blue 
+
+Input : preference sampling distribution Dψ = Dir( 1d) 
+
+> 1
+
+Initialize parameter vectors θ1, θ 2, θ 1, θ 2, ϕ  
+
+> 2
+
+θi ← θi for i ∈ { 1, 2} 
+
+> 3
+
+foreach iteration do  
+
+> 4
+
+Sample ω ∼ Dψ // Sample preference once per episode  
+
+> 5
+
+foreach environment step do  
+
+> 6
+
+at ∼ πϕ(st, ω) 
+
+> 7
+
+st+1 ∼ P (at, s t) 
+
+> 8
+
+D ← D ∪ { (st, a t, R(at, s t), s t+1 , ω)} 
+
+> 9
+
+foreach training step do  
+
+> 10
+
+S ← sample N transitions from D
+
+/* Update Critic networks using categorical loss */  
+
+> 11
+
+θi ← θi − λθ ∇θi (ES H( ˆZ(st, a t, ω), Z θi (st, a t, ω))) for i ∈ { 1, 2} 
+
+> 12
+
+Where ˆZ(st, a t, ω) = 
+
+ωT R(at, s t) + γ(min i∈{ 1,2} Zθi (st+1 , a t+1 , ω) − α log πϕ(at+1 , s t+1 , ω)1) and 
+
+at+1 ∼ πϕ(st+1 , ω)
+
+/* Update the policy parameters */  
+
+> 13
+
+ϕ ← ϕ − λπ ∇ϕES
+
+
+
+DKL (πϕ(·, s j , ω)∥ exp( ωT min i∈{ 1,2} Qθi (sj ,ω)/α )∆( sj ,ω) )
+
+ 
+
+> 14
+
+with ∆( sj , ω) = R 
+
+> A
+
+exp( ωT min {1,2} Qθi (sj , a, ω)/α ) da  
+
+> 15
+
+θi ← τ θ i + (1 − τ )θi for i ∈ { 1, 2}
+
+## F Baselines 
+
+In this section, we give a brief description of the baselines used in this work, and how the results showcased in the main text were obtained. 
+
+CAPQL (Lu et al., 2023) is a general policy method that also acts as a backbone of our experiments. It utilizes an entropy regularized formulation, similar to Soft-Actor Critic (SAC) (Haarnoja et al., 16 2018b) for learning an approximation of the solution set. However, the authors’ motivation differs from SAC: They showcase that by utilizing entropy regularization, one can ensure that the solution set becomes strictly convex, making it possible to retrieve flat portions of the Pareto front even with linear scalarization. In our experiments, we used an implementation from MORL-baselines (Felten et al., 2023), utilizing a 2 layer MLP for representing the policy and value-functions and the algorithm was trained for 1 × 10 6 timesteps. 
+
+GPI-LS (Alegre et al., 2023) is a recent MORL method that, similarly to CAPQL, learns a single policy that is conditioned on the desired preference. The algorithm prioritizes preferences dur-ing training based on the magnitude of achievable improvement via General Policy Improvement (GPI). The novel GPI-based algorithm leads to best-in-class sample efficiency, yet the runtime of the method is quite high, as the process for evaluating the GPI policy is time-consuming. In this paper, we use the original implementation from MORL-baselines (Felten et al., 2023). Notably, this implementation uses layer normalizations and DroQ networks (Hiraoka et al., 2022), making it the only baseline to utilize more recent architectural improvements. We train the algorithms for 200k timesteps, as this is close to the default setting used in the original paper. We also tried training the algorithms for 300k timesteps, but in this case, the experiments could not finish in 5 days (120 hours). We also note that GPI-LS performs additional environment steps to evaluate the policy at corner weights (refer to Algorithm 1 in (Alegre et al., 2023)) during the GPI update. To the best of our knowledge, these additional steps are not counted towards the timesteps reported in the training curves. 
+
+PGMORL (Xu et al., 2020) represents a multi-policy method that trains separate neural networks for different preferences. The authors evolve a population of policies using an evolutionary algo-rithm, which is paired with a prediction model that tries to detect which preferences will improve the current solution set the most. The individual policies are trained using multi-objective policy gradient. We utilize the original PGMORL implementation in our experiments, using the original hyperparameters and two-layer MLPs for representing policies. With these parameters, the method uses 1.2 × 10 7 to 1.2 × 10 8 timesteps, depending on the environment. 
+
+DPMORL (Cai et al., 2023) is a multi-policy method that firstly learns a set of plausible utility functions using a diversity-based objective, and then trains separate policies for each learned utility function. The authors also modify the objective for the policy optimization to take into account distributed returns, thus offering a direct comparison with our simpler approach for modeling the distributional returns. In our experiments, we utilize the original implementation by the authors. We use the default hyperparameters from the original paper, and thus, in each environment, we train at most 10 policies, each represented using a 3 layer MLP. In total, these policies are trained for 1×10 7
+
+timesteps. We would like to note that in our evaluations (presented in Figures 1, 2 and 4), DPMORL performs worse than expected based on the results in the original paper. We hypothesize possible causes for this discrepancy. Firstly, the author-provided code seems to differ from the description in the paper, as it doesn’t seem to augment the state space with the cumulative multivariate returns (refer to Al-gorithm 1 in Cai et al. (2023)). While we tried enabling the state-space augmentation, it resulted in even further performance deterioration. Secondly, the original code utilizes environment-specific precomputed values for normalizing the utility functions, which we do not have access to, as our environments differ from the original setup. To the best of our knowledge, the method for comput-ing these normalization values is not mentioned in the original paper (this normalization seems to differ from the one mentioned in Appendix B in Cai et al. (2023)), making it challenging for us to reproduce the results. For all evaluated algorithms, we summarize the number of trainable parameters and the number of training steps in Table 3. While Momba uses more trainable parameters than the baselines, its superior performance cannot be attributed solely to the number of parameters. In Figure 5, we showed that distributional value representation and the architectural components are necessary to enable parameter scaling. 17 Table 3: Summary of evaluated algorithms. We report the number of trainable parameters for the policy and value networks and the number of training steps. In multi-policy methods, the parameters are for a single policy, and the training steps are shared between the policies. Algorithm Classification Policies Trainable parameters Training steps Momba General policy 1 2,500,805 1M CAPQL General policy 1 258,723 1M GPI-LS General policy 1 259,119 200k DPMORL Multi-policy 10 17,477 10M PGMORL Multi-policy 6–15 17,551 12M–120M 
+
+## G Environments 
+
+In this section, we provide a brief overview of the environments used in this work. They are origi-nally from (Xu et al., 2020), and they are implemented using Mujoco physics engine (Todorov et al., 2012). We use ri to denote the ith reward component. When computing Hypervolume, we use the vector of zeros 0d as our reference point in all environments. 
+
+Ant-v4 has an observation space S ∈ R27 , and action-space A ∈ R8. The agent is limited to 500 timesteps in this environment. The environment has two objectives, x-axis speed and y-axis speed: 
+
+r1 = vx + Cr2 = vy + C
+
+where vx is the speed in x direction, vy is the speed in y direction and C = 1 − 0.5 P 
+
+> i
+
+a2 
+
+> i
+
+is combination of alive bonus and energy efficiency, defined as the squared sum of actions for each actuator. 
+
+HalfCheetah-v4 has an observation-space S ∈ R17 and action-space A ∈ R6. The agent is limited to 500 timesteps in this environment. The environment has two objectives, forward speed and energy efficiency: 
+
+r1 = min( vx, 4) + Cr2 = 4 − X
+
+> i
+
+a2 
+
+> i
+
++ C
+
+where vx is the speed in x direction, C = 1 is alive bonus and ai is the action of each actuator. 
+
+Hopper-v4 has an observation-space S ∈ R11 and action-space A ∈ R3. The agent is limited to 500 timesteps in this environment. In the two objective cases, the rewards are forward speed and jumping height: 
+
+r1 = 1 .5vx + Cr2 = 12( h − hinit ) + C
+
+where vx is the speed in x direction, C = 1 − 0.0002 P 
+
+> i
+
+a2 
+
+> i
+
+combines alive bonus and energy efficiency, while h is the current height and hinit is the initial height. In the three objective version, the rewards are forward speed, jumping height and energy efficiency 
+
+r1 = 1 .5vx + Cr2 = 12( h − hinit ) + Cr3 = 4 − X
+
+> i
+
+a2 
+
+> i
+
++ C
+
+18 where C = 1 is the alive bonus, and the rest of the symbols have same meaning as in the two-objective configuration. 
+
+Swimmer-v4 has an observation-space S ∈ R8 and action-space A ∈ R2. The agent is limited to 500 timesteps in this environment. The environment has two objectives, forward speed and energy efficiency: 
+
+r1 = vx
+
+r2 = 0 .3 − 0.15 X
+
+> i
+
+a2
+
+> i
+
+where vx is the speed in x direction and ai is the action of each actuator. 
+
+Walker2d-v4 has an observation-space S ∈ R17 and action-space A ∈ R6. The agent is limited to 500 timesteps in this environment. The environment has two objectives, forward speed and energy efficiency: 
+
+r1 = vx + Cr2 = 4 − X
+
+> i
+
+a2 
+
+> i
+
++ C
+
+where C = 1 is the alive bonus, vx is the speed in x direction and ai is the action of each actuator. 
+
+Humanoid-v4 has an observation-space S ∈ R376 and action-space A ∈ R17 . The agent is limited to 500 timesteps in this environment. The environment has two objectives, forward speed and energy efficiency: 
+
+r1 = 1 .25 vx + Cr2 = 3 − 4 X
+
+> i
+
+a2 
+
+> i
+
++ C
+
+where C = 3 is the alive bonus, vx is the speed in x direction and ai is the action of each actuator. 
+
+## H Further Empirical Evaluations 
+
+In this section, we showcase the training curves (Figure 8), UTD-scaling results (Figure 9) and obtained solution sets (Figure 10) in the environments not shown in the main text. Figure 8 showcases that Momba outperforms its base algorithm, CAPQL, in all environments. We also outperform PGMORL, while requiring a fraction of the training steps in all environments except Swimmer, where Momba matches the performance of PGMORL. Interestingly, CAPQL converges very quickly to a sub-optimal policy in Swimmer, again highlighting the effectiveness of the pro-posed approach. Figure 9 displays the UTD-scaling in different environments. While we see that the Hopper and Humanoid environments benefit from higher UTD, the performance improvements in other environ-ments are limited. We note that in HalfCheetah, most algorithms start to approach the theoretical upper bound of 6.25 × 10 6 for hypervolume (see Figure 8), indicating that the environment may be too easy for the current methods. Lastly, Figure 10 displays the generated solution sets in Humanoid, Swimmer, and Hopper-v3. Hu-manoid remains a difficult environment, as none of the algorithms can obtain a good coverage of the solution set. On the other hand, both CAPQL and GPI-LS, representing the general policy methods, struggle to find policies that can move the actor forward, instead collapsing and generating a set of policies that all optimize for the energy efficiency. On the contrary, Momba recovers a solution set that is on par with PGMORL, being the only general policy method to do so. 19 05Hypervolume  ×10 6 Walker2d-v4 
+
+01
+
+×10 7 Hopper-v4 
+
+2.5 5.0 
+
+×10 6HalfCheetah-v4 
+
+01
+
+×10 4 Swimmer-v4 
+
+0.0 0.25 0.5 0.75 1.0 12EUM 
+
+×10 3
+
+0.0 0.25 0.5 0.75 1.0 0.0 2.5 
+
+×10 3
+
+0.0 0.25 0.5 0.75 1.0 1.5 2.0 
+
+×10 3
+
+0.0 0.25 0.5 0.75 1.0 0.75 1.00 1.25 
+
+×10 2
+
+Steps ( ×10 6)
+
+Momba (ours) CAPQL PGMORL DPMORL Figure 8: HV (top) and EUM (bottom) (IQM and 95% SBCIs over 10 seeds) during training. Hori-zontal lines indicate the final performance of PGMORL and DPMORL. 0.0 0.5 1.0 05Hypervolume 
+
+×10 6 Ant-v4 
+
+0.0 0.5 1.0 246 ×10 6 HalfCheetah-v4 
+
+0.0 0.5 1.0 02
+
+×10 10 Hopper-v3 
+
+0.0 0.5 1.0 012
+
+×10 7 Hopper-v4 
+
+0.0 0.5 1.0 024Hypervolume 
+
+×10 7 Humanoid-v4 
+
+0.0 0.5 1.0 01
+
+×10 4 Swimmer-v4 
+
+0.0 0.5 1.0 0.0 2.5 5.0 
+
+×10 6 Walker2d-v4 Steps ( ×10 6)
+
+UTD-1 UTD-2 UTD-4 UTD-8 
+
+Figure 9: HV of Momba during training on all environments (IQM and 95% SBCIs over 10 seeds) with various UTD-ratios. 0 3000 6000 Forward Speed 03000 6000 Energy efficiency 
+
+Humanoid-v4 
+
+0 50 100 Forward speed 100 125 150 Energy efficiency 
+
+Swimmer-v4 
+
+1500 3000 Forward speed 02000 4000 Jumping height 1000 2000 Energy efficiency Hopper-v3 
+
+Momba (ours) CAPQL PGMORL DPMORL GPI-LS 
+
+Figure 10: Generated solution sets in Humanoid (left), Swimmer (center), and Hopper-v3 (right). Humanoid and Swimmer remain difficult environments for most of the algorithms. 20
