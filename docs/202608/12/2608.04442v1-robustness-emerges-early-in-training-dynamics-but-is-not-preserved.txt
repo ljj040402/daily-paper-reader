@@ -1,0 +1,365 @@
+Title: Robustness Emerges Early in Training Dynamics, but Is Not Preserved
+
+URL Source: https://arxiv.org/pdf/2608.04442v1
+
+Published Time: Thu, 06 Aug 2026 00:28:49 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Robustness Emerges Early in Training Dynamics, but Is Not Preserved 
+
+Jiangang Yang 1 , Wenhui Shi 1,2 , Lu Hu 1,2 , Jing Xing 1 , and Jian Liu 1 
+
+> 1
+
+Institute of Microelectronics, Chinese Academy of Sciences, Beijing, China  
+
+> 2
+
+University of Chinese Academy of Sciences, Beijing, China 
+
+{yangjiangang, liujian}@ime.ac.cn 
+
+Abstract. Robustness to natural corruptions remains a fundamental challenge for deep neural networks. In this paper, we identify a robustness fading phenomenon where shallow layers spontaneously develop robust representations and flat loss landscapes in early training, yet these prop-erties are not preserved during standard convergence. To address this, we propose a framework that performs strategic interventions on train-ing dynamics to stabilize the empirically identified early-emergent robust priors. Our approach includes two parameter-free strategies: Early-Phase Stabilization (EPS) and Asymmetric Weight Reversion (AWR), which stabilize or recover robust shallow configurations without modifying the model architecture or introducing learnable parameters. Extensive exper-iments demonstrate the efficacy of our framework across various bench-marks and architectures, yielding significant gains in downstream trans-fer, dynamic adaptation, and diverse computer vision applications. 
+
+## 1 Introduction 
+
+Deep neural networks have achieved remarkable success across a wide range of vision tasks, yet their robustness remains a critical concern [34, 38, 72]. Prior work on robustness mainly follows two directions: robustness to adversarial per-turbations [68], which are small, intentionally designed input modifications that induce mispredictions, and robustness to natural corruptions such as noise, blur, and contrast changes [22]. Unlike adversarial examples, natural corruptions arise from realistic variations in data acquisition and environmental conditions. Au-tonomous systems are affected by fog or low illumination, while medical imaging systems experience systematic degradations due to differences in scanners, ac-quisition protocols, or patient motion. Improving robustness to such naturally occurring corruptions is essential for reliable deployment in safety-critical appli-cations. To enhance robustness to natural corruptions, prior work has explored diverse strategies, including data augmentation [23, 42, 47, 59], regularization [15, 58], composite training recipes [60,62], ensembling [13,53], and bio-inspired architec-tures [11, 60]. However, as shown in Fig. 1, our layer-wise linear probing analy-sis [2], which measures the performance gap between clean and corrupted inputs, reveals that even state-of-the-art methods deliver gains almost entirely in deeper arXiv:2608.04442v1 [cs.LG] 5 Aug 2026 2 J. Yang et al. （a） （b） （c） 
+
+> Fig. 1: Robustness gap analysis across subnetworks. We compare ResNet-50 with (a) AugMix [23], (b) Mixup [71], and (c) the TVR-V2 training recipe [60]. While all three methods significantly reduce the robustness gap in deeper subnetworks (e.g., #40 and #49), their performance in shallow subnetworks (e.g., #1 and #10) remains nearly identical to the baseline, failing to deliver meaningful gains.
+
+layers, with shallow layers remaining essentially unchanged. This imbalance sug-gests that shallow-layer robustness is a key bottleneck. Bio-inspired work often addresses this by augmenting the network front-end with explicit architectural priors; for example, VOneNet [11] inserts a V1-inspired shallow module and achieves substantial robustness gains, implying that standard training under-utilizes robustness capacity in early layers. This leads to a critical consideration: if robustness can be hard-coded into early layers, it may as well emerge sponta-neously through the learning process. Current empirical evidence supports the possibility that training dynamics play a crucial role. For instance, studies on robust pruning indicate [13] that high-performance subnetworks exist within over-parameterized models, while the phenomenon of robust overfitting [51] in-dicates that adversarial robustness can peak early and then decline as training progresses. This paradigm shift from static architecture to temporal dynamics motivates a fundamental inquiry: under natural corruptions, do training dynam-ics give rise to a robust shallow subnetwork early on, but standard training fails to preserve it? 
+
+Motivated by this inquiry, we dissect the training dynamics of shallow sub-networks. By tracing weight trajectories, we find that shallow layers undergo an active exploration phase in early training rather than rapid convergence. This raises the hypothesis that a more robust shallow subnetwork emerges during this exploratory stage but fails to persist through standard training. To exam-ine this, our analysis of representation stability uncovers a striking degradation: shallow features are most consistent and information-preserving under corrup-tions early on, yet this implicit robustness fades toward convergence. We further connect this early-to-late shift to the model’s optimization geometry under in-put perturbations. Specifically, by freezing shallow subnetworks from various training epochs and retraining the remaining layers, we observe that early-phase structures sustain a significantly flatter loss surface under perturbations, a key indicator of enhanced robustness. Conversely, subnetworks from later epochs induce landscape sharpening. Collectively, these results suggest that standard Robustness Emerges Early in Training Dynamics, but Is Not Preserved 3
+
+training dynamics do not retain early robustness-relevant properties, motivating training-time mechanisms to preserve them. Building on these findings, we propose a framework that intervenes in training dynamics to preserve early-emergent robustness. This framework provides two simple, easy-to-implement strategies. Early-Phase Stabilization (EPS) halts the shallow subnetwork updates early in training to lock in robust structural priors, protecting the initial robust configurations from being degraded by later-stage fitting. Asymmetric Weight Reversion (AWR) reverts the shallow subnetwork to an earlier robust state and stabilizes it during subsequent training, recovering robustness-relevant properties lost under continued training while leaving deeper layers free to adapt. We show that EPS and AWR improve robustness over competitive baselines across multiple corruption benchmarks, generalize across architectures, and are effective in downstream transfer, dynamic adaptation, and real-world physical scenarios. Beyond classification, they also yield gains on object detection, semantic segmentation, and continual test-time adaptation. Finally, ablations and analyses associate the gains with smoother loss geometry under input perturbations and more stable representations under distribution shift, together with improved shape bias and frequency-domain behavior. Our contributions are summarized as follows. 1. We identify a robustness fading phenomenon: shallow layers spontaneously develop robust configurations and flatter loss landscapes in early training, but these properties are not preserved during standard convergence. 2. We propose Early-Phase Stabilization and Asymmetric Weight Reversion to stabilize these early-emergent robust priors without architectural modifica-tions or significant computational overhead. 3. We demonstrate that our method outperforms competitive baselines, is ap-plicable to diverse network architectures, and proves effective in downstream transfer, dynamic adaptation, and real-world physical scenarios. 
+
+## 2 Related Work 
+
+2.1 Robustness to Natural Corruptions 
+
+To enhance the robustness of deep neural networks against natural corruptions, various strategies have been explored, ranging from data augmentation (e.g., AugMix [23], PRIME [42]) and optimization (e.g., SAM [15] and DAMP [58]) to ensembling (e.g., RoHL’s multi-expert fusion [53]). Another line of research delves into layer-wise robustness by emphasizing the heterogeneous contributions of different network components. This approach typically involves identifying or reinforcing specific robust subnetworks (e.g., EWS [20], DST [63], AdaSAP [3]) to maintain stability under distribution shifts. In particular, existing literature highlights the pivotal role of front-end layers in defending against perturba-tions. For instance, VOneNet [11] and handcrafted Gabor filters [46] introduce biologically-inspired structures, while RoHL [53] employs layer-wise TV regular-ization to explicitly enhance shallow-layer representations. Unlike these meth-ods requiring rigid modifications or high overhead, we propose a plug-and-play 4 J. Yang et al. 
+
+framework that captures early-emerging robust priors through the evolution of shallow subnetworks without auxiliary costs. 
+
+2.2 Training Dynamics and Model Robustness 
+
+Research on training dynamics reveals that deep networks undergo a distinct stage-wise learning process: initial phases determine final connectivity [1, 8] and exhibit a spectral bias toward low-frequency, structural features [48] within spe-cific linear subspaces [17]. This suggests an early emergence of robust, global representations. However, this robustness often deteriorates during late-stage convergence, a phenomenon termed robust overfitting [51, 65]. This degradation is typically attributed to feature competition [24, 25], where models increas-ingly exploit non-robust statistical patterns (e.g., high-frequency textures) to minimize empirical risk, resulting in a sharpened loss landscape [26, 32]. While prior studies offer extensive static analyses of natural robustness [18, 19, 34], the layer-wise dynamical evolution during training remains under-explored. We de-fine "Robustness Fading" to characterize the attenuation of early robust priors within shallow sub-networks, identifying a critical yet overlooked dimension of robustness fluctuations throughout the learning trajectory. 
+
+## 3 Early-emergent Robustness in Training Dynamics 
+
+3.1 Motivation 0 50k 100k 150k 200k 250k 300k 350k 400k 450k 0.992 0.994 0.996 0.998 1         
+
+> 050k 100k 150k 200k 250k 300k 350k 400k 450k 0.995 0.996 0.997 0.998 10.999
+> Iterations Iterations Weight directional similarity Weight directional similarity Active exploration phase Active exploration phase
+> （a）（b）
+
+Fig. 2: Weight directional stability evo-lution. (a) and (b) employ different LR schedulers. The shaded area highlights the initial unstable exploration phase. 
+
+As demonstrated in Fig. 1, layer-wise linear probing reveals that shallow lay-ers possess a substantial, yet under-utilized, capacity for corruption robust-ness. Motivated by this observation, we investigate the evolution of this potential through the lens of train-ing dynamics. Taking ResNet-18 [21] as a representative case, we character-ize the directional stability of shallow-layer weight trajectories by computing the cosine similarity between weights at consecutive iterations. Fig. 2 shows that shallow layers exhibit a prolonged ac-tive exploration phase early in train-ing, with large step-to-step changes in weight direction rather than aquick stabilization. This indicates that early optimization drives substantial re-organization in shallow layers. We therefore hypothesize that robustness-relevant shallow patterns can emerge in Robustness Emerges Early in Training Dynamics, but Is Not Preserved 5（a） （b）  
+
+> （d）（e）（c）
+> （f）
+> Fig. 3: Evolution of representation-level robustness across network depths and training phases. (a-c) CKA similarity between clean and corrupted features at severity levels 3, 4, and 5; each curve tracks a subnetwork’s (Stem to Stage-3) stability during training. (d-f) InfoNCE-based MI estimates for Stem, Stage-1, and Stage-4 across four corrup-tion types. Results reveal that shallow layers achieve peak structural similarity and information preservation in early training stages.
+
+this exploratory stage, but standard training fails to preserve them as optimiza-tion converges on clean data. 
+
+3.2 Implicit Properties of Early-Phase Features 
+
+Following the observed parameter exploration phase, we further investigate ro-bustness at the feature level using Centered Kernel Alignment (CKA) [30] and InfoNCE-based Mutual Information (MI) [45]. By computing these metrics be-tween features derived from clean and perturbed inputs, we quantify structural similarity and information retention across different subnetworks. As illustrated in Fig. 3a-c, shallow subnetworks including the Stem and Stage-1 exhibit a pro-gressive decline in CKA similarity. This downward trend is further intensified by higher corruption severities, whereas deeper stages maintain oscillating sta-bility. This divergence is mirrored in MI dynamics (Fig. 3d-f), where early-layer information preservation systematically decays while Stage-4 remains stagnant. These results suggest that shallow layers capture superior robust priors during the early training phase. However, such advantages are gradually washed away by subsequent optimization, highlighting a fundamental misalignment between standard training objectives and early-stage robust representations. 
+
+3.3 Shaping the Flat Loss Landscape 
+
+To further explore shallow feature evolution, we shift from representation space to the geometric topology of the optimization landscape. We conduct causal 6 J. Yang et al. （a） （b） （c） 
+
+> Fig. 4: Loss surfaces under perturbations, where shallow subnetworks are frozen at different training phases (early, intermediate, and late). Results suggest that early-phase shallow features possess an intrinsic property that guides the model toward flatter and more robust minima.
+
+freezing experiments by fixing shallow weights at different training epochs and re-optimizing the remaining layers, thereby isolating the influence of early-phase configurations on the model convergence. As demonstrated in Fig. 4, the loss curvature under perturbation exhibits distinct evolutionary paths depending on the timing of weight extraction. Specifically, models anchored by early-phase shallow weights yield a significantly smoother landscape with lower local sharp-ness, a property typically associated with superior robustness. In contrast, se-lecting weights from later stages induces a markedly steeper topography, a tran-sition that persists despite subsequent retraining. This geometric shift reinforces our representation-level findings, indicating that robustness emerges early as a flat landscape but is systematically eroded during standard training. Such progressive sharpening highlights an inherent limitation of current optimization paradigms in preserving these transient yet foundational robust priors. 
+
+## 4 Methodology: Interventions on Training Dynamics 
+
+To bridge our empirical observations with a practical solution, we introduce a framework that treats robustness enhancement as a trajectory intervention prob-lem. This section formalizes a unified perspective on how targeted constraints on shallow subnetworks can effectively prevent the systematic degradation of early-emergent robust priors. 
+
+4.1 Preliminaries: A Unified View of Training Dynamics 
+
+We begin by establishing a consistent notation for characterizing training tra-jectories. Consider a deep neural network parameterized by θ. In the context of robustness against natural corruptions, we decompose the model parameters into two functional components: 
+
+θ = {θs, θ d} (1) Robustness Emerges Early in Training Dynamics, but Is Not Preserved 7
+
+Algorithm 1 Interventions on Training Dynamics: EPS and AWR 
+
+Require: Training set D, Total epochs T , Initial θ(0) = {θ(0)  
+
+> s
+
+, θ (0)  
+
+> d
+
+}
+
+Require: Intervention type M ∈ { EPS, AWR }, Intervention epoch τ , Snapshot epoch 
+
+tearly 
+
+Require: Base learning rate η, Fine-tuning learning rate ηf ine 
+
+1: Initialize: S ← ∅ , ηs ← η, ηd ← η
+
+2: for t = 0 to T − 1 do 
+
+3: Sample mini-batch (x, y ) ∼ D 
+
+4: Compute loss L = CrossEntropy (F(x; θ(t)), y )
+
+5: if M = EPS then 
+
+6: if t < τ then 
+
+7: θ(t+1)  
+
+> s
+
+← θ(t) 
+
+> s
+
+− ηs · ∇ θs L
+
+8: else 
+
+9: θ(t+1)  
+
+> s
+
+← θ(t)
+
+> s
+
+10: end if 
+
+11: else if M = AWR then 
+
+12: if t = tearly then 
+
+13: S ← θ(t)
+
+> s
+
+14: end if 
+
+15: if t = τ then 
+
+16: θ(t) 
+
+> s
+
+← S
+
+17: ηs ← ηf ine 
+
+18: end if 
+
+19: θ(t+1)  
+
+> s
+
+← θ(t) 
+
+> s
+
+− ηs · ∇ θs L
+
+20: end if 
+
+21: θ(t+1)  
+
+> d
+
+← θ(t) 
+
+> d
+
+− ηd · ∇ θd L
+
+22: end for 
+
+23: Return Final parameters θ(T )
+
+where θs denotes the shallow subnetwork responsible for low-level geometric and textural features, and θd represents the deep subnetwork dedicated to high-level semantic abstraction.During a standard training period T , parameter evolution follows Empirical Risk Minimization (ERM), generating a trajectory {θ(t)}Tt=1 
+
+that minimizes the loss L. As established in our preceding analysis, the observed progressive sharpening of the loss landscape arises from the attenuation of robust priors in θs as t → T . We thus formulate the intervention as an operator I that modulates the shallow updates starting at a specific time τ < T :
+
+θ(t+1)  
+
+> s
+
+← I (θ(t) 
+
+> s
+
+, ∇θs L, . . . ), ∀t ≥ τ (2) This approach aims to mitigate the decay of robustness by explicitly constrain-ing the temporal evolution of shallow parameters. Without altering the model architecture, I serves to preserve the early-emergent robust features discovered during the initial exploration phase. 8 J. Yang et al. 
+
+4.2 Early-Phase Stabilization 
+
+Guided by our analysis of parameter trajectories, we propose Early-Phase Sta-bilization (EPS). The core of EPS is a trajectory truncation mechanism applied to θs. Since empirical evidence suggests that θs spontaneously develops robust representations and a flat loss landscape during the initial stages, truncating its evolution prevents the systematic degradation of these early features as the model continues its task fitting phase. Formally, within a general iterative opti-mization framework where θ(t+1) = θ(t) + ∆θ (t), EPS intervenes in the dynamics of θs by nullifying its updates: 
+
+∀t ≥ τeps , ∆θ (t) 
+
+> s
+
+← 0 (3) where τeps denotes the critical intervention epoch. Following τeps , the shallow parameters are explicitly frozen at their state θ(τeps ) 
+
+> s
+
+, while the deep parameters 
+
+θd continue to be optimized for the remaining iterations. This design preserves the early-emergent robust priors while maintaining sufficient capacity in θd for task adaptation. In practice, τeps is strategically selected to align with the pe-riod where θs exhibits high structural similarity and information retention, as analyzed in Sec. 3.2, ensuring the intervention coincides with the period where 
+
+θs possesses the most favorable robust properties. 
+
+4.3 Asymmetric Weight Reversion 
+
+While EPS preserves robustness through early intervention, we introduce Asym-metric Weight Reversion (AWR) as a complementary strategy for active trajec-tory recovery. AWR draws inspiration from the weight rewinding mechanism in the Lottery Ticket Hypothesis (LTH) [16], which demonstrates that historical parameter states can serve as superior foundations for subsequent optimization. Extending this insight, AWR treats the training trajectory as a reversible path, allowing the model to explicitly backtrack θs to a prior state where it possessed stronger robust properties. Specifically, at a designated epoch t = τawr , AWR resets the shallow parameters to a historical state: 
+
+θ(τawr ) 
+
+> s
+
+← θ(tearly ) 
+
+> s
+
+, where tearly < τ awr  (4) Following the reversion, we modulate the update intensity of θs by significantly reducing its learning rate ηs to maintain the stability of the recovered features. Meanwhile, the deep subnetwork θd continues its optimization to realign with the reverted feature backbone. This asymmetric update ensures that the shallow lay-ers remain within a robust region of the parameter space while θd completes the remaining training objectives. By navigating back to a flatter optimization path, AWR systematically enhances the model’s defense against corruptions without any structural modifications. Robustness Emerges Early in Training Dynamics, but Is Not Preserved 9
+
+Table 1: Comparison with representative baselines on ImageNet-C. We report Top-1 Accuracy ( ↑). ∗ denotes used improved training recipe.             
+
+> Baseline DST AdaSAP ∗
+> PEWS
+> 39.2 38.7 (-0.5) 43.3 (+4.1) 40.6 (+1.4)
+> SAM DAMP DAT VOneNet
+> 39.8 (+0.6) 41.4 (+2.2) 41.1 (+1.9) 40.3 (+1.1)
+> Gabor Layers EPS AWR AWR ∗
+> 37.5 (-1.7) 42.5 (+3.3) 43.1 (+3.9) 46.5 (+7.3)
+
+## 5 Experiments and Analysis 
+
+5.1 Experimental Setup 
+
+The proposed framework is evaluated on diverse robustness benchmarks and downstream tasks; full protocols and hyperparameters are in the Supplementary Material. 
+
+Benchmarks and Metrics. We evaluate our framework across eight robust-ness benchmarks, spanning image classification to downstream perception. For classification, we assess corruption robustness using ImageNet-C [22],ImageNet-
+
+¯C [41] and ImageNet-3DCC [29] and ImageNetV2-C [49]. To verify the model transferability, we extend evaluations to object detection (COCO-C [40]) and semantic segmentation (ADE20K-C, Cityscapes-C [28]). All corrupted datasets are reserved for inference-only testing. We report standard performance (Top-1 Acc, mAP, or mIoU) alongside the mean Corruption Error (mCE) [22] or average corruption performance. 
+
+Implementation Details. Our base recipe employs a randomly initialized ResNet-50 trained on ImageNet [12] for 90 epochs. We use SGD (0.9 momentum) with an initial learning rate of 0.1, decayed by 10% at epochs 30 and 60, and a batch size of 256. To isolate our framework’s effects, we exclude advanced aug-mentations like AugMix [23] or Mixup [71]. Downstream tasks are implemented via MMDetection [6] and MMSegmentation [9]. Our strategy integrates two com-ponents: EPS, which constrains the optimization trajectory during initial Teps 
+
+epochs, and AWR, which rewinds specific convolutional weights to rectify late-stage dynamical deviations. Sensitivity analyses for EPS/AWR are in Sec. 5.4. 
+
+5.2 Image Classification under Corruption Comparison with Representative Baselines. Using a ResNet-50 backbone, we compare our method against two categories of robust representation tech-niques: (1) Optimization-based constraints (SAM [15], DAMP [58], DAT [37]) that regularize the training path, and (2) Structural priors, including dynamic sparse evolution (EWS [20], DST [63], AdaSAP [3]) and bio-inspired front-ends (VOneNet [11], Gabor layers [46]). Results in Tab. 1 show that our methods sig-nificantly outperform these baselines. Specifically, EPS and AWR achieve 42.5% and 43.1% Top-1 accuracy, respectively, surpassing SAM by up to 3.3%. No-tably, AWR with strong augmentation reaches 46.5%, yielding a +7.3% gain 10 J. Yang et al. 
+
+Table 2: We report Top-1 Accuracy ( ↑) and mean Corruption Error (mCE, ↓) across various backbones on ImageNet-100 and its variants (C, ¯C, 3DCC, and V2-C). Avg. mCE summarizes the performance across these benchmarks, while (+) and (−) denote changes relative to each backbone’s baseline after applying EPS or AWR.                                                                                               
+
+> Architecture IN-100 IN-100-C IN-100-¯CIN-100-3DCC IN-100V2-C Avg.mCE ( ↓)MobileNetV2
+> ✗84.6 95.8 94.4 88.8 97.6 94.2 EPS 84.2 92.8 93.9 87.8 96.0 92.6 ( -1.6 )AWR 84.2 93.4 94.1 87.8 95.6 92.7 ( -1.5 )WideResNet-50
+> ✗85.6 88.3 88.4 83.3 92.1 88.0 EPS 84.9 72.6 83.1 72.5 80.5 77.2 ( -10.8 )AWR 85.3 71.8 82.3 71.9 80.1 76.5 ( -11.5 )MobileViT-S
+> ✗85.4 88.8 92.5 84.8 92.9 89.8 EPS 85.8 87.8 90.5 84.8 93.6 89.2 ( -0.6 )AWR 85.2 87.0 91.7 84.5 90.7 88.5 ( -1.3 )EfficientFormer-L1
+> ✗91.6 73.7 66.3 65.2 80.4 71.4 EPS 92.5 68.0 62.9 60.0 75.8 66.7 ( -4.7 )AWR 92.0 72.8 64.3 64.1 79.2 70.1 ( -1.3 )Mambaout-femto
+> ✗94.1 60.0 54.7 57.7 68.2 60.2 EPS 93.4 57.2 50.8 52.9 66.5 56.9 ( -3.3 )AWR 93.1 58.5 52.8 55.0 67.3 58.4 ( -1.8 )
+
+Table 3: Integration with data augmentation and regularization. We report Top-1 Accuracy ( ↑) and Avg. mCE ( ↓) on ImageNet-1K and its variants. Our methods (EPS and AWR) are integrated with representative baselines to evaluate their additive gains.                                                                                                
+
+> Main IN IN-C IN-¯CIN-3DCC INV2-C Avg.mCE ( ↓)AugMix
+> ✗76.1 71.7 74.0 69.6 78.4 73.4 EPS 76.2 70.8 73.6 69.1 78.2 72.9 ( -0.5 )AWR 74.1 68.9 75.1 69.1 76.4 72.4 ( -1.0 )AutoAug
+> ✗76.4 73.2 76.9 69.6 79.8 74.9 EPS 74.3 70.6 78.6 69.5 77.7 74.1 ( -0.8 )AWR 74.3 69.7 76.6 68.7 76.7 73.0 ( -1.9 )CutMix
+> ✗76.9 76.9 76.4 72.5 82.5 77.1 EPS 74.3 73.4 76.9 72.4 79.9 75.7 ( -1.4 )AWR 74.4 74.1 76.5 73.1 80.4 76.0 ( -1.1 )Label Smoothing
+> ✗76.6 75.2 77.1 72.1 81.5 76.5 EPS 74.5 72.7 77.7 71.8 79.3 75.4 ( -1.1 )AWR 74.7 72.6 77.0 71.9 79.3 75.2 ( -1.3 )Dropout
+> ✗76.3 76.4 78.6 72.9 82.4 77.6 EPS 73.9 73.0 77.7 72.4 79.8 75.7 ( -1.9 )AWR 74.0 74.1 78.8 73.0 80.6 76.6 ( -1.0 )
+
+over the baseline. These results demonstrate the superior effectiveness of our interventions in enhancing model robustness against ImageNet-C corruptions. 
+
+Versatility Across Diverse Architectures. To demonstrate broad appli-cability, we evaluate various backbones. As shown in Tab. 2, both EPS and AWR consistently reduce Average mCE. Specifically, EPS improves MobileNetV2 [55] (-1.6), EfficientFormer-L1 [33] (-4.7), and MambaOut-femto [66] (-3.3), while AWR further suppresses mCE for WideResNet-50 [70] (-11.5) and MobileViT-S [39] (-1.3). These gains confirm that our interventions provide an architecture-agnostic foundation for robust learning across CNN, ViT, and Mamba models. 
+
+Synergy with Augmentation and Regularization. We further evaluate the compatibility of EPS and AWR with representative data augmentation (Aug-Mix [23], AutoAug [10]) and regularization (Label Smoothing [43], Dropout [57], Robustness Emerges Early in Training Dynamics, but Is Not Preserved 11 
+
+Table 4: Object detection on COCO-C. We report mAP ( ↑) com-paring backbones with our frame-work ( ✓) against the baseline ( ×).             
+
+> Architecture COCO COCO-C
+> FasterRCNN ✗37.6 17.5
+> ✔37.0 17.9 (+0.4) YOLOv5 ✗39.8 19.9
+> ✔37.9 24.3 (+4.4)
+
+Table 5: Semantic segmentation results on ADE20K-C and Cityscapes-C. We report mIoU (↑) on clean ( S) and corrupted ( R) data.                        
+
+> Architecture ADE20K-C Cityscapes-C SRSR
+> DeepLabV3+ ✗42.1 21.3 78.6 36.2
+> ✔41.0 22.0 (+0.7) 78.3 39.9 (+3.7) GCNet ✗40.3 19.9 76.8 33.1
+> ✔39.0 20.7 (+0.8) 76.8 36.2 (+3.1)
+
+Table 6: Online TTA performance on ImageNet-C (severity 5). We re-port Top-1 Accuracy ( ↑).                
+
+> Baseline EPS AWR
+> ROTTA 32.6 34.4 33.5 AdaCont 34.9 36.7 37.5 Tent 37.3 37.4 37.9 SAR 37.8 37.9 38.3 RMT 42.2 43.8 43.7
+
+Table 7: Robustness evaluation on ACDC. We report mIoU ( ↑).                        
+
+> Architecture Fog Night Rain Snow Avg.
+> DeepLabV3+
+> ✗62.1 14.6 48.0 44.8 42.4
+> ✔62.3 15.5 47.2 44.9 42.5 (+0.1) GCNet
+> ✗61.7 7.2 45.9 40.8 38.9
+> ✔61.8 8.8 45.1 42.8 39.6 (+0.7)
+
+CutMix [69]) techniques. As shown in Tab. 3, our methods consistently yield ad-ditive gains across all baselines. Notably, AWR and EPS reduce Avg. mCE by up to 1.9 when integrated with AutoAug and Dropout, respectively. These re-sults demonstrate that our framework provides a complementary optimization perspective to existing stochastic transformations, serving as a robust plug-and-play component for modern training pipelines. 
+
+5.3 Beyond Classification: Robustness Transfer and Adaptation Transferability to Downstream Tasks. We evaluate pre-trained backbones on dense prediction to verify prior transferability. As shown in Tab. 4 and Tab. 5, our method consistently boosts performance: gaining +0.4% (FasterRCNN [50]) and +4.4% (YOLOv5 [27]) mAP on COCO-C, and +3.7% (DeepLabV3+ [7]) and +0.8% (GCNet [4]) mIoU on Cityscapes-C and ADE20K-C. These cross-task improvements confirm that our robust representations effectively benefit fine-grained spatial tasks under degradation. 
+
+Stability in Online Test-time Adaptation. We assess our method in con-tinual online TTA scenarios under ImageNet-C (severity 5) to examine its ability to mitigate model collapse. As shown in Tab. 6, integrating EPS or AWR into existing protocols—including ROTTA [67], AdaCont [5], Tent [61], SAR [44], and RMT [14]—consistently improves Top-1 accuracy. Notably, AWR signifi-cantly boosts AdaCont (+2.6%), while EPS yields substantial gains for ROTTA (+1.8%) and RMT (+1.6%). These results demonstrate that our framework ef-fectively stabilizes optimization and enhances the compatibility of various TTA methods under severe distribution shifts. 
+
+Robustness under Real-world Corruptions. We further evaluate our framework on the ACDC [54] segmentation dataset to test resilience against 12 J. Yang et al. （a） （b） （c） （d）
+
+Fig. 5: Sensitivity analysis of (a) EPS intervention timing τeps , (b) AWR hyper-parameters tearly , (c) τawr , and (d) ηs.（a） （b） （c） （d）
+
+Fig. 6: Analysis of optimization sensitivity and representation stability. (a-b) Evolu-tion of Local Sharpness ( ∆L max ) and Gradient Flatness ( ∥∇ L∥) for Baseline, EPS, and AWR during training. (c-d) Representation geometry stability across five corrup-tion severity levels, measured by the deviation in Effective Rank (ER) and Intrinsic Dimension (ID) between clean and corrupted samples. 
+
+physical degradations. As shown in Tab. 7, our framework ( ✓) outperforms the baseline ( ×) in average mIoU for both DeepLabV3+ (+0.1%) and GCNet (+0.7%). Despite a performance trade-off in the Rain scenario, substantial gains in Night and Snow demonstrate our method’s efficacy in extreme visibility con-ditions. 
+
+5.4 Ablation Studies Early-Phase Stabilization Ablation. We investigate the sensitivity of EPS to the intervention timing τeps . Fig. 5a illustrates the performance of ResNet-18 across IN100-C, IN100- ¯C, and IN100-3DCC as τeps varies from 0 to 40 epochs. As shown in Fig. 5a, robustness exhibits a marginal downward trend as τeps 
+
+increases. Nevertheless, EPS consistently maintains a performance lead over the baseline model across all tested intervals. This sustained superiority confirms that the efficacy of EPS is robust to the choice of intervention timing, demon-strating its practical stability during the early training phase. 
+
+Asymmetric Weight Reversion Ablation. We evaluate the synergy be-tween tearly , τawr , and ηs. As shown in Fig. 5b, the performance of IN100-C, IN100- ¯C, and IN100-3DCC remains consistently superior to the dashed baselines across tearly ∈ [0 , 30] , showing our method’s insensitivity to the reversion anchor. For the trigger epoch Fig. 5c, the accuracy peaks at τawr = 20 and drops beyond 35, highlighting the need for balanced feature transition. Regarding Fig. 5d, the Robustness Emerges Early in Training Dynamics, but Is Not Preserved 13 （a） （b） （c）   
+
+> （d）（e）（f）
+> Fig. 7: t-SNE visualizations of Baseline, EPS, and AWR (from left to right) under (a-c) Gaussian noise and (d-f) Pixelate.
+
+model exhibits remarkable robustness within [10 −6, 10 −3], with a sharp decline only at 10 −1 due to optimization instability. Overall, these results confirm the practical reliability of the AWR mechanism across all benchmarks. 
+
+5.5 Probing the Interventions Optimization Geometry Sensitivity. To investigate the mechanisms of ro-bustness enhancement, we analyze the loss landscape topology by perturbing inputs along random orthogonal bases across scales ϵ, quantifying Local Sharp-ness ( ∆L max ) [56] and Gradient Flatness ( ∥∇ L∥) [36]. As shown in Fig. 6, while the Baseline exhibits a rugged and sharp landscape, both EPS and AWR sig-nificantly stabilize the geometry. In Fig. 6a, these interventions suppress the growth of ∆L max , ensuring reliability in worst-case scenarios, while the consis-tently lower gradient norms observed in Fig. 6b indicate a clear transition from sharp to flat minima. This shift toward a smoother functional landscape directly correlates with the observed performance gains under image degradation, con-firming that our interventions facilitate convergence to more robust local optima by maintaining a flatter loss surface across increasing perturbation scales. 
+
+Stability of Representation Geometry. To understand how our inter-ventions shape feature geometry, we employ two key metrics: Effective Rank (ER) [52] to assess feature concentration, and Intrinsic Dimension (ID) [31] to evaluate structural complexity. Specifically, we calculate the absolute discrep-ancy ( ∆) between metrics computed on clean and corrupted data. As shown in Fig. 6c-d, while the baseline exhibits significant variance under corruption, EPS and AWR consistently minimize ∆ in both metrics. This stability confirms that our framework effectively preserves structural consistency, preventing rep-resentation drift under heavy perturbations. This is qualitatively reinforced by 14 J. Yang et al. （a）            
+
+> BEA66.3 43.4 BEA64.4 40.0 64.4 38.0
+> （b）
+> Fig. 8: Robustness analysis under patch shuffling and frequency domain perturbations. (a) Top-1 Accuracy under patch shuffling, grouped by patch sizes 2×2and 4×4(from left to right). (b) Frequency-domain error distribution for Baseline, EPS, and AWR (from left to right).
+
+t-SNE [35] visualizations in Fig. 7, where our methods yield more compact and discriminative clusters. The alignment between these quantitative metrics and visualization results demonstrates that EPS and AWR foster a robust represen-tation geometry that remains invariant to data degradation. 
+
+Robustness via Shape and Frequency Biases. We analyze robustness via shape [19] and frequency biases [64]. In Fig. 8a, we disrupt spatial logic via patch shuffling ( 2 × 2, 4 × 4) to evaluate the reliance on global structures. The performance gap between our models (E/A) and the Baseline (B) suggests a shift from local textures to global geometric representations. This is corroborated by the frequency-domain error maps in Fig. 8b, where our methods significantly suppress error rates in mid-to-high frequency bands. By filtering non-semantic noise while preserving structural cues, our framework achieves superior stability against natural corruptions. 
+
+## 6 Discussion 
+
+In this work, we use “robust priors” to denote early-stage shallow representa-tions that are empirically associated with corruption robustness, as characterized by representation similarity, information preservation, freezing interventions, and loss-landscape analyses. This interpretation motivates EPS and AWR as lightweight trajectory interventions that stabilize or recover such early-emergent properties without introducing additional learnable parameters. The mechanism is most directly aligned with robustness degradation caused by low-level visual corruptions, while broader distribution shifts may also involve semantic, contex-Robustness Emerges Early in Training Dynamics, but Is Not Preserved 15 
+
+tual, or sensor-domain changes. Thus, preserving early robust priors should be viewed as a practical route to improving corruption robustness, rather than a complete solution to all forms of distribution shift. 
+
+## 7 Conclusion 
+
+This paper identifies the robustness fading phenomenon, where shallow layers spontaneously develop robust representations and flat loss landscapes early in training but lose these properties upon convergence. We introduce Early-Phase Stabilization and Asymmetric Weight Reversion as two parameter-free strategies to stabilize these early-emergent robust priors. Extensive empirical evaluations and geometric analyses associate these gains with smoother loss landscapes and improved representation stability under distribution shifts. Our framework con-sistently improves corruption robustness across diverse architectures and vision tasks, including detection and segmentation without architectural overhead. By shifting the focus from static inductive biases to temporal training dynamics, we provide a minimalist yet effective path toward building inherently reliable models. 
+
+## References 
+
+1. Achille, A., Rovere, M., Soatto, S.: Critical learning periods in deep networks. In: International conference on learning representations (2018) 2. Alain, G., Bengio, Y.: Understanding intermediate layers using linear classifier probes. arXiv preprint arXiv:1610.01644 (2016) 3. Bair, A., Yin, H., Shen, M., Molchanov, P., Alvarez, J.M.: Adaptive sharpness-aware pruning for robust sparse networks. In: The Twelfth International Conference on Learning Representations (2024) 4. Cao, Y., Xu, J., Lin, S., Wei, F., Hu, H.: Gcnet: Non-local networks meet squeeze-excitation networks and beyond. In: Proceedings of the IEEE/CVF international conference on computer vision workshops. pp. 0–0 (2019) 5. Chen, D., Wang, D., Darrell, T., Ebrahimi, S.: Contrastive test-time adaptation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 295–305 (2022) 6. Chen, K., Wang, J., Pang, J., Cao, Y., Xiong, Y., Li, X., Sun, S., Feng, W., Liu, Z., Xu, J., et al.: Mmdetection: Open mmlab detection toolbox and benchmark. arXiv preprint arXiv:1906.07155 (2019) 7. Chen, L.C., Zhu, Y., Papandreou, G., Schroff, F., Adam, H.: Encoder-decoder with atrous separable convolution for semantic image segmentation. In: Proceedings of the European conference on computer vision (ECCV). pp. 801–818 (2018) 8. Chimoto, E.A., Gala, J., Ahia, O., Kreutzer, J., Bassett, B.A., Hooker, S.: Critical learning periods: Leveraging early training dynamics for efficient data pruning. In: Findings of the Association for Computational Linguistics: ACL 2024. pp. 9407– 9426 (2024) 9. Contributors, M.: MMSegmentation: Openmmlab semantic segmentation toolbox and benchmark. https://github.com/open-mmlab/mmsegmentation (2020) 16 J. Yang et al. 10. Cubuk, E.D., Zoph, B., Mane, D., Vasudevan, V., Le, Q.V.: Autoaugment: Learning augmentation policies from data. arXiv preprint arXiv:1805.09501 (2018) 11. Dapello, J., Marques, T., Schrimpf, M., Geiger, F., Cox, D., DiCarlo, J.J.: Simulat-ing a primary visual cortex at the front of cnns improves robustness to image per-turbations. Advances in Neural Information Processing Systems 33 , 13073–13087 (2020) 12. Deng, J., Dong, W., Socher, R., Li, L.J., Li, K., Fei-Fei, L.: Imagenet: A large-scale hierarchical image database. In: 2009 IEEE conference on computer vision and pattern recognition. pp. 248–255. Ieee (2009) 13. Diffenderfer, J., Bartoldson, B., Chaganti, S., Zhang, J., Kailkhura, B.: A winning hand: Compressing deep networks can improve out-of-distribution robustness. Ad-vances in neural information processing systems 34 , 664–676 (2021) 14. Döbler, M., Marsden, R.A., Yang, B.: Robust mean teacher for continual and gradual test-time adaptation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 7704–7714 (2023) 15. Foret, P., Kleiner, A., Mobahi, H., Neyshabur, B.: Sharpness-aware minimization for efficiently improving generalization. arXiv preprint arXiv:2010.01412 (2020) 16. Frankle, J., Carbin, M.: The lottery ticket hypothesis: Finding sparse, trainable neural networks. In: International Conference on Learning Representations 17. Frankle, J., Schwab, D.J., Morcos, A.S.: The early phase of neural network training. In: International Conference on Learning Representations 18. Gavrikov, P., Keuper, J.: Can biases in imagenet models explain generalization? In: Proceedings of the IEEE/CVF conference on computer vision and pattern recog-nition. pp. 22184–22194 (2024) 19. Geirhos, R., Rubisch, P., Michaelis, C., Bethge, M., Wichmann, F.A., Brendel, W.: Imagenet-trained cnns are biased towards texture; increasing shape bias improves accuracy and robustness. In: International conference on learning representations (2018) 20. Guo, Y., Stutz, D., Schiele, B.: Improving robustness by enhancing weak subnets. In: European Conference on Computer Vision. pp. 320–338. Springer (2022) 21. He, K., Zhang, X., Ren, S., Sun, J.: Deep residual learning for image recognition. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 770–778 (2016) 22. Hendrycks, D., Dietterich, T.: Benchmarking neural network robustness to common corruptions and perturbations. arXiv preprint arXiv:1903.12261 (2019) 23. Hendrycks, D., Mu, N., Cubuk, E.D., Zoph, B., Gilmer, J., Lakshminarayanan, B.: Augmix: A simple data processing method to improve robustness and uncertainty. In: International Conference on Learning Representations 24. Hermann, K., Chen, T., Kornblith, S.: The origins and prevalence of texture bias in convolutional neural networks. Advances in neural information processing systems 
+
+33 , 19000–19015 (2020) 25. Ilyas, A., Santurkar, S., Tsipras, D., Engstrom, L., Tran, B., Madry, A.: Adversarial examples are not bugs, they are features. Advances in neural information processing systems 32 (2019) 26. Izmailov, P., Wilson, A., Podoprikhin, D., Vetrov, D., Garipov, T.: Averaging weights leads to wider optima and better generalization. In: 34th Conference on Uncertainty in Artificial Intelligence 2018, UAI 2018. pp. 876–885 (2018) 27. Jocher, G., Chaurasia, A., Stoken, A., Borovec, J., Kwon, Y., Michael, K., Fang, J., Yifu, Z., Wong, C., Montes, D., et al.: ultralytics/yolov5: v7. 0-yolov5 sota realtime instance segmentation. Zenodo (2022) Robustness Emerges Early in Training Dynamics, but Is Not Preserved 17 28. Kamann, C., Rother, C.: Benchmarking the robustness of semantic segmentation models with respect to common corruptions. International journal of computer vision 129 (2), 462–483 (2021) 29. Kar, O.F., Yeo, T., Atanov, A., Zamir, A.: 3d common corruptions and data aug-mentation. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 18963–18974 (2022) 30. Kornblith, S., Norouzi, M., Lee, H., Hinton, G.: Similarity of neural network rep-resentations revisited. In: International conference on machine learning. pp. 3519– 3529. PMLR (2019) 31. Li, C., Farkhoor, H., Liu, R., Yosinski, J.: Measuring the intrinsic dimension of objective landscapes. In: International Conference on Learning Representations (2018) 32. Li, H., Xu, Z., Taylor, G., Studer, C., Goldstein, T.: Visualizing the loss landscape of neural nets. Advances in neural information processing systems 31 (2018) 33. Li, Y., Yuan, G., Wen, Y., Hu, J., Evangelidis, G., Tulyakov, S., Wang, Y., Ren, J.: Efficientformer: Vision transformers at mobilenet speed. Advances in Neural Information Processing Systems 35 , 12934–12949 (2022) 34. Liu, C., Dong, Y., Xiang, W., Yang, X., Su, H., Zhu, J., Chen, Y., He, Y., Xue, H., Zheng, S.: A comprehensive study on robustness of image classification models: Benchmarking and rethinking. International Journal of Computer Vision 133 (2), 567–589 (2025) 35. Van der Maaten, L., Hinton, G.: Visualizing data using t-sne. Journal of machine learning research 9(11) (2008) 36. Madry, A., Makelov, A., Schmidt, L., Tsipras, D., Vladu, A.: Towards deep learning models resistant to adversarial attacks. In: International Conference on Learning Representations (2018) 37. Mao, X., Chen, Y., Duan, R., Zhu, Y., Qi, G., Li, X., Zhang, R., Xue, H., et al.: Enhance the visual representation via discrete adversarial training. Advances in Neural Information Processing Systems 35 , 7520–7533 (2022) 38. Mayilvahanan, P., Wiedemer, T., Rusak, E., Bethge, M., Brendel, W.: Does clip’s generalization performance mainly stem from high train-test similarity? (2024) 39. Mehta, S., Rastegari, M.: Mobilevit: light-weight, general-purpose, and mobile-friendly vision transformer. arXiv preprint arXiv:2110.02178 (2021) 40. Michaelis, C., Mitzkus, B., Geirhos, R., Rusak, E., Bringmann, O., Ecker, A.S., Bethge, M., Brendel, W.: Benchmarking robustness in object detection: Au-tonomous driving when winter is coming. arXiv preprint arXiv:1907.07484 (2019) 41. Mintun, E., Kirillov, A., Xie, S.: On interaction between augmentations and corrup-tions in natural corruption robustness. Advances in Neural Information Processing Systems 34 , 3571–3583 (2021) 42. Modas, A., Rade, R., Ortiz-Jiménez, G., Moosavi-Dezfooli, S.M., Frossard, P.: Prime: A few primitives can boost robustness to common corruptions. In: European Conference on Computer Vision. pp. 623–640. Springer (2022) 43. Müller, R., Kornblith, S., Hinton, G.E.: When does label smoothing help? Advances in neural information processing systems 32 (2019) 44. Niu, S., Wu, J., Zhang, Y., Wen, Z., Chen, Y., Zhao, P., Tan, M.: Towards sta-ble test-time adaptation in dynamic wild world. arXiv preprint arXiv:2302.12400 (2023) 45. Oord, A.v.d., Li, Y., Vinyals, O.: Representation learning with contrastive predic-tive coding. arXiv preprint arXiv:1807.03748 (2018) 18 J. Yang et al. 46. Pérez, J.C., Alfarra, M., Jeanneret, G., Bibi, A., Thabet, A., Ghanem, B., Ar-beláez, P.: Gabor layers enhance network robustness. In: European Conference on Computer Vision. pp. 450–466. Springer (2020) 47. Qin, Y., Zhang, C., Chen, T., Lakshminarayanan, B., Beutel, A., Wang, X.: Un-derstanding and improving robustness of vision transformers through patch-based negative augmentation. Advances in Neural Information Processing Systems 35 ,16276–16289 (2022) 48. Rahaman, N., Baratin, A., Arpit, D., Draxler, F., Lin, M., Hamprecht, F., Ben-gio, Y., Courville, A.: On the spectral bias of neural networks. In: International conference on machine learning. pp. 5301–5310. PMLR (2019) 49. Recht, B., Roelofs, R., Schmidt, L., Shankar, V.: Do imagenet classifiers generalize to imagenet? In: International conference on machine learning. pp. 5389–5400. PMLR (2019) 50. Ren, S., He, K., Girshick, R., Sun, J.: Faster r-cnn: Towards real-time object de-tection with region proposal networks. IEEE transactions on pattern analysis and machine intelligence 39 (6), 1137–1149 (2016) 51. Rice, L., Wong, E., Kolter, Z.: Overfitting in adversarially robust deep learning. In: International conference on machine learning. pp. 8093–8104. PMLR (2020) 52. Roy, O., Vetterli, M.: The effective rank: A measure of effective dimensionality. In: 2007 15th European signal processing conference. pp. 606–610. IEEE (2007) 53. Saikia, T., Schmid, C., Brox, T.: Improving robustness against common corruptions with frequency biased models. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 10211–10220 (2021) 54. Sakaridis, C., Dai, D., Van Gool, L.: Acdc: The adverse conditions dataset with correspondences for semantic driving scene understanding. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 10765–10775 (2021) 55. Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., Chen, L.C.: Mobilenetv2: In-verted residuals and linear bottlenecks. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 4510–4520 (2018) 56. Santurkar, S., Tsipras, D., Ilyas, A., Madry, A.: How does batch normalization help optimization? Advances in neural information processing systems 31 (2018) 57. Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., Salakhutdinov, R.: Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research 15 (1), 1929–1958 (2014) 58. Trinh, Q.T., Heinonen, M., Acerbi, L., Kaski, S.: Improving robustness to corrup-tions with multiplicative weight perturbations. Advances in Neural Information Processing Systems 37 , 35492–35516 (2024) 59. Vaish, P., Wang, S., Strisciuglio, N.: Fourier-basis functions to bridge augmentation gap: Rethinking frequency augmentation in image classification. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 17763–17772 (2024) 60. Vryniotis, V.: How to train state-of-the-art models using torchvision’s latest prim-itives. PyTorch (2021) 61. Wang, D., Shelhamer, E., Liu, S., Olshausen, B., Darrell, T.: Tent: Fully test-time adaptation by entropy minimization. In: International Conference on Learning Representations (2021) 62. Wightman, R., Touvron, H., Jegou, H.: Resnet strikes back: An improved training procedure in timm. In: NeurIPS 2021 Workshop on ImageNet: Past, Present, and Future Robustness Emerges Early in Training Dynamics, but Is Not Preserved 19 63. Wu, B., Xiao, Q., Wang, S., Strisciuglio, N., Pechenizkiy, M., van Keulen, M., Mocanu, D.C., Mocanu, E.: Dynamic sparse training versus dense training: The unexpected winner in image corruption robustness. In: The Thirteenth Interna-tional Conference on Learning Representations (2025) 64. Yin, D., Gontijo Lopes, R., Shlens, J., Cubuk, E.D., Gilmer, J.: A fourier per-spective on model robustness in computer vision. Advances in Neural Information Processing Systems 32 (2019) 65. Yu, C., Han, B., Shen, L., Yu, J., Gong, C., Gong, M., Liu, T.: Understanding robust overfitting of adversarial training and beyond. In: International Conference on Machine Learning. pp. 25595–25610. PMLR (2022) 66. Yu, W., Wang, X.: Mambaout: Do we really need mamba for vision? In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 4484–4496 (2025) 67. Yuan, L., Xie, B., Li, S.: Robust test-time adaptation in dynamic scenarios. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition. pp. 15922–15932 (2023) 68. Yuan, X., He, P., Zhu, Q., Li, X.: Adversarial examples: Attacks and defenses for deep learning. IEEE transactions on neural networks and learning systems 30 (9), 2805–2824 (2019) 69. Yun, S., Han, D., Oh, S.J., Chun, S., Choe, J., Yoo, Y.: Cutmix: Regularization strategy to train strong classifiers with localizable features. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 6023–6032 (2019) 70. Zagoruyko, S., Komodakis, N.: Wide residual networks. arXiv preprint arXiv:1605.07146 (2016) 71. Zhang, H., Cisse, M., Dauphin, Y.N., Lopez-Paz, D.: mixup: Beyond empirical risk minimization. In: International Conference on Learning Representations (2018) 72. Zhao, B., Yu, S., Ma, W., Yu, M., Mei, S., Wang, A., He, J., Yuille, A., Kortylewski, A.: Ood-cv: A benchmark for robustness to out-of-distribution shifts of individual nuisances in natural images. In: European conference on computer vision. pp. 163– 180. Springer (2022)

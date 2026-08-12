@@ -1,0 +1,359 @@
+Title: Bridging the Gap Between Hyperdimensional Computing and Kernel Methods via the Nyström Method
+
+URL Source: https://arxiv.org/pdf/2608.06860v1
+
+Published Time: Mon, 10 Aug 2026 00:39:18 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Bridging the Gap Between Hyperdimensional Computing and Kernel Methods via the Nystr¨ om Method 
+
+# Quanling Zhao, Anthony Hitchcock Thomas, Ari Brin, Xiaofan Yu, Tajana Rosing 
+
+Department of Computer Science and Engineering, UC San Diego 
+
+{quzhao,ahthomas,abrin,x1yu,tajana }@ucsd.edu 
+
+Abstract 
+
+Hyperdimensional computing (HDC) is an approach from the cognitive science literature for solving information process-ing tasks using data represented as high-dimensional random vectors. The technique has a rigorous mathematical back-ing, and is easy to implement in energy-efficient and highly parallel hardware like FPGAs and “processing-in-memory” architectures. The effectiveness of HDC in machine learn-ing largely depends on how raw data is mapped to high-dimensional space. In this work, we propose NysHD, a new method for constructing this mapping that is based on the Nystr¨ om method from the literature on kernel approxima-tion. Our approach provides a simple recipe to turn any user-defined positive-semidefinite similarity function into an equivalent mapping in HDC. There is a vast literature on the design of such functions for learning problems. Our approach provides a mechanism to import them into the HDC setting, expanding the types of problems that can be tackled using HDC. Empirical evaluation against existing HDC encoding methods shows that NysHD can achieve, on average, 11% and 17% better classification accuracy on graph and string datasets respectively. 
+
+Code — https://github.com/QuanlingZhao/NysHD 
+
+# Introduction 
+
+Biological brains “compute” using data representations that are intrinsically fault-tolerant, suitable for highly-parallel circuitry, and reveal complex structures in an environment that are easy to learn (Hertz 2018). Motivated by these de-sirable qualities, hyperdimensional computing (HDC) builds on theories of representation from cognitive science (Kan-erva 2009; Plate 1995) to develop novel hardware and algo-rithms for information processing tasks. In HDC, all compu-tation is performed using high-dimensional, low-precision, vector representations of data. These representations can be manipulated using simple, element-wise operators, so as to implement learning algorithms or other information process-ing tasks. In contrast to deep learning models, training HDC-based models can typically be done in a single pass over the training data (Hern´ andez-Cano et al. 2021; Yu et al. 2022) 
+
+Copyright © 2025, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+and does not require back-propagation. The operations used in HDC are lightweight and highly parallelizable, making them suitable for implementation on low-energy and paral-lel hardware platforms. This makes HDC an attractive al-ternative for implementing learning in resource constrained settings. As a result, HDC has gained significant interest in recent years, especially in Internet of Things (IoT) (Khaleghi et al. 2022; Zhao et al. 2022; Morris et al. 2021); and in the computer hardware community (Dutta et al. 2022; Kang et al. 2022a) such as FPGAs (Salamat et al. 2019), GPUs (Kang et al. 2022b), ASICs (Zhang et al. 2023) and in-memory computing (Dutta et al. 2022; Xu, Kang, and Ros-ing 2023). The first stage in any HDC task is encoding, which maps data from its ambient representation x ∈ X , into a repre-sentation ϕ(x) residing in a high-dimensional inner product space H (Kleyko et al. 2023). HDC uses addition and mul-tiplication (called ‘bundling” and “binding” in the HDC lit-erature), to build representations of complex structures from simple building blocks or to implement tasks like learning. For instance, classification using HDC represents each class as a sum of the encodings of its training data, called a “proto-type.” Inference can then be performed by finding the closest prototype to a query. The crucial assumption underlying the success of this technique is that “similar” points in X are mapped to “sim-ilar” regions of H. In practice, this desideratum typically means that dot-products in H should be reflective of some salient notion of similarity on X . In HDC, one typically builds representations incrementally, by bundling and bind-ing together the embeddings of simpler atoms. In this work, we observe that one can also go in the opposite direction: starting from a known similarity function of interest, it is possible to generate an equivalent—up to some approxima-tion factor—encoding function. The advantage of this “top down” approach is that there is a vast literature on designing good similarity functions for different kinds of learning problems. In machine learning, similarity functions that work by computing inner products between high-dimensional embeddings of data are called kernel functions, and are the basis of kernel methods, a vast area of research in theoretical and applied ML (Shawe-Taylor and Cristianini 2004; Smola and Sch¨ olkopf 1998). This literature has devoted substantial attention to the prob-arXiv:2608.06860v1 [cs.LG] 7 Aug 2026 Figure 1: Overview of HDC training and inference for classification tasks. lem of designing good similarity functions, which are also potentially applicable to the kinds of problems encountered in HDC. In this work, we study an approach, based on the Nystr¨ om method from the literature on kernel approxima-tion (Williams and Seeger 2000), which can take a user de-fined kernel and generate an low-precision, randomized em-bedding, suitable for use in the kinds of learning algorithms employed in HDC. In a nutshell, the contributions of this paper are as follows: • We propose NysHD, a new way to generate embeddings for HDC which can turn any user-defined kernel function into an equivalent encodings. • We analyze the kernel-preserving properties of NysHD formally and show that the inner product between en-coded samples preserves normalized kernel values. • We perform an empirical evaluation against existing HDC encoding methods and various neural network ar-chitectures and show our method substantially improves the performance of HDC-based learning, while preserv-ing efficiency benefits relative to DNNs. From a practical standpoint, our work has the potential to ex-pand the scope of tasks that can be effectively addressed us-ing HDC by allowing practitioners to access the large reper-toire of kernels that have been designed for them (i.e. graph kernels, string kernels etc.). 
+
+# Background and Related Work 
+
+Learning With HDC 
+
+In this work, we focus on using HDC to solve classifi-cation problems, which is a common practical application of the technique (Imani et al. 2019; Rahimi et al. 2018; Menon et al. 2022). Fig 1 demonstrates a typical HDC learning workflow for classification (Morris et al. 2021; Nunes et al. 2022; Miranda and d’Aliberti 2022). Let D =
+
+{(x1, y 1), ..., (xn, y n)} be a set of training data, where xi ∈X is an input, and yi ∈ {1, ..., c } is a class label. The first step is to embed the training data into a d-dimensional inner product space H under a map (called the encoding function) ϕ : X → H. The “training” step then asso-ciates each class with a vector in H, which is typically formed by summing (bundling) the training data correspond-ing to a particular class. Specifically, class j is represented as 
+
+θj = Pni=1 αij ϕ(xi) where αij = 1( yi = j). In practice, θj
+
+is sometimes quantized to reduce precision in some fashion, which is beneficial in some hardware settings. The label of a query x is predicted by via ˆy = arg max j∈{ 1,...,c } ϕ(x) · θj
+
+where the operands are sometimes normalized if appropri-ate. In either case, this procedure can be interpreted as as-sociating each class to a linear scoring function in H and performing inference by picking the class of highest score - a common paradigm in machine learning. Fine-tuning the class vectors θj is common, often achieved by running the Perceptron algorithm (Rosenblatt 1958), referred to as “re-training” in HDC literature. A number of HDC encoding methods have been pro-posed to encode different types of data. For example, string or text data can be encoded through the N -gram encod-ing method (Joshi, Halseth, and Kanerva 2017; Imani et al. 2018). Concretely, let S = ( a1a2a3...a N ) be a string of N
+
+characters drawn from some alphabet A (say, the latin al-phabet or {A,T,G,C }). To encode S, we start by assign-ing each a ∈ A an embedding ϕ(a) by sampling uniformly at random from {± 1/√d}d, after which, we represent S as 
+
+a1 ◦ρ(a2)◦ρ2(a3)◦· · ·◦ ρN −1(aN ) where ◦ is element-wise multiplication (Joshi, Halseth, and Kanerva 2017) and ρ is a permutation operation of the vector coordinates, ρn means same permutation applied n times in sequence. If ◦ is multi-plication, the way N -grams representations are constructed makes them almost mutually orthogonal in H in the sense that E[ϕ(S) · ϕ(S′)] = 1( S = S′). The deviation from this expectation can be controlled using concentration arguments (Thomas, Dasgupta, and Rosing 2021). Finally, longer strings that contain multiple N -grams can be treated as a sum of N -gram vectors. This string encod-ing scheme can be viewed as a “compressed” version of the bag-of-words model (Harris 1954) in the sense that all 
+
+N -gram vectors are superimposed into one representation. Intuitively, the inner product between two such encoded strings can measure how “similar” two strings are, as that value would be large if two strings shared many common N -grams, and vice versa. For general feature vectors (or simple images), techniques based on random projection are popu-lar (Morris et al. 2021; Khaleghi et al. 2022). Existing HDC encoding methods tend to capture fairly simple notions of similarity based on the L1/L2 or angular distance. However, the design of good encoding functions for complex forms of data like graphs and time-series re-mains an important area of research. For inspiration, we turn to another area of machine learning that has thought exten-sively about how to measure similarities between data points using high-dimensional vectors. 
+
+Kernel Methods 
+
+Kernel methods are a wide ranging area of research in statis-tics and machine learning that shares many similarities with HDC (Shawe-Taylor and Cristianini 2004; Meanti et al. 2020; Hofmann, Sch¨ olkopf, and Smola 2008). Much like in HDC, kernel methods work by embedding data into a high-dimensional space wherein similarities are measured using inner products. That is to say, kernel methods mea-sure similarities between data points x, x ′ ∈ X via a func-tion K(x, x ′) = ψ(x) · ψ(x′), called a “kernel function,” where ψ : X → H is an embedding into an inner prod-uct space. For many types of kernel functions used in prac-tice, it is possible to compute K(x, x ′) directly on the am-bient representation of the data without materializing the embeddings. Notable examples include the Gaussian kernel 
+
+K(x, x ′) ∝ exp( −∥ x−x′∥22), and the p-th order polynomial kernel K(x, x ′) = (1 + x · x′)p. Both of these kernels can be evaluated in closed form on the ambient representation of the data, allowing kernel methods to implicitly compute a simi-larity based on a high-dimensional embedding. HDC, how-ever, always explicitly materializes the embeddings, hence the need for an encoding function ϕ.Kernel-based learning methods make predictions using functions taking the form f (x) = Pni=1 aik(xi, x ), where 
+
+x1, ..., x n are training data points, and α1, ..., α n are weights that are learned by a training algorithm. Noting that f (x) = Pni=1 αik(x, x i) = ψ(x) · θ where θ = Pni=1 aiψ(xi), in this way we can interpret such functions as linear models in the embedding space associated with the kernel, much like in the previous paragraph on HDC. One significant difference between kernel methods and HDC, is that in the former the embeddings are implicit, and similarities are evaluated us-ing the kernel function. This property is appealing because it allows one to efficiently work with infinite-dimensional embeddings, which can have desirable properties for learn-ing (Steinwart 2001). 
+
+Kernel Methods and HDC 
+
+There is a large body of theoretical and applied literature on kernel methods that has developed kernel functions ap-plicable to many settings of practical interest (Neumann et al. 2016; Leslie, Eskin, and Noble 2001; Shimodaira et al. 2001; Shawe-Taylor and Cristianini 2004). To provide a con-crete example of how the literature on kernel methods can offer insights for the HDC community, we first consider the encoding of time-series data in HDC. Similar to the previ-ously discussed N -gram encoding, the permutation opera-tion is applied to encode the temporal information of time-series data (Joshi, Halseth, and Kanerva 2017; Asgarine-jad, Thomas, and Rosing 2020). However, such encoding schemes can fail if the events in two time-series do not align exactly. Since each time step is associated with a unique per-mutation during encoding, even a small shift in events be-tween time-series can cause existing HDC encoding meth-ods to map the two time-series to nearly orthogonal vec-tors. In practice, however, if two time-series reflect the same underlying activity or nature, one would expect their sim-ilarity to be preserved after encoding, even if some event misalignment exists. On this issue, the literature on ker-nel methods suggests a solution: the dynamic-time-warping kernel (Gudmundsson, Runarsson, and Sigurdsson 2008), which can handle time-series sequences with misalignment or time-stretching/compression. For graphs, GraphHD (Nunes et al. 2022) proposes to en-code graph topology induced by PageRank centrality met-ric (Brin and Page 1998). However, this process does not utilize crucial information such as node labels or node at-tributes (where each node in the graph is associated with a feature vector or a label). Such limitations have been ad-dressed by kernel methods. For example, the propagation kernell (Neumann et al. 2016) works with graphs that in-clude node labels or node attributes, therefore is capable of capturing a potentially richer notion of similarity. In this work, our goal is to devise a procedure that can translate any kernel into an equivalent HDC encoding, thereby allowing practitioners to exploit the wealth of ker-nel functions that have been designed for practical prob-lems while continuing to reap the benefits of computing with HDC representations. 
+
+Related Work 
+
+The connection between HDC and kernel approximation is generally well known (Yu et al. 2022; Thomas, Das-gupta, and Rosing 2021; Paxon Frady et al. 2021; Voelker 2020), mostly through the lens of random Fourier features (RFF) (Rahimi and Recht 2007). RFF is a sampling based scheme that generates a vector of features ϕ(x) ∈ Rd with the property that ϕ(x) · ϕ(x′) ≈ K(x, x ′), where K is a shift-invariant kernel (kernel function that depends only on the relative distance between inputs, e.g. the Gaussian kernel and Laplacian kernels). Closely related methods arise in the HDC literature under the names “nonlinear-encoding” (Mi-randa and d’Aliberti 2022; Imani et al. 2020) and “fractional power encoding” (Paxon Frady et al. 2021). Using RFF in the context of HDC means that inner products in HD space approximate some shift-invariant kernel, usually the Gaus-sian or Sinc kernels. However, a limitation of RFF is that it can only work with shift-invariant kernels, which many useful kernels do not satisfy, such as kernels on graphs and strings. The Nystr¨ om method provides a way to generate ap-proximations for a larger class of kernels that do not need to be translation invariant. 
+
+# HDC Encoding via Nystr¨ om Approximation 
+
+In this section, we describe our new encoding algorithm, NysHD, for HDC using the Nystr¨ om method for kernel ap-proximation. We also demonstrate that the inner product be-tween encoded samples, in expectation, preserves normal-ized kernel values. Given a suitable kernel function K, our goal is to generate an encoding function ϕ : X → H such that ϕ(x) · ϕ(x′) ≈
+
+K(x, x ′) ∀x, x ′ ∈ D , where D is some subset of X . This property is useful for learning algorithms that are widely em-ployed in HDC as it enables them to exploit more useful similarities captured by the kernel. 
+
+Nystr¨ om Method 
+
+Conventional realizations of kernel-based learning algo-rithms commonly require storing all pairwise evaluations of the kernel function in a large matrix G defined element-wise by Gij = K(xi, x j ), which is problematic when n is large. The Nystr¨ om method is a low-rank matrix approxi-mation technique widely employed to speed up kernel ma-chines by avoiding the need to store the entire kernel ma-trix (Williams and Seeger 2000; Drineas, Mahoney, and Cristianini 2005; Kumar, Mohri, and Talwalkar 2012). In this way, the Nystr¨ om method is similar to RFF since they are both sampling-based schemes and can be used to approx-imate kernel functions. The key difference between RFF and the Nystr¨ om method is that the Nystr¨ om method can work with a larger class of kernels than RFF, many of which are useful for applications involving discrete structures such as string and graph. Intuitively, the Nystr¨ om method works by sub-sampling the kernel matrix and reconstructing the full kernel matrix from the sampled one. This is possible because the ker-nel matrix is typically close to low-rank in practice. Con-cretely, suppose we have a dataset D = {x1, x 2, ..., x n},from which we sample a set of landmarks Z = {z1, ..., z s},where s ≪ n. Let G ∈ Rn×n be the full kernel matrix de-fined element-wise by Gij = K(xi, x j ), and let HZ ∈ Rs×s
+
+be the sub-sampled kernel matrix defined element-wise by 
+
+(HZ )ij = K(zi, z j ). The Nystr¨ om method yields the fol-lowing approximation (Drineas, Mahoney, and Cristianini 2005): 
+
+ˆG = CH + 
+
+> Z
+
+CT ≈ G (1) Where C is an n × s matrix such that Cij = K(xi, z j )
+
+for some kernel function K and H+ 
+
+> Z
+
+denotes the pseudo-inverse of HZ . There is a robust theoretical literature on the Nystr¨ om method, providing bounds on approximation error based on the number of selected landmarks and various sam-pling strategies (Kumar, Mohri, and Talwalkar 2012). Let Q
+
+and Λ be the eigenvectors and eigenvalues of HZ then: 
+
+H+ 
+
+> Z
+
+= QΛ−1QT
+
+This allows one to generate encodings explicitly via 
+
+ϕnys (xi) = Λ − 12 QT C(i), which approximates the kernel: 
+
+ϕnys (xi) · ϕnys (xj )=
+
+
+
+Λ− 12 QT C(i)
+
+·
+
+
+
+Λ− 12 QT C(j)
+
+= ˆGij 
+
+(2) Where xi, x j ∈ D and C(i) denotes the ith row of C in a column vector. While the encodings produced by Nystr¨ om method directly satisfy the desired kernel approximation property, they are, in general, of high-precision which is un-desirable in some settings of interest in HDC (Khaleghi et al. 2022). Our method rectifies this issue by composing the fea-tures extracted using the Nystr¨ om method with another en-coding technique that preserves angular similarities which we discuss in detail in the next section. Due to the data-dependent nature of the Nystr¨ om method, the quality of its approximation and computational complex-ity depends on the size and composition of Z. As an initial step, in this paper we simply use uniform sampling without replacement (Williams and Seeger 2000; Kumar, Mohri, and Talwalkar 2012) as our sampling strategy. However, more sophisticated strategies such as ensemble and adaptive sam-pling (Kumar, Mohri, and Talwalkar 2012) for constructing landmark sets can potentially lead to better performance and warrant further exploration in future work. 
+
+Encoding Process 
+
+To achieve the aforementioned goals, we compose ran-dom hyperplane rounding (Charikar 2002) with the Nystr¨ om method to generate HDC embeddings that approximate a de-sired kernel. Alg. 1 describes the process for generating the Nystr¨ om embedding matrix, followed by data point encod-ing in Alg. 2. Algorithm 1: Generate the Nystr¨ om embedding matrix 
+
+Require: kernel K over X , dataset D, number of landmarks 
+
+s > 0, HDC dimension d > 0
+
+Z ← sample s points from D without replacement 
+
+/*Landmarks*/ 
+
+(HZ )ij = K(zi, z j ) ∀ 0 ≤ i, j ≤ s
+
+/*Partial kernel Matrix over landmarks*/ 
+
+QΛQT = HZ
+
+/*Symmetric Eigen-decomposition*/ 
+
+Prp = [w1, w 1, · · · , w d]T ∈ Rd×s
+
+/* wi sampled from s dimensional unit sphere*/ 
+
+Pnys = Prp Λ− 12 QT
+
+return Pnys , Z
+
+Algorithm 2: Encode one data point from D
+
+Require: xi ∈ D , Nystr¨ om embedding matrix Pnys , Land-marks Z and kernel function KC(i) = [ K(xi, z 1) K(xi, z 2) · · · K(xi, z s)] T ∈ Rs
+
+return p π 
+
+> 2d
+
+sign  Pnys C(i)
+
+The rows of Prp ∈ Rd×s are sampled from the uniform distribution over the s-dimensional unit sphere. This enables the following result regarding sign-thresholded random pro-jection: suppose v, v ′ ∈ Rn are unit vectors, with respect to randomness in the sampling of Prp , the following result holds with randomness in the sampling of Prp (see for in-stance (Charikar 2002)): 
+
+E
+
+ 1
+
+d sign (Prp v) · sign (Prp v′)
+
+
+
+= (1 − 2 cos −1(v · v′)/π )
+
+(3) NysHD generates encodings for which the similarity in-duced by the kernel K is preserved by dot product between the encodings in H. We summarize this result in the follow-ing theorem: 
+
+Theorem 1. Let K be a positive-definite kernel and, us-ing the notation of Algorithms 1 and 2, and recalling that 
+
+ϕnys (xi) = Λ − 12 QT C(i), define: 
+
+ϕ(xi) = 
+
+r π
+
+2d sign (Prp ϕnys (xi)) 
+
+Then, for all xi, x j ∈ D :
+
+E [ϕ (xi) · ϕ (xj )] = π
+
+2 − cos −1
+
+ ˆGij 
+
+q ˆGii ˆGjj 
+
+ (4) 
+
+Where ˆGij is estimated kernel value between xi and xj pro-duced by Nystr¨ om method. The expectation is taken with re-spect to randomness in the sampling of landmarks and Prp .Proof: Let ¯ϕnys (xi) denote normalization: ϕnys (xi) 
+
+> || ϕnys (xi)||
+
+. Not-ing that sign (cv ) = sign (v) for any v if c ≥ 0:
+
+ϕ (xi) · ϕ (xj )= π
+
+2d (sign (Prp ϕnys (xi)) · sign (Prp ϕnys (xj ))) = π
+
+2
+
+ 1
+
+d sign  Prp ¯ϕnys (xi) · sign  Prp ¯ϕnys (xj ) (5) Using result regarding sign-thresholded random projection in equation 3, we have: 
+
+E [ϕ(xi) · ϕ(xj )] = π
+
+2 1 − 2 cos −1   ¯ϕnys (xi) · ¯ϕnys (xj )
+
+π
+
+! (6) Recalling the Nystr¨ om method in equation 2 and the fact that || ϕnys (xi)|| = pϕnys (xi) · ϕnys (xi) = 
+
+p ˆGii :
+
+¯ϕnys (xi) · ¯ϕnys (xj ) = ˆGij 
+
+q ˆGii ˆGjj 
+
+(7) Finally: 
+
+E [ϕ(xi) · ϕ(xj )] = π
+
+2 − cos −1
+
+ ˆGij 
+
+q ˆGii ˆGjj 
+
+ ■ (8) To make the relationship with kernel approximation more explicit, consider the first order Taylor expansion of cos −1.Since || ¯ϕnys (xi)|| = || ¯ϕnys (xj )|| = 1 , it follows that −1 ≤
+
+¯ϕnys (xi) · ¯ϕnys (xj ) ≤ 1, which means ˆGij 
+
+√ ˆGii ˆGjj 
+
+is within the domain of cos −1, So: 
+
+E [ϕ(xi) · ϕ(xj )] ≈ π
+
+2 −
+
+ π
+
+2 − ˆGij 
+
+q ˆGii ˆGjj 
+
+
+
+= ˆGij 
+
+q ˆGii ˆGjj 
+
+(9) Note that this is called normalized kernel (Ah-Pine 2010). As shown above, NysHD preserves the kernel in H (up to the first order approximation) in the sense that the inner prod-uct between any pair of encoded data points approximates the normalized kernel value of some user-defined kernel K.Since HDC relies on the inner product in H for inference, as described in Section “Learning with HD” , the similarity metric captured by the kernel K is preserved, which benefits subsequent HDC learning algorithms. 
+
+Encoding Complexity 
+
+The proposed encoding method differs from existing HDC methods because generating embeddings using the Nystr¨ om method requires computing a partial kernel matrix. For this reason, similar to kernel machines, the efficiency of our al-gorithm depends heavily on the number of kernel computa-tions, which is related to the size of landmarks set s.In this section, we provide an asymptotic runtime anal-ysis of the encoding algorithm. Assuming that evaluat-ing the kernel function K takes O(m), that is to say the complexity of kernel function is linear in the dimension of the input (e.g., the Gaussian kernel) - the complex-ity of running the encoding algorithm over a dataset of n
+
+samples with s landmarks to d dimensional embedding is 
+
+O(max ( s3, snm, snd )) . The first term corresponds to the symmetric eigen-decomposition of the matrix HZ , the sec-ond term reflects the number of kernel evaluations, and the last term represents the sign-thresholded random projection, as discussed previously. In a typical Nystr¨ om kernel approx-imation setting where s ≪ n, depending on the nature of the kernel function being used, the second term is likely to be the dominant term, which is why the choice of s and K
+
+is crucial. Moreover, the analysis we provided here assumes the complexity of the kernel is linear in the number of fea-tures (for example, the Gaussian kernel); however, this is not always the case for kernel functions. For example, the spec-trum kernel (Leslie, Eskin, and Noble 2001), which com-pares the N -gram composition between two input strings, has O(m log( m)) in the length of the input sequences. 
+
+# Evaluation 
+
+We conduct an empirical evaluation of NysHD. First, we validate 1 and then evaluate the practicality of our method in terms of accuracy and efficiency against both HDC and non-HDC baselines. 
+
+Datasets and Kernel Functions 
+
+The proposed encoding method is general-purpose and ap-plicable to various data and tasks, provided a suitable kernel function is available. To confirm its versatility, we conduct assessments across two distinct tasks: Graphs and Strings 
+
+classification. In total, we have chosen 8 graph datasets from TUDataset (Morris et al. 2020), a well-known standardized repository for graph classification benchmarking datasets, and 4 string datasets for bio-sequence and text classification. More information on datasets can be found in Table. 1. The main advantage of our method is that it generates embeddings for HDC learning algorithms that preserve any user-defined positive-semidefinite kernel function. As such, the choice of kernel function is crucial for achieving the best accuracy and efficiency. For our method, we use the gappy kernel (Leslie, Kuang, and Bennett 2004) for string classification. The gappy kernel is a variant of the spectrum kernel (Leslie, Eskin, and Noble 2001) that allows a small amount of gap within the N -grams. The propagation ker-nel (Neumann et al. 2016) is used for graph classification for its ability to work with labeled or attributed graphs, as discussed in the section “kernel methods” . We chose the aforementioned kernels for their relatively low computation complexity and effectiveness on respective tasks. 
+
+Experimental Setup and Baselines 
+
+We benchmark our method against the existing HDC encoding baselines within each domain: Graph classi-fication using the encoding scheme from introduced in Task dataset # training # testing # class Description                                                               
+
+> Graph ENZYMES (Borgwardt et al. 2005) 480 120 6Graph with attributed nodes
+> NCI1 (Wale, Watson, and Karypis 2008) 3288 822 2Graph with labeled nodes
+> D&D (Dobson and Doig 2003) 943 235 2Graph with labeled nodes
+> BZR (Sutherland, O’brien, and Weaver 2003) 324 81 2Graph with attributed nodes
+> MUTAG (Debnath et al. 1991) 150 38 2Graph with labeled nodes
+> COX2 (Sutherland, O’brien, and Weaver 2003) 373 94 2Graph with attributed nodes
+> NCI109 (Wale, Watson, and Karypis 2008) 3301 826 2Graph with labeled nodes
+> Mutagenicity (Riesen and Bunke 2008) 3469 868 2Graph with labeled nodes String Protein (Selvaraj et al. 2023) 721 181 6Protein sequence
+> SMS (Almeida and Hidalgo 2012) 4459 1115 2Nautral Language
+> Splice (Towell, Noordewier, and Shavlik 1992) 2552 628 3DNA sequence
+> Promoter (Harley, Reynolds, and Noordewier 1990) 84 22 2DNA sequence
+
+Table 1: Summary of tasks and datasets GraphHD (Nunes et al. 2022) and String classification uses 
+
+N -gram HDC encoding approach (Joshi, Halseth, and Kan-erva 2017). The details of both HDC encoding methods are discussed in the background section. In addition to HDC-baselines, we also include com-parisons with popular state-of-the-art deep neural net-work architectures. For graph classification, we use 
+
+DGCNN (Zhang et al. 2018), GCN (Chen, Bian, and Sun 2019), GIN (Xu et al. 2018), GIUNet (Amouzad et al. 2024). On string datasets, following the recent trend of ap-plying large models for bio-sequence and language model-ing (Qiu et al. 2020; Raffel et al. 2020), we fine-tune Large protein model ( ESM-2-8m (Rives et al. 2021)) for for bio-sequence datasets, and large language model ( BERT (De-vlin et al. 2018)) for natural language dataset. For our method, we set the number of landmarks: s =
+
+max (300, 2% of training data) on each dataset, and kernel specific hyperparamters are chosen empirically. To ensure the fairness of comparison, we use an identical HDC learn-ing pipeline adapted from OnlineHD (Hern´ andez-Cano et al. 2021) when evaluating different HDC encoding methods. The Perceptron algorithm (Rosenblatt 1958) is used to fine-tune class prototypes. In all of our experiments, 20 epochs of fine-tuning have been found to be sufficient. All experiments were run on an Intel i5-11400 CPU (ex-cept for large models fine-tuning, which required an Nvidia RTX 3050 GPU is used due to long training time on CPU). We evaluate different methods by their training efficiency (time in seconds) and classification accuracy. Each experi-ment was run 10 times, and we report the mean and standard deviation of the results. 
+
+Approximating Normalized Kernel Matrix 
+
+The classification accuracy of HDC-based models hinges on the capability of encodings to capture some salient notion of similarity via inner product. A straightforward way to verify our encodings preserve the kernel is to compare the spectral norm of the normalized kernel matrix (computed using the kernel function) with the pairwise inner products of the encodings. Using different percentages of the train-ing samples as landmarks, the results for selected datasets (ENZYMES, NCI1, Protein, Promoter) are shown in Fig. 2. In line with Theorem 1, our method preserves the normal-ized kernel value, whose quality is positively correlated with the number of landmarks (a less noisy approximation can be achieved with a larger number of landmarks). The results here indicate that our method is effective in transferring sim-ilarity functions in kernel methods to HDC settings. 
+
+Accuracy and Efficiency Results 
+
+The accuracy results for graph and string datasets are sum-marized in Table 2 and Table 3. In comparison with the GraphHD, NysHD achieves, on average, 11% better accu-racy on graph datasets. The improvement is especially sig-nificant on the ENZYMES dataset, which shows a 38% ac-curacy improvement. This is because the previous HDC en-coding method on graph (Nunes et al. 2022) could not utilize node attributes in attributed graphs, whereas our method can. On string datasets, our method again consistently achieves better accuracy compared to N -gram based HDC encoding, with an average improvement of 17%. Efficiency-wise, our method is comparable to previous HDC encoding methods, although it is slightly slower than GraphHD (Nunes et al. 2022) on graph datasets due to kernel computation. Despite the efficiency and implementation simplicity of HDC learning algorithms, there remains an accuracy gap be-tween HDC-based models and deep neural network (DNN) models for more complex classification tasks. We hope this work will help reduce that gap. To that end, we also include several state-of-the-art DNN approaches on both graph and string classification in our comparison. On graph datasets, NysHD achieved the best accuracy in 3 out of 8 graph datasets. On average, NysHD outperforms DGCNN by 3%, GIN and GIUNet by 6% for graph classification. Although graph convolutional network (GCN) still yield the best ac-curacy for some datasets, our method is on average 52% faster than GCN. On string datasets, our method with the gappy kernel achieves better accuracy on 2 out of 3 bio-sequence datasets. For SMS and Splice dataset, the LM fine-tune method achieves better classification accuracy, but their training time is 6 to 83 times longer than our method. Overall, the strength of NysHD becomes most apparent when dealing with data with complex structures or attributes that existing HDC encoding methods do not exploit. Figure 2: Numerical difference of spectral norm between normalized kernel matrices compute directly from kernel function and approximated kernel matrices with our encoding.                                                                                                                                                                                                                                                                                                               
+
+> Method NCI1 ENZYMES D&D BZR MUTAG COX2 NCI109 Mutagenicity
+> DGCNN Acc. 70.2 ±2.2% 36.9 ±4.6% 74.5 ±3.4% 81.5 ±4.4% 82.9 ±4.1% 78.3 ±2.7% 71.1 ±2.2% 75.0 ±1.3%
+> Time 37.5 ±1.2s 5.6 ±0.5s 59.2 ±3.0s 4.0 ±0.0s 1.0 ±0.0s 4.1 ±0.3s 36.2 ±0.9s 44.8 ±1.3s
+> GCN Acc. 79.9 ±1.1% 60.7 ±2.1% 74.8 ±1.6% 84.2 ±2.2% 85.5 ±3.8% 83.1 ±3.7% 80.2 ±1.1% 79.9 ±1.0%
+> Time 74.3 ±0.6s 15.9 ±0.5s 262.3 ±9.2s 7.9 ±0.3s 3.0 ±0.0s 11.0 ±0.0s 73.5 ±0.7s 75.3 ±0.5s
+> GIN Acc. 73.4 ±1.7% 28.8 ±4.2% 67.5 ±5.9% 76.4 ±8.4% 76.8 ±9.6% 78.1 ±4.3% 70.8 ±2.6% 78.0 ±1.7%
+> Time 66.8 ±1.0s 9.0 ±0.0s 63.6 ±0.7s 6.0 ±0.0s 2.0 ±0.0s 7.2 ±0.4s 67.1 ±0.5s 70.5 ±0.5s
+> GIUNet Acc. 72.4 ±1.4% 29.9 ±4.0% 63.4 ±6.9% 78.3 ±10.7% 85.0 ±4.7% 77.4 ±7.0% 68.8 ±4.3% 76.5 ±0.8%
+> Time 89.0 ±0.4s 13.0 ±0.0s 96.2 ±0.7s 9.0 ±0.0s 3.0 ±0.0s 11.0 ±0.0s 89.5 ±0.5s 94.6 ±0.5s
+> GraphHD Acc. 60.0 ±2.1% 23.2 ±2.3% 67.6 ±1.3% 74.9 ±2.1% 85.3 ±10.2% 81.9 ±3.9% 59.9 ±2.1% 59.8 ±1.7%
+> Time 30.0 ±0.7s 6.0 ±0.0s 32.9 ±0.3s 3.0 ±0.0s 1.0 ±0.0s 3.0 ±0.0s 30.0 ±0.0s 31.3 ±0.4s
+> NysHD Acc. 73.8 ±2.2% 61.3 ±2.5% 76.2 ±2.8% 82.0 ±3.3% 85.5 ±3.4% 74.6 ±3.7% 71.8 ±2.0% 75.2 ±0.9%
+> Time 43.8 ±0.8s 7.2 ±0.6s 35.4 ±1.6s 3.4 ±0.5s 2.0 ±0.0s 5.5 ±0.8s 44.4 ±0.8s 35.7 ±1.0s
+
+Table 2: Experimental results. The best accuracy result for each dataset are highted and second best are underlined.                                                                             
+
+> Method Protein SMS Promoter Splice
+> LM 96 ±0% 99 ±0% 82 ±2.7% 92 ±1.4% Finetune 2003 ±193s 2846 ±31s 6±3.0s 142 ±1.9s
+> N-gram 96 ±0.8% 97 ±0.3% 52 ±4.0% 43 ±4.9%
+> HDC 13 ±0.0s 43 ±0.4s 1±0.0s 25 ±0.8s
+> NysHD 98 ±0.3% 97 ±0.2% 89 ±3.4% 72 ±1.7%
+> 19 ±0.7s 34 ±0.0s 1±0.0s 21 ±0.3s
+
+Table 3: Accuracy and training time on string datasets 
+
+# Overhead & Scalability 
+
+This work allows future HDC works to exploit the power of kernel methods while still conforming to the general for-malism and benefits of HDC. We recognize that the im-provements in NysHD also come with additional computa-tion costs in the form of kernel evaluation. How to minimize such cost for HDC applications are non-trivial problems that need further investigations. The main scalability challenge is to obtain a set of landmarks that is as small as possible, while still providing a good approximation to the true kernel matrix. There is a large body of work on more sophisticated sampling schemes for the Nystr¨ om method that could help make our methods scalable to larger datasets (Kumar, Mohri, and Talwalkar 2012; Musco and Musco 2017). We would be interested in studying these in future work. 
+
+# Conclusion 
+
+The success of HDC-based learning methods is contingent upon identifying an encoding function that preserves a suit-able notion of similarity (kernel) for the task at hand. In this paper, we leverage the connection between the kernel method and HDC through the lens of Nystr¨ om method for kernel estimation. Particularly, we propose NysHD, a new HDC encoding method that constructs encoding functions using suitable kernel functions for specific tasks. As a result, compared with previous HDC encoding methods, NysHD achieves substantial improvements - on average, 11% ac-curacy improvement on graph datasets and 17% on string datasets. There are many situations in which methods from the kernel literature outperform existing HDC-based solu-tions, therefore, our approach can be expected to lead to per-formance improvements in many HDC applications. 
+
+# Acknowledgements 
+
+This work was supported in part by National Science Foundation under Grants #2003279, #1826967, #2100237, #2112167, #1911095, #2112665, and in part by SRC under task #3021.001. This work was also supported in part by PRISM and CoCoSys, centers in JUMP 2.0, an SRC pro-gram sponsored by DARPA. References 
+
+Ah-Pine, J. 2010. Normalized kernels as similarity indices. In PAKDD 2010, Hyderabad, India, June 21-24, 2010. Pro-ceedings. Part II 14 , 362–373. Springer. Almeida, T.; and Hidalgo, J. 2012. SMS Spam Col-lection. UCI Machine Learning Repository. DOI: https://doi.org/10.24432/C5CC84. Amouzad, A.; Dehghanian, Z.; Saravani, S.; Amirma-zlaghani, M.; and Roshanfekr, B. 2024. Graph isomorphism U-Net. Expert Systems with Applications , 236: 121280. Asgarinejad, F.; Thomas, A.; and Rosing, T. 2020. Detec-tion of epileptic seizures from surface eeg using hyperdi-mensional computing. In EMBC , 536–540. IEEE. Borgwardt, K. M.; Ong, C. S.; Sch¨ onauer, S.; Vishwanathan, S.; Smola, A. J.; and Kriegel, H.-P. 2005. Protein function prediction via graph kernels. Bioinformatics , 21. Brin, S.; and Page, L. 1998. The anatomy of a large-scale hypertextual web search engine. Computer networks and ISDN systems , 30(1-7): 107–117. Charikar, M. S. 2002. Similarity estimation techniques from rounding algorithms. In Proceedings of the thiry-fourth an-nual ACM symposium on Theory of computing , 380–388. Chen, T.; Bian, S.; and Sun, Y. 2019. Are powerful graph neural nets necessary? a dissection on graph classification. 
+
+arXiv preprint arXiv:1905.04579 .Debnath, A. K.; Lopez de Compadre, R. L.; Debnath, G.; Shusterman, A. J.; and Hansch, C. 1991. Structure-activity relationship of mutagenic aromatic and heteroaromatic nitro compounds. correlation with molecular orbital energies and hydrophobicity. Journal of medicinal chemistry , 34(2): 786– 797. Devlin, J.; Chang, M.-W.; Lee, K.; and Toutanova, K. 2018. Bert: Pre-training of deep bidirectional transformers for lan-guage understanding. arXiv preprint arXiv:1810.04805 .Dobson, P. D.; and Doig, A. J. 2003. Distinguishing enzyme structures from non-enzymes without alignments. Journal of molecular biology , 330(4): 771–783. Drineas, P.; Mahoney, M. W.; and Cristianini, N. 2005. On the Nystr¨ om Method for Approximating a Gram Matrix for Improved Kernel-Based Learning. JMLR , 6(12). Dutta, A.; Gupta, S.; Khaleghi, B.; Chandrasekaran, R.; Xu, W.; and Rosing, T. 2022. Hdnn-pim: Efficient in memory design of hyperdimensional computing with feature extrac-tion. In GLSVLSI , 281–286. Gudmundsson, S.; Runarsson, T. P.; and Sigurdsson, S. 2008. Support vector machines and dynamic time warping for time series. In 2008 IEEE International Joint Conference on Neural Networks , 2772–2776. IEEE. Harley, C.; Reynolds, R.; and Noordewier, M. 1990. Molecular Biology (Promoter Gene Se-quences). UCI Machine Learning Repository. DOI: https://doi.org/10.24432/C5S01D. Harris, Z. S. 1954. Distributional structure. Word , 10(2-3): 146–162. Hern´ andez-Cano, A.; Matsumoto, N.; Ping, E.; and Imani, M. 2021. Onlinehd: Robust, efficient, and single-pass online learning using hyperdimensional system. In DATE , 56–61. IEEE. Hertz, J. A. 2018. Introduction to the theory of neural com-putation . Crc Press. Hofmann, T.; Sch¨ olkopf, B.; and Smola, A. J. 2008. Kernel methods in machine learning. Imani, M.; Morris, J.; Messerly, J.; Shu, H.; Deng, Y.; and Rosing, T. 2019. Bric: Locality-based encoding for energy-efficient brain-inspired hyperdimensional computing. In 
+
+DAC , 1–6. Imani, M.; Nassar, T.; Rahimi, A.; and Rosing, T. 2018. Hdna: Energy-efficient dna sequencing using hyperdimen-sional computing. In BHI , 271–274. IEEE. Imani, M.; Pampana, S.; Gupta, S.; Zhou, M.; Kim, Y.; and Rosing, T. 2020. Dual: Acceleration of clustering algorithms using digital-based processing in-memory. In MICRO , 356– 371. IEEE. Joshi, A.; Halseth, J. T.; and Kanerva, P. 2017. Language geometry using random indexing. In Quantum Interaction: 10th International Conference, QI 2016, San Francisco, CA, USA, July 20-22, 2016, Revised Selected Papers 10 , 265– 274. Springer. Kanerva, P. 2009. Hyperdimensional computing: An in-troduction to computing in distributed representation with high-dimensional random vectors. Cognitive computation ,1: 139–159. Kang, J.; Khaleghi, B.; Kim, Y.; and Rosing, T. 2022a. Xcelhd: An efficient gpu-powered hyperdimensional com-puting with parallelized training. In ASP-DAC , 220–225. IEEE. Kang, J.; Khaleghi, B.; Rosing, T.; and Kim, Y. 2022b. Openhd: A gpu-powered framework for hyperdimensional computing. IEEE Transactions on Computers , 71(11). Khaleghi, B.; Kang, J.; Xu, H.; Morris, J.; and Rosing, T. 2022. GENERIC: highly efficient learning engine on edge using hyperdimensional computing. In DAC , 1117–1122. Kleyko, D.; Rachkovskij, D.; Osipov, E.; and Rahimi, A. 2023. A survey on hyperdimensional computing aka vec-tor symbolic architectures, part ii: Applications, cognitive models, and challenges. ACM Computing Surveys , 55(9): 1–52. Kumar, S.; Mohri, M.; and Talwalkar, A. 2012. Sampling methods for the Nystr¨ om method. JMLR , 13(1): 981–1006. Leslie, C.; Eskin, E.; and Noble, W. S. 2001. The spectrum kernel: A string kernel for SVM protein classification. In 
+
+Biocomputing 2002 , 564–575. World Scientific. Leslie, C.; Kuang, R.; and Bennett, K. 2004. Fast string ker-nels using inexact matching for protein sequences. JMLR ,5(9). Meanti, G.; Carratino, L.; Rosasco, L.; and Rudi, A. 2020. Kernel methods through the roof: handling billions of points efficiently. NeurIPS , 33: 14410–14422. Menon, A.; Sun, D.; Sabouri, S.; Lee, K.; Aristio, M.; Liew, H.; and Rabaey, J. M. 2022. A highly energy-efficient hy-perdimensional computing processor for biosignal classifi-cation. TBCAS .Miranda, V.; and d’Aliberti, O. 2022. Hyperdimensional computing encoding schemes for improved image classifi-cation. In HST , 1–9. IEEE. Morris, C.; Kriege, N. M.; Bause, F.; Kersting, K.; Mutzel, P.; and Neumann, M. 2020. Tudataset: A collection of benchmark datasets for learning with graphs. arXiv preprint arXiv:2007.08663 .Morris, J.; Ergun, K.; Khaleghi, B.; Imani, M.; Aksanli, B.; and Rosing, T. 2021. Hydrea: Towards more robust and effi-cient machine learning systems with hyperdimensional com-puting. In DATE , 723–728. IEEE. Musco, C.; and Musco, C. 2017. Recursive sampling for the nystrom method. NeurIPS , 30. Neumann, M.; Garnett, R.; Bauckhage, C.; and Kersting, K. 2016. Propagation kernels: efficient graph kernels from propagated information. Machine learning , 102: 209–245. Nunes, I.; Heddes, M.; Givargis, T.; Nicolau, A.; and Vei-denbaum, A. 2022. GraphHD: Efficient graph classification using hyperdimensional computing. In DATE , 1485–1490. IEEE. Paxon Frady, E.; Kleyko, D.; Kymn, C. J.; Olshausen, B. A.; and Sommer, F. T. 2021. Computing on Functions Using Randomized Vector Representations. arXiv–2109. Plate, T. A. 1995. Holographic reduced representations. 
+
+IEEE Transactions on Neural networks , 6(3): 623–641. Qiu, X.; Sun, T.; Xu, Y.; Shao, Y.; Dai, N.; and Huang, X. 2020. Pre-trained models for natural language processing: A survey. Science China technological sciences , 63(10): 1872–1897. Raffel, C.; Shazeer, N.; Roberts, A.; Lee, K.; Narang, S.; Matena, M.; Zhou, Y.; Li, W.; and Liu, P. J. 2020. Explor-ing the limits of transfer learning with a unified text-to-text transformer. JMLR , 21(140): 1–67. Rahimi, A.; Kanerva, P.; Benini, L.; and Rabaey, J. M. 2018. Efficient biosignal processing using hyperdimensional com-puting: Network templates for combined learning and clas-sification of ExG signals. Proceedings of the IEEE , 107(1): 123–143. Rahimi, A.; and Recht, B. 2007. Random features for large-scale kernel machines. NeurIPS , 20. Riesen, K.; and Bunke, H. 2008. IAM graph database repos-itory for graph based pattern recognition and machine learn-ing. In SSPR & SPR 2008, Orlando, USA, December 4-6, 2008. Proceedings , 287–297. Springer. Rives, A.; Meier, J.; Sercu, T.; Goyal, S.; Lin, Z.; Liu, J.; Guo, D.; Ott, M.; Zitnick, C. L.; Ma, J.; et al. 2021. Biologi-cal structure and function emerge from scaling unsupervised learning to 250 million protein sequences. Proceedings of the National Academy of Sciences , 118(15): e2016239118. Rosenblatt, F. 1958. The perceptron: a probabilistic model for information storage and organization in the brain. Psy-chological review , 65(6): 386. Salamat, S.; Imani, M.; Khaleghi, B.; and Rosing, T. 2019. F5-hd: Fast flexible fpga-based framework for re-freshing hyperdimensional computing. In Proceedings of the 2019 ACM/SIGDA International Symposium on Field-Programmable Gate Arrays , 53–62. Selvaraj, M. K.; Thakur, A.; Kumar, M.; Pinnaka, A. K.; Suri, C. R.; Siddhardha, B.; and Elumalai, S. P. 2023. Ion-pumping microbial rhodopsin protein classification by ma-chine learning approach. BMC bioinformatics , 24(1): 29. Shawe-Taylor, J.; and Cristianini, N. 2004. Kernel methods for pattern analysis . Cambridge university press. Shimodaira, H.; Noma, K.-i.; Nakai, M.; and Sagayama, S. 2001. Dynamic time-alignment kernel in support vector ma-chine. NeurIPS , 14. Smola, A. J.; and Sch¨ olkopf, B. 1998. Learning with kernels ,volume 4. Citeseer. Steinwart, I. 2001. On the influence of the kernel on the consistency of support vector machines. JMLR , 2(Nov). Sutherland, J. J.; O’brien, L. A.; and Weaver, D. F. 2003. Spline-fitting with a genetic algorithm: A method for devel-oping classification structure- activity relationships. Jour-nal of chemical information and computer sciences , 43(6): 1906–1915. Thomas, A.; Dasgupta, S.; and Rosing, T. 2021. A theoret-ical perspective on hyperdimensional computing. JAIR , 72: 215–249. Towell, G.; Noordewier, M.; and Shavlik, J. 1992. Primate splice-junction gene sequences (DNA) with associated im-perfect domain theory. Voelker, A. R. 2020. A short letter on the dot prod-uct between rotated fourier transforms. arXiv preprint arXiv:2007.13462 .Wale, N.; Watson, I. A.; and Karypis, G. 2008. Compar-ison of descriptor spaces for chemical compound retrieval and classification. Knowledge and Information Systems , 14: 347–375. Williams, C.; and Seeger, M. 2000. Using the Nystr¨ om method to speed up kernel machines. NeurIPS , 13. Xu, K.; Hu, W.; Leskovec, J.; and Jegelka, S. 2018. How powerful are graph neural networks? arXiv preprint arXiv:1810.00826 .Xu, W.; Kang, J.; and Rosing, T. 2023. FSL-HD: Accelerat-ing Few-Shot Learning on ReRAM using Hyperdimensional Computing. In DATE , 1–6. IEEE. Yu, T.; Zhang, Y.; Zhang, Z.; and Sa, C. D. 2022. Under-standing Hyperdimensional Computing for Parallel Single-Pass Learning. In Oh, A. H.; Agarwal, A.; Belgrave, D.; and Cho, K., eds., NeurIPS .Zhang, M.; Cui, Z.; Neumann, M.; and Chen, Y. 2018. An end-to-end deep learning architecture for graph classifica-tion. In AAAI , volume 32. Zhang, T.; Morris, J.; Stewart, K.; Lui, H. W.; Khaleghi, B.; Thomas, A.; Goncalves-Marback, T.; Aksanli, B.; Neftci, E. O.; and Rosing, T. 2023. : Accelerating Event-based Workloads with HyperDimensional Computing and Spiking Neural Networks. TCAD .Zhao, Q.; Lee, K.; Liu, J.; Huzaifa, M.; Yu, X.; and Rosing, T. 2022. FedHD: federated learning with hyperdimensional computing. In MobiCom , 791–793.

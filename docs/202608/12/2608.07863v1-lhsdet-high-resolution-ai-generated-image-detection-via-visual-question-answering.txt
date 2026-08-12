@@ -1,0 +1,521 @@
+Title: LHSDet: High-Resolution AI-Generated Image Detection via Visual Question Answering
+
+URL Source: https://arxiv.org/pdf/2608.07863v1
+
+Published Time: Tue, 11 Aug 2026 00:22:40 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> SUBMITTED TO IEEE TRANS., 2026 1
+
+# LHSDet: High-Resolution AI-Generated Image Detection via Visual Question Answering 
+
+Qian Yao, Jun-Jie Huang, Yongjun Wang, Luming Yang 
+
+Abstract —Driven by advances in diffusion models and au-toregressive models, the fidelity and resolution of AI-generated images now rival those of real images. However, existing AI-generated image detection methods often downsample the images, inevitably overlooking critical low-level texture details in high-resolution AI-generated images, therefore limiting their detection performance. In addition, the ceaseless emergence of unknown generative models makes large-scale pre-training datasets in-accessible. To address these challenges, we propose a novel high-resolution AI-generated image detector using fewer sample training, termed LHSDet. Specifically, we formulate the AI-generated image detection task as a Visual Question Answering (VQA) problem, leveraging a fine-tuned vision-language frame-work to fully exploit the complementary information between visual and textual modalities. Recognizing that the default visual encoder of existing vision-language models is not tailored for AI-generated image detection, we redesign a visual encoder to better capture both the low-level and high-level artifacts inherent in AI-generated images. Furthermore, we incorporate a semantic-level textual branch to enable multi-modal feature fusion and detection. Consequently, LHSDet employs a triple-branch archi-tecture to extract complementary multi-modal features: a low-level visual branch that aggregates non-overlapping patches for local texture cues, a high-level visual branch based on SigLIP2 for global perception feature extraction, and a semantic-level textual branch that generates captions using BLIP-2. Extensive experimental results demonstrate that LHSDet achieves high detection accuracy and robust performance across diverse gener-ative models, including both diffusion and autoregressive models, as well as on the WildRF benchmark. Notably, for high-resolution image detection scenarios, LHSDet outperforms the second-best baseline by more than 9% in detection accuracy, validating its effectiveness and superiority in addressing the aforementioned challenges. 
+
+Index Terms —AI-generated image detection, visual-language model, visual question answering, diffusion model. 
+
+I. I NTRODUCTION 
+
+# THE proliferation of AI-generated images is profoundly impacting a wide range of applications. The underly-ing image generation mechanisms have evoled significantly, progressing from the early dominant methods like Generative Adversarial Networks (GANs) [1] and Variational Autoen-coders (VAEs) [2] to the more recent paradigm established by Denoising Diffusion Probabilistic Models (DDPM) [3]. 
+
+Qian Yao, Jun-Jie Huang, and Yongjun Wang are with the College of Computer Science and Technology, National University of Defense Technology, Changsha 410073, China (e-mail: yaoqian21@nudt.edu.cn; jjhuang@nudt.edu.cn; wwyyjj1971@126.com.) Luming Yang is with the Academy of Military Science, Beijing 100091, China (e-mail: yang lm108@nudt.edu.cn.)( Corresponding authors: Jun-Jie Huang, and Yongjun Wang )This work is supported by the National Natural Science Foundation of China under Project 62572480. 
+
+This breakthrough has spurred the development of advanced methods [4]–[7] such as Latent Diffusion Models (LDM) [8], Stable Diffusion [8], DALL·E2 [9], et al . And recent diffusion models now enable the synthesis of high-resolution images up to 4K [10]–[12]. These increasingly realistic AI-generated images have ren-dered them nearly indistinguishable from natural photographs. However, the malicious exploitation of such synthetic images can poses serious societal threats, including the potential interference in political elections, manipulation of public opinion, violation of individual privacy, and plagiarism of intellectual property. The emergence of unknown AI image generation tools further complicates the detection landscape. Therefore, the development of effective detection methods that can generalize to new generators with limited training data has become an urgent research imperative. The AI-generated image detection methods utilize charac-terstic differences of the AI-generated image and the natural images existing in different levels. Existing approaches for AI-generated image detection can be broadly classified into three categories: Convolutional Neural Networks (CNN)-based detectors [13]–[17], Reconstruction Error (RE)-based detec-tors [18]–[24] and Vision-language model (VLM)-based detec-tors. (i) The CNN-based detectors [13]–[17] typically examine low-level cues or artifacts presented in AI-generated images. Though effective, they tend to overfit to specific artifacts seen during training, leading to poor generalization and significant performance degradation in few-shot scenarios. Moreover, their robustness is often limited and the efficacy could drop significantly when the testing images undergo image post-processing operations. (ii) The RE-based detectors [18]–[24] leverage the observation that AI-generated images often lie closer to the latent space of a pre-trained model compared to real images. Detection can therefore be performed by compar-ing an input image to its reconstruction, under the assumption that generated images will yield a smaller reconstruction error. However, this approach is computationally intensive due to the iterative nature of diffusion models. Furthermore, the detection efficacy is heavily depended on the selected reconstruction model, resulting in degraded cross-model performance. (iii) The VLM-based detectors typically leverage large pretrained models like CLIP [25]–[30] and BLIP [31] [32] for their strong semantic understanding capability. However, the input images are usually downsampled to a lower resolution for processing [26], [28], overlooking the fine-grained texture and edge information crucial for high-resolution image detection. Moreover, since the visual encoders in these models are de-signed for general-purpose vision tasks, they are not inherently arXiv:2608.07863v1 [cs.CV] 8 Aug 2026 SUBMITTED TO IEEE TRANS., 2026 2
+
+optimized for the specific artifacts of generated image, limiting their detection effectiveness. In this paper, we extract complementary Low-, High- and 
+
+Semantic-level cues for high-resolution AI-generated image 
+
+det ection, termed LHSDet . The model is built upon a triple-branch architecture. The first branch is designed to preserve fine-grained texture cues via non-overlapping patch aggre-gation avoiding the information loss. The second branch is dedicated to capturing high-level visual cues essential for generalization in data-scarce scenarios. This branch utlizes a vision-language model which is effectively fine-tuned for AI-generated image detection task using Low-Rank Adap-tation (LoRA). The output of the first two branches are complemented through a cross-attention mechanism, allowing effective integration of low-level and high-level cues. The third branch introduces a semantic dimension by generating a textual caption of the input image. It is built upon a Visual Question Answering (VQA) framework, which takes the fused visual and textual features as input and generates an answer as output. The main contributions are summarized as follows:  
+
+> •
+
+We propose LHSDet, which employs a triple-branch architecture to extract complementary features from low-level textures, high-level visual features, and semantic-level textual captions. We utilize a non-overlapping patch aggregation method to extract texture information, effec-tively preserving the details in high-resolution images.  
+
+> •
+
+We develop a visual question answering framework fine-tuned via LoRA, leveraging multi-modal feature fusion of visual and textual inputs to attain efficient and robust detection.  
+
+> •
+
+Extensive experimental results demonstrate that LHSDet outperforms SOTA baselines by approximately 9% in detection accuracy, while also demonstrating strong ro-bustness. The rest of the paper is organized as follows: Section II reviews the related works in AI-generated image detection. Section III describes the design details of the proposed LHS-Det. Section IV presents the implementation details and dis-cusses the experimental results. Finally, Section V concludes the paper. II. R ELATED WORK 
+
+In this section, we introduce the approaches of AI-generated image detection, which can be categorized into three main types: the CNN-based, the RE-based, and the VLM-based methods. 
+
+A. The CNN-based Detection Methods 
+
+Traditional methods primarily leverage spatial features and frequency artifacts inherent in generated images, such as color [13], gradients [14], noise patterns [15], and frequency artifacts [16] [17]. For instance, NPR [13] detects upsampling artifacts in generative models by examining the neighboring pixel relationships. LGrad [14] employs a pretrained CNN to transform images into gradient maps, which reveal generalized artifacts, are then fed these maps into a classifier. Xi et al. [15] propose a dual-stream network designed to extract high-frequency texture information via a residual stream, while using a content stream to capture forged traces in low-frequency components. Frequency domain analysis has proven particularly effective, as generative models often leave distinctive spectral artifacts. Frequency in Face Forgery Net-work (F3Net) [16] utilizes a frequency-aware forgery clues. Similarly, CNNDet [33] utilizes a pre-trained ResNet50 as a binary classifier to examine whether there are common patterns in the Fourier domain of GAN-generated images. However, as noted by Corvi et al. [17], frequency artifacts in recent diffusion models are less noticeable compared to those in GANs, leading to performance degradation for methods overly reliant on spectral signatures. A significant limitation of many spatial and frequency-based CNN classifiers is their vulnerability to image perturbations like Gaussian blur and their limited generalization ability to unseen generative mod-els or in few-shot scenarios. To address these limitations, alternative approach [34] leverages projective geometry by detecting physical inconsistencies such as anomalous shadow or vanishing point in AI-generated images. While offering a novel, physically-grounded perspective, this method lacks gen-eralizability as not all images contain such explicit geometric elements. 
+
+B. The RE-based Detection Methods 
+
+A distinct and increasingly prominent approach for de-tecting AI-generated images, particularly those from diffu-sion models, leverages the reconstruction error inherent to the generative process itself [18]–[24]. The core hypothesis is that images synthesized by a given diffusion model are more easily reconstructed by that same model than natural images. Diffusion Reconstruction Error (DIRE) [18] employs a Denoising Diffusion Implicit Model (DDIM) [35] to measure the error between an image and its reconstruction. While effective, DIRE suffers from inefficient sampling and requires lengthy training duration. Chen et al. [20] propose a diffusion reconstruction contrastive training method for the universal detection of diffusion-generated images. FakeInversion [21] enhances detection by leveraging a richer representation which composing the original image, the approximate noise map obtained via text-conditioned DDIM inversion with Stable Dif-fusion, and its corresponding reconstruction from denoising. These are then fed into a ResNet50 classifier. RONAN [22] develops a model-agnostic and alteration-free framework for attributing image origins via reverse engineering of generative models. In the domain of high-resolution imagery, AEROB-LADE [19] adopts a training-free strategy for latent diffusion images using autoencoder reconstruction errors combined with a Learned Perceptual Image Patch Similarity (LPIPS) metric computed on image patches. Though effective, reconstruction-based methods face two primary limitations: (i) the necessity of running a diffusion model renders the detection computationally expensive and time-consuming, and (ii) their performance is intrinsically dependent on the model used for reconstruction, which may not generalize well to images produced by unknown generative models. SUBMITTED TO IEEE TRANS., 2026 3
+
+C. The VLM-Based Detection Methods 
+
+Current approaches to visual-language model detection pre-dominantly employ CLIP [25]–[30] and BLIP [31], [32] as foundational models. The core paradigm exploits the semantic gap between real and generated content within a shared multi-modal embedding space. This can be broadly categorized into two strategies: methods that measure image-text similarity and those that reframe detection as a Visual Question Answering (VQA) task. UnivFD [26] leverages a pre-trained CLIP ViT network to map both real and generated images into their corresponding feature representations, using cosine distance to compare a query image against a database of real and fake feature templates for classification. Tang et al. [36] proposes an adapter-based domain incremental learning framework uti-lizing a pre-trained ViT for AI-generated image detection. Defake [27] leverages CLIP’s image and text encoders to project images and prompts into a shared embedding space, detecting generated image by measuring the distance between prompt and image embeddings. Fatformer [28] proposes a forgery-aware adapter with language-guided alignment, which first extracts low-level forgery traces, then aligns the image features to text-prompt embeddings. C2P-CLIP [29] incor-porates a category common prompt into the text encoder to introduce category-related concepts into the image encoder, thereby improving detection performance. AIDE [30] fuses DCT-based low-level cues with CLIP-driven high-level visual embeddings via a Mixture-of-Experts (MoE) architecture for AI-generated image detection. Keita et al. [37] investigate the effectiveness of advanced vision-language models such as BLIP-2 and ViT-GPT2 for the detection of generated images. AntifakePrompt [32] reformulates generated-image detection as a VQA task, implemented via an InstructBLIP [38] vi-sion–language model (VLM) and Vicuna-7B large-language model (LLM). A learnable pseudo-token is inserted into the input prompt, with only its embedding being optimized while keeping all pre-trained parameters frozen. While promising, VLM-based detectors face significant challenges. The default visual encoders of models like CLIP are not inherently designed to capture subtle, low-level forgery artifacts critical for detection. Furthermore, the common prac-tice of downsampling high-resolution input images to meet the model’s fixed input size often leads to the loss of fine-grained texture details that are essential for robust forensic analysis. III. M ETHODOLOGY 
+
+The high-resolution AI generated image detection task con-fronts two main challenges. First, high-resolution AI-generated images are often required downsampling for compatibility with standard detection pipelines, but this preprocessing step irretrievably loses the subtle texture artifacts. Second, the emergence of unknown generative models imposes fewer sample constraints. This scarcity of annotated data prevents existing detectors from generalizing to diverse, unseen syn-thetic content. To mitigate these challenges, we propose LHSDet, a novel triple branch detector that extracts Low-level and High-level vision features along with Semantic-level textual features for high-resolution generated image det ection. Overall, we refor-mulate AI-generated image detection as a VQA task to fully harness the few-shot and powerful visual capabilities of VLM. Concurrently, considering that the default visual encoder of existing VLM is not tailored for generated image detection, we redesign a visual encoder that incorporates both low-level local texture and high-level global feature extraction rather than directly employing the default visual encoder. Furthermore, in the semantic-level, we generate a caption for the input image which is concateneted with the question to form the semantic textual feature. Finally, a LLM yields the detection results by effectively fusing the low-level, high-level and semantic-level representations. Fig. 1 presents the overview of LHSDet. It comprises four main modules, i.e. , a Visual Encoding Module (VEM), a Tex-tual Encoding Module (TEM), a Multi-Modal Feature Fusion Module (MFM) and an LLM Reasoning Module (LRM). The VEM extracts complementary visual features from two parallel processing branches, a local texture block and a global percep-tion block. The local texture block processes non-overlapping image patches to capture low-level cues including neighboring pixel inconsistency and noise patterns. The global perception block uses SigLIP2’s [39] visual encoder to capture high-level visual features for instance, object-level inconsistencies. These two visual features are fused by cross-attention mechanism. The TEM constructs semantic-level textual features using BLIP-2 to generate a detailed caption for the input image. This caption combines with the question to form a semantic-level textual feature. The MFM generates a unified multi-modal representation by integrating the VEM’s visual feature and TEM’s textual feature through a structured pipeline. It enables simultaneous attention to both modalities while maintaining dimensional consistency. The unified multi-modal feature from MFM is formatted into aligned visual/textual tokens, and the LRM processes these tokens to reason about the image’s authenticity and output a binary answer (“ Yes ”/“ No ”). In the following, we introduce each module in detail. 
+
+A. Visual Encoding Module 
+
+Generative models [10]–[12] now produce synthetic images exceeding 2K resolution and even reaching 6K. However, prevailing image encoders [26], [28], [32] still down-sample inputs to resolution of 256 ×256 for pre-processing, discarding the fine-grained details and sharp edges of the high-resolution images. Meanwhile, the inconsistency between generated and real images go beyond low-level texture features, such as color and noise, to critically involve high-level visual characteristics, most notably semantic ambiguity and violations of physical logic. To address this gap, we propose the Visual Encoding Module (VEM) with a dual-branch architecture, enabling joint capture AI-generated artifacts by extracting features at both low-level and high-level. The local texture features and global perception features are combined to obtain the fused visual features. The texture and perception streams complement each other, jointly enabling comprehensive detection of synthetic images. SUBMITTED TO IEEE TRANS., 2026 4Output 
+
+> C
+
+Textual 
+
+Feature 
+
+Visual 
+
+Feature 
+
+Fused 
+
+Feature  LLM 
+
+Input 
+
+1024 ×1024 
+
+Inference 
+
+Local Texture Block 
+
+Global  Perception  Block 
+
+Visual  Encoding Module 
+
+SigLIP2   
+
+> 256 ×256
+> R
+> noise patterns
+> neighboring pixels
+> Conv2
+> Conv1  C
+> GB
+> high -level
+> visual feature
+
+LLM 
+
+> Cross
+> Attention
+> C
+
+Low  Level 
+
+High  Level 
+
+Semantic 
+
+Level 
+
+Down -sampling  384 ×384 
+
+Patch 
+
+BLIP2 
+
+: LoRA  
+
+> C
+
+: Concat  “Yes / No ”
+
+> C
+> Conv2
+> SRM high -pass filters
+
+Textual  Encoding Module 
+
+Multi -Modal 
+
+Fusion  Module 
+
+LLM Reasoning  Module 
+
+Question  “Based  on  the  image  des -       
+
+> cription :Tdesc ,assess the authenticity .
+> Is this image real?”
+
+Caption  “A  ship  is  sailing  at  sea             
+
+> with two people on board, and there
+> are several wind turbines on the shore .”
+
+visual 
+
+tokens 
+
+textual 
+
+tokens 
+
+align 
+
+LLM 
+
+Hidden 
+
+States 
+
+> … …
+
+: Frozen     
+
+> Fig. 1. Overview of the proposed high-resolution detector LHSDet. A high-resolution input image is processed through local texture and global perception blocks to capture low-level texture features and high-level visual features. The local texture block employs a non-overlapping patch aggregation method for processing. The global perception block utilizes SigLIP2 for feature extraction. Subsequently, the two branches are fused via cross-attention. Meanwhile, the input image is processed by BLIP-2 to extract a semantic-level textual caption. Visual and textual features are multi-modally fused to generate a unified representation. Based on the fused multi-modal feature, the LLM is used to answer the question “ Is this image real? ” with an answer “ Yes ” or “No ”.
+
+1) Local Texture Block : This block captures the low-level visual features, such as noise patterns and neighboring pixel relationships. As indicated in the Fig. 2 (a) and (b), there could find unnatural smoothness and abrupt changes between neighboring pixels in the generated images. Let us denote an input image as X ∈ RC×H×W with C
+
+channels and of spatial resolution H × W . The local texture block divides X into non-overlapping patches Xp to preserve the texture details while disrupting global semantics [40], each of resolution h × w. Within each patch, the noise patterns via Spatial Rich Model (SRM) [41] , and neighboring pixel relationship through convolution of the input image are captured. We utilize SRM, a set of high-pass filters tailored for noise-pattern extraction, to obtain the noise representation 
+
+Fnoise . Keeping it frozen for noise-pattern extraction ensures high efficiency and mitigates overfitting. It has been empirically confirmed that up-sampling stages in image-generation pipelines tend to leave distinct artifacts, particularly within the high-frequency components [17]. Con-sequently, the neighboring pixels in generated images may exhibit inconsistencies [13]. Given its effectiveness in extract-ing neighboring pixel relationships with low-complexity for superior detection, we follow the prior work [15] to extract such features. A convolution is performed on the input image, and its output is concatenated with the image patch Xp,yielding a feature map F1. A further convolution on F1
+
+produces the next feature map. The two feature maps are concatenated before undergoing a convolution to ultimately generate the final neighboring pixel feature map. 
+
+F1 = [ Xp; Conv 1(Xp)] ,
+
+Fpixel = Conv 2
+
+ [F1; Conv 2(F1)] . (1) The two low-level visual features are merged via con-catenation along the channel dimension. Expanding local-texture channels increases model capacity and thus the risk of overfitting under limited data, whereas convolutional fusion adds no parameters. Therefore, we aggregate these low-level visual patches through convolutional refinement rather than channel concatenation. 
+
+Flocal = Conv p
+
+ [Fnoise ; Fpixel ]. (2) 
+
+2) Global Perception Block : This block aims to capture complementary high-level visual features, including semantic inconsistency and physical implausibility which cannot effec-tive captured by the local texture block. For instance, as shown in Fig. 2 (c), the dog has unnaturally long horns. And in Fig. 2 (d), the dog’s left front paw is incorrectly generated, and the keyboard appears distorted, looking like both a keyboard and a tablet. We extract high-level features with SigLIP2 [39]’s vision encoder with Low-Rank Adaptation (LoRA) adaptation. The prevailing CLIP-based methods extract coarse global features lacking spatial detail. In contrast, SigLIP2 preserves local semantics through self-supervised patch-level decoding. Mean-while, image downsampling still maintains high-level feature quality while substantially reducing computational overhead. SUBMITTED TO IEEE TRANS., 2026 5    
+
+> (a) (b) (c) (d) Fig. 2. The selected SDv3 examples of visual feature inconsistencies. (a) and (b) illustrate low-level visual feature inconsistencies, requiring the assistance of texture features for effective detection. (c) and (d) illustrate high-level visual feature inconsistency, which rely more on the semantic visual features from the vision-language model for detection.
+
+By default, SigLIP2 processes 1024 ×1024 images at 384 ×384 
+
+resolution. The SigLIP2’s encoder is able to extract high-level visual feature and preserve fine-grained spatial representations. We further fine-tuned the encoder with LoRA to better adapt it for extracting high-level visual features from AI-generated images: 
+
+Fglobal = fSigLIP2 (X384 ×384 ) ∈ RDg , (3) where Dg is the global feature dimension. 
+
+3) Cross-Attention Fusion : The high-level visual feature and the low-level visual feature are then fused into a unified vi-sual representation. To enhance mutual interaction between the the local texture block and the global perception block, they are fused via cross-attention along the channel dimension. We identify the high-level feature from the global perception block as the more essential information which is complemented by the detailed feature from the local texture block. Specifically, we utilize the global feature to form query, and use the local feature to form key and value: 
+
+Q = Wq Fglobal ∈ RHd
+
+K = WkFlocal ∈ R(h′w′)×Hd
+
+V = Wv Flocal ∈ R(h′w′)×Hd ,
+
+(4) where Hd is hidden dimension, Wq , Wk, Wv are projection matrices, h′w′ is the spatial resolution of the local feature map. The local and global feature fusion is performed as follows: 
+
+Fout = Softmax 
+
+ QK T
+
+√dk
+
+
+
+V ∈ RHd , (5) where the scaling factor √dk stabilizes gradient flow. Then the fused feature is transformed and integrated with the original global feature: 
+
+Vvisual = LayerNorm (Wout Fout + Fglobal ) ∈ RDg , (6) where Wout : RHd → RDg projects the fused features back to the global feature space. This architecture preserves original global information while integrating discriminative details extracted from local fea-tures. The visual encoder of LHSDet implements a global-guided local attention mechanism. The connection effectively creates a bidirectional information exchange between global context and spatial details. This symbiotic interaction enables the visual encoder to concurrently maintain high-level visual representations while augmenting its perceptual capacity for low-level features such as texture details. 
+
+B. Textual Encoding Module 
+
+Relying solely on visual features for detection has inherent limitations. To address this, we further incorporate semantic-level textual features of images. The TEM is employed to generate captions for the images. These captions are then concatenated with the questions and serve as multi-modal semantic-level textual features to enhance the detection per-formance of AI-generated images. In LHSDet, we leverage the BLIP-2 to generate a de-tailed caption for the input image and enhance visual un-derstanding. The Q-Former employs a query-based mecha-nism for finer-grained cross-modal alignment. Specifically, we use the prompt “ A detailed description of this image ” to generate descriptive captions encapsulating visual content in linguistic form. The caption of the image serves as a semantic-level textual feature. 
+
+Tdesc = fBLIP (X, Pprompt ), (7) where X ∈ RC×H×W denotes the input image. The generated caption Tdesc is concatenated with the orig-inal question to form the complete question Q′ “Based on the image description: ‘Tdesc ’, assess the authenticity. Is this image real? ”. This com-bined question Q′ is then fed into the LLM to extract textual features. The textual features are utilized as a multi-modal feature in VQA reasoning. This approach effectively translates visual information into the semantic space of the language model, utilizing the advantages of the query-based cross-modal alignment. 
+
+C. Multi-Modal Feature Fusion Module 
+
+In MFM, the framework constructs a unified multi-modal representation by effectively integrating visual and textual information through a structured pipeline. The visual representation integrates low-level local texture feature and high-level global perception feature. Then the vi-sual representation is projected into the LLM’s latent space for SUBMITTED TO IEEE TRANS., 2026 6
+
+dimensional and semantic alignment. The final input sequence is formed by concatenating the projected visual features with text embeddings along the sequence dimension, creating a cohesive multi-modal input where visual information serves as a prefix to the textual prompt. This configuration enables simultaneous attention to both modalities while maintaining dimensional consistency. This unified representation captures both high-level visual concepts from global features and fine-grained texture details from local analysis, enabling comprehensive visual under-standing. Visual features are then projected to align with the LLM’s hidden space through a linear transformation with bias. 
+
+Vproj = Wvisual-proj Vvisual + bvisual-proj , (8) where Wvisual-proj ∈ RDh×Dg is the projection matrix that maps visual features to the language model’s embedding space, 
+
+Dh is the LLM hidden dimension. This projection ensures dimensional compatibility and semantic alignment between visual and linguistic representations. The complete question Q′ is processed through standard language tokenization and embedding procedures. 
+
+Etext = fembed (Tokenize (Q′)) , (9) where the tokenization process Tokenize (·) converts natural language into discrete tokens, while the embedding function 
+
+fembed maps these tokens to dense vector representations in the same semantic space as the projected visual features. Since textual and visual features are heterogeneous and initially unaligned, we thus concatenate the modalities initially to preserve their distinct information. Then the final input sequence is constructed by concatenation along the sequence dimension. 
+
+Emulti-modal = [ Vproj ; Etext ]. (10) This combined feature allows the language model to attend to both visual and textual information simultaneously during processing. The resulting tensor maintains dimensional con-sistency throughout the sequence length while preserving the rich semantic information from both modalities. 
+
+D. LLM Reasoning Module 
+
+In LRM, the visual and textual features are then fused into a unified representation that is fed into the LLM for reasoning. The LLM treats the image as the first token and performs reasoning over the joint image–text embedding via self-attention. This fused representation is fed into the LLM for inference. The last-token vector of the final-layer hidden state is taken as the LLM’s consolidated representation of the entire image-text input. The answer is then predicted from the final-token representation. We choose the Phi-3-mini model [42] as the LLM reasoning engine for VQA to strike a strategic balance among performance, efficiency, and deployability. Despite its compact size of 3.8B parameters, it has been demonstrated to achieve performance comparable to much larger models like Mixtral 8×7B [43] and GPT-3.5 [44] on standardized benchmarks. Visual/ 
+
+Textual 
+
+Encoder 
+
+Image -Text 
+
+Pairs 
+
+𝑊  𝐴 
+
+𝐵  
+
+> Fig. 3. Illustation of Low-Rank Adaption (LoRA).
+
+The end-to-end VQA process transforms multi-modal inputs into a unified representation for the Phi-3-mini model. The two complementary visual features including high-level global perception features and low-level local texture details are projected and fused via cross-attention into a single visual vector, called “visual tokens.” And the input image is pro-cessed by the BLIP-2, which uses learnable queries to interact with the visual features, distilling the most salient information into a sequence of linguistic-aligned token embeddings, called “textual tokens.” These visual tokens are prefixed to the tokenized textual tokens. The token alignment ensures that the LLM model can capture the semantic interplay between visual and textual inputs. The resulting combined sequence of visual and textual tokens serves as the final input for the Phi-3-mini model, which then processes this multi-modal representation using its LoRA-adapted architecture. 
+
+HLLM = fPhi-3 (Emulti-modal ). (11) The last hidden state corresponding to the final token is extracted. 
+
+hfinal = HLLM [: , −1, :] ∈ RDh . (12) Within the transformer decoder of Phi-3-mini, the self-attention mechanism processes this multi-modal sequence, enabling each textual token to attend to all visual tokens. This facilitates deep cross-modal reasoning, allowing the model to ground the textual question in the concrete evidence from the visual features. Operating autoregressively, the model then generates subsequent tokens, ultimately producing a definitive “Yes ” or “ No ” answer. 
+
+E. Training Strategy 
+
+SigLIP2, BLIP2, and LLM are fine-tuned using Low-Rank Adaptation (LoRA) [45] to adapt to the AI-generated image detection task. LoRA is a widely-used technique for efficiently fine-tuning pre-trained models on downstream tasks, as illus-trated in Fig. 3. Under limited data conditions, full fine-tuning can lead to catastrophic forgetting of pre-trained knowledge. To address this, LoRA posits that weight updates during adaptation lie on a low intrinsic dimension, and introduces trainable low-rank matrices to approximate these updates. 
+
+WLoRA proj = Wproj + Alora Blora , (13) SUBMITTED TO IEEE TRANS., 2026 7
+
+where Wproj ∈ Rd×k denotes the original pre-trained projec-tion matrix, Alora ∈ Rd×r and Blora ∈ Rr×k represent the low-rank decomposition matrices with rank r ≪ min( d, k ).This parameter-efficient approach enables effective adapta-tion while preserving the original pre-trained knowledge. By optimizing only these additional parameters, LoRA preserves the generalizability of the original model while enabling effective task-specific adaptation. The proposed LHSDet uses the Binary Cross-Entropy (BCE) loss function: 
+
+LBCE = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+h
+
+−yi log pi − (1 − yi) log(1 − pi)
+
+i
+
+, (14) where yi ∈ { 0, 1} denotes the ground-truth binary label, pi
+
+is the model-posterior probability, and yi and pi respectively represent the label and predicted probability for the i-th sample in a mini-batch of size N .IV. E XPERIMENTAL RESULTS 
+
+This section is organized as follows. We first describe the datasets and experimental settings, then present visualizations of intermediate results, and finally provide a comprehensive experimental analysis. The analysis encompasses experiments on generalization detection, robustness testing, and ablation studies. 
+
+A. Experimental Settings 
+
+In this section, we present the datasets, implementation details, and then introduce the baselines employed in the experiments. 
+
+1) Datasets : The datasets in this study comprise high-resolution real and generated images for evaluating the per-formance of LHSDet. 
+
+Real image datasets. All real datasets used are publicly available and uncompressed, including Flickr2K and DIV2K. Each image has a resolution of at least 1024 pixels.  
+
+> •
+
+Flickr2K [46]. The real-image dataset Flickr2K consists of 2650 uncompressed images, each with an approximate resolution of 2040 × 1356 pixels. During data prepro-cessing, the Flickr2K images are first center-cropped to 
+
+1024 × 1024 pixels. For training, validation, and testing, the Flickr images are partitioned into 2000 /350 /300 
+
+images, respectively.  
+
+> •
+
+DIV2K [47]. The anothor real-image dataset DIV2K is an even fewer dataset, which contains 900 uncompressed images. Testing on this dataset is more challenging. The resolution of each image is approximately 2040 × 1452 
+
+pixel. Similarly, the dataset is also preprocessed by center-cropping to 1024 × 1024 pixels. For training, validation, and testing, the DIV2K images are partitioned into 700 /100 /100 images, respectively. 
+
+AI-Generated image datasets. The AI-generated image dataset comprises 2650 images generated by SDv3 [48] from the public AntifakePrompt [32] database. Identical to the real-data split, the SDv3 images are divided into 2000/350/300 or 700/100/100 images for training, validation, and testing. Given that the detection accuracy for GAN-generated images has already reached a very high level [29] [30], the datasets of synthetic images used for testing in this paper comprise three categories: diffusion models, autoregressive models, and WildRF.  
+
+> •
+
+Diffusion model. In addition to the pre-trained SDv3, we also evaluate on unseen images synthesized by state-of-the-art diffusion models: SDXL [49], Playground v2.5 [50], DALL·E 3 [51] and IF [52] (all sourced from AntifakePrompt [32]), as well as MidJourney v5 sourced from AEROBLADE [19], and MidJourney v6 is obtained from Hugging Face.  
+
+> •
+
+Autoregressive model. We generate the test datasets us-ing the Infinity [53] model, which creates image datasets based on prompts that cover natural scenery, futuristic cities, science fiction, human portraits, animals, and his-torical culture.  
+
+> •
+
+WildRF [54]. This subset comprises real-world generated images from popular social networks such as Facebook, Reddit, and Twitter. The AI-generated image datasets used for training adopts SDv3, while all other AI-generated image datasets are not used for training, and directly employed for testing to evaluate the generalization capability of the detection method. During training and testing, the input images including real and generated images are center-cropped to 1024 × 1024 .
+
+2) Implementation Details : The rank-decomposition con-figurations are set as follows: SigLIP2, BLIP-2, and Phi 3-mini all use rank r = 8 with LoRA scaling α = 16 and dropout 
+
+d = 0 .05 . The target layers for LoRA application are qproj 
+
+and vproj . LHSDet is optimized for 2 episodes using the Adam optimizer with a learning rate of 1 × 10 −5, weight decay of 
+
+0.001 , and a batch size of 1. All experiments are performed on NVIDIA A100 GPUs, and the validation and testing phase uses the same hyperparameters as training. Following prior work, we employ detection accuracy (ACC) as the evaluation metric, with the threshold set to 0.5. The accuracy is calculated as the ratio of correctly classified real and generated images to the total number of real and generated images. 
+
+3) Baselines : The baselines adopted for comparison in-clude representative methods from recent years, encompassing those based on CNN, RE, and VLM.  
+
+> •
+
+The CNN-based methods: ResNet50 [55] is a 50-layer deep residual network. F3Net [16] employs Frequency-aware Image Decomposition to extraction forgery pat-terns. DualNet [15] utilizes a residual stream and acontent stream to capture texture details via SRM and low-frequency forgery traces, respectively.  
+
+> •
+
+The RE-based methods: DIRE [18] calculates the error between an input image and its reconstructed image using DDIM. AEROBLADE [19] is a training-free high-resolution generated-image detector using autoencoder reconstruction errors.  
+
+> •
+
+The VLM-based methods: UnivFD [26] extracts fea-tures using only the visual encoder of CLIP ViT, then computing the cosine distance between the input image and the feature spaces of real and generated images. SUBMITTED TO IEEE TRANS., 2026 8Input Heatmap       
+
+> 0.0 0.2 0.4 0.6 0.8
+> Prediction: No
+> (a) AI-generated image by SDv3. Input Heatmap
+> 0.0 0.2 0.4 0.6 0.8
+> Prediction: No (b) AI-generated image by Infinity. Input Heatmap
+> 0.0 0.2 0.4 0.6 0.8
+> Prediction: Yes
+> (c) Real image from Flickr2K. Input Heatmap
+> 0.0 0.2 0.4 0.6 0.8
+> Prediction: Yes (d) Real image from DIV2K. Fig. 4. Visualization of the heatmaps of the Visual Encoding Module across different datasets. Red indicates the greatest impact, and blue indicates a smaller impact.
+
+Fatformer [28] is composed of two pre-trained encoders for both image and text prompts with a forgery-aware adapter and language-guided alignment. AntifakePrompt [32] uses InstructBLIP and prompt tuning techniques. 
+
+B. Visualizing the Intermediate Results 
+
+This section provides visualizations of the intermediate features from the Visual and Textual Encoding Modules of LHSDet, illustrating the interpretability and detection effec-tiveness of the proposed method. 
+
+1) HeatMaps of the VEM: The heatmap is obtained via element-wise multiplication between dual-branch visual atten-tion weights and local activation maps. It visualizes attention distribution during global-local fusions, and provides insight into the visual basis of model detection. The visualization of the heatmaps are shown in the Fig. 4. It can be observed that in the generated images, there are inconsistencies in the high-frequency details of textures and lighting, as well as semantic irregularities in fine-grained features such as the fingers and toes of the alien. In contrast, the real images exhibit natural transitions in texture details and normal semantic characteristics. 
+
+2) Noise and Neighboring Pixel Feature Maps: In the Local Texture Block, after the first convolution, we obtain a noise map and a schematic of neighboring pixels, which is shown in Fig. 5. This block aims at capturing low-level visual features. The first row, from left to right, displays the noise maps obtained from the RGB channels after processing with the SRM [41] high-pass filters. The second row, from left to right, presents the neiboring pixel maps produced by the input image following convolutional layer processing. Input 
+
+Noise  patterns 
+
+Neighboring pixels 
+
+R G B 
+
+> Fig. 5. Visualization of the Local Texture Block after the first convolution.
+
+3) Caption Feature of the TEM: The visualization of the caption extraction of the input image is shown in Fig. 6. It can be observed that physically implausible or logically contradic-tory elements are present in some generated image captions, whereas captions of real images adhere to natural laws. This caption-based semantic representation offers complementary textual clues for AI-generated image detection, rather than relying purely on visual feature analysis. 
+
+C. Accuracy of Generalization Detection 
+
+In practical scenarios, the emergence of unknown generative models make extensive pre-training datasets inaccessible. To address this challenge, our experiment employs a fewer sample SUBMITTED TO IEEE TRANS., 2026 9A dog  sitting  on  a desk  next  to  a computer 
+
+with  a keyboard  and  a mouse  in  front  of  it .
+
+‘Kung  fu  panda  2’ panda  and  panda 
+
+playing  cards  at  a table  with  a deck  of 
+
+cards .
+
+> (a) The AI-generated images and their captions.
+
+A white  dog  with  a black  collar  sitting  on 
+
+the  ground  next  to  a tree,  with  a tree 
+
+trunk  in  the  background .
+
+A black  and  white  panda  bear  sitting  on 
+
+top  of  a wooden  fence  with  a tree  in  the 
+
+background . (b) The real images and their captions. Fig. 6. Visualization of the caption feature. When there are inconsistent semantic features in generated images, the captions yield greater gains. TABLE I ACCURACY (ACC, %) COMPARISONS OF DIFFERENT AI-GENERATED IMAGE DETECTORS ON THE FLICKR 2K AND 11 GENERATED IMAGE DATASETS WHERE EACH DATASETS CONSISTS OF 300 TEST SAMPLES . A LL METHODS WERE TRAINED ON FLICKR 2K AND SD V3 AND EVALUATED ON DIFFERENT TESTING SUBSETS .                                                                                                                                
+
+> Methods Diffusion Models Autoregressive WildRF Avg. ACC SDv3 SDXL Playground DALL·E3 MJv5 MJv6 IF Infinity Facebook Reddit Twitter
+> ResNet50 [55] 86.33 55.33 47.67 58.50 54.67 52.00 58.83 62.00 50.00 54.33 47.00 56.97 F3Net [16] 95.83 52.67 54.83 60.50 59.83 56.33 63.50 65.00 55.67 55.00 55.83 61.36 DualNet [15] 90.50 48.83 50.50 58.83 50.50 51.50 61.50 62.00 51.33 57.33 51.67 57.68 DIRE [18] 98.26 72.40 66.50 86.22 69.05 69.22 93.71 74.00 78.31 65.99 66.33 76.36 AERO [19] 88.00 52.03 90.52 99.89 96.08 95.13 93.96 88.06 91.92 75.92 85.96 87.04 UnivFD †[26] 50.00 64.00 56.00 62.00 50.00 56.00 76.00 44.00 44.00 76.00 64.00 58.36 Faformer †[28] 54.67 59.00 60.17 64.17 55.00 62.00 56.50 43.00 58.44 67.00 50.50 57.31 Antifake [32] 93.33 90.17 92.50 80.17 79.67 73.83 86.33 84.00 80.00 68.00 73.83 81.98
+> LHSDet 99.83 98.83 99.17 97.83 94.50 85.33 99.00 99.00 98.00 93.67 95.33 96.41
+> †indicates that the results are obtained by using the official pre-trained model.
+> *The best and the second best results in each column are in bold and underline, respectively.
+
+learning paradigm for both training and evaluation. The com-parison of detection results on the Flickr2K and 11 generated-image datasets are shown in Table I, the training dataset comprises 2, 000 generated and 2, 000 real images respectively, while the test set contains no more than 300 samples per category. Furthermore, substantial architectural discrepancies exist across different generative models. And generated images from various sources are often widely spread through online platforms. To better approximate real-world conditions, we conduct cross-model generalization tests incorporating three distinct categories: diffusion models, autoregressive models, and the WildRF benchmark [54] (generated images obtained from social media). This comprehensive evaluation ensures our assessment reflects the diverse generative artifacts encountered in practical applications. In Table I, we can observe that the CNN-based detection methods such as F3Net, DualNet, and ResNet50 underfit in few-shot detection scenarios and suffer a sharp drop in generalization, with detection accuracies of only 56 − 62% .The RE-based methods achieve better detection performance than the CNN-based detectors. DIRE attains an accuracy of ap-proximately 76% , yet its results remain unsatisfactory on most datasets. AEROBLADE, a training-free approach designed for high-resolution images, delivers overall better performance with an accuracy of approximately 87% . Nevertheless, it performs poorly on the SDXL and WildRF datasets. In the experiments of the VLM-based detectors, the CLIP-based methods UnivFD and Fatformer are tested with their publicly released checkpoints and showed poor generalization to novel datasets. The BLIP-based detector AntifakePrompt achieves an overall accuracy of approximately 82% . However, it only performs effectively on a limited number of datasets, while its detection accuracy on Midjourney and WildRF remains unsat-isfactory. Our method achieves the best detection performance, attaining an accuracy of 96 .41% across three categories and eleven datasets, substantially surpassing all baselines by 9.37% 
+
+over the second-best baseline ( 87 .04% ). This gain is attributed to our powerful triple-branch architecture, multi-modal feature fusion, and LoRA fine-tuning. In another comparisons on the DIV2K and 11 generated-image datasets with even fewer samples where each datasets consists of 100 test samples, as summarized in Table II. The overall findings are consistent with the conclusions drawn from Table I. The detection accuracies of most baselines decline compared to those in Table I, indicating that fewer-shot detection is a more challenging task. Among them, Antifake-Prompt drops by 7.57% . Our method surpasses the second-best competitor AEROBLADE by 10 .85% . Maintaining 95 .09% 
+
+accuracy when only 100 real and 100 generated images are available per dataset, our method is thus better suited for practical scenarios. SUBMITTED TO IEEE TRANS., 2026 10 
+
+TABLE II ACCURACY (ACC, %) COMPARISONS OF DIFFERENT AI-GENERATED IMAGE DETECTORS ON THE DIV2K AND 11 GENERATED IMAGE DATASETS WHERE EACH DATASETS CONSISTS OF 100 TEST SAMPLES . A LL METHODS WERE TRAINED ON DIV2K AND SD V3 AND EVALUATED ON DIFFERENT TESTING SUBSETS .
+
+Methods Diffusion Models Autoregressive WildRF Avg. ACC SDv3 SDXL Playground DALL·E3 MJv5 MJv6 IF Infinity Facebook Reddit Twitter 
+
+ResNet50 [55] 65.00 41.50 53.50 55.00 53.00 53.50 59.50 59.50 52.50 57.50 52.00 54.77 F3Net [16] 97.00 50.50 53.50 58.50 62.50 58.00 71.50 63.00 62.00 54.00 58.50 62.64 DualNet [15] 89.50 47.50 60.50 58.50 53.00 49.50 76.00 72.00 60.50 59.00 61.00 62.45 DIRE [18] 95.50 69.50 66.50 86.00 61.00 66.00 90.50 73.00 67.00 62.50 60.50 72.55 AERO [19] 84.43 54.37 88.15 99.72 94.85 94.37 93.77 85.07 86.83 65.86 79.27 84.24 UnivFD † [26] 48.00 62.00 50.00 52.00 48.00 56.00 72.00 48.00 46.00 74.00 54.00 55.45 Faformer † [28] 52.00 57.50 54.00 58.00 47.50 62.50 54.00 39.00 43.00 61.00 44.50 52.09 Antifake [32] 95.50 90.50 86.00 87.00 65.00 61.50 88.00 64.00 66.50 55.00 59.50 74.41 
+
+LHSDet 98.50 97.50 97.00 97.00 91.50 85.00 96.50 97.00 96.50 95.00 94.50 95.09  
+
+> †
+
+indicates that the results are obtained by using the official pre-trained model.  
+
+> *
+
+The best and the second best results in each column are in bold and underline, respectively. TABLE III ACCURACY (ACC, %) COMPARISONS FOR ROBUSTNESS AGAINST UNSEEN POST -PROCESSING PROCEDURES OF DIFFERENT AI-GENERATED IMAGE DETECTORS ON THE FLICKR 2K AND SD V3 DATASETS WHERE EACH DATASETS CONSISTS OF 300 TEST SAMPLES .
+
+Methods Clear Brightness Contrast Gau. Blur JPEG Gau. Noise Rotation Avg. ACC Avg. Drop 
+
+ResNet50 [55] 86.33 83.83 76.67 73.83 73.83 73.00 78.33 76.58 9.75 F3Net [16] 95.83 90.17 90.83 55.17 54.67 54.00 63.17 68.00 27.83 DualNet [15] 90.50 84.17 81.00 71.00 71.83 69.17 67.00 74.03 16.47 DIRE [18] 98.26 95.49 97.22 95.66 98.31 95.14 98.44 96.71 1.55 
+
+AERO [19] 88.00 71.68 68.68 85.40 84.02 73.59 57.38 73.46 14.54 UnivFD † [26] 50.00 46.00 48.00 48.00 46.00 42.00 50.00 46.67 3.33 Fatformer † [28] 54.67 47.17 48.00 49.83 49.83 50.00 44.17 48.17 6.50 Antifake [32] 93.33 93.17 92.83 88.17 87.67 87.67 93.33 90.47 2.86 
+
+LHSDet 99.83 99.17 98.83 94.17 95.00 95.67 96.50 96.56 3.27  
+
+> †
+
+indicates that the results are obtained by using the official pre-trained model.  
+
+> *
+
+The best and the second best results in each column are in bold and underline, respectively. 
+
+D. Robustness against unseen Post-Processing Procedures 
+
+Due to the use of 1024 -pixel high-resolution images in this experiment, directly applying blurring, compression, and noise operations showed negligible impact on experimental results. Therefore, prior to these three operations, input images are first downsampled to 256 × 256 pixels. The other post-processing procedures are applied directly to the 1024 -pixel images with-out downsampling. In this experiment, the robustness testing against unseen image post-processing procedures includes: brightness adjustment, contrast modification, Gaussian blur (kernel sizes of 3 × 3 and δblur = 1 ) with down-sampling, JPEG compression (quality factors QJPEG = 85 ) with down-sampling , random Gaussian noise ( δnoise ∈ [5 , 20] ) with down-sampling, and arbitrary rotation ( θ ∈ [−180 , 180] ). We select one representative generative model from each of the two major paradigms: the diffusion model Stable Diffusion v3 and the autoregressive model Infinity. The comparisons for robustness against unseen post-processing procedures on the Flickr2K and diffusion model SDv3 where each datasets consists of 300 test samples, as seen in Table III. DIRE, AntifakePrompt, and our proposed LHSDet all demonstrate strong robustness, with average accuracy drops of approximately 1 − 3% . Both DIRE and our method achieve the highest robust accuracy, each exceedings 96% . In con-trast, the CNN-based methods including ResNet, F3Net, and DualNet, and RE-based method AEROBLADE exhibit more substantial declines in robust accuracy. Meanwhile, the pre-trained models of UnivFD and Fatformer fail to effectively detect novel datasets, yielding robust accuracy close to the random guess of 50% .In addition, we evaluate robustness under an even fewer-shot scenario on the Flickr2K and autoregressive model Infinity where each datasets consists of 50 test samples, as seen in Ta-ble IV. Experimental results demonstrate that AntifakePrompt and our proposed LHSDet maintain the strongest robustness, with average performance drops of merely 2 − 4% . No-tably, LHSDet achieves the highest accuracy, exceeding 95% .Specifically, it surpasses the second-best approach Antifake by a significant margin of 14 .16% . However, DIRE fails to maintain its robustness advantage, performing similarly to CNN-based detectors, UnivFD, and Fatformer, with accuracy approaching the random guess of approximately 50% . The robustness of AEROBLADE also shows a marked decline, yielding unsatisfactory results in this challenging setting. 
+
+E. Ablation Study 
+
+The proposed LHSDet contains 6.6B parameters. Following the pre-generated captions to LHSDet, it requires approxi-SUBMITTED TO IEEE TRANS., 2026 11 
+
+TABLE IV ACCURACY (ACC, %) COMPARISONS FOR ROBUSTNESS AGAINST UNSEEN POST -PROCESSING PROCEDURES OF DIFFERENT AI-GENERATED IMAGE DETECTORS ON THE FLICKR 2K AND INFINITY DATASETS WHERE EACH DATASETS CONSISTS OF 50 TEST SAMPLES .
+
+Methods Clear Brightness Contrast Gau. Blur JPEG Gau. Noise Rotation Avg. ACC Avg. Drop 
+
+ResNet50 [55] 62.00 53.00 53.00 56.00 56.00 54.00 59.00 55.17 6.83 F3Net [16] 65.00 60.00 63.00 50.00 50.00 50.00 61.00 55.67 9.33 DualNet [15] 62.00 62.00 55.00 53.00 53.00 54.00 53.00 55.00 7.00 DIRE [18] 74.00 59.00 61.00 52.00 55.00 52.00 50.00 54.83 19.17 AERO [19] 88.06 70.98 75.79 69.97 71.32 53.21 65.66 67.82 20.24 UnivFD † [26] 44.00 48.00 42.00 44.00 46.00 32.00 48.00 43.33 /Faformer † [28] 43.00 48.00 49.00 50.00 50.00 50.00 28.00 45.83 /Antifake [32] 84.00 80.00 85.00 81.00 78.00 79.00 84.00 81.17 2.83 LHSDet 99.00 96.00 97.00 93.00 94.00 95.00 97.00 95.33 3.67  
+
+> †
+
+indicates that the results are obtained by using the official pre-trained model.  
+
+> *
+
+The best and the second best results in each column are in bold and underline, respectively. TABLE V ACCURACY (ACC, %) COMPARISONS OF ABLATION STUDY RESULTS ON THE FLICKR 2K AND SD V3 DATASETS WHERE EACH DATASETS CONSISTS OF 
+
+300 TEST SAMPLES .
+
+Methods Diffusion Models Autoregressive WildRF Avg. ACC SDv3 SDXL PlayG. DALL·E3 MJv5 MJv6 IF Infinity Facebook Reddit Twitter 
+
+w/o Low-Level 99.67 96.33 98.83 97.17 85.00 71.50 99.00 97.00 88.00 77.50 83.33 90.30 w/o High-Level 59.33 62.33 61.50 59.33 54.67 49.33 60.00 57.00 60.67 61.67 60.17 58.73 w/o Semantic-Level 99.67 97.67 98.50 97.83 90.83 77.00 99.33 99.00 95.33 89.67 92.33 94.29 w/o LoRA 98.33 96.83 98.17 94.83 89.33 80.50 98.67 96.00 92.67 91.83 92.17 93.58 CLIP+Vicuna+Cro Att. 97.83 90.33 93.67 84.33 81.67 68.50 95.15 90.00 86.00 75.67 84.67 86.17 SigLIP2+Vicuna+Cro Att. 99.67 99.17 99.33 97.17 91.67 82.67 97.50 99.00 95.67 91.33 94.33 95.23 SigLIP2+Phi3+Gate Fusion 99.33 98.00 98.33 98.33 93.00 80.00 99.50 99.00 94.67 93.00 94.17 95.21 
+
+SigLIP2+Phi3+Cro Att. 99.83 98.83 99.17 97.83 94.50 85.33 99.00 99.00 98.00 93.67 95.33 96.41  
+
+> *
+
+The best result in each column is in bold. 
+
+mately 20 minutes per epoch when trained on 4, 000 images of 
+
+1024 ×1024 resolution. Remarkably, only 2 epochs of training are sufficient to achieve high detection performance. To quantify the contribution of each component, we conduct systematic component-wise ablation studies targeting the low-, high-, semantic-level feature, and LoRA fine-tuning configura-tion. As demonstrated in Table V, each component contributes to the improvement of detection accuracy. Removing either the low-level or the high-level branch leads to a clear degradation in detection accuracy, indicating that both branches are mu-tually complementary and work collaboratively. Specifically, the absence of the low-level branch causes a sharp decline in detection accuracy for datasets such as MidJourney and WildRF. Removing the high-level branch makes the visual encoder a CNN-based architecture. It proves that without high-level visual branch is insufficient for fitting fewer sample detection, which exhibits poor generalization, and leads to a sharp drop in accuracy. Removing the semantic-level feature leads to a drop in accuracy, most notably in the detection of MidJourney and WildRF. The captions provide multi-modal textual features beyond visual cues, offering greater benefits on certain datasets. When the LoRA is removed, and detection accuracy drops by about 3% . In contrast, fine-tuning with LoRA allows the LHSDet to maintain only 0.23% of trainable parameters. LoRA fine-tuning significantly reduces the number of trainable parameters, decreases model size, and enhances detection accuracy. In summary, each component of our proposed method contributes effectively. Both the low-level and high-level visual branch are indispensable, jointly capturing visual features. Within the proposed architecture, the low-level and high-level visual branch are integrated via cross-attention. To vali-date this design, we conduct ablation studies that incorporate a gated fusion mechanism as an alternative to cross-attention. When the low-level and high-level branches are integrated via a gated fusion mechanism, the accuracy decreases by about 
+
+1% , with a particularly noticeable drop in the detection perfor-mance for MidJourney. The experimental results demonstrate that cross-attention is a better fusion strategy for the two visual branches. V. C ONCLUSION 
+
+In this paper, we introduced LHSDet, a detector for high-resolution AI-generated images. It reformulates the AI-generated image detection problem as a visual question an-swering (VQA) task, leveraging the complementary strengths of the low-level and high-level visual information as well as the textual semantic information. The proposed frame-work processes input images through three complementary branches: a low-level visual branch performs non-overlapping patch aggregation to extract local texture features including SRM noise and neighboring pixel relationships, a high-level visual branch utilizes SigLIP2 to capture global perception concepts, and a semantic-level textual branch generates cap-SUBMITTED TO IEEE TRANS., 2026 12 
+
+tions via BLIP-2. The two visual branches are further inte-grated through cross-attention mechanisms. Then the fused multi-model representation is processed by the LLM yield-ing an answer. Extensive experimental results demonstrate that LHSDet achieves state-of-the-art detection accuracy of 
+
+95 − 96% across diverse datasets covering diffusion models, autoregressive models, and the WildRF benchmark. Further-more, LHSDet exhibits strong robustness under different im-age post-processing operations, with an average performance degradation of approximately 3.5% .In future work, the triple-branch multi-modal feature extrac-tion capability of LHSDet could be extended to other VQA tasks, thereby expanding its applicability beyond AI-generated image detection. Additionally, we aim to further enhance the model’s generalization ability to newly emerging generative models, addressing the long-standing challenge of detector adaptability in dynamic AI image generation landscapes. REFERENCES [1] I. Goodfellow, J. Pouget-Abadie et al. , “Generative adversarial net-works,” Communications of the ACM , vol. 63, no. 11, pp. 139–144, 2020. [2] D. P. Kingma, M. Welling et al. , “Auto-encoding variational bayes,” 2013. [3] J. Ho, A. Jain, and P. Abbeel, “Denoising diffusion probabilistic models,” 
+
+Advances in neural information processing systems , vol. 33, pp. 6840– 6851, 2020. [4] P. Dhariwal and A. Nichol, “Diffusion models beat gans on image synthesis,” Advances in neural information processing systems , vol. 34, pp. 8780–8794, 2021. [5] S. Gu, D. Chen, J. Bao, F. Wen, B. Zhang, D. Chen, L. Yuan, and B. Guo, “Vector quantized diffusion model for text-to-image synthesis,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 10 696–10 706. [6] L. Liu, Y. Ren et al. , “Pseudo numerical methods for diffusion models on manifolds,” arXiv preprint arXiv:2202.09778 , 2022. [7] C. Saharia, W. Chan, S. Saxena, L. Li, J. Whang, E. L. Denton, K. Ghasemipour, R. Gontijo Lopes, B. Karagol Ayan, T. Salimans 
+
+et al. , “Photorealistic text-to-image diffusion models with deep language understanding,” Advances in neural information processing systems ,vol. 35, pp. 36 479–36 494, 2022. [8] R. Rombach, A. Blattmann et al. , “High-resolution image synthesis with latent diffusion models,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2022, pp. 10 684– 10 695. [9] A. Ramesh, P. Dhariwal et al. , “Hierarchical text-conditional image generation with clip latents,” arXiv preprint arXiv:2204.06125 , vol. 1, no. 2, p. 3, 2022. [10] J. Chen, C. Ge, E. Xie, Y. Wu, L. Yao, X. Ren, Z. Wang, P. Luo, H. Lu, and Z. Li, “Pixart-σ: Weak-to-strong training of diffusion transformer for 4k text-to-image generation,” in European Conference on Computer Vision . Springer, 2024, pp. 74–91. [11] E. Xie, J. Chen, J. Chen, H. Cai, H. Tang, Y. Lin, Z. Zhang, M. Li, L. Zhu, Y. Lu et al. , “Sana: Efficient high-resolution image synthesis with linear diffusion transformers,” arXiv preprint arXiv:2410.10629 ,2024. [12] J. Ren, W. Li, H. Chen, R. Pei, B. Shao, Y. Guo, L. Peng, F. Song, and L. Zhu, “Ultrapixel: Advancing ultra high-resolution image synthesis to new peaks,” Advances in Neural Information Processing Systems ,vol. 37, pp. 111 131–111 171, 2024. [13] C. Tan, Y. Zhao et al. , “Rethinking the up-sampling operations in cnn-based generative network for generalizable deepfake detection,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2024, pp. 28 130–28 139. [14] C. Tan, Y. Zhao, S. Wei, G. Gu, and Y. Wei, “Learning on gradients: Generalized artifacts representation for gan-generated images detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 12 105–12 114. [15] Z. Xi, W. Huang et al. , “Ai-generated image detection using a cross-attention enhanced dual-stream network,” in 2023 Asia Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA ASC) . IEEE, 2023, pp. 1463–1470. [16] Y. Qian, G. Yin et al. , “Thinking in frequency: Face forgery detection by mining frequency-aware clues,” in European Conference on Computer Vision (ECCV) . Springer, 2020, pp. 86–103. [17] R. Corvi, D. Cozzolino et al. , “On the detection of synthetic images gen-erated by diffusion models,” in ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) .IEEE, 2023, pp. 1–5. [18] Z. Wang, J. Bao et al. , “Dire for diffusion-generated image detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2023, pp. 22 445–22 455. [19] J. Ricker, D. Lukovnikov, and A. Fischer, “Aeroblade: Training-free detection of latent diffusion images using autoencoder reconstruction error,” in CVPR , 2024, pp. 9130–9140. [20] B. Chen, J. Zeng et al. , “Drct: Diffusion reconstruction contrastive training towards universal detection of diffusion generated images,” in 
+
+Forty-first International Conference on Machine Learning (ICML) , 2024. [21] G. Cazenavette, A. Sud et al. , “Fakeinversion: Learning to detect images from unseen text-to-image models by inverting stable diffusion,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024, pp. 10 759–10 769. [22] Z. Wang, C. Chen, Y. Zeng, L. Lyu, and S. Ma, “Where did i come from? origin attribution of ai-generated images,” Advances in neural information processing systems , vol. 36, pp. 74 478–74 500, 2023. [23] Y. Luo, J. Du, K. Yan, and S. Ding, “Lareˆ 2: Latent reconstruction error based method for diffusion-generated image detection,” in Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 17 006–17 015. [24] Z. Sha, Y. Tan, M. Li, M. Backes, and Y. Zhang, “Zerofake: Zero-shot detection of fake images generated and edited by text-to-image genera-tion models,” in Proceedings of the 2024 on ACM SIGSAC Conference on Computer and Communications Security , 2024, pp. 4852–4866. [25] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al. , “Learning transferable visual models from natural language supervision,” in International conference on machine learning . PmLR, 2021, pp. 8748–8763. [26] U. Ojha, Y. Li, and Y. J. Lee, “Towards universal fake image detec-tors that generalize across generative models,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 24 480–24 489. [27] Z. Sha, Z. Li, N. Yu, and Y. Zhang, “De-fake: Detection and attribution of fake images generated by text-to-image generation models,” in 
+
+Proceedings of the 2023 ACM SIGSAC conference on computer and communications security , 2023, pp. 3418–3432. [28] H. Liu, Z. Tan, C. Tan, Y. Wei, J. Wang, and Y. Zhao, “Forgery-aware adaptive transformer for generalizable synthetic image detection,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 10 770–10 780. [29] C. Tan, R. Tao, H. Liu, G. Gu, B. Wu, Y. Zhao, and Y. Wei, “C2p-clip: Injecting category common prompt in clip to enhance generalization in deepfake detection,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 7, 2025, pp. 7184–7192. [30] S. Yan, O. Li, J. Cai, Y. Hao, X. Jiang, Y. Hu, and W. Xie, “A sanity check for ai-generated image detection,” arXiv preprint arXiv:2406.19435 , 2024. [31] J. Li, D. Li, C. Xiong, and S. Hoi, “Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation,” in International conference on machine learning . PMLR, 2022, pp. 12 888–12 900. [32] Y.-M. Chang, C. Yeh, W.-C. Chiu, and N. Yu, “Antifakeprompt: Prompt-tuned vision-language models are fake image detectors,” arXiv preprint arXiv:2310.17419 , 2023. [33] S.-Y. Wang, O. Wang, R. Zhang, A. Owens, and A. A. Efros, “Cnn-generated images are surprisingly easy to spot... for now,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2020, pp. 8695–8704. [34] A. Sarkar, H. Mai, A. Mahapatra, S. Lazebnik, D. A. Forsyth, and A. Bhattad, “Shadows don’t lie and lines can’t bend! generative models don’t know projective geometry... for now,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2024, pp. 28 140–28 149. [35] J. Song, C. Meng, and S. Ermon, “Denoising diffusion implicit models,” 
+
+arXiv preprint arXiv:2010.02502 , 2020. SUBMITTED TO IEEE TRANS., 2026 13 
+
+[36] S. Tang, P. He, H. Li, W. Wang, X. Jiang, and Y. Zhao, “Towards extensible detection of ai-generated images via content-agnostic adapter-based category-aware incremental learning,” IEEE Transactions on In-formation Forensics and Security , 2025. [37] M. Keita, W. Hamidouche, H. Bougueffa, A. Hadid, and A. Taleb-Ahmed, “Harnessing the power of large vision language models for synthetic image detection,” arXiv preprint arXiv:2404.02726 , 2024. [38] W. Dai, J. Li, D. Li, A. Tiong, J. Zhao, W. Wang, B. Li, P. N. Fung, and S. Hoi, “Instructblip: Towards general-purpose vision-language models with instruction tuning,” Advances in neural information processing systems , vol. 36, pp. 49 250–49 267, 2023. [39] M. Tschannen, A. Gritsenko, X. Wang, M. F. Naeem, I. Alabdul-mohsin, N. Parthasarathy, T. Evans, L. Beyer, Y. Xia, B. Mustafa 
+
+et al. , “Siglip 2: Multilingual vision-language encoders with improved semantic understanding, localization, and dense features,” arXiv preprint arXiv:2502.14786 , 2025. [40] C. Zheng, C. Lin, Z. Zhao, H. Wang, X. Guo, S. Liu, and C. Shen, “Breaking semantic artifacts for generalized ai-generated image detec-tion,” Advances in Neural Information Processing Systems , vol. 37, pp. 59 570–59 596, 2024. [41] M. Goljan, J. Fridrich, and R. Cogranne, “Rich model for steganalysis of color images,” in 2014 IEEE International workshop on information forensics and security (WIFS) . IEEE, 2014, pp. 185–190. [42] Microsoft, “Phi-3 technical report: A highly capable language model locally on your phone,” arXiv preprint arXiv:2404.14219 , 2024. [43] A. Q. Jiang, A. Sablayrolles, A. Roux, A. Mensch, B. Savary, C. Bam-ford, D. S. Chaplot, D. d. l. Casas, E. B. Hanna, F. Bressand et al. ,“Mixtral of experts,” arXiv preprint arXiv:2401.04088 , 2024. [44] T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell et al. , “Language mod-els are few-shot learners,” Advances in neural information processing systems , vol. 33, pp. 1877–1901, 2020. [45] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen et al. , “Lora: Low-rank adaptation of large language models.” 
+
+ICLR , vol. 1, no. 2, p. 3, 2022. [46] B. Lim, S. Son, H. Kim, S. Nah, and K. Mu Lee, “Enhanced deep residual networks for single image super-resolution,” in Proceedings of the IEEE conference on computer vision and pattern recognition workshops , 2017, pp. 136–144. [47] E. Agustsson and R. Timofte, “Ntire 2017 challenge on single image super-resolution: Dataset and study,” in Proceedings of the IEEE con-ference on computer vision and pattern recognition workshops , 2017, pp. 126–135. [48] P. Esser, S. Kulal, A. Blattmann, R. Entezari, J. M¨ uller, H. Saini, Y. Levi, D. Lorenz, A. Sauer, F. Boesel et al. , “Scaling rectified flow transformers for high-resolution image synthesis,” in Forty-first international conference on machine learning , 2024. [49] D. Podell, Z. English, K. Lacey, A. Blattmann, T. Dockhorn, J. M¨ uller, J. Penna, and R. Rombach, “Sdxl: Improving latent diffusion models for high-resolution image synthesis,” arXiv preprint arXiv:2307.01952 ,2023. [50] D. Li, A. Kamko, E. Akhgari, A. Sabet, L. Xu, and S. Doshi, “Play-ground v2. 5: Three insights towards enhancing aesthetic quality in text-to-image generation,” arXiv preprint arXiv:2402.17245 , 2024. [51] J. Betker, G. Goh, L. Jing, T. Brooks, J. Wang, L. Li, L. Ouyang, J. Zhuang, J. Lee, Y. Guo et al. , “Improving image generation with better captions,” Computer Science. https://cdn. openai. com/papers/dall-e-3. pdf , vol. 2, no. 3, p. 8, 2023. [52] StabilityAI, “Deepfloyd if,” 2023. [53] J. Han, J. Liu, Y. Jiang, B. Yan, Y. Zhang, Z. Yuan, B. Peng, and X. Liu, “Infinity: Scaling bitwise autoregressive modeling for high-resolution image synthesis,” in Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR) , 2025, pp. 15 733–15 744. [54] B. Cavia, E. Horwitz, T. Reiss, and Y. Hoshen, “Real-time deepfake detection in the real-world,” arXiv preprint arXiv:2406.09398 , 2024. [55] K. He, X. Zhang et al. , “Deep residual learning for image recognition,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2016, pp. 770–778.

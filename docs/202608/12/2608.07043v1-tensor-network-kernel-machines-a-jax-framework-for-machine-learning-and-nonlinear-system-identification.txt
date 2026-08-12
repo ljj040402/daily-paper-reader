@@ -1,0 +1,265 @@
+Title: Tensor Network Kernel Machines: A JAX Framework for Machine Learning and Nonlinear System Identification
+
+URL Source: https://arxiv.org/pdf/2608.07043v1
+
+Published Time: Mon, 10 Aug 2026 00:44:04 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Tensor Network Kernel Machines: A JAX Framework for Machine Learning and Nonlinear System Identification 
+
+Albert Saiapin ∗ Kim Batselier ∗∗ Delft Center for Systems and Control, TU Delft, Netherlands (e-mail: {a.saiapin, k.batselier }@tudelft.nl) 
+
+Abstract: Developing nonlinear models that are both expressive and computationally efficient remains a challenge in machine learning and nonlinear system identification. Tensor network kernel machines (TNKM) address this challenge by combining nonlinear feature representations with compact low-rank tensor-network parameterizations. However, practical and extensible software frameworks for developing TNKM models remain limited. In this work, we introduce 
+
+tnkm , an open-source Python library for constructing and training TNKM models using 
+
+JAX . The library provides a unified interface for combining different feature maps, tensor-network architectures, and optimization strategies, including alternating least squares and gradient-based methods. We demonstrate the capabilities of tnkm on nonlinear benchmark problems, showing that the implemented models achieve competitive prediction accuracy while retaining compact parameterizations and efficient training. The proposed framework facilitates reproducible development and application of tensor-network-based learning methods. 1. INTRODUCTION Nonlinear function approximation is a fundamental prob-lem in both machine learning (ML) and nonlinear sys-tem identification, where the objective is to learn accu-rate input–output relationships directly from data. Such models underpin a wide range of applications, including computer vision, natural language processing, robotics, autonomous systems, process control, and scientific com-puting (Bishop, 2006; Goodfellow et al., 2016; Schoukens and Ljung, 2019). As these applications continue to grow in complexity and scale, developing nonlinear models that combine high predictive accuracy with computational effi-ciency while remaining scalable to high-dimensional prob-lems remains an important research challenge. Over the past decades, numerous approaches have been de-veloped for nonlinear modeling, including kernel methods, Gaussian processes, and deep neural networks, each of-fering different trade-offs between predictive performance, computational complexity, and interpretability (Scholkopf and Smola, 2001; Rasmussen and Williams, 2005; LeCun et al., 2015). Many of these methods, however, face scala-bility challenges arising from either rapidly growing model complexity or increasing computational costs as the num-ber of model parameters or training samples grows. Tensor network kernel machines (TNKM) (Wesel and Batselier, 2021; Batselier, 2022) address this challenge by combining explicit nonlinear feature representations with compact low-rank tensor-network parameterizations of the model coefficients. By exploiting tensor decompositions such as the canonical polyadic (CP) and tensor-train (TT) for-mats, TNKM can represent high-dimensional nonlinear models using substantially fewer parameters than their full tensor counterparts. These properties have made TNKM  
+
+> ⋆This work is supported by the Dutch Research Council (NWO).
+
+an effective approach for nonlinear regression, classifica-tion, and system identification (Novikov et al., 2018; Sa-iapin and Batselier, 2025a, 2026). Despite the growing interest in tensor-network-based ma-chine learning (Cichocki et al., 2016, 2017), software frameworks for these models remain diverse and tar-get different application scenarios. Existing libraries pro-vide valuable tools for tensor-network optimization, ML applications (Kossaifi et al., 2019), and quantum sys-tems simulations (Hauschild et al., 2024; Gray, 2018). More closely related to the present work, tn4ml (Puljak et al., 2025) provides a configurable framework for training tensor-network-based ML models. While these frameworks provide important foundations for tensor-network-based learning, this work focuses specifically on the tensor net-work kernel machine paradigm, providing a unified frame-work tailored to machine learning and nonlinear system identification applications. In this work, we introduce tnkm 1 , an open-source Python library for developing and applying tensor network kernel machines. The library provides a modular framework that separates the main components of TNKM models, includ-ing nonlinear feature maps, tensor-network parameteriza-tions, and optimization algorithms. This design enables systematic comparison of different TNKM configurations and facilitates the extension of the framework with new representations and training strategies. The main contri-butions of this work are: 
+
+• We introduce a unified JAX -based framework for TNKM models with minimal external dependen-cies, supporting multiple tensor-network parame-terizations, including canonical polyadic (CP) and  
+
+> 1https://github.com/AlbMLpy/tnkm arXiv:2608.07043v1 [cs.MS] 7 Aug 2026
+
+tensor-train (TT) representations, within a common interface. 
+
+• We provide scalable training implementations com-bining structure-aware optimization through alter-nating least squares (ALS) with general gradient-based optimization methods, enabling application to both regression and broader learning tasks. 
+
+• We develop a modular software architecture with reusable interfaces for feature maps, model classes, and optimization routines, complemented by practi-cal utilities for nonlinear system identification, includ-ing data preprocessing, simulation, and evaluation. 
+
+• We present a comprehensive experimental evalua-tion of the proposed framework, including predictive-performance benchmarks and optimization studies, demonstrating the effectiveness and practical appli-cability of TNKM models. The remainder of this paper is organized as follows. Sec-tion 2 introduces the mathematical formulation of tensor network kernel machines. Section 3 describes the design and implementation of the tnkm library. Section 4 presents experimental results on nonlinear benchmark problems and compares the supported optimization methods. Fi-nally, Sections 5 and 6 discuss the implications and limita-tions of the proposed framework, as well as opportunities for its future development. 2. METHODOLOGY Tensor network kernel machines combine nonlinear feature representations with low-rank tensor parameterizations to construct expressive yet computationally tractable non-linear models. To reflect this formulation, the tnkm li-brary adopts a modular architecture that separates feature maps, tensor-network parameterizations, and optimization algorithms into independent components. An overview of the framework and the relationships between these com-ponents is shown in Figure 1. The following subsections describe each component and its mathematical formula-tion in detail. 
+
+2.1 Tensor network kernel machines 
+
+Consider a nonlinear regression problem with input x ∈
+
+RD and target y ∈ R. A common approach is to represent the nonlinear mapping using a linear model in a high-dimensional feature space (Scholkopf and Smola, 2001; Bishop, 2006), 
+
+f (x) = ϕ(x)⊤w, (1) where ϕ(x) denotes a nonlinear feature map and w is the vector of trainable model parameters. The choice of the feature map ϕ determines the expressive power of the re-sulting model and enables approximation of a wide class of nonlinear functions. For multivariate inputs, however, the dimensionality of ϕ(x) typically grows exponentially with the number of input variables, making direct optimization of w computationally prohibitive. Tensor network kernel machines (TNKM) address this challenge by exploiting two key ideas. First, the feature map is assumed to admit a tensor-product representation, 
+
+ϕ(x) := ϕ(D)(xD ) ⊗ · · · ⊗ ϕ(1) (x1), (2) 
+
+Fig. 1. Overview of the tensor network kernel machine (TNKM) framework. A TNKM model combines a feature map, a low-rank tensor-network parameter-ization, and an optimization algorithm within one framework. where ϕ(d) : R → RId denotes a one-dimensional feature map acting on the d-th input variable. Such tensor-product feature maps naturally arise from product kernels (Hens-man et al., 2018; Solin and S¨ arkk¨ a, 2019). Second, instead of storing the parameter vector w explic-itly, the model parameters are represented using a low-rank tensor-network decomposition. This substantially re-duces the number of trainable parameters while preserv-ing the multilinear structure required for efficient opti-mization and inference (Wesel and Batselier, 2021, 2024; Batselier, 2022). Rather than storing QDd=1 Id param-eters explicitly, low-rank tensor decompositions reduce the parameter complexity to O(DIR ) for CP decom-positions and O(DIR 2) for TT decompositions, where 
+
+I = max( I1, . . . , I D ). For example, if each feature map contains Id = 20 features, D = 10, and R = 10, the full parameter vector w contains 20 10 ≈ 10 13 coefficients, making direct optimization infeasible, whereas a low-rank CP representation requires only about 2 × 10 3 parameters. With the feature map ϕ fixed, training reduces to estimat-ing the low-rank tensor parameters from the training data 
+
+D := {(xi, y i) | xi ∈ RD , y i ∈ R, i = 1 , . . . , N }. The fea-ture map specifies the nonlinear embedding of the inputs, while the tensor-network parameterization determines the complexity of the resulting TNKM model. 
+
+2.2 Feature maps 
+
+As discussed in the previous section, the feature map ϕ
+
+determines the nonlinear representation of the input. Its choice therefore directly influences the class of nonlinear functions that can be represented by the model. TNKM constructs multivariate feature representations from one-dimensional feature maps according to (2). This formula-tion allows different feature maps to be combined with the same tensor-network parameterization and optimization algorithms, resulting in a flexible and modular modeling framework. The tnkm library supports several classes of feature maps suited to different modeling scenarios. In this paper, we focus on three representative families: polynomial-based, Fourier-based, and memory-based (Volterra) fea-tures. Note that some of these feature maps assume inputs normalized to the interval [0 , 1]; accordingly, appropriate preprocessing should be applied prior to training. 
+
+Polynomial features. Polynomial features (Chen et al., 2016) construct nonlinear representations by em-bedding each input variable into a polynomial basis. The local feature map is defined as 
+
+ϕ(d)(x) = 1, x, x 2, . . . , x Id−1⊤ , (3) with x ∈ R. These features are particularly suitable for problems whose nonlinearities can be well approximated by low-degree polynomial interactions. Increasing the em-bedding dimension Id increases the expressive power of the model at the cost of a larger feature space. More generally, by the Stone–Weierstrass theorem (Branges, 1959), poly-nomial bases are capable of approximating any continuous function on a compact domain to arbitrary accuracy. 
+
+Fourier features. Fourier features (Wesel and Bat-selier, 2024) are widely used in kernel methods, as they correspond to the eigenfunctions of D-dimensional station-ary product kernels with respect to the Lebesgue mea-sure (Hensman et al., 2018). For an input value x ∈ R, the local feature map is defined as 
+
+ϕ(d)(x) = cd
+
+h
+
+e− 2πjk L xiId−1
+
+> k=0
+
+, (4) where j denotes the imaginary unit, cd = e2πjx 2+ Id 
+
+> 2L
+
+is a centering factor, and L is the period hyperparameter defining the function class. These features are especially effective at approximating smooth, stationary functions and nonlinearities exhibiting periodic or oscillatory behav-ior. The embedding dimension Id determines the number of Fourier basis functions used to represent the input, with larger values enabling more complex functions to be approximated. The period parameter L controls the range of frequencies captured by the basis and should be chosen according to the expected scale of variation in the data. 
+
+Volterra features. Volterra features (Batselier et al., 2017) are designed for nonlinear dynamical systems and sequence modeling, where the current output yt depends not only on the current input ut but also on previous inputs ut−1, u t−2, . . . . Instead of embedding a single input value, the feature map operates on a finite window of the input sequence. Given an input sequence u = [ u1, . . . , u T ]⊤ ∈ RT , the local feature map at time instant t is defined as 
+
+ϕt(u) = [1 , u t, u t−1, . . . , u t−I+1 ]⊤ , (5) where I denotes the embedding dimension (or memory length). Higher-order Volterra interactions are obtained by constructing the tensor-product feature representation 
+
+ϕt(u) ⊗ · · · ⊗ ϕt(u)
+
+| {z } 
+
+> Dtimes
+
+, (6) where the tensor order D specifies the maximum order of the Volterra expansion. 
+
+2.3 Low-rank tensor parameterizations 
+
+As discussed in Section 2.1, the main computational chal-lenge of model (1) is the exponentially large parameter vector w. Tensor networks (TNs) (Cichocki et al., 2016) address this problem by representing high-dimensional tensors as networks of smaller low-rank tensors (cores) con-nected through latent indices. This representation dramat-ically reduces the number of trainable parameters while preserving the multilinear structure of the model. To enable such a representation, the parameter vector w
+
+is interpreted as a D-th order tensor W ∈ RI1×I2×···× ID
+
+according to 
+
+wi := Wi1i2...i D , (7) where 
+
+i := i1 +
+
+> D
+
+X
+
+> d=2
+
+idd−1Y
+
+> j=1
+
+Ij .
+
+The tnkm library supports two widely used tensor-network parameterizations: the canonical polyadic (CP) decom-position and the tensor-train (TT) decomposition. These representations provide different trade-offs between com-pactness, expressiveness, and computational cost, allowing users to select the tensor-network backbone that best matches the requirements of a given application through a unified interface. 
+
+CP decomposition. CP decomposition (Kolda and Bader, 2009) represents the model parameters as a sum of rank-one components, 
+
+w(v) = 
+
+> R
+
+X
+
+> r=1
+
+v(D) 
+
+> r
+
+⊗ · · · ⊗ v(1)  
+
+> r
+
+, (8) where R is the CP rank and v collects all trainable pa-rameters of the decomposition. Instead of storing QDd=1 Id
+
+coefficients explicitly, the CP representation requires only 
+
+R PDd=1 Id trainable parameters, providing a compact low-rank parameterization. The rank R controls the trade-off between model complexity and expressive power. 
+
+TT decomposition TT decomposition (Oseledets, 2011) parameterizes the model weights as a sequence of interconnected tensor cores, 
+
+wi = V (1) (i1)V (2) (i2) · · · V (D)(iD ), (9) where V (d)(id) ∈ RRd−1×Rd denotes the id-th matrix slice of the d-th TT core, and R0 = RD = 1. TT-ranks determine the expressive power of the representation while controlling its complexity. The resulting number of trainable parameters is PDd=1 IdRd−1Rd, which grows linearly with the number of dimensions for fixed TT ranks. 
+
+2.4 Optimization methods 
+
+The objective of training TNKM is to estimate the train-able parameters v from a dataset D by minimizing a regularized empirical loss, min 
+
+> v
+> N
+
+X
+
+> n=1
+
+ℓ(yn, f (xn; v)) + R(w(v)) , (10) where ℓ(·, ·) denotes the loss function and R(w(v)) is an optional regularization term. Two regularization strategies can be considered depending on whether the penalty is applied to the represented model coefficients or to the tensor-network parameters. Regularization of w directly controls the complexity of the resulting nonlinear model, Fig. 2. Architecture of the tnkm library, showing the main components used to construct and train tensor network kernel machines. while regularization of v constrains the low-rank represen-tation and provides a computationally cheaper alternative. The tnkm library provides two complementary optimiza-tion strategies for training TNKM models: alternating least squares (ALS) and gradient-based optimization. The choice of optimizer therefore depends on the selected tensor-network representation and the desired balance be-tween computational efficiency and modeling flexibility. 
+
+Alternating least squares. Alternating least squares (ALS) exploits the multilinear structure of tensor-network parameterizations by optimizing one tensor core at a time while keeping all remaining cores fixed (Comon et al., 2009; Holtz et al., 2012). Each subproblem reduces to a linear least-squares problem with a closed-form solution, resulting in deterministic updates that typically converge in only a few iterations. ALS is particularly effective for CP and TT parameterizations with quadratic loss functions, providing fast optimization with minimal hyperparameter tuning. 
+
+Gradient-based optimization. As an alternative, the tnkm library supports gradient-based optimization through automatic differentiation and the Optax opti-mization library (DeepMind et al., 2020). This approach is applicable to arbitrary differentiable models and loss functions, making it considerably more flexible than ALS. The library provides several first-order optimization algo-rithms, including SGD (Bottou, 2010), RMSProp (Graves, 2014), Adam (Kingma and Ba, 2017), among others, al-lowing users to select the optimizer best suited to their application. ALS and gradient-based optimization provide complemen-tary trade-offs between computational efficiency and mod-eling flexibility. ALS is highly efficient for multilinear least-squares problems and is the recommended choice whenever applicable, whereas gradient-based methods naturally ex-tend to arbitrary differentiable models and are therefore applicable to a broader range of learning problems. 3. SOFTWARE DESIGN 
+
+3.1 Library architecture 
+
+The implementation of the tnkm library follows the mod-ular formulation introduced in the previous section. As illustrated in Figure 2, a TNKM model is assembled by combining four main components: (i) a feature map that defines the nonlinear representation of the inputs, (ii) a tensor-network backbone that specifies the low-rank pa-rameterization of the model coefficients and (iii) is im-plemented through the corresponding model classes (e.g., 
+
+CPKM and TTKM ), and (iv) an optimization algorithm used to estimate the trainable parameters. This separation allows different feature maps, tensor-network representa-tions, and optimization algorithms to be combined within a unified interface, enabling flexible model development and efficient experimentation. In addition to these core components, the library provides auxiliary modules for common tasks such as data prepro-cessing, data loading, simulation, and model evaluation. These utilities support the end-to-end workflow but are not central to the TNKM formulation and are therefore not discussed in detail here. Their complete description and usage examples are provided in the library documentation. The computational backend of tnkm is based on the JAX 
+
+library (Bradbury et al., 2018), which provides automatic differentiation and just-in-time compilation for efficient numerical computations. Gradient-based optimization is implemented using Optax (DeepMind et al., 2020), which provides a range of JAX -compatible first-order optimiza-tion algorithms. 
+
+3.2 API and usage 
+
+Listing 1 demonstrates the typical workflow for construct-ing and training a TNKM model using the tnkm library. This example uses a CP-based model with polynomial feature maps and alternating least squares optimization. The feature map is constructed as a product of one-dimensional polynomial embeddings, while the CP rank controls the complexity of the tensor-network parameteri-zation. The trained model can subsequently be used for prediction. This example illustrates the correspondence between the mathematical formulation of TNKM and its software implementation. The modular design allows indi-vidual components to be exchanged without changing the overall workflow. 4. EXPERIMENTS AND APPLICATIONS This section demonstrates the capabilities of the tnkm 
+
+library from two complementary perspectives. First, we compare alternating least squares and gradient-based op-timization on a regression task to study their convergence behavior, predictive performance, and practical trade-offs. Second, we evaluate the proposed framework on estab-lished nonlinear system identification benchmarks by com-paring its performance against representative methods us-ing recursive simulation. All experiments were conducted on a Dell Latitude 7440 laptop equipped with a 13th Gen Intel Core i7-1365U processor and 16 GB of RAM. The complete source code, together with all implementation details and the data required to reproduce the reported results, is publicly available on GitHub under the experiments/ directory. 2 
+
+> 2https://github.com/AlbMLpy/tnkm
+
+import jax.numpy as jnp from tnkm.models import CPKM from tnkm.optim import train_als from tnkm.features import ( PolyFeature, ProductFeatures )# Training data X_train = jnp.ones((32, 2)) y_train = jnp.ones((32,)) # Construct feature map feature_map = ProductFeatures( [PolyFeature(4, k_col=i) for i in range(X_train.shape[1]) ])# Initialize model model = CPKM( feature_map, rank=2, seed=0 )# Train model train_als( model, X_train, y_train, n_epoch=3, gamma_w=1e-3, beta_e=1.0 )# Prediction y_pred = model.predict(X_train) 
+
+Listing 1: Example workflow for defining and training a tensor network kernel machine. 
+
+4.1 Optimization methods 
+
+The tnkm library supports multiple optimization strate-gies through a unified API, including alternating least squares (ALS) and gradient-based optimization. This flex-ibility allows users to select the optimization strategy that best matches their application and computational requirements. In this section, we compare the optimization behavior of ALS and Adam and discuss the practical trade-offs between the two approaches. The comparison is performed on the Airfoil Self-Noise regression dataset (Brooks et al., 1989), a widely used benchmark for supervised learning. The data are randomly split into training and validation subsets using a 90/10 ratio. All experiments use the same TNKM configuration consisting of squared exponential (Fourier) features with 
+
+Id = 20 frequencies, a CP-based kernel machine of rank 
+
+R = 10, R = ℓ2 regularization of the tensor cores v, and fixed random seeds. Table 1. Comparison of optimization methods on the Airfoil Self-Noise dataset. KRR is in-cluded as a reference solution.                
+
+> Method Validation MSE Time(s) Epochs ALS 0.102 1.161 50 Adam (Batch=32) 0.145 3.251 100 Adam (Batch=Full) 0.183 1.675 100 KRR Baseline 0.15 N/A N/A
+
+Fig. 3. Validation MSE versus elapsed training time for ALS and Adam on the Airfoil Self-Noise dataset. The horizontal dashed line indicates the validation MSE achieved by kernel ridge regression (KRR). Gradient-based optimization is performed using the Adam optimizer (Kingma and Ba, 2017) with both mini-batch and full-batch updates. In contrast, ALS optimizes the model by alternating exact updates of the tensor-network cores. As a reference, we additionally report the validation error of kernel ridge regression (KRR) (Suykens et al., 2002), which corresponds to the unconstrained solution of the underlying regression problem (Wesel and Batselier, 2021). Table 1 summarizes the final validation MSE and training time, while Figure 3 shows the corresponding optimization trajectories as a function of elapsed training time. The results show that ALS converges rapidly to a solution with validation error close to the KRR reference, while requiring only a fraction of the training time of Adam. Moreover, its convergence is stable throughout the optimization process. Adam also approaches the KRR baseline but generally requires substantially more optimization steps and train-ing time. As expected, full-batch training converges faster than the mini-batch variant due to the reduced stochastic-ity of the gradient estimates. Nevertheless, gradient-based optimization offers greater flexibility, supporting arbitrary differentiable objectives and model formulations beyond the least-squares setting for which ALS is specifically de-signed. 
+
+4.2 Nonlinear system identification benchmarks 
+
+The nonlinear system identification study comprises three benchmark problems: Silverbox (Wigren and Schoukens, 2013), Coupled Electric Drives (Wigren and Schoukens, 2017), and Cascaded Tanks (Schoukens and No¨ el, 2017). Table 2. Comparison of identification methods on the Coupled Electric Drives benchmark.                                  
+
+> Method RMSE(1) RMSE(2) Time W/B dynoNet 0.062 0.047 1-60 sec 10 GPNARX 0.087 0.070 1-60 min 10 RNN 0.114 0.138 1-60 min 10 CT-SUBNET 0.115 0.074 1-60 min 9MLPNARX 0.124 0.194 1-60 sec 10 LSTM 0.139 0.111 1-60 min 10 TNKM 0.085 0.077 <0.1 sec 10
+
+These benchmarks cover a range of nonlinear dynamical systems with different characteristics and data sizes, pro-viding a diverse evaluation of the proposed framework. For all benchmarks, the input and output variables are scaled using min–max normalization. Given a variable x,the normalized value is computed as ˜x = x − xmin 
+
+xmax − xmin 
+
+,
+
+where xmin and xmax are computed exclusively from the training data. All TNKM models are formulated using a NARX representation: 
+
+yn = f ({yn−i}i∈I y , {un−j }j∈I u ), (11) where Iy and Iu denote the corresponding output and input lag sets. The lag orders are selected heuristically based on partial autocorrelation analysis. Model hyperpa-rameters are selected using cross-validation on the training (validation) data, while the final models are evaluated on an unseen test set. Performance is assessed using re-cursive (free-run) simulation, where an initial measured output history is used to initialize the NARX regressor and the predicted outputs are subsequently fed back into the model. Predictive accuracy is quantified using the root mean squared error (RMSE), where lower values indicate better performance. To evaluate the performance of TNKM, we compare its results with representative nonlinear system identification methods, including dynoNet (Forgione and Piga, 2021), SUBNET (Beintema et al., 2021), CT-SUBNET (Bein-tema et al., 2023), Normalized Gray-box SSNN (Dehko-rdi et al., 2026), WP-LFR (Gy¨ or¨ ok et al., 2026), NL-LFR (Floren et al., 2025), and other established ap-proaches. The baseline results are obtained from the of-ficial Nonlinear Benchmark website 3 , which provides a standardized collection of benchmark results for nonlinear system identification. All the tables report RMSE on the corresponding test sequences (e.g., RMSE(1) denotes the metric on Test 1) and an approximate white-box/black-box (W/B) interpretability score, where 1 denotes a fully white-box model and 10 a fully black-box model. 
+
+Coupled Electric Drives. The Coupled Electric Drives benchmark describes a nonlinear mechanical sys-tem consisting of two electric motors driving a pulley through a flexible belt. The pulley is connected to a spring, introducing a lightly damped dynamic mode. In this study, we focus on the speed control setup, where the angular velocity of the pulley is used as the system output.  
+
+> 3https://www.nonlinearbenchmark.org/benchmarks
+
+Fig. 4. Simulation results on the Coupled Electric Drives benchmark (Test 1). The measured output is com-pared with the output predicted by the identified TNKM model. This benchmark provides two training and two test datasets, containing 400 and 100 samples per sequence, respectively. The first 10 measured output samples of each test sequence are used to initialize the NARX re-gressor. The input and output lag sets are defined as 
+
+Iu = {0, 1, 2, 3, 4, 6, 8, 10 } and Iy = {1, 2, 3, 4, 6, 8, 10 }, re-spectively. The two training datasets are combined to form the final training set. The selected TNKM configuration uses a CP kernel machine (CPKM) architecture with rank 
+
+R = 15 and polynomial feature maps of degree Id = 3. Table 2 summarizes the performance of TNKM and the considered baseline methods. Figure 4 shows the recursive simulation results for the first test sequence; the second test sequence exhibits similar behavior. The results indi-cate that TNKM achieves predictive performance compa-rable to the best-performing methods, matching GPNARX and only slightly underperforming dynoNet in terms of RMSE. At the same time, TNKM requires less than one second for training, whereas the reported training times for the competing methods range from several seconds to minutes. 
+
+Cascaded Tanks. The Cascaded Tanks benchmark describes a nonlinear fluid level control system consisting of two tanks, a water reservoir, and a pump. The pump voltage is used as the system input, while the water level of the lower tank is considered as the system output. Water is pumped into the upper tank, flows through an opening into the lower tank, and finally returns to the reservoir. The benchmark contains both smooth nonlinearities arising from the fluid dynamics and a hard saturation nonlinearity caused by overflow of the upper tank. The benchmark provides training and test datasets con-taining 1024 samples per sequence. The NARX regressor is initialized using the first 50 measured output samples of each test sequence. The input and output lag sets are defined as Iu = Iy = {1, 2, 3, 4, 8, 12 , 16 , 32 }. The selected TNKM configuration uses a CPKM backbone with rank 
+
+R = 13 and polynomial feature maps of degree Id = 2. The results in Table 3 indicate that TNKM achieves pre-dictive performance comparable with the considered base-line methods. Among the black-box approaches, TNKM provides competitive accuracy while requiring substan-tially lower training time. Compared with gray-box meth-ods such as SSNN and WP-LFR, which incorporate ad-Table 3. Comparison of identification methods on the Cascaded Tanks benchmark.                             
+
+> Method RMSE Time W/B Normalized Gray-box SSNN 0.221 1-60 min 8WP-LFR 0.25 1-60 sec 5CT-SUBNET 0.306 1-60 min 9SUBNET 0.37 1-60 min 10 PNARX 0.417 1-60 sec 10 dynoNet 0.421 1-60 sec 10 GPNARX 0.839 1-60 min 10 TNKM 0.347 <0.1 sec 10
+
+Fig. 5. Simulation results on the Cascaded Tanks bench-mark. The measured output is compared with the output predicted by the identified TNKM model. ditional information about the underlying system, TNKM achieves similar predictive performance using a fully data-driven formulation. The recursive simulation results in Figure 5 further demonstrate that TNKM can capture the long-horizon nonlinear behavior of the system despite the presence of strong nonlinearities and saturation effects. 
+
+Silverbox. The Silverbox benchmark is an electronic implementation of a Duffing oscillator. The system con-sists of a second-order linear time-invariant component with a third-order nonlinear feedback element, resulting in dynamics similar to those encountered in mechanical systems with nonlinear stiffness. The benchmark provides one training sequence and three test sequences containing 65062, 21688, 40475, and 32000 samples, respectively. The NARX regressor is initialized using the first 50 measured output samples of each test se-quence. The input and output lag sets are defined as Iu =
+
+{0, 1, 2, 3, 4, 8, 16 , 32 , 48 } and Iy = {1, 2, 3, 4, 8, 16 , 32 , 48 },respectively. The selected TNKM configuration uses a TT kernel machine (TTKM) backbone with rank R = 4 and polynomial feature maps of degree Id = 2. Table 4 shows that TNKM achieves predictive perfor-mance comparable with leading black-box approaches such as GPNARX and SUBNET, while requiring only several seconds for training. In contrast, the reported training times of more complex baseline methods can range from minutes to longer computational times. However, fully data-driven TNKM does not achieve the same accuracy as physics-informed approaches such as NL-LFR, highlight-ing the advantage of incorporating prior system knowledge when available. Table 4. Comparison of identification methods on the Silverbox benchmark. RMSE values are reported as RMSE ×10 3.                                        
+
+> Method RMSE(1) RMSE(2) RMSE(3) Time W/B NL-LFR 0.289 0.334 0.257 1-60 sec 8SUBNET 0.36 1.4 0.32 1-4 days 10 GPNARX 0.418 0.772 0.373 1-60 min 10 PNARX 0.505 1.41 0.455 1-60 min 10 LSTM 1.05 6.13 1.35 1-24 hours 10 dynoNet 1.218 5.609 1.348 1-60 min 10 TNKM 0.402 0.881 0.368 1-60 sec 10
+
+Fig. 6. Simulation results on the Silverbox benchmark (Test 2). The figure shows the measured output to-gether with the simulation error over the test se-quence. Figure 6 shows the free-run simulation error of TNKM on a representative test sequence. The error is shown instead of the predicted output trajectory because the simulation accuracy is high and the difference between the measured and predicted signals is difficult to distinguish visually. The results demonstrate that TNKM maintains stable long-horizon predictions over approximately 35000 simulation steps, with only small deviations from the measured output. This demonstrates that the proposed tensor-network pa-rameterization can represent nonlinear dynamical systems effectively while providing a favorable trade-off between predictive accuracy and computational efficiency. 5. DISCUSSION 
+
+5.1 Practical implications 
+
+The principal contribution of the tnkm library is the uni-fication of the main components required for constructing tensor network kernel machines within a single framework. By decoupling feature maps, tensor-network parameteri-zations, and optimization algorithms, the library enables systematic exploration of different TNKM configurations while maintaining a consistent programming interface. The library is also designed for extensibility. New features, tensor-networks, and optimization algorithms can be in-tegrated through the existing interfaces without modify-ing the underlying workflow. This allows tnkm to evolve beyond its current implementations and provides a foun-dation for developing new tensor-network-based learning methods. 5.2 Relation to existing approaches 
+
+TNKMs occupy an intermediate position between classical kernel methods (Scholkopf and Smola, 2001) and deep neural networks (Goodfellow et al., 2016). Similar to kernel methods, TNKM constructs nonlinear models using ex-plicit feature representations, but replaces the full param-eter vector with a compact low-rank tensor-network pa-rameterization. Compared with neural networks, TNKM relies on predefined feature maps rather than learning representations directly from data. This provides greater control over the model representation and facilitates the incorporation of prior knowledge. However, the model per-formance becomes directly dependent on the choice of a feature map. 
+
+5.3 Current limitations 
+
+As with many machine learning models, the performance of TNKM depends on the choice of hyperparameters (Bis-chl et al., 2021), including the feature map ϕ, embedding dimensions Id, tensor-network architecture w(v), tensor ranks R, and regularization parameters. In particular, the feature representation has a substantial impact on model performance. Unlike neural networks, where fea-ture extraction and parameter learning are performed jointly (O’Shea and Nash, 2015), TNKM relies on pre-defined feature maps. Consequently, selecting appropri-ate features remains an important part of the modeling process, and automatic model selection is still an open research problem. The supported optimization methods also reflect a trade-off between efficiency and flexibility. ALS is highly efficient for least-squares objectives, whereas gradient-based methods support a broader range of learn-ing problems at the expense of additional hyperparameter tuning. 
+
+5.4 Future perspectives 
+
+Several directions could further extend the capabilities of the tnkm library. On the tensor-network side, ad-ditional parameterizations, including tensor ring (Zhao et al., 2016), Tucker (Kolda and Bader, 2009), and hier-archical Tucker (Grasedyck, 2010) decompositions, could offer alternative trade-offs between compactness and ex-pressiveness. Another promising direction is automatic feature learning (see, e.g., (Saiapin and Batselier, 2025b)), which could re-duce the reliance on manually designed embeddings while preserving the advantages of explicit feature representa-tions. Probabilistic extensions of TNKM constitute another nat-ural avenue for future research. Bayesian inference meth-ods (Saiapin and Batselier, 2026), uncertainty quantifi-cation, and probabilistic priors over tensor-network pa-rameters could enable automatic rank selection (Kilic and Batselier, 2025), provide predictive uncertainty estimates, and establish closer connections with Gaussian process models (Rasmussen and Williams, 2005). Finally, extending the collection of benchmark problems and application examples would further demonstrate the applicability of TNKM models across diverse domains. 6. CONCLUSION This work presented tnkm , an open-source Python library for constructing and training tensor network kernel ma-chines. The library provides a unified implementation of the key components required for TNKM modeling, in-cluding nonlinear feature representations, tensor-network parameterizations, and optimization algorithms. By com-bining these components within a common framework, 
+
+tnkm facilitates the development and application of tensor-network-based models for nonlinear learning problems. Ex-perimental results on nonlinear benchmarks demonstrate that the implemented TNKM methods achieve competi-tive predictive performance while maintaining low compu-tational costs. CODE AVAILABILITY The source code of the tnkm library is publicly available on GitHub under the MIT license 4 . The repository provides installation instructions, documentation, and examples illustrating the use of TNKM models. ACKNOWLEDGEMENTS This publication is part of the project Sustainable learning for Artificial Intelligence from noisy large-scale data (with project number VI.Vidi.213.017) which is financed by the Dutch Research Council (NWO). REFERENCES Batselier, K. (2022). Low-rank tensor decompositions for nonlinear system identification: A tutorial with exam-ples. IEEE Control Systems Magazine , 42(1), 54–74. doi:10.1109/MCS.2021.3122268. Batselier, K., Chen, Z., and Wong, N. (2017). A tensor network Kalman filter with an application in recursive MIMO Volterra system identification. Automatica , 84, 17–25. Beintema, G., Toth, R., and Schoukens, M. (2021). Non-linear state-space identification using deep encoder net-works. In Proceedings of the 3rd Conference on Learning for Dynamics and Control , 241–250. PMLR. Beintema, G., Schoukens, M., and T´ oth, R. (2023). Continuous-time identification of dynamic state-space models by deep subspace encoding. In The Eleventh International Conference on Learning Representations ,1–15. ICLR. Bischl, B., Binder, M., Lang, M., Pielok, T., Richter, J., Coors, S., Thomas, J., Ullmann, T., Becker, M., Boulesteix, A.L., Deng, D., and Lindauer, M. (2021). Hyperparameter optimization: Foundations, algorithms, best practices and open challenges. URL https:// arxiv.org/abs/2107.05847 .Bishop, C.M. (2006). Pattern Recognition and Ma-chine Learning (Information Science and Statistics) .Springer-Verlag, Berlin, Heidelberg. Bottou, L. (2010). Large-scale machine learning with stochastic gradient descent. In Proceedings of COMP-STAT’2010 , 177–186. Physica-Verlag HD, Heidelberg.  
+
+> 4https://github.com/AlbMLpy/tnkm/
+
+Bradbury, J., Frostig, R., Hawkins, P., Johnson, M.J., Katariya, Y., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S., and Zhang, Q. (2018). JAX: composable transformations of Python+NumPy programs. URL http://github.com/ jax-ml/jax .Branges, L.D. (1959). The Stone-Weierstrass theorem. 
+
+Proceedings of the American Mathematical Society ,10(5), 822–824. Brooks, T., Pope, D., and Marcolini, M. (1989). Airfoil self-noise. UCI Machine Learning Repository. doi:10. 24432/C5VW2C. Chen, Z., Batselier, K., Suykens, J., and Wong, N. (2016). Parallelized tensor train learning of polynomial clas-sifiers. IEEE Transactions on Neural Networks and Learning Systems , 29, 4621–4632. Cichocki, A., Lee, N., Oseledets, I., Phan, A.H., Zhao, Q., and Mandic, D.P. (2016). Tensor networks for dimensionality reduction and large-scale optimization: Part 1 low-rank tensor decompositions. Foundations and Trends ® in Machine Learning , 9(4–5), 249–429. doi: 10.1561/2200000059. Cichocki, A., Phan, A.H., Zhao, Q., Lee, N., Oseledets, I., Sugiyama, M., and Mandic, D. (2017). Tensor net-works for dimensionality reduction and large-scale op-timizations part 2 applications and future perspectives. 
+
+Foundations and Trends ® in Machine Learning , 9(6), 431–673. doi:10.1561/2200000067. URL http://dx. doi.org/10.1561/2200000067 .Comon, P., Luciani, X., and de Almeida, A.L.F. (2009). Tensor decompositions, alternating least squares and other tales. Journal of Chemometrics , 23(7-8), 393–405. DeepMind, Babuschkin, I., Baumli, K., Bell, A., Bhupati-raju, S., Bruce, J., Buchlovsky, P., Budden, D., Cai, T., Clark, A., Danihelka, I., Dedieu, A., Fantacci, C., Godwin, J., Jones, C., Hemsley, R., Hennigan, T., Hes-sel, M., Hou, S., Kapturowski, S., Keck, T., Kemaev, I., King, M., Kunesch, M., Martens, L., Merzic, H., Mikulik, V., Norman, T., Papamakarios, G., Quan, J., Ring, R., Ruiz, F., Sanchez, A., Sartran, L., Schneider, R., Sezener, E., Spencer, S., Srinivasan, S., Stanojevi´ c, M., Stokowiec, W., Wang, L., Zhou, G., and Viola, F. (2020). The DeepMind JAX Ecosystem. URL http:// github.com/google-deepmind .Dehkordi, M.B., Forgione, M., Cimini, G., Frascati, L., and Piga, D. (2026). On the normalization of gray-box state-space neural networks. Automatica , 183, 112659. Floren, M., No¨ el, J.P., and Swevers, J. (2025). Inference and learning of nonlinear lfr state-space models. IEEE Control Systems Letters , 9, 1345–1350. Forgione, M. and Piga, D. (2021). dynonet: A neural network architecture for learning dynamical systems. 
+
+International Journal of Adaptive Control and Signal Processing , 35(4), 612–626. Goodfellow, I., Bengio, Y., and Courville, A. (2016). Deep Learning . The MIT Press. Grasedyck, L. (2010). Hierarchical singular value decom-position of tensors. SIAM Journal on Matrix Analysis and Applications , 31(4), 2029–2054. Graves, A. (2014). Generating sequences with recurrent neural networks. URL https://arxiv.org/abs/1308. 0850 .Gray, J. (2018). quimb: A python package for quantum information and many-body calculations. Journal of Open Source Software , 3(29), 819. Gy¨ or¨ ok, B., Drenth, R., Verhoek, C., P´ eni, T., Schoukens, M., and T´ oth, R. (2026). Data-driven augmentation of first-principles models under constraint-free well-posedness and stability guarantees. arXiv . URL https: //arxiv.org/abs/2604.11421 .Hauschild, J., Unfried, J., Anand, S., Andrews, B., Bintz, M., Borla, U., Divic, S., Drescher, M., Geiger, J., Hefel, M., H´ emery, K., Kadow, W., Kemp, J., Kirch-ner, N., Liu, V.S., M¨ oller, G., Parker, D., Rader, M., Romen, A., Scalet, S., Schoonderwoerd, L., Schulz, M., Soejima, T., Thoma, P., Wu, Y., Zechmann, P., Zweng, L., Mong, R.S.K., Zaletel, M.P., and Poll-mann, F. (2024). Tensor network Python (TeNPy) version 1. SciPost Phys. Codebases , 41. doi:10.21468/ SciPostPhysCodeb.41. URL https://scipost.org/ 10.21468/SciPostPhysCodeb.41 .Hensman, J., Durrande, N., and Solin, A. (2018). Varia-tional Fourier features for Gaussian processes. Journal of Machine Learning Research , 18(151), 1–52. URL 
+
+http://jmlr.org/papers/v18/16-579.html .Holtz, S., Rohwedder, T., and Schneider, R. (2012). The alternating linear scheme for tensor optimization in the tensor train format. SIAM Journal on Scientific Computing , 34(2), A683–A713. Kilic, A. and Batselier, K. (2025). Interpretable Bayesian tensor network kernel machines with automatic rank and feature selection. URL https://arxiv.org/abs/ 2507.11136 .Kingma, D.P. and Ba, J. (2017). Adam: A method for stochastic optimization. URL https://arxiv.org/ abs/1412.6980 .Kolda, T.G. and Bader, B.W. (2009). Tensor decomposi-tions and applications. SIAM Review , 51(3), 455–500. doi:10.1137/07070111X. Kossaifi, J., Panagakis, Y., Anandkumar, A., and Pantic, M. (2019). Tensorly: Tensor learning in python. Journal of Machine Learning Research (JMLR) , 20(26). LeCun, Y., Bengio, Y., and Hinton, G. (2015). Deep learning. Nature , 521(7553), 436–444. doi:10.1038/ nature14539. Novikov, A., Trofimov, M., and Oseledets, I. (2018). Ex-ponential machines. Bulletin of the Polish Academy of Sciences. Technical Sciences , 66(6), 789–797. Oseledets, I.V. (2011). Tensor-train decomposition. SIAM Journal on Scientific Computing , 33(5), 2295–2317. doi: 10.1137/090752286. O’Shea, K. and Nash, R. (2015). An introduction to convolutional neural networks. ArXiv , abs/1511.08458. URL https://api.semanticscholar.org/CorpusID: 9398408 .Puljak, E., Sanchez-Ramirez, S., Masot-Llima, S., Vall` es-Muns, J., Garcia-Saez, A., and Pierini, M. (2025). tn4ml: Tensor network training and customization for machine learning. URL https://arxiv.org/abs/ 2502.13090 .Rasmussen, C.E. and Williams, C.K.I. (2005). Gaussian Processes for Machine Learning (Adaptive Computation and Machine Learning) . The MIT Press. Saiapin, A. and Batselier, K. (2025a). Laplace approxima-tion for tensor train kernel machines in system identifi-cation. URL https://arxiv.org/abs/2512.02532 .Saiapin, A. and Batselier, K. (2025b). Tensor network based feature learning model. In Y. Li, S. Mandt, S. Agrawal, and E. Khan (eds.), Proceedings of The 28th International Conference on Artificial Intelligence and Statistics , volume 258 of Proceedings of Machine Learning Research , 3277–3285. PMLR. Saiapin, A. and Batselier, K. (2026). Laplace approxima-tion for Bayesian tensor network kernel machines. URL 
+
+https://arxiv.org/abs/2604.26673 .Scholkopf, B. and Smola, A.J. (2001). Learning with Kernels: Support Vector Machines, Regularization, Op-timization, and Beyond . MIT Press, Cambridge, MA, USA. Schoukens, J. and Ljung, L. (2019). Nonlinear system identification: a user-oriented road map. IEEE Control Systems , 39(6), 28–99. doi:10.1109/MCS.2019.2938121. Schoukens, M. and No¨ el, J. (2017). Three benchmarks addressing open challenges in nonlinear system identifi-cation. IFAC-PapersOnLine , 50(1), 446–451. 20th IFAC World Congress. Solin, A. and S¨ arkk¨ a, S. (2019). Hilbert space methods for reduced-rank Gaussian process regression. Statis-tics and Computing , 30(2), 419–446. doi:10.1007/ s11222-019-09886-w. Suykens, J.A.K., Van Gestel, T., De Brabanter, J., De Moor, B., and Vandewalle, J. (2002). Least Squares Support Vector Machines . World Scientific, Singapore. Wesel, F. and Batselier, K. (2021). Large-scale learning with Fourier features and tensor decompositions. In M. Ranzato, A. Beygelzimer, Y. Dauphin, P. Liang, and J.W. Vaughan (eds.), Advances in Neural Information Processing Systems , volume 34, 17543–17554. Curran Associates, Inc. Wesel, F. and Batselier, K. (2024). Quantized Fourier and polynomial features for more expressive tensor network models. In S. Dasgupta, S. Mandt, and Y. Li (eds.), Proceedings of The 27th International Conference on Artificial Intelligence and Statistics , volume 238 of Proceedings of Machine Learning Research , 1261– 1269. PMLR. URL https://proceedings.mlr.press/ v238/wesel24a.html .Wigren, T. and Schoukens, M. (2017). Coupled electric drives data set and reference models . Technical Report Uppsala Universitet. Uppsala University. Wigren, T. and Schoukens, J. (2013). Three free data sets for development and benchmarking in nonlinear system identification. In Proceedings of the European Control Conference (ECC) , 2933–2938. doi:10.23919/ECC.2013. 6669201. Zhao, Q., Zhou, G., Xie, S., Zhang, L., and Cichocki, A. (2016). Tensor ring decomposition. 
+
+ArXiv , abs/1606.05535. URL https://api. semanticscholar.org/CorpusID:15471407 .
