@@ -6,65 +6,50 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-08-12
-- 运行时间：2026-08-12 20:43:13 UTC
+- 最新运行日期：2026-08-13
+- 运行时间：2026-08-13 19:43:02 UTC
 - 运行状态：成功
-- 本次总论文数：15
+- 本次总论文数：10
 - 精读区：5
-- 速读区：10
+- 速读区：5
 
 ### 今日简报（AI）
-今日共筛读15篇，其中精读5篇，重点覆盖异步神经形态联邦学习与低资源语言大模型。最值得精读的是《AS-FedBridge》的ANN-SNN伪脉冲桥接蒸馏，以及塔吉克语电子词典的LLM框架，均获8分。下步建议普通读者优先速读注意力机制优化与法律RAG两篇，快速收获实用思路。
-- 详情：[/202608/12/README](/202608/12/README)
+今日共推荐10篇论文，精读5篇、速读5篇，其中精读重点为两篇8.0分工作。最值得关注的方向是搜索控制边界的偏好蒸馏（BOUND）与噪声网页环境下的检索优先知识发现（Guardian Crawler）。建议优先阅读这两篇精读论文，可重点关注如何在受限场景中提升模型对齐与检索效率。
+- 详情：[/202608/13/README](/202608/13/README)
 
 ### 精读区论文标签
-1. [AS-FedBridge: Pseudo-Spike Bridge Distillation for Heterogeneous ANN-SNN Federated Learning](/202608/12/2608.03324v1-as-fedbridge-pseudo-spike-bridge-distillation-for-heterogeneous-ann-snn-federated-learning)  
+1. [BOUND: Brief-Guided Corrective Preference Distillation at Search-Control Boundaries](/202608/13/2608.08768v1-bound-brief-guided-corrective-preference-distillation-at-search-control-boundaries)  
    标签：评分：8.0/10、query:ai
-   evidence：ANN-SNN异构联邦学习架构
-2. [Large Language Models for Low-Resource Languages: A Conceptual Framework for an Electronic Explanatory Dictionary of the Tajik Language](/202608/12/2608.04186v1-large-language-models-for-low-resource-languages-a-conceptual-framework-for-an-electronic-explanatory-dictionary-of-the-tajik-language)  
+   evidence：面向LLM搜索代理漂移矫正的偏好蒸馏
+2. [Guardian Crawler: Retrieval-First Knowledge Discovery with Bounded LLM Augmentation for Noisy Web Intelligence](/202608/13/2608.08994v1-guardian-crawler-retrieval-first-knowledge-discovery-with-bounded-llm-augmentation-for-noisy-web-intelligence)  
    标签：评分：8.0/10、query:ai
-   evidence：大语言模型用于低资源语言词典构建的NLP研究
-3. [Large Language Models for Low-Resource Languages: A Conceptual Framework for an Electronic Explanatory Dictionary of the Tajik Language](/202608/12/2608.04186v2-large-language-models-for-low-resource-languages-a-conceptual-framework-for-an-electronic-explanatory-dictionary-of-the-tajik-language)  
+   evidence：结合BM25检索、重排序与受限LLM增强的NLP检索技术
+3. [Input convex neural networks as surrogates in mathematical optimisation](/202608/13/2608.09707v1-input-convex-neural-networks-as-surrogates-in-mathematical-optimisation)  
    标签：评分：8.0/10、query:ai
-   evidence：大语言模型用于低资源语言词典构建
-4. [EdgeLM: Edge Demonstrations for Language Models' Table Understanding](/202608/12/2608.04390v1-edgelm-edge-demonstrations-for-language-models-table-understanding)  
+   evidence：输入凸神经网络作为优化代理
+4. [ReliableNet: A Chance-Constrained Approach to Trustworthy Classification in Deep Learning](/202608/13/2608.09768v1-reliablenet-a-chance-constrained-approach-to-trustworthy-classification-in-deep-learning)  
    标签：评分：8.0/10、query:ai
-   evidence：面向大语言模型表格理解的边界示例选择方法，属自然语言处理技术。
-5. [Robustness Emerges Early in Training Dynamics, but Is Not Preserved](/202608/12/2608.04442v1-robustness-emerges-early-in-training-dynamics-but-is-not-preserved)  
+   evidence：用于可信深度学习的约束优化方法，属深度学习前沿进展。
+5. [Accelerated Learning of High Dimensional Functions with a Tensor-Featured Training Network](/202608/13/2608.10351v1-accelerated-learning-of-high-dimensional-functions-with-a-tensor-featured-training-network)  
    标签：评分：8.0/10、query:ai
-   evidence：深度网络训练中鲁棒性的早期涌现与消退
+   evidence：用于高维函数学习的张量特征神经网络架构
 
 ### 速读区论文标签
-1. [Faster Query-Key Learning Sharpens Attention in Self-Attention Models](/202608/12/2608.06776v1-faster-query-key-learning-sharpens-attention-in-self-attention-models)  
+1. [Rethinking Data Efficiency in Industrial Dense Prediction: Pretraining Coherence, Not Inductive Bias, Determines ViTs Low-Data Advantage](/202608/13/2608.10590v1-rethinking-data-efficiency-in-industrial-dense-prediction-pretraining-coherence-not-inductive-bias-determines-vits-low-data-advantage)  
    标签：评分：8.0/10、query:ai
-   evidence：自注意力参数化与注意力锐化分析
-2. [Rhetorical-Role-Aware Retrieval-Augmented Generation for Legal Question Answering over Indian Supreme Court Judgments](/202608/12/2608.06828v1-rhetorical-role-aware-retrieval-augmented-generation-for-legal-question-answering-over-indian-supreme-court-judgments)  
+   evidence：研究ViT与CNN架构组件，提出AlignBlock进行特征重校准
+2. [BPG: Balancing Plasticity and Generalization for Domain Incremental Learning](/202608/13/2608.10804v1-bpg-balancing-plasticity-and-generalization-for-domain-incremental-learning)  
    标签：评分：8.0/10、query:ai
-   evidence：结合修辞分块和融合检索的法律问答RAG框架
-3. [Bridging the Gap Between Hyperdimensional Computing and Kernel Methods via the Nyström Method](/202608/12/2608.06860v1-bridging-the-gap-between-hyperdimensional-computing-and-kernel-methods-via-the-nystrm-method)  
+   evidence：深度学习的领域增量学习研究
+3. [Assessing Reliability of BERT-Based Models on Question Answering Tasks](/202608/13/2608.10806v1-assessing-reliability-of-bert-based-models-on-question-answering-tasks)  
    标签：评分：8.0/10、query:ai
-   evidence：将超维计算与核方法相连接的新机器学习方法
-4. [Tensor Network Kernel Machines: A JAX Framework for Machine Learning and Nonlinear System Identification](/202608/12/2608.07043v1-tensor-network-kernel-machines-a-jax-framework-for-machine-learning-and-nonlinear-system-identification)  
+   evidence：评估BERT系列Transformer模型在问答任务上的可靠性，直接关系NLP技术
+4. [Can Bayesian Optimization Efficiently Find a Strong Single Expert in Neural Thickets?](/202608/13/2608.10867v1-can-bayesian-optimization-efficiently-find-a-strong-single-expert-in-neural-thickets)  
    标签：评分：8.0/10、query:ai
-   evidence：张量网络核机机器学习研究论文
-5. [Natural Language Processing Psychometrics](/202608/12/2608.07316v1-natural-language-processing-psychometrics)  
+   evidence：用贝叶斯优化高效后训练大语言模型，属深度学习进展。
+5. [A Cost-Efficient Routing Pipeline for Multilingual Short-Text Classification Using Small Language Models](/202608/13/2608.10939v1-a-cost-efficient-routing-pipeline-for-multilingual-short-text-classification-using-small-language-models)  
    标签：评分：8.0/10、query:ai
-   evidence：应用大语言模型与NLP特征提取实现可解释的心理测量预测
-6. [Tracing sources of epistemic uncertainty in deep learning predictions: homo- and hetero-scedastic linearized estimators](/202608/12/2608.07630v1-tracing-sources-of-epistemic-uncertainty-in-deep-learning-predictions-homo--and-hetero-scedastic-linearized-estimators)  
-   标签：评分：8.0/10、query:ai
-   evidence：深度学习预测中的不确定性量化
-7. [Towards Researcher Agents for Knowledge-Graph Question Answering](/202608/12/2608.07700v1-towards-researcher-agents-for-knowledge-graph-question-answering)  
-   标签：评分：8.0/10、query:ai
-   evidence：面向知识图谱问答的智能体式文本转SPARQL方法，属自然语言处理技术。
-8. [LHSDet: High-Resolution AI-Generated Image Detection via Visual Question Answering](/202608/12/2608.07863v1-lhsdet-high-resolution-ai-generated-image-detection-via-visual-question-answering)  
-   标签：评分：8.0/10、query:ai
-   evidence：利用视觉语言模型检测AI生成图像的技术研究
-9. [Domain-Aware Pruning: Sparsity and Domain Generalization via Regularized Probabilistic Masking](/202608/12/2608.08624v1-domain-aware-pruning-sparsity-and-domain-generalization-via-regularized-probabilistic-masking)  
-   标签：评分：8.0/10、query:ai
-   evidence：提出兼顾稀疏性与领域泛化的神经网络剪枝框架，属于深度学习前沿方法
-10. [Enhancing Scientific Named Entity Recognition via Large Language Models: A Type-driven Multi-task Learning Approach](/202608/12/2608.08636v1-enhancing-scientific-named-entity-recognition-via-large-language-models-a-type-driven-multi-task-learning-approach)  
-   标签：评分：8.0/10、query:ai
-   evidence：基于大模型和类型驱动多任务学习的科学命名实体识别
+   evidence：基于小语言模型的多语言短文本分类路由流水线
 
 
 <div class="dpr-home-promo-card">

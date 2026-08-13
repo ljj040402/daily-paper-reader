@@ -1,0 +1,409 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-13T19:35:42.713513+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 0,
+    "deep_divecandidates": 10,
+    "deep_cap": 5,
+    "deep_selected": 5,
+    "quick_candidates": 5,
+    "quick_skim_target": 10,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2608.08768v1",
+      "source": "arxiv",
+      "title": "BOUND: Brief-Guided Corrective Preference Distillation at Search-Control Boundaries",
+      "abstract": "Large language model (LLM)-based deep search agents solve tasks through iterative retrieval and reasoning, but locally relevant evidence can cause persistent wrong-anchor drift, constraint drift, or local-topic drift. Existing methods supervise trajectories, outcomes, or steps, but rarely distinguish task-aligned continuations from locally plausible ones that reinforce drift. We propose BOUND, a brief-guided corrective preference distillation framework for persistent search drift. For each student-induced decision-time state, BOUND constructs a teacher-side search-state brief that preserves the original search target and key constraints while summarizing confirmed evidence, missing information, and drift status. Guided by the brief, the teacher determines whether the student's continuation contains a correctable local search-control error likely to affect subsequent decisions. Together with the rollout outcome, this assessment determines whether to construct a corrective contrast between a student-specific correction and the original continuation, or a termination contrast between a supported answer and an unnecessary retrieval continuation. Each validated state-matched preference pair operationalizes a search-control boundary. Direct preference optimization (DPO) distills these preferences into the student, while the brief and teacher-side computation remain confined to training. We evaluate BOUND on four multi-hop QA benchmarks and three deep-search benchmarks. Across the six benchmarks for which we reran baselines, BOUND leads on five datasets and 12 of 14 metrics. Under the same search-control interface and matched settings, BOUND outperforms Trajectory SFT by 5.6 EM points on Bamboogle and 4.8 accuracy points on BrowseComp-Plus. Code is available at https://github.com/RUCAIBox/BOUND.",
+      "authors": [
+        "Qingying Niu",
+        "Ruiyang Ren",
+        "Wayne Xin Zhao",
+        "Yaliang Li"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-08-09T15:32:16+00:00",
+      "link": "https://arxiv.org/pdf/2608.08768v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "preference distillation for LLM search agents drift correction",
+      "llm_evidence_cn": "面向LLM搜索代理漂移矫正的偏好蒸馏",
+      "llm_evidence": "面向LLM搜索代理漂移矫正的偏好蒸馏",
+      "canonical_evidence": "面向LLM搜索代理漂移矫正的偏好蒸馏",
+      "llm_tldr_en": "BOUND is a preference distillation framework that uses short briefs to correct persistent drift in LLM-based deep search agents, distinguishing task-aligned continuations from locally plausible but wrong ones.",
+      "llm_tldr_cn": "基于LLM的深度搜索代理通过迭代检索与推理解决问题，但局部相关证据会导致锚点漂移、约束漂移或主题漂移。现有方法难以区分任务对齐的延续与局部合理但强化漂移的延续。BOUND提出简报引导的矫正偏好蒸馏框架：每个学生决策态都由教师端搜索状态简报引导，简报保留原始目标与关键约束，并总结已确认证据、缺失信息和漂移状态。该方法可纠正持续搜索漂移，提高LLM代理的决策质量与鲁棒性。",
+      "llm_tldr": "基于LLM的深度搜索代理通过迭代检索与推理解决问题，但局部相关证据会导致锚点漂移、约束漂移或主题漂移。现有方法难以区分任务对齐的延续与局部合理但强化漂移的延续。BOUND提出简报引导的矫正偏好蒸馏框架：每个学生决策态都由教师端搜索状态简报引导，简报保留原始目标与关键约束，并总结已确认证据、缺失信息和漂移状态。该方法可纠正持续搜索漂移，提高LLM代理的决策质量与鲁棒性。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.08768v1"
+    },
+    {
+      "id": "2608.08994v1",
+      "source": "arxiv",
+      "title": "Guardian Crawler: Retrieval-First Knowledge Discovery with Bounded LLM Augmentation for Noisy Web Intelligence",
+      "abstract": "Retrieving relevant evidence from noisy web data is challenging, particularly in sensitive domains containing incomplete reports, heterogeneous language, and irrelevant content. We present Guardian Crawler, a reproducible retrieval-first testbed for controlled experiments on knowledge discovery and evidence-grounded summarization over synthetic web-like corpora. The architecture combines BM25 retrieval with risk-aware, embedding-augmented, and hybrid reranking, followed by constrained retrieval-augmented generation with explicit document citations. Experiments on a synthetic 900-document corpus and 10 queries produced the highest descriptive retrieval scores under risk-based reranking, with P@10 = 1.00 and NDCG@10 = 0.94, compared with 0.94 and 0.81 for BM25. The best hybrid and BM25+Semantic configurations reached NDCG@10 values of 0.94 and 0.88, respectively. All 41 evaluable generated bullets passed the lexical coverage threshold; an automated LLM judge classified 36 as supported, one as partially supported, and four as unsupported. These results demonstrate the feasibility of Guardian Crawler as a controlled testbed but do not establish statistical superiority, human-validated faithfulness, or transfer to live-web investigative environments.",
+      "authors": [
+        "Joshua Castillo",
+        "Santosh Nukavarapu",
+        "Ravi Mukkamala"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-08-10T01:28:11+00:00",
+      "link": "https://arxiv.org/pdf/2608.08994v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "NLP retrieval technique combining BM25 and reranking with bounded LLM augmentation",
+      "llm_evidence_cn": "结合BM25检索、重排序与受限LLM增强的NLP检索技术",
+      "llm_evidence": "结合BM25检索、重排序与受限LLM增强的NLP检索技术",
+      "canonical_evidence": "结合BM25检索、重排序与受限LLM增强的NLP检索技术",
+      "llm_tldr_en": "Guardian Crawler is a retrieval-first testbed for noisy web intelligence, combining BM25 retrieval with risk-aware, embedding and hybrid reranking, and constrained RAG with citations, achieving perfect retrieval on synthetic corpora.",
+      "llm_tldr_cn": "在噪声网络数据中检索证据具有挑战性，尤其在敏感领域。Guardian Crawler提出一个可复现的检索优先测试平台，结合BM25检索与风险感知、嵌入增强和混合重排序，并采用带显式引用的受限RAG生成。在合成900文档语料上，风险感知重排序获得最高的检索分数（P@10=1.00），为知识发现和证据摘要提供了可控实验环境。",
+      "llm_tldr": "在噪声网络数据中检索证据具有挑战性，尤其在敏感领域。Guardian Crawler提出一个可复现的检索优先测试平台，结合BM25检索与风险感知、嵌入增强和混合重排序，并采用带显式引用的受限RAG生成。在合成900文档语料上，风险感知重排序获得最高的检索分数（P@10=1.00），为知识发现和证据摘要提供了可控实验环境。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.08994v1"
+    },
+    {
+      "id": "2608.09707v1",
+      "source": "arxiv",
+      "title": "Input convex neural networks as surrogates in mathematical optimisation",
+      "abstract": "Embedding trained neural networks as surrogates within optimisation problems is an established practice in operations research. The prevailing approach uses feedforward neural networks (FNNs) with ReLU activations, whose piecewise-linear structure admits an exact but computationally intensive mixed-integer programming (MIP) reformulation as the networks grow. We advocate input convex neural networks (ICNNs) as structurally superior surrogates when the underlying response is approximately convex or concave. The convex architecture offers two computational advantages. First, the ICNN-MIP formulation tends to yield a tighter linear programming (LP) relaxation than its FNN-MIP counterpart, with no integrality gap in favourable instances. Second, ICNNs uniquely admit an LP-based reformulation via epigraph representations of ReLU activations, though this embedding is not always exact. When it is not, we exploit the properties of ICNNs to construct the strongest continuous relaxation over box domains, namely, the convex hull of the ICNN's graph, bounded below by the epigraph and above by the concave envelope; this construction is tractable under input convexity but hard for general ReLU networks. On this basis, we develop a branch-and-bound algorithm that builds this relaxation at each node, branches directly on input variables rather than intermediate variables as in MIP reformulations, and terminates at the root node whenever the epigraph embedding is valid. Case studies on humanitarian food aid, oil well routing, and wine blending show that ICNN surrogates match FNN accuracy and deliver gains in solve time and scalability, supporting ICNN as the default surrogate when the underlying function is convex, concave, or well-approximated as such.",
+      "authors": [
+        "Yu Liu",
+        "Jan Kronqvist",
+        "Fabricio Oliveira"
+      ],
+      "primary_category": "math.OC",
+      "categories": [
+        "math.OC",
+        "cs.LG"
+      ],
+      "published": "2026-08-10T15:11:22+00:00",
+      "link": "https://arxiv.org/pdf/2608.09707v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "input convex neural networks as surrogates in optimisation",
+      "llm_evidence_cn": "输入凸神经网络作为优化代理",
+      "llm_evidence": "输入凸神经网络作为优化代理",
+      "canonical_evidence": "输入凸神经网络作为优化代理",
+      "llm_tldr_en": "Argues for input convex neural networks (ICNNs) as surrogates in optimization because their ICNN-MIP formulation yields tighter LP relaxations than feedforward ReLU networks and avoids integrality gaps in favorable cases.",
+      "llm_tldr_cn": "在数学优化中嵌入训练好的神经网络代理已成为常见做法，但标准前馈ReLU网络的混合整数规划（MIP）重构随规模增大而计算昂贵。论文主张在响应近似凸或凹时使用输入凸神经网络（ICNN）作为更优代理。ICNN-MIP形式往往比前馈网络对应的MIP具有更紧的线性规划松弛，且有利情况下无整数间隙，同时仍保留统一的表示能力。这为代理优化提供了结构上的计算优势。",
+      "llm_tldr": "在数学优化中嵌入训练好的神经网络代理已成为常见做法，但标准前馈ReLU网络的混合整数规划（MIP）重构随规模增大而计算昂贵。论文主张在响应近似凸或凹时使用输入凸神经网络（ICNN）作为更优代理。ICNN-MIP形式往往比前馈网络对应的MIP具有更紧的线性规划松弛，且有利情况下无整数间隙，同时仍保留统一的表示能力。这为代理优化提供了结构上的计算优势。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.09707v1"
+    },
+    {
+      "id": "2608.09768v1",
+      "source": "arxiv",
+      "title": "ReliableNet: A Chance-Constrained Approach to Trustworthy Classification in Deep Learning",
+      "abstract": "A prediction that is both confident and wrong is a critical reliability failure because it can bypass abstention and human review precisely when the model is mistaken. Empirical risk minimization (ERM) controls average loss but not this failure directly, while calibration, uncertainty estimation, conformal risk control, and selective prediction methods target related reliability properties rather than bounding the joint failure event during training. We propose ReliableNet, which constrains the Joint Confident-Wrong (JCW) probability, the probability that a prediction is simultaneously confident and incorrect, below a user-specified risk budget $α\\in(0,1)$. We formulate this as a chance-constrained ERM problem, use a conservative smooth inner approximation whose population feasibility implies the original JCW constraint. Across four tabular and two image datasets, ReliableNet is the only method certified within the JCW budget for every dataset and seed in distribution, when compared against baselines spanning ERM, post-hoc calibration, conformal risk control, and selective prediction. Under demographic, ambiguity, spurious-correlation, novel-class, and covariate shifts, it achieves the lowest empirical JCW among the compared methods while remaining very competitive in accuracy, coverage, calibration, and selective prediction. Risk-coverage results further indicate that ReliableNet achieves better selective ranking than the benchmark methods on most datasets. Overall, ReliableNet provides a principled approach to trustworthy classification.",
+      "authors": [
+        "Ange-Clément Akazan",
+        "Ineza Remy Mugenga",
+        "Abebe Geletu",
+        "Jean Medard Ngnotchouye",
+        "Issa Karambal"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-10T15:58:19+00:00",
+      "link": "https://arxiv.org/pdf/2608.09768v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Chance-constrained method for trustworthy deep learning classification, a recent DL advance.",
+      "llm_evidence_cn": "用于可信深度学习的约束优化方法，属深度学习前沿进展。",
+      "llm_evidence": "用于可信深度学习的约束优化方法，属深度学习前沿进展。",
+      "canonical_evidence": "用于可信深度学习的约束优化方法，属深度学习前沿进展。",
+      "llm_tldr_en": "ReliableNet bounds the joint confident-wrong probability in deep classifiers via chance-constrained ERM, addressing reliability failures that escape abstention and human review.",
+      "llm_tldr_cn": "针对模型在自信时出错这一关键可靠性缺陷，本文提出ReliableNet，将联合置信错误概率约束在用户指定的风险预算内。方法以机会约束经验风险最小化为基础，配合保守平滑技术进行训练。实验表明该方法能有效降低高置信错误率，弥补了校准和选择性预测等方法对联合失败事件的控制不足。该工作为深度学习的可信分类提供了新思路。",
+      "llm_tldr": "针对模型在自信时出错这一关键可靠性缺陷，本文提出ReliableNet，将联合置信错误概率约束在用户指定的风险预算内。方法以机会约束经验风险最小化为基础，配合保守平滑技术进行训练。实验表明该方法能有效降低高置信错误率，弥补了校准和选择性预测等方法对联合失败事件的控制不足。该工作为深度学习的可信分类提供了新思路。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.09768v1"
+    },
+    {
+      "id": "2608.10351v1",
+      "source": "arxiv",
+      "title": "Accelerated Learning of High Dimensional Functions with a Tensor-Featured Training Network",
+      "abstract": "In this work we present a method to accelerate the optimization of learning high dimensional functions using deep neural network (DNN). This optimization procedure introduces contextual features into the first layer of a DNN. The parameters of DNN are optimized via standard gradient descent while keeping the input-feature basis fixed. After optimization of the DNN parameters, the feature layer is provided a chance to update and change before DNN optimization resumes. The feature layer has two types of functions: those that can be evaluated quickly in a matrix-free way on the domain (i.e. rank-1 features) and more complex features that must first be decomposed using tensor network (TN) decomposition strategies (tensor features). In particular, we study the effect of adding features which distill pretrained DNN into TNs using a discretize and decompose strategy. To efficiently decompose high-dimensional functions constructed from discretized DNN, we leverage a randomized tensor decomposition strategy. Using randomization, we are able to reduce the storage cost of decomposing high dimensional functions by at least 8 orders of magnitude. Using this approach, we are able to efficiently train models between 5 and 40 dimensions.",
+      "authors": [
+        "Karl Pierce",
+        "Yuehaw Khoo",
+        "Haizhao Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-11T01:19:00+00:00",
+      "link": "https://arxiv.org/pdf/2608.10351v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Neural network architecture with tensor-featured training for high-dimensional function learning",
+      "llm_evidence_cn": "用于高维函数学习的张量特征神经网络架构",
+      "llm_evidence": "用于高维函数学习的张量特征神经网络架构",
+      "canonical_evidence": "用于高维函数学习的张量特征神经网络架构",
+      "llm_tldr_en": "Presents a deep neural network training method that injects contextual features into the first layer, alternating fixed-basis optimization with feature-layer updates, where simple rank-1 features and tensor-network-decomposed tensor features accelerate learning high-dimensional functions.",
+      "llm_tldr_cn": "高维函数学习中深度神经网络优化代价高，收敛慢。本文提出在DNN首层引入上下文特征，先用标准梯度下降固定特征基优化参数，再允许特征层更新，使网络交替优化参数和特征。特征层包含可矩阵快速计算的秩1特征和需张量网络分解的张量特征，兼顾速度与表达力。该方法能够加速高维函数学习，在多个问题上展示了收敛效率提升。",
+      "llm_tldr": "高维函数学习中深度神经网络优化代价高，收敛慢。本文提出在DNN首层引入上下文特征，先用标准梯度下降固定特征基优化参数，再允许特征层更新，使网络交替优化参数和特征。特征层包含可矩阵快速计算的秩1特征和需张量网络分解的张量特征，兼顾速度与表达力。该方法能够加速高维函数学习，在多个问题上展示了收敛效率提升。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10351v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.10590v1",
+      "source": "arxiv",
+      "title": "Rethinking Data Efficiency in Industrial Dense Prediction: Pretraining Coherence, Not Inductive Bias, Determines ViTs Low-Data Advantage",
+      "abstract": "Vision Transformers (ViTs) are widely believed to require more labeled data than CNNs for industrial dense prediction. Through controlled experiments on four industrial datasets, we show that the data-efficiency gap stems from pretraining incoherence, which refers to the statistical mismatch between ImageNet-pretrained ViT backbones and COCO-pretrained CNN necks, rather than from inherent self-attention deficits. We characterize the cross-architecture feature gap and propose a lightweight AlignBlock family for pyramid-level feature recalibration. Our core finding empirically identifies a data-efficiency frontier: for domain-proximal scenes with >= 200 samples, Swin-Graft surpasses YOLOv11x (terminal 703-shot: 0.973 vs 0.956 mAP@50); for domain-distant scenes, CNNs retain advantage (hook 141-shot: 0.900 vs 0.600 mAP@50). Grafted neck weights yield up to 2.5x the mAP of a randomly initialized neck.",
+      "authors": [
+        "Haoran Sui",
+        "Yaoyuan Jia"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-08-11T07:17:59+00:00",
+      "link": "https://arxiv.org/pdf/2608.10590v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Examines ViT and CNN architectural components, proposes AlignBlock for feature recalibration",
+      "llm_evidence_cn": "研究ViT与CNN架构组件，提出AlignBlock进行特征重校准",
+      "llm_evidence": "研究ViT与CNN架构组件，提出AlignBlock进行特征重校准",
+      "canonical_evidence": "研究ViT与CNN架构组件，提出AlignBlock进行特征重校准",
+      "llm_tldr_en": "This paper reveals that ViT low-data advantage in industrial dense prediction is due to pretraining coherence rather than inductive bias, and proposes AlignBlock for cross-architecture feature recalibration.",
+      "llm_tldr_cn": "工业密集预测中视觉Transformer常被认为比CNN需要更多标注数据。通过四个工业数据集受控实验，本文发现数据效率差距源于ImageNet预训练ViT主干与COCO预训练CNN颈部之间的预训练不一致，而非自注意力缺陷。为此提出轻量级AlignBlock系列进行金字塔级特征重校准。结果显示在域相近场景中Swin-Graft在至少200个样本时超越YOLOv1。该发现修正了对数据效率边界的认识，有助于架构与预训练策略设计。",
+      "llm_tldr": "工业密集预测中视觉Transformer常被认为比CNN需要更多标注数据。通过四个工业数据集受控实验，本文发现数据效率差距源于ImageNet预训练ViT主干与COCO预训练CNN颈部之间的预训练不一致，而非自注意力缺陷。为此提出轻量级AlignBlock系列进行金字塔级特征重校准。结果显示在域相近场景中Swin-Graft在至少200个样本时超越YOLOv1。该发现修正了对数据效率边界的认识，有助于架构与预训练策略设计。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "neural network architectures",
+      "matched_requirement_id": "req-4",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10590v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.10804v1",
+      "source": "arxiv",
+      "title": "BPG: Balancing Plasticity and Generalization for Domain Incremental Learning",
+      "abstract": "Deep neural networks excel in various tasks but struggle to generalize across evolving data distributions, leading to significant performance degradation under domain shifts. Domain incremental learning (DIL) addresses this challenge by enabling models to continuously adapt while retaining prior knowledge. Among existing DIL approaches, the parameter-isolation paradigm achieves state-of-the-art performance. However, these methods often adopt a one-size-fits-all approach to adapt to new domains, resulting in either insufficient learning capacity or redundant parameters. In this work, we propose BPG, a unified framework that addresses both challenges through two complementary components: BPG-Adapter, which dynamically determines each domain's adapter hidden dimension based on domain-specific feature separability, and BPG-Inference, a soft domain mixture strategy that integrates multiple domain-specific models at test time, mitigating domain ID misselection. Experimental results on DomainNet, CDDB, and CORe50 demonstrate that BPG consistently outperforms uniform adapter-based approaches and hard domain selection strategies, achieving state-of-the-art average accuracy while reducing forgetting to as low as 0.22% on DomainNet.",
+      "authors": [
+        "Qiang Wang",
+        "Songlin Dong",
+        "Shaokun Wang",
+        "Jizhou Han",
+        "Xiang Song",
+        "Chenhao Ding",
+        "Yuhang He",
+        "Yihong Gong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-08-11T11:22:27+00:00",
+      "link": "https://arxiv.org/pdf/2608.10804v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Deep learning paper on domain incremental learning balancing plasticity and generalization",
+      "llm_evidence_cn": "深度学习的领域增量学习研究",
+      "llm_evidence": "深度学习的领域增量学习研究",
+      "canonical_evidence": "深度学习的领域增量学习研究",
+      "llm_tldr_en": "Proposes BPG, a unified framework for domain incremental learning that balances plasticity and generalization using dynamic domain adapters and complementary components, improving on parameter-isolation methods.",
+      "llm_tldr_cn": "该论文针对领域增量学习中参数隔离方法采用一刀切适配导致学习不足或参数冗余的问题，提出BPG统一框架。BPG-Adapter动态确定每个领域的适配策略，并配合互补组件协同训练。实验表明BPG能更有效地平衡可塑性与泛化性，在多个DIL任务上取得更好性能，为持续学习提供了新思路。",
+      "llm_tldr": "该论文针对领域增量学习中参数隔离方法采用一刀切适配导致学习不足或参数冗余的问题，提出BPG统一框架。BPG-Adapter动态确定每个领域的适配策略，并配合互补组件协同训练。实验表明BPG能更有效地平衡可塑性与泛化性，在多个DIL任务上取得更好性能，为持续学习提供了新思路。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10804v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.10806v1",
+      "source": "arxiv",
+      "title": "Assessing Reliability of BERT-Based Models on Question Answering Tasks",
+      "abstract": "Reliability estimation of large language models is in many cases as crucial as their accuracy, as reliable models are more trustworthy, robust, and suitable for practical applications. Recent advancements in natural language processing (NLP), particularly those based on transformer architectures, have significantly accelerated progress across various NLP tasks. This study focuses on the reliability of transformer-based question answering (QA) models, specifically BERT models and its variants (RoBERTa, ALBERT, DistilBERT). These encoder-only pretrained transformers have demonstrated remarkable accuracy in QA tasks that can be treated as classification tasks. However, their reliability remains underexplored. This study evaluates the reliability of four BERT-based models by assessing response stability under two conditions: (1) internal model variations induced via Monte Carlo Dropout (MCD) and (2) input perturbations through paraphrasing. Using the SQuAD and QuAC datasets, we investigate how dropout rates affect prediction consistency and whether lexical changes impact answer stability. Our findings reveal that RoBERTa maintains higher reliability, whereas AlBERT and DistilBERT exhibit significant inconsistencies. Statistical analyses confirm that enabling MCD during prediction does not disrupt inference dynamics, validating its effectiveness as a reliability metric. These findings underscore the importance of evaluating both accuracy and stability in QA models to ensure stability in real-world applications.",
+      "authors": [
+        "Pooja Yadav",
+        "Priyanka Harjule",
+        "Basant Agarwal",
+        "Marko Robnik Šikonja"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-08-11T11:24:07+00:00",
+      "link": "https://arxiv.org/pdf/2608.10806v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluates reliability of BERT-family transformer models for QA; directly relevant to NLP techniques",
+      "llm_evidence_cn": "评估BERT系列Transformer模型在问答任务上的可靠性，直接关系NLP技术",
+      "llm_evidence": "评估BERT系列Transformer模型在问答任务上的可靠性，直接关系NLP技术",
+      "canonical_evidence": "评估BERT系列Transformer模型在问答任务上的可靠性，直接关系NLP技术",
+      "llm_tldr_en": "This study assesses the reliability of BERT and variants (RoBERTa, ALBERT, DistilBERT) on question answering classification tasks, highlighting underexplored trustworthiness issues.",
+      "llm_tldr_cn": "针对Transformer问答模型虽然准确率高但可靠性研究不足的问题，该研究系统评估了BERT、RoBERTa、ALBERT和DistilBERT四种编码器模型在问答分类任务上的可靠性。研究发现模型在精度之外存在可靠性风险，可靠性评估对于实际部署至关重要。工作为NLP模型的可信性评估提供了实证依据。对鲁棒模型选择和安全性应用具有参考价值。",
+      "llm_tldr": "针对Transformer问答模型虽然准确率高但可靠性研究不足的问题，该研究系统评估了BERT、RoBERTa、ALBERT和DistilBERT四种编码器模型在问答分类任务上的可靠性。研究发现模型在精度之外存在可靠性风险，可靠性评估对于实际部署至关重要。工作为NLP模型的可信性评估提供了实证依据。对鲁棒模型选择和安全性应用具有参考价值。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10806v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.10867v1",
+      "source": "arxiv",
+      "title": "Can Bayesian Optimization Efficiently Find a Strong Single Expert in Neural Thickets?",
+      "abstract": "Gradient-free post-training has emerged as a compelling alternative to gradient-based optimization for large language models (LLMs), but existing approaches remain costly. We ask whether structured search can identify a strong single expert under a modest evaluation budget. Motivated by evidence that useful weight updates lie in low-dimensional subspaces, we apply Bayesian optimization within a random linear embedding of weight space. Our method requires no backpropagation and uses a Gaussian process surrogate to guide candidate evaluations efficiently. Across several reasoning benchmarks with Qwen2.5-Instruct models from 0.5B to 3B parameters, Bayesian optimization using five times less candidate evaluations matches or exceeds RandOpt. These results show that surrogate-guided search can substantially reduce the evaluation cost of gradient-free post-training while producing stronger deployable single experts.",
+      "authors": [
+        "Nigel Bastian Cendra",
+        "Abdelhamid Ezzerg",
+        "Fernando Julio Cendra",
+        "Jeremias Knoblauch",
+        "Jakob Zeitler"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-08-11T12:41:49+00:00",
+      "link": "https://arxiv.org/pdf/2608.10867v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Bayesian optimization for efficient post-training of LLMs, deep learning advance.",
+      "llm_evidence_cn": "用贝叶斯优化高效后训练大语言模型，属深度学习进展。",
+      "llm_evidence": "用贝叶斯优化高效后训练大语言模型，属深度学习进展。",
+      "canonical_evidence": "用贝叶斯优化高效后训练大语言模型，属深度学习进展。",
+      "llm_tldr_en": "This work applies Bayesian optimization in a random linear embedding of weight space to find a strong single expert in LLMs without backpropagation, matching or exceeding random optimization with five times fewer evaluations.",
+      "llm_tldr_cn": "针对大语言模型梯度后训练成本高的问题，本文研究在预算受限条件下通过结构化搜索找到强单一专家。方法在权重的随机线性嵌入空间上应用贝叶斯优化，使用高斯过程代理指导候选评估，无需反向传播。在Qwen2.5-Instruct系列的多个推理基准上，贝叶斯优化以少五倍的评估次数达到或超过了随机优化。该结果表明低维结构化搜索可高效实现LLM后训练。",
+      "llm_tldr": "针对大语言模型梯度后训练成本高的问题，本文研究在预算受限条件下通过结构化搜索找到强单一专家。方法在权重的随机线性嵌入空间上应用贝叶斯优化，使用高斯过程代理指导候选评估，无需反向传播。在Qwen2.5-Instruct系列的多个推理基准上，贝叶斯优化以少五倍的评估次数达到或超过了随机优化。该结果表明低维结构化搜索可高效实现LLM后训练。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "deep learning recent advances",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10867v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.10939v1",
+      "source": "arxiv",
+      "title": "A Cost-Efficient Routing Pipeline for Multilingual Short-Text Classification Using Small Language Models",
+      "abstract": "Multilingual short-text classification supports operational systems such as content moderation, customer support routing, and intent recognition, yet aggregate evaluation often hides large differences between high-resource and low-resource languages. Uniform inference policies are simple to deploy, but they assume that all languages are equally well served. In this work, we evaluate a fixed-list routing strategy that keeps stronger languages on a direct multilingual path and selectively sends weaker languages through translation into English before zero-shot classification. The pipeline is fully self-hosted, uses pretrained compact sentence encoders, and requires no task-specific fine-tuning.   We test the approach on two benchmarks chosen to differ in scale and label granularity: a 15-language subset of SIB-200 for seven-way topic classification and a 15-locale subset of MASSIVE for intent classification over an official 60-intent inventory. On SIB-200, the best overall configuration is R1, which translates only the low-resource tier: high-tier and mid-tier Macro-F1 remain unchanged, while low-tier Macro-F1 rises from 0.4632 to 0.6828. On the MASSIVE subset, the same low-tier intervention raises low-tier Macro-F1 from 0.2143 to 0.4417, but the best overall result is obtained by full translation, R3, at Macro-F1 0.4647. Across these two benchmarks, selective translation is a reliable intervention for weaker languages, whereas the optimal routing boundary depends on the task. We therefore report routing through tier-level quality gains and tier-level latency rather than a single global efficiency score.",
+      "authors": [
+        "Wajdi Ben Saad",
+        "Safa Madiouni"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-08-11T14:06:53+00:00",
+      "link": "https://arxiv.org/pdf/2608.10939v1",
+      "tags": [
+        "keyword:ai",
+        "query:ai"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multilingual short-text classification routing pipeline using small language models",
+      "llm_evidence_cn": "基于小语言模型的多语言短文本分类路由流水线",
+      "llm_evidence": "基于小语言模型的多语言短文本分类路由流水线",
+      "canonical_evidence": "基于小语言模型的多语言短文本分类路由流水线",
+      "llm_tldr_en": "A cost-efficient routing pipeline for multilingual short-text classification that translates weaker languages before zero-shot classification, using compact sentence encoders.",
+      "llm_tldr_cn": "多语言短文本分类在低资源语言上性能差异大，统一推理策略未必最优。该文提出固定列表路由策略，对较强语言走多语言直连路径，较弱语言先翻译成英文再做零样本分类。流水线完全自托管，使用预训练紧凑句子编码器，无需任务微调，在保持效果的同时降低成本。",
+      "llm_tldr": "多语言短文本分类在低资源语言上性能差异大，统一推理策略未必最优。该文提出固定列表路由策略，对较强语言走多语言直连路径，较弱语言先翻译成英文再做零样本分类。流水线完全自托管，使用预训练紧凑句子编码器，无需任务微调，在保持效果的同时降低成本。",
+      "llm_tags": [
+        "query:ai"
+      ],
+      "matched_query_tag": "query:ai",
+      "matched_query_text": "natural language processing techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2608.10939v1",
+      "quick_tier": "8plus"
+    }
+  ]
+}
